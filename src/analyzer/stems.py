@@ -53,7 +53,7 @@ class StemCache:
         self.source_path = source_path.resolve()
         self._cache_root = cache_root or (source_path.parent / ".stems")
         self.source_hash = _md5_file(self.source_path)
-        self.stem_dir = self._cache_root / self.source_hash
+        self.stem_dir = self._cache_root
 
     def is_valid(self) -> bool:
         """Return True if the cache directory exists and the manifest is readable."""
@@ -67,17 +67,15 @@ class StemCache:
             return False
 
     def save(self, stem_set: StemSet) -> None:
-        """Write all stems as float32 WAV files and a manifest.json."""
-        import soundfile as sf
-
+        """Write all stems as MP3 files and a manifest.json."""
         self.stem_dir.mkdir(parents=True, exist_ok=True)
         stem_files: dict[str, str] = {}
 
         for name in _STEM_NAMES:
             arr = getattr(stem_set, name)
-            wav_path = self.stem_dir / f"{name}.wav"
-            sf.write(str(wav_path), arr, stem_set.sample_rate, subtype="FLOAT")
-            stem_files[name] = f"{name}.wav"
+            mp3_path = self.stem_dir / f"{name}.mp3"
+            _write_mp3(arr, stem_set.sample_rate, mp3_path)
+            stem_files[name] = f"{name}.mp3"
 
         manifest = {
             "source_hash": self.source_hash,
@@ -143,20 +141,47 @@ class StemSeparator:
 
     def _run_demucs(self, audio_path: Path, source_hash: str) -> StemSet:
         """Run Demucs htdemucs_6s and return a StemSet of mono float32 arrays."""
-        from demucs.api import Separator
+        import torch
+        import librosa
+        from demucs.pretrained import get_model
+        from demucs.apply import apply_model
 
-        separator = Separator("htdemucs_6s")
-        _, separated = separator.separate_audio_file(audio_path)
-        sr: int = separator.samplerate
+        model = get_model("htdemucs_6s")
+        model.eval()
 
+        # Load with librosa (handles MP3 via ffmpeg, no torchaudio backend needed)
+        wav_np, sr = librosa.load(str(audio_path), sr=None, mono=False, dtype=np.float32)
+        # librosa returns (samples,) for mono or (channels, samples) for stereo
+        if wav_np.ndim == 1:
+            wav_np = np.stack([wav_np, wav_np])
+        wav = torch.from_numpy(wav_np)
+
+        if sr != model.samplerate:
+            import torchaudio
+            wav = torchaudio.functional.resample(wav, sr, model.samplerate)
+        # Model expects stereo input
+        if wav.shape[0] == 1:
+            wav = wav.repeat(2, 1)
+        elif wav.shape[0] > 2:
+            wav = wav[:2]
+
+        # apply_model: (1, channels, samples) → (1, sources, channels, samples)
+        with torch.no_grad():
+            out = apply_model(model, wav.unsqueeze(0), device="cpu", progress=False)
+
+        out = out[0]  # drop batch dim → (sources, channels, samples)
         arrays: dict[str, np.ndarray] = {}
-        for name in _STEM_NAMES:
-            tensor = separated[name]
-            # tensor shape: (channels, samples) — collapse to mono
-            mono = tensor.mean(dim=0).numpy().astype(np.float32)
-            arrays[name] = mono
+        for i, name in enumerate(model.sources):
+            if name in _STEM_NAMES:
+                arrays[name] = out[i].mean(dim=0).numpy().astype(np.float32)
 
-        return StemSet(**arrays, sample_rate=sr)
+        # Fill any stem the model didn't produce with silence
+        n_samples = out.shape[-1]
+        for name in _STEM_NAMES:
+            if name not in arrays:
+                arrays[name] = np.zeros(n_samples, dtype=np.float32)
+
+        return StemSet(**arrays, sample_rate=model.samplerate)
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -168,3 +193,35 @@ def _md5_file(path: Path) -> str:
         for chunk in iter(lambda: fh.read(65536), b""):
             h.update(chunk)
     return h.hexdigest()
+
+
+def _find_ffmpeg() -> str:
+    """Return the path to the ffmpeg binary, checking common install locations."""
+    import shutil
+    found = shutil.which("ffmpeg")
+    if found:
+        return found
+    for candidate in ["/opt/homebrew/bin/ffmpeg", "/usr/local/bin/ffmpeg"]:
+        if Path(candidate).exists():
+            return candidate
+    raise FileNotFoundError(
+        "ffmpeg not found. Install via: brew install ffmpeg"
+    )
+
+
+def _write_mp3(arr: np.ndarray, sample_rate: int, path: Path) -> None:
+    """Write a float32 mono numpy array to an MP3 file via ffmpeg."""
+    import subprocess
+    pcm = (arr * 32768.0).clip(-32768, 32767).astype(np.int16)
+    subprocess.run(
+        [
+            _find_ffmpeg(), "-y",
+            "-f", "s16le", "-ar", str(sample_rate), "-ac", "1",
+            "-i", "pipe:0",
+            "-q:a", "2",
+            str(path),
+        ],
+        input=pcm.tobytes(),
+        check=True,
+        capture_output=True,
+    )

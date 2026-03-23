@@ -74,6 +74,12 @@ def cli() -> None:
     help="Lyrics text file for improved word alignment (requires --phonemes)",
 )
 @click.option(
+    "--phoneme-model", "phoneme_model", default="base",
+    type=click.Choice(["tiny", "base", "small", "medium", "large-v2"], case_sensitive=False),
+    help="Whisper model size for phoneme transcription (larger = more accurate, slower)",
+    show_default=True,
+)
+@click.option(
     "--no-cache", "no_cache", is_flag=True, default=False,
     help="Re-run analysis even if a cached result exists for this file",
 )
@@ -87,6 +93,7 @@ def analyze_cmd(
     use_stems: bool,
     use_phonemes: bool,
     lyrics_path: str | None,
+    phoneme_model: str,
     no_cache: bool,
 ) -> None:
     """Run all analysis algorithms on MP3_FILE and write a JSON result."""
@@ -117,15 +124,20 @@ def analyze_cmd(
 
     # ── Cache hit check ───────────────────────────────────────────────────────
     cache = AnalysisCache(audio_path, Path(out_path))
+    result = None
+    from_cache = False
     if not no_cache and cache.is_valid():
         result = cache.load()
+        from_cache = True
         click.echo(f"Loading audio: {audio_path.name}")
         click.echo(
             f"Analysis cache: hit ({(result.source_hash or '')[:8]}) — skipping algorithms."
         )
-        click.echo(f"Output: {out_path}")
-        _print_summary_table(result.timing_tracks)
-        return
+        if not (use_phonemes and result.phoneme_result is None):
+            click.echo(f"Output: {out_path}")
+            _print_summary_table(result.timing_tracks)
+            return
+        click.echo("Phoneme data missing from cache — running phoneme analysis...")
 
     # ── Full analysis run ─────────────────────────────────────────────────────
 
@@ -137,70 +149,68 @@ def analyze_cmd(
         click.echo(f"ERROR: Cannot write to {out_path}: {exc}", err=True)
         sys.exit(3)
 
-    # Build algorithm list
-    algo_list = default_algorithms(
-        include_vamp=not no_vamp,
-        include_madmom=not no_madmom,
-    )
-
-    # Optional algorithm filter
-    if algorithms.strip().lower() != "all":
-        names = {n.strip() for n in algorithms.split(",")}
-        algo_list = [a for a in algo_list if a.name in names]
-
-    if no_vamp:
-        click.echo("INFO: --no-vamp specified — Vamp algorithms skipped.", err=True)
-    if no_madmom:
-        click.echo("INFO: --no-madmom specified — madmom algorithms skipped.", err=True)
-
-    total = len(algo_list)
-
-    def progress(idx, total, name, mark_count):
-        click.echo(f"  [{idx:>2}/{total}] {name:<35} ... done ({mark_count} marks)")
-
-    # Quick load to show duration/BPM header before running
-    try:
-        from src.analyzer.audio import load
-        import librosa, numpy as np
-        audio, sr, meta = load(str(audio_path))
-        try:
-            tempo_arr, _ = librosa.beat.beat_track(y=audio, sr=sr, hop_length=512)
-            bpm = float(np.atleast_1d(tempo_arr)[0])
-        except Exception:
-            bpm = 0.0
-        click.echo(
-            f"Loading audio: {audio_path.name} ({_format_duration(meta.duration_ms)}) | BPM: ~{bpm:.1f}"
-        )
-        click.echo("Analysis cache: miss — running algorithms...")
-    except Exception as exc:
-        click.echo(f"ERROR: Cannot load {mp3_file}: {exc}", err=True)
-        sys.exit(1)
-
-    # Stem separation (optional, requires demucs)
     stems = None
-    if use_stems:
+    if not from_cache:
+        # Build algorithm list
+        algo_list = default_algorithms(
+            include_vamp=not no_vamp,
+            include_madmom=not no_madmom,
+        )
+
+        # Optional algorithm filter
+        if algorithms.strip().lower() != "all":
+            names = {n.strip() for n in algorithms.split(",")}
+            algo_list = [a for a in algo_list if a.name in names]
+
+        if no_vamp:
+            click.echo("INFO: --no-vamp specified — Vamp algorithms skipped.", err=True)
+        if no_madmom:
+            click.echo("INFO: --no-madmom specified — madmom algorithms skipped.", err=True)
+
+        def progress(idx, total, name, mark_count):
+            click.echo(f"  [{idx:>2}/{total}] {name:<35} ... done ({mark_count} marks)")
+
+        # Quick load to show duration/BPM header before running
         try:
-            from src.analyzer.stems import StemSeparator
-            sep = StemSeparator()
-            stems = sep.separate(audio_path)
-        except Exception as exc:
+            from src.analyzer.audio import load
+            import librosa, numpy as np
+            audio, sr, meta = load(str(audio_path))
+            try:
+                tempo_arr, _ = librosa.beat.beat_track(y=audio, sr=sr, hop_length=512)
+                bpm = float(np.atleast_1d(tempo_arr)[0])
+            except Exception:
+                bpm = 0.0
             click.echo(
-                f"WARNING: Stem separation failed ({exc}). Falling back to full-mix analysis.",
-                err=True,
+                f"Loading audio: {audio_path.name} ({_format_duration(meta.duration_ms)}) | BPM: ~{bpm:.1f}"
             )
-            stems = None
+            click.echo("Analysis cache: miss — running algorithms...")
+        except Exception as exc:
+            click.echo(f"ERROR: Cannot load {mp3_file}: {exc}", err=True)
+            sys.exit(1)
 
-    runner = AnalysisRunner(algo_list)
+        # Stem separation (optional, requires demucs)
+        if use_stems:
+            try:
+                from src.analyzer.stems import StemSeparator
+                sep = StemSeparator()
+                stems = sep.separate(audio_path)
+            except Exception as exc:
+                click.echo(
+                    f"WARNING: Stem separation failed ({exc}). Falling back to full-mix analysis.",
+                    err=True,
+                )
 
-    try:
-        result = runner.run(str(audio_path), progress_callback=progress, stems=stems)
-    except Exception as exc:
-        click.echo(f"ERROR: Analysis failed: {exc}", err=True)
-        sys.exit(2)
+        runner = AnalysisRunner(algo_list)
 
-    if not result.timing_tracks:
-        click.echo("ERROR: All algorithms failed — no output written.", err=True)
-        sys.exit(2)
+        try:
+            result = runner.run(str(audio_path), progress_callback=progress, stems=stems)
+        except Exception as exc:
+            click.echo(f"ERROR: Analysis failed: {exc}", err=True)
+            sys.exit(2)
+
+        if not result.timing_tracks:
+            click.echo("ERROR: All algorithms failed — no output written.", err=True)
+            sys.exit(2)
 
     # Phoneme analysis (optional, requires whisperx)
     xtiming_path: str | None = None
@@ -210,16 +220,15 @@ def analyze_cmd(
             from src.analyzer.xtiming import XTimingWriter
 
             vocal_stem_path = str(audio_path)
-            if stems is not None:
-                stem_vocals = getattr(stems, "vocals", None)
-                if stem_vocals and Path(stem_vocals).exists():
-                    vocal_stem_path = stem_vocals
+            from src.analyzer.stems import StemCache
+            vocals_file = StemCache(audio_path).stem_dir / "vocals.mp3"
+            if vocals_file.exists():
+                vocal_stem_path = str(vocals_file)
 
             click.echo("Phoneme analysis:")
-            model_name = "base"
-            click.echo(f"  → Transcribing vocals (whisper {model_name} model)...")
+            click.echo(f"  → Transcribing vocals (whisper {phoneme_model} model)...")
 
-            analyzer = PhonemeAnalyzer(model_name=model_name)
+            analyzer = PhonemeAnalyzer(model_name=phoneme_model)
             phoneme_result = analyzer.analyze(
                 vocal_stem_path, str(audio_path), lyrics_path=lyrics_path
             )
@@ -237,6 +246,28 @@ def analyze_cmd(
                 )
                 XTimingWriter().write(phoneme_result, xtiming_path)
                 result.phoneme_result = phoneme_result
+
+                # Write lyrics file if auto-transcribed and file not already present
+                if phoneme_result.word_track.lyrics_source == "auto" and lyrics_path is None:
+                    lyrics_out = audio_path.parent / (audio_path.stem + ".lyrics.txt")
+                    if not lyrics_out.exists():
+                        marks = phoneme_result.word_track.marks
+                        lines: list[str] = []
+                        current_line: list[str] = []
+                        for i, wm in enumerate(marks):
+                            current_line.append(wm.label)
+                            if i + 1 < len(marks) and marks[i + 1].start_ms - wm.end_ms > 500:
+                                lines.append(" ".join(current_line))
+                                current_line = []
+                        if current_line:
+                            lines.append(" ".join(current_line))
+                        lyrics_out.write_text("\n".join(lines) + "\n", encoding="utf-8")
+                        click.echo(
+                            f"  → Wrote {lyrics_out.name} — edit and rerun with "
+                            f"--phonemes --lyrics {lyrics_out.name}"
+                        )
+                    else:
+                        click.echo(f"  → {lyrics_out.name} already exists — not overwritten.")
             else:
                 click.echo("  → Warning: No vocals detected in audio. Skipping phoneme analysis.")
 

@@ -16,10 +16,12 @@ from werkzeug.utils import secure_filename
 class AnalysisJob:
     """State for a single upload-triggered analysis run."""
 
-    def __init__(self, mp3_path: str, include_vamp: bool, include_madmom: bool) -> None:
+    def __init__(self, mp3_path: str, include_vamp: bool, include_madmom: bool, use_stems: bool = False, use_phonemes: bool = False) -> None:
         self.mp3_path = mp3_path
         self.include_vamp = include_vamp
         self.include_madmom = include_madmom
+        self.use_stems = use_stems
+        self.use_phonemes = use_phonemes
         self.status: str = "running"  # "running" | "done" | "error"
         self.events: list[dict] = []
         self.total: int = 0
@@ -37,6 +39,10 @@ class AnalysisJob:
                 "mark_count": mark_count,
             })
 
+    def record_warning(self, message: str) -> None:
+        with self.lock:
+            self.events.append({"warning": message})
+
 
 _current_job: AnalysisJob | None = None
 _job_lock = threading.Lock()
@@ -47,8 +53,10 @@ def _run_analysis(app: Flask, job: AnalysisJob) -> None:
     global _current_job
     with app.app_context():
         try:
+            import time
             from src.analyzer.runner import AnalysisRunner, default_algorithms
-            from src import export as export_mod
+            from src.cache import AnalysisCache
+            from src.library import Library, LibraryEntry
 
             algo_list = default_algorithms(
                 include_vamp=job.include_vamp,
@@ -57,9 +65,24 @@ def _run_analysis(app: Flask, job: AnalysisJob) -> None:
             with job.lock:
                 job.total = len(algo_list)
 
+            # Optional stem separation
+            stems = None
+            stems_dir = Path(job.mp3_path).parent / "stems"
+            if job.use_stems:
+                try:
+                    from src.analyzer.stems import StemSeparator
+                    stems = StemSeparator(cache_dir=stems_dir).separate(Path(job.mp3_path))
+                except Exception as exc:
+                    import traceback
+                    job.record_warning(
+                        f"Stem separation failed: {type(exc).__name__}: {exc}\n"
+                        + traceback.format_exc()
+                    )
+
             result = AnalysisRunner(algo_list).run(
                 job.mp3_path,
                 progress_callback=job.record_progress,
+                stems=stems,
             )
 
             if not result.timing_tracks:
@@ -68,17 +91,57 @@ def _run_analysis(app: Flask, job: AnalysisJob) -> None:
                     job.error_message = "All algorithms failed — no tracks produced"
                 return
 
+            # Optional phoneme analysis — must run before save so it's in the JSON
+            if job.use_phonemes:
+                try:
+                    from src.analyzer.phonemes import PhonemeAnalyzer
+                    from src.analyzer.xtiming import XTimingWriter
+
+                    vocal_path = job.mp3_path
+                    stem_vocal = stems_dir / "vocals.mp3"
+                    if stem_vocal.exists():
+                        vocal_path = str(stem_vocal)
+
+                    analyzer = PhonemeAnalyzer(model_name="base")
+                    phoneme_result = analyzer.analyze(vocal_path, job.mp3_path)
+                    if phoneme_result is not None:
+                        result.phoneme_result = phoneme_result
+                        xtiming_path = str(
+                            Path(job.mp3_path).parent / (Path(job.mp3_path).stem + ".xtiming")
+                        )
+                        XTimingWriter().write(phoneme_result, xtiming_path)
+                except Exception as exc:
+                    job.record_warning(f"Phoneme analysis failed: {exc}")
+
             out_path = os.path.join(
                 os.path.dirname(job.mp3_path),
                 Path(job.mp3_path).stem + "_analysis.json",
             )
             try:
-                export_mod.write(result, out_path)
+                cache = AnalysisCache(Path(job.mp3_path), Path(out_path))
+                cache.save(result)
             except OSError as exc:
                 with job.lock:
                     job.status = "error"
                     job.error_message = f"Failed to write result: {exc}"
                 return
+
+            # Register in library (best-effort)
+            try:
+                lib_entry = LibraryEntry(
+                    source_hash=result.source_hash or "",
+                    source_file=str(Path(job.mp3_path).resolve()),
+                    filename=Path(job.mp3_path).name,
+                    analysis_path=str(Path(out_path).resolve()),
+                    duration_ms=result.duration_ms,
+                    estimated_tempo_bpm=result.estimated_tempo_bpm,
+                    track_count=len(result.timing_tracks),
+                    stem_separation=result.stem_separation,
+                    analyzed_at=int(time.time() * 1000),
+                )
+                Library().upsert(lib_entry)
+            except Exception:
+                pass
 
             with job.lock:
                 job.result_path = out_path
@@ -136,22 +199,87 @@ def create_app(analysis_path: str | None = None, audio_path: str | None = None) 
                 return send_from_directory(app.static_folder, "index.html")
             return send_from_directory(app.static_folder, "library.html")
 
+        @app.route("/library-view")
+        def library_view():
+            return send_from_directory(app.static_folder, "library.html")
+
+        @app.route("/phonemes-view")
+        def phonemes_view():
+            return send_from_directory(app.static_folder, "phonemes.html")
+
         @app.route("/library")
         def library_index():
             from src.library import Library
             lib = Library()
             entries = lib.all_entries()
+
+            def _has_phonemes(analysis_path: str) -> bool:
+                try:
+                    with open(analysis_path, "r", encoding="utf-8") as fh:
+                        data = json.load(fh)
+                    return data.get("phoneme_result") is not None
+                except Exception:
+                    return False
+
             result = {
                 "version": "1.0",
                 "entries": [
                     {
                         **e.__dict__,
                         "source_file_exists": Path(e.source_file).exists(),
+                        "has_phonemes": _has_phonemes(e.analysis_path),
                     }
                     for e in entries
                 ],
             }
             return jsonify(result)
+
+        @app.route("/phonemes")
+        def phonemes():
+            hash_param = request.args.get("hash")
+            if hash_param:
+                from src.library import Library
+                entry = Library().find_by_hash(hash_param)
+                if entry is None:
+                    return jsonify({"error": f"No analysis found for hash {hash_param}"}), 404
+                analysis_path = entry.analysis_path
+                mp3_path = entry.source_file
+            else:
+                job = _current_job
+                if job is None or job.result_path is None:
+                    return jsonify({"error": "No analysis available"}), 404
+                analysis_path = job.result_path
+                mp3_path = job.mp3_path
+
+            try:
+                with open(analysis_path, "r", encoding="utf-8") as fh:
+                    data = json.load(fh)
+            except (OSError, json.JSONDecodeError) as exc:
+                return jsonify({"error": f"Cannot read analysis: {exc}"}), 500
+
+            phoneme_result = data.get("phoneme_result")
+            if phoneme_result is None:
+                return jsonify({"error": "No phoneme data in this analysis"}), 404
+
+            vocals_path = Path(mp3_path).parent / "stems" / "vocals.mp3"
+            return jsonify({
+                **phoneme_result,
+                "duration_ms": data.get("duration_ms", 0),
+                "filename": data.get("filename", ""),
+                "has_vocals_audio": vocals_path.exists(),
+            })
+
+        @app.route("/vocal-audio")
+        def vocal_audio():
+            job = _current_job
+            if job is None:
+                return jsonify({"error": "No active job"}), 404
+            vocals_path = Path(job.mp3_path).parent / "stems" / "vocals.mp3"
+            if not vocals_path.exists():
+                return jsonify({"error": "No vocals stem available"}), 404
+            resp = send_file(str(vocals_path), mimetype="audio/mpeg", conditional=True)
+            resp.headers["Accept-Ranges"] = "bytes"
+            return resp
 
         @app.route("/open-from-library", methods=["POST"])
         def open_from_library():
@@ -194,9 +322,15 @@ def create_app(analysis_path: str | None = None, audio_path: str | None = None) 
             if not f.filename or not f.filename.lower().endswith(".mp3"):
                 return jsonify({"error": "Only .mp3 files are accepted"}), 400
 
-            # Save to working directory
+            # Save to ./songs/<stem>/<filename>
             filename = secure_filename(f.filename)
-            save_path = os.path.join(os.getcwd(), filename)
+            song_stem = Path(filename).stem
+            song_dir = Path(os.getcwd()) / "songs" / song_stem
+            try:
+                song_dir.mkdir(parents=True, exist_ok=True)
+            except OSError as exc:
+                return jsonify({"error": f"Failed to create song directory: {exc}"}), 500
+            save_path = str(song_dir / filename)
             try:
                 f.save(save_path)
             except OSError as exc:
@@ -204,11 +338,15 @@ def create_app(analysis_path: str | None = None, audio_path: str | None = None) 
 
             include_vamp = request.form.get("vamp", "true").lower() == "true"
             include_madmom = request.form.get("madmom", "true").lower() == "true"
+            use_phonemes = request.form.get("phonemes", "false").lower() == "true"
+            use_stems = request.form.get("stems", "false").lower() == "true" or use_phonemes
 
             job = AnalysisJob(
                 mp3_path=save_path,
                 include_vamp=include_vamp,
                 include_madmom=include_madmom,
+                use_stems=use_stems,
+                use_phonemes=use_phonemes,
             )
 
             with _job_lock:

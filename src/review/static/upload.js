@@ -6,8 +6,26 @@ const fileInput  = document.getElementById('file-input');
 const btnBrowse  = document.getElementById('btn-browse');
 const fileNameEl = document.getElementById('file-name');
 const fileErrorEl= document.getElementById('file-error');
-const chkVamp    = document.getElementById('chk-vamp');
-const chkMadmom  = document.getElementById('chk-madmom');
+const chkVamp     = document.getElementById('chk-vamp');
+const chkMadmom   = document.getElementById('chk-madmom');
+const chkStems    = document.getElementById('chk-stems');
+const chkPhonemes = document.getElementById('chk-phonemes');
+
+// Phonemes requires stems — keep them in sync
+if (chkPhonemes) {
+  chkPhonemes.addEventListener('change', () => {
+    if (chkPhonemes.checked && chkStems) {
+      chkStems.checked = true;
+    }
+  });
+}
+if (chkStems) {
+  chkStems.addEventListener('change', () => {
+    if (!chkStems.checked && chkPhonemes) {
+      chkPhonemes.checked = false;
+    }
+  });
+}
 const btnAnalyze = document.getElementById('btn-analyze');
 const uploadForm = document.getElementById('upload-form');
 const progressSection = document.getElementById('progress-section');
@@ -80,8 +98,10 @@ btnAnalyze.addEventListener('click', async () => {
 
   const formData = new FormData();
   formData.append('mp3', selectedFile, selectedFile.name);
-  formData.append('vamp',   chkVamp.checked   ? 'true' : 'false');
-  formData.append('madmom', chkMadmom.checked ? 'true' : 'false');
+  formData.append('vamp',     chkVamp.checked             ? 'true' : 'false');
+  formData.append('madmom',   chkMadmom.checked           ? 'true' : 'false');
+  formData.append('stems',    chkStems    && chkStems.checked    ? 'true' : 'false');
+  formData.append('phonemes', chkPhonemes && chkPhonemes.checked ? 'true' : 'false');
 
   // Update status hint
   const families = [];
@@ -161,6 +181,15 @@ function startProgressStream() {
       return;
     }
 
+    if (msg.warning) {
+      const row = document.createElement('div');
+      row.className = 'algo-row';
+      row.innerHTML = `<span class="err">⚠</span><span>${msg.warning}</span>`;
+      algoList.appendChild(row);
+      algoList.scrollTop = algoList.scrollHeight;
+      return;
+    }
+
     // Progress event
     doneCount += 1;
     if (msg.total) totalAlgos = msg.total;
@@ -208,8 +237,10 @@ async function checkJobStatus() {
     showProgress('algorithms');
     startProgressStream();
   } else if (status.status === 'done') {
-    // Reload — server will now serve index.html since job is done
-    window.location.reload();
+    // Only auto-navigate to the timeline when not already on the library view
+    if (window.location.pathname !== '/library-view') {
+      window.location.reload();
+    }
   }
   // idle → show upload form normally (already visible)
 }

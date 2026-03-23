@@ -62,6 +62,9 @@ async function loadLibrary() {
     const stemBadge = entry.stem_separation
       ? '<span class="badge-stems">stems</span>'
       : '';
+    const phonemesBadge = entry.has_phonemes
+      ? '<span class="badge-phonemes badge-phonemes-link" title="Open phoneme review">vocals ↗</span>'
+      : '';
 
     tr.innerHTML =
       `<td class="col-filename">${escapeHtml(entry.filename)}${warnBadge}</td>` +
@@ -69,11 +72,41 @@ async function loadLibrary() {
       `<td class="col-bpm">${entry.estimated_tempo_bpm.toFixed(1)}</td>` +
       `<td>${entry.track_count}</td>` +
       `<td>${stemBadge}</td>` +
+      `<td>${phonemesBadge}</td>` +
       `<td class="col-date">${formatDate(entry.analyzed_at)}</td>`;
 
-    tr.addEventListener('click', () => openAnalysis(entry));
+    tr.addEventListener('click', (e) => {
+      // Vocals badge opens phonemes view directly
+      if (e.target.classList.contains('badge-phonemes-link')) {
+        e.stopPropagation();
+        openPhonemes(entry);
+        return;
+      }
+      openAnalysis(entry);
+    });
     tbodyEl.appendChild(tr);
   }
+}
+
+// ── Open phonemes page from library ──────────────────────────────────────────
+
+async function openPhonemes(entry) {
+  let resp;
+  try {
+    resp = await fetch(
+      `/open-from-library?hash=${encodeURIComponent(entry.source_hash)}`,
+      { method: 'POST' }
+    );
+  } catch (err) {
+    alert(`Failed to open analysis: ${err.message}`);
+    return;
+  }
+  if (!resp.ok) {
+    const body = await resp.json().catch(() => ({}));
+    alert(`Cannot open analysis: ${body.error || resp.status}`);
+    return;
+  }
+  window.location.href = '/phonemes-view';
 }
 
 // ── Open analysis from library ────────────────────────────────────────────────

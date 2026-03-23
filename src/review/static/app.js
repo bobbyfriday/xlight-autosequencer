@@ -517,6 +517,13 @@ async function init() {
         isHighDensity: t.quality_score === 0 || (t.avg_interval_ms > 0 && t.avg_interval_ms < 200),
       }));
 
+    // Enable Phonemes button when phoneme data is present
+    const btnPhonemes = document.getElementById('btn-phonemes');
+    if (btnPhonemes && data.phoneme_result) {
+      btnPhonemes.disabled = false;
+      btnPhonemes.title = '';
+    }
+
     // Build phoneme layers from phoneme_result (if present)
     phonemeLayers = [];
     const pr = data.phoneme_result;
