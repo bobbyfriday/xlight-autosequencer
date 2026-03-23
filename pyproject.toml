@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "xlight-autosequencer"
+version = "0.1.0"
+description = "Automatically generate xLights sequences from audio files"
+requires-python = ">=3.11"
+dependencies = [
+    "librosa>=0.10",
+    "click>=8.0",
+    "numpy>=1.24,<2",
+    "scipy>=1.11",
+    "soundfile>=0.12",
+    "flask>=3.0",
+]
+
+[project.scripts]
+xlight-analyze = "src.cli:cli"
+
+[project.optional-dependencies]
+# madmom requires Python <=3.9 and numpy<2; install separately if compatible
+madmom = ["madmom>=0.16"]
+# vamp requires the Vamp host SDK C++ headers; install separately after SDK setup
+vamp = ["vamp>=1.1"]
+# demucs for stem separation (htdemucs_6s model)
+stems = ["demucs>=4.0"]
+dev = [
+    "pytest>=7.4",
+    "pytest-cov>=4.1",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+filterwarnings = [
+    "ignore::DeprecationWarning:madmom",
+    "ignore::UserWarning:librosa",
+    "ignore::FutureWarning:librosa",
+]
+markers = [
+    "vamp: marks tests requiring Vamp plugins (skipped if plugins not installed)",
+    "slow: marks tests that take more than 10 seconds",
+]

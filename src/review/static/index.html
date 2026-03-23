@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Track Review — xlight-analyze</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+  <div id="toolbar">
+    <button id="btn-play">Play</button>
+    <span id="time-display">0:00 / 0:00</span>
+    <div id="beat-flash" title="Beat indicator"></div>
+    <button id="btn-prev">&#9664; Prev</button>
+    <button id="btn-next">Next &#9654;</button>
+    <button id="btn-clear">Clear Focus</button>
+    <span id="focus-label"></span>
+    <span id="selected-count"></span>
+    <button id="btn-export" disabled>Export Selection</button>
+  </div>
+
+  <div id="main">
+    <div id="panel"></div>
+    <div id="canvas-wrap">
+      <canvas id="bg-canvas"></canvas>
+      <canvas id="fg-canvas"></canvas>
+    </div>
+  </div>
+
+  <audio id="player" src="/audio" preload="auto"></audio>
+
+  <div id="status">Loading analysis...</div>
+
+  <script src="/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,346 @@
+"""Flask review server for xlight-analyze review UI."""
+from __future__ import annotations
+
+import json
+import os
+import threading
+import time
+from pathlib import Path
+
+from flask import Flask, Response, jsonify, request, send_file, send_from_directory, stream_with_context
+from werkzeug.utils import secure_filename
+
+
+# ── Upload-mode shared state ──────────────────────────────────────────────────
+
+class AnalysisJob:
+    """State for a single upload-triggered analysis run."""
+
+    def __init__(self, mp3_path: str, include_vamp: bool, include_madmom: bool) -> None:
+        self.mp3_path = mp3_path
+        self.include_vamp = include_vamp
+        self.include_madmom = include_madmom
+        self.status: str = "running"  # "running" | "done" | "error"
+        self.events: list[dict] = []
+        self.total: int = 0
+        self.result_path: str | None = None
+        self.error_message: str | None = None
+        self.lock = threading.Lock()
+
+    def record_progress(self, idx: int, total: int, name: str, mark_count: int) -> None:
+        with self.lock:
+            self.total = total
+            self.events.append({
+                "idx": idx,
+                "total": total,
+                "name": name,
+                "mark_count": mark_count,
+            })
+
+
+_current_job: AnalysisJob | None = None
+_job_lock = threading.Lock()
+
+
+def _run_analysis(app: Flask, job: AnalysisJob) -> None:
+    """Background thread: run analysis pipeline and update job state."""
+    global _current_job
+    with app.app_context():
+        try:
+            from src.analyzer.runner import AnalysisRunner, default_algorithms
+            from src import export as export_mod
+
+            algo_list = default_algorithms(
+                include_vamp=job.include_vamp,
+                include_madmom=job.include_madmom,
+            )
+            with job.lock:
+                job.total = len(algo_list)
+
+            result = AnalysisRunner(algo_list).run(
+                job.mp3_path,
+                progress_callback=job.record_progress,
+            )
+
+            if not result.timing_tracks:
+                with job.lock:
+                    job.status = "error"
+                    job.error_message = "All algorithms failed — no tracks produced"
+                return
+
+            out_path = os.path.join(
+                os.path.dirname(job.mp3_path),
+                Path(job.mp3_path).stem + "_analysis.json",
+            )
+            try:
+                export_mod.write(result, out_path)
+            except OSError as exc:
+                with job.lock:
+                    job.status = "error"
+                    job.error_message = f"Failed to write result: {exc}"
+                return
+
+            with job.lock:
+                job.result_path = out_path
+                job.status = "done"
+
+        except Exception as exc:
+            with job.lock:
+                job.status = "error"
+                job.error_message = str(exc)
+
+
+def _progress_generator(job: AnalysisJob):
+    """SSE generator: yields progress events from a running or completed job."""
+    idx = 0
+    while True:
+        # Drain any new events
+        events = job.events  # list ref; safe to read length (append-only)
+        while idx < len(events):
+            yield f"data: {json.dumps(events[idx])}\n\n"
+            idx += 1
+
+        status = job.status
+        if status != "running":
+            # All events emitted — send terminal event
+            if status == "done":
+                yield f"data: {json.dumps({'done': True, 'result_path': job.result_path})}\n\n"
+            else:
+                yield f"data: {json.dumps({'error': job.error_message or 'Analysis failed'})}\n\n"
+            return
+
+        time.sleep(0.2)
+
+
+# ── App factory ────────────────────────────────────────────────────────────────
+
+def create_app(analysis_path: str | None = None, audio_path: str | None = None) -> Flask:
+    """
+    Create the Flask application.
+
+    - analysis_path=None, audio_path=None  → upload mode (shows upload page)
+    - Both provided                         → review mode (shows timeline)
+    """
+    app = Flask(__name__, static_folder=str(Path(__file__).parent / "static"), static_url_path="")
+    app.config["ANALYSIS_PATH"] = analysis_path
+    app.config["AUDIO_PATH"] = audio_path
+
+    if analysis_path is None:
+        # ── Upload mode ───────────────────────────────────────────────────────
+
+        @app.route("/")
+        def upload_index():
+            # Once analysis is done, serve the review timeline UI
+            job = _current_job
+            if job is not None and job.status == "done":
+                return send_from_directory(app.static_folder, "index.html")
+            return send_from_directory(app.static_folder, "upload.html")
+
+        @app.route("/upload", methods=["POST"])
+        def upload():
+            global _current_job
+
+            # Concurrency guard
+            with _job_lock:
+                if _current_job is not None and _current_job.status == "running":
+                    return jsonify({"error": "Analysis already running. Please wait."}), 409
+
+            # Validate file
+            if "mp3" not in request.files:
+                return jsonify({"error": "No file provided"}), 400
+            f = request.files["mp3"]
+            if not f.filename or not f.filename.lower().endswith(".mp3"):
+                return jsonify({"error": "Only .mp3 files are accepted"}), 400
+
+            # Save to working directory
+            filename = secure_filename(f.filename)
+            save_path = os.path.join(os.getcwd(), filename)
+            try:
+                f.save(save_path)
+            except OSError as exc:
+                return jsonify({"error": f"Failed to save file: {exc}"}), 500
+
+            include_vamp = request.form.get("vamp", "true").lower() == "true"
+            include_madmom = request.form.get("madmom", "true").lower() == "true"
+
+            job = AnalysisJob(
+                mp3_path=save_path,
+                include_vamp=include_vamp,
+                include_madmom=include_madmom,
+            )
+
+            with _job_lock:
+                _current_job = job
+
+            t = threading.Thread(target=_run_analysis, args=(app, job), daemon=True)
+            t.start()
+
+            # Estimate total for UI (actual total set in thread before first callback)
+            from src.analyzer.runner import default_algorithms
+            estimated_total = len(default_algorithms(
+                include_vamp=include_vamp,
+                include_madmom=include_madmom,
+            ))
+
+            return jsonify({
+                "status": "started",
+                "filename": filename,
+                "total": estimated_total,
+            }), 202
+
+        @app.route("/progress")
+        def progress():
+            job = _current_job
+            if job is None:
+                def no_job():
+                    yield f"data: {json.dumps({'error': 'No active job'})}\n\n"
+                return Response(no_job(), mimetype="text/event-stream",
+                                headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
+
+            return Response(
+                stream_with_context(_progress_generator(job)),
+                mimetype="text/event-stream",
+                headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+            )
+
+        @app.route("/job-status")
+        def job_status():
+            job = _current_job
+            if job is None:
+                return jsonify({"status": "idle"})
+            return jsonify({
+                "status": job.status,
+                "events_count": len(job.events),
+                "total": job.total,
+                "result_path": job.result_path,
+                "error": job.error_message,
+            })
+
+        @app.route("/analysis")
+        def analysis_upload():
+            job = _current_job
+            if job is None or job.result_path is None:
+                return jsonify({"error": "No analysis available"}), 404
+            with open(job.result_path, "r", encoding="utf-8") as fh:
+                data = json.load(fh)
+            return jsonify(data)
+
+        @app.route("/audio")
+        def audio_upload():
+            job = _current_job
+            if job is None:
+                return jsonify({"error": "No audio available"}), 404
+            resp = send_file(job.mp3_path, mimetype="audio/mpeg", conditional=True)
+            resp.headers["Accept-Ranges"] = "bytes"
+            return resp
+
+        @app.route("/export", methods=["POST"])
+        def export_upload():
+            job = _current_job
+            if job is None or job.result_path is None:
+                return jsonify({"error": "No analysis available"}), 404
+
+            body = request.get_json(force=True) or {}
+            selected_names = body.get("selected_track_names", [])
+            overwrite = body.get("overwrite", False)
+
+            if not selected_names:
+                return jsonify({"error": "No tracks selected"}), 400
+
+            with open(job.result_path, "r", encoding="utf-8") as fh:
+                source = json.load(fh)
+
+            selected_tracks = [
+                t for t in source.get("timing_tracks", [])
+                if t["name"] in selected_names
+            ]
+
+            src_path = Path(job.result_path)
+            stem = src_path.stem
+            if stem.endswith("_analysis"):
+                out_stem = stem[: -len("_analysis")] + "_selected"
+            else:
+                out_stem = stem + "_selected"
+            out_path = src_path.parent / (out_stem + ".json")
+
+            if out_path.exists() and not overwrite:
+                return jsonify({"warning": "File exists", "path": str(out_path)}), 409
+
+            output = dict(source)
+            output["timing_tracks"] = selected_tracks
+            selected_algo_names = {t["algorithm_name"] for t in selected_tracks}
+            output["algorithms"] = [
+                a for a in source.get("algorithms", [])
+                if a["name"] in selected_algo_names
+            ]
+
+            with open(out_path, "w", encoding="utf-8") as fh:
+                json.dump(output, fh, indent=2, ensure_ascii=False)
+
+            return jsonify({"path": str(out_path)}), 200
+
+    else:
+        # ── Review mode (existing behaviour) ─────────────────────────────────
+
+        @app.route("/")
+        def index():
+            return send_from_directory(app.static_folder, "index.html")
+
+        @app.route("/analysis")
+        def analysis():
+            with open(app.config["ANALYSIS_PATH"], "r", encoding="utf-8") as fh:
+                data = json.load(fh)
+            return jsonify(data)
+
+        @app.route("/audio")
+        def audio():
+            resp = send_file(
+                app.config["AUDIO_PATH"],
+                mimetype="audio/mpeg",
+                conditional=True,
+            )
+            resp.headers["Accept-Ranges"] = "bytes"
+            return resp
+
+        @app.route("/export", methods=["POST"])
+        def export():
+            body = request.get_json(force=True) or {}
+            selected_names = body.get("selected_track_names", [])
+            overwrite = body.get("overwrite", False)
+
+            if not selected_names:
+                return jsonify({"error": "No tracks selected"}), 400
+
+            with open(app.config["ANALYSIS_PATH"], "r", encoding="utf-8") as fh:
+                source = json.load(fh)
+
+            selected_tracks = [
+                t for t in source.get("timing_tracks", [])
+                if t["name"] in selected_names
+            ]
+
+            src_path = Path(app.config["ANALYSIS_PATH"])
+            stem = src_path.stem
+            if stem.endswith("_analysis"):
+                out_stem = stem[: -len("_analysis")] + "_selected"
+            else:
+                out_stem = stem + "_selected"
+            out_path = src_path.parent / (out_stem + ".json")
+
+            if out_path.exists() and not overwrite:
+                return jsonify({"warning": "File exists", "path": str(out_path)}), 409
+
+            output = dict(source)
+            output["timing_tracks"] = selected_tracks
+            selected_algo_names = {t["algorithm_name"] for t in selected_tracks}
+            output["algorithms"] = [
+                a for a in source.get("algorithms", [])
+                if a["name"] in selected_algo_names
+            ]
+
+            with open(out_path, "w", encoding="utf-8") as fh:
+                json.dump(output, fh, indent=2, ensure_ascii=False)
+
+            return jsonify({"path": str(out_path)}), 200
+
+    return app
