@@ -26,6 +26,7 @@ class Algorithm(ABC):
     plugin_key: str | None = None
     parameters: dict = {}
     preferred_stem: str = "full_mix"
+    vamp_output: str | None = None
 
     @abstractmethod
     def _run(self, audio: np.ndarray, sample_rate: int) -> TimingTrack:

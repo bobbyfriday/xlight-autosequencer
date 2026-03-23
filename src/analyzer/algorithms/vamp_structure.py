@@ -24,11 +24,16 @@ class QMSegmenterAlgorithm(Algorithm):
     library = "vamp"
     plugin_key = "qm-vamp-plugins:qm-segmenter"
     parameters = {}
+    vamp_output = "segmentation"
 
     def _run(self, audio: np.ndarray, sample_rate: int) -> TimingTrack:
         import vamp
 
-        outputs = vamp.collect(audio, sample_rate, self.plugin_key, output="segmentation")
+        outputs = vamp.collect(
+            audio, sample_rate, self.plugin_key,
+            output=self.vamp_output,
+            parameters=self.parameters,
+        )
         marks = _vamp_outputs_to_marks(outputs.get("list", []))
         return TimingTrack(
             name=self.name,
@@ -46,12 +51,17 @@ class QMTempoAlgorithm(Algorithm):
     element_type = "tempo"
     library = "vamp"
     plugin_key = "qm-vamp-plugins:qm-tempotracker"
-    parameters = {"output": "tempo"}
+    parameters = {}
+    vamp_output = "tempo"
 
     def _run(self, audio: np.ndarray, sample_rate: int) -> TimingTrack:
         import vamp
 
-        outputs = vamp.collect(audio, sample_rate, self.plugin_key, output="tempo")
+        outputs = vamp.collect(
+            audio, sample_rate, self.plugin_key,
+            output=self.vamp_output,
+            parameters=self.parameters,
+        )
         marks = _vamp_outputs_to_marks(outputs.get("list", []))
         return TimingTrack(
             name=self.name,

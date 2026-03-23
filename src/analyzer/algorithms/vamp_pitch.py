@@ -23,13 +23,18 @@ class PYINNotesAlgorithm(Algorithm):
     element_type = "melody"
     library = "vamp"
     plugin_key = "pyin:pyin"
-    parameters = {"output": "notes"}
+    parameters = {}
+    vamp_output = "notes"
     preferred_stem = "vocals"
 
     def _run(self, audio: np.ndarray, sample_rate: int) -> TimingTrack:
         import vamp
 
-        outputs = vamp.collect(audio, sample_rate, self.plugin_key, output="notes")
+        outputs = vamp.collect(
+            audio, sample_rate, self.plugin_key,
+            output=self.vamp_output,
+            parameters=self.parameters,
+        )
         marks = _vamp_outputs_to_marks(outputs.get("list", []))
         return TimingTrack(
             name=self.name,
@@ -47,14 +52,17 @@ class PYINPitchChangesAlgorithm(Algorithm):
     element_type = "melody"
     library = "vamp"
     plugin_key = "pyin:pyin"
-    parameters = {"output": "smoothedpitchtrack"}
+    parameters = {}
+    vamp_output = "smoothedpitchtrack"
     preferred_stem = "vocals"
 
     def _run(self, audio: np.ndarray, sample_rate: int) -> TimingTrack:
         import vamp
 
         outputs = vamp.collect(
-            audio, sample_rate, self.plugin_key, output="smoothedpitchtrack"
+            audio, sample_rate, self.plugin_key,
+            output=self.vamp_output,
+            parameters=self.parameters,
         )
         # smoothedpitchtrack is a dense frame-by-frame output; pick frames
         # where pitch is voiced (value > 0) to generate pitch-change events.
