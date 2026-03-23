@@ -24,13 +24,18 @@ class QMBeatAlgorithm(Algorithm):
     element_type = "beat"
     library = "vamp"
     plugin_key = "qm-vamp-plugins:qm-tempotracker"
-    parameters = {"output": "beats"}
+    parameters = {}
+    vamp_output = "beats"
     preferred_stem = "drums"
 
     def _run(self, audio: np.ndarray, sample_rate: int) -> TimingTrack:
         import vamp
 
-        outputs = vamp.collect(audio, sample_rate, self.plugin_key, output="beats")
+        outputs = vamp.collect(
+            audio, sample_rate, self.plugin_key,
+            output=self.vamp_output,
+            parameters=self.parameters,
+        )
         marks = _vamp_outputs_to_marks(outputs.get("list", []))
         return TimingTrack(
             name=self.name,
@@ -48,13 +53,18 @@ class QMBarAlgorithm(Algorithm):
     element_type = "bar"
     library = "vamp"
     plugin_key = "qm-vamp-plugins:qm-barbeattracker"
-    parameters = {"output": "bars"}
+    parameters = {}
+    vamp_output = "bars"
     preferred_stem = "drums"
 
     def _run(self, audio: np.ndarray, sample_rate: int) -> TimingTrack:
         import vamp
 
-        outputs = vamp.collect(audio, sample_rate, self.plugin_key, output="bars")
+        outputs = vamp.collect(
+            audio, sample_rate, self.plugin_key,
+            output=self.vamp_output,
+            parameters=self.parameters,
+        )
         marks = _vamp_outputs_to_marks(outputs.get("list", []))
         return TimingTrack(
             name=self.name,
@@ -73,12 +83,17 @@ class BeatRootAlgorithm(Algorithm):
     library = "vamp"
     plugin_key = "beatroot-vamp:beatroot"
     parameters = {}
+    vamp_output = "beats"
     preferred_stem = "drums"
 
     def _run(self, audio: np.ndarray, sample_rate: int) -> TimingTrack:
         import vamp
 
-        outputs = vamp.collect(audio, sample_rate, self.plugin_key, output="beats")
+        outputs = vamp.collect(
+            audio, sample_rate, self.plugin_key,
+            output=self.vamp_output,
+            parameters=self.parameters,
+        )
         marks = _vamp_outputs_to_marks(outputs.get("list", []))
         return TimingTrack(
             name=self.name,

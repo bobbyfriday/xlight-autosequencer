@@ -512,5 +512,267 @@ def review_cmd(audio_or_json: str | None) -> None:
         raise
 
 
+# ──────────────────────────────────────────────────────────────────────────────
+# sweep command
+# ──────────────────────────────────────────────────────────────────────────────
+
+@cli.command("sweep")
+@click.argument("audio_file", type=click.Path(exists=True, dir_okay=False))
+@click.option("--config", "config_path", required=True, type=click.Path(exists=True, dir_okay=False),
+              help="Path to sweep config JSON")
+@click.option("--output", default=None, help="Output report JSON path")
+@click.option("--yes", "skip_confirm", is_flag=True, default=False,
+              help="Skip confirmation prompt for large sweeps")
+def sweep_cmd(
+    audio_file: str,
+    config_path: str,
+    output: str | None,
+    skip_confirm: bool,
+) -> None:
+    """Run a parameter sweep for one Vamp algorithm against AUDIO_FILE."""
+    from src.analyzer.sweep import SweepConfig, SweepRunner, build_algorithm_registry
+    from src.analyzer.vamp_params import VampParamDiscovery, PluginNotFoundError
+
+    # Load config
+    try:
+        config = SweepConfig.from_file(config_path)
+    except (KeyError, ValueError, OSError) as exc:
+        click.echo(f"ERROR: Invalid sweep config: {exc}", err=True)
+        sys.exit(2)
+
+    # Validate parameters if possible
+    registry = build_algorithm_registry()
+    algo_cls = registry.get(config.algorithm)
+    if algo_cls is None:
+        click.echo(
+            f"ERROR: Algorithm '{config.algorithm}' not found. "
+            f"Available Vamp algorithms: {sorted(registry)}",
+            err=True,
+        )
+        sys.exit(2)
+
+    plugin_key = getattr(algo_cls, "plugin_key", None)
+    if plugin_key and (config.sweep_params or config.fixed_params):
+        try:
+            discovery = VampParamDiscovery()
+            errors = config.validate(plugin_key, discovery)
+            if errors:
+                click.echo("ERROR: Sweep config validation failed:", err=True)
+                for e in errors:
+                    click.echo(f"  - {e}", err=True)
+                sys.exit(2)
+        except PluginNotFoundError:
+            click.echo(
+                f"INFO: Plugin '{plugin_key}' not installed — skipping parameter validation.",
+                err=True,
+            )
+
+    # Determine output path
+    audio_path = Path(audio_file)
+    if output is None:
+        output = str(audio_path.parent / f"{audio_path.stem}_sweep_{config.algorithm}.json")
+
+    # Stem separation (if requested)
+    stems = None
+    default_stem = getattr(algo_cls, "preferred_stem", "full_mix")
+    if config.stems and any(s != "full_mix" for s in config.stems):
+        try:
+            from src.analyzer.stems import StemSeparator
+            click.echo("Stem separation: running (or loading from cache)...")
+            stems = StemSeparator().separate(audio_path)
+            click.echo("Stem separation: ready.")
+        except Exception as exc:
+            click.echo(
+                f"WARNING: Stem separation failed ({exc}). "
+                "Proceeding with full_mix only.",
+                err=True,
+            )
+            config = SweepConfig(
+                algorithm=config.algorithm,
+                stems=[],
+                sweep_params=config.sweep_params,
+                fixed_params=config.fixed_params,
+            )
+
+    # Confirm permutation count
+    n = config.permutation_count(default_stem=default_stem)
+    if n > 20 and not skip_confirm:
+        click.echo(f"Sweep will run {n} permutations. Proceed? [y/N]: ", nl=False)
+        answer = click.getchar()
+        click.echo(answer)
+        if answer.lower() != "y":
+            click.echo("Cancelled.")
+            sys.exit(130)
+
+    click.echo(f"Running sweep: {n} permutations of '{config.algorithm}'")
+
+    def progress(idx, total, stem, params, mark_count, score):
+        param_str = ", ".join(f"{k}={v}" for k, v in params.items())
+        click.echo(
+            f"  [{idx:>3}/{total}] stem={stem}, {param_str}"
+            f" ... done ({mark_count} marks, score: {score:.2f})"
+        )
+
+    runner = SweepRunner(registry)
+    try:
+        report = runner.run(audio_file, config, stems, progress_callback=progress)
+    except Exception as exc:
+        click.echo(f"ERROR: Sweep failed: {exc}", err=True)
+        sys.exit(2)
+
+    try:
+        report.write(output)
+    except OSError as exc:
+        click.echo(f"ERROR: Cannot write report: {exc}", err=True)
+        sys.exit(3)
+
+    stem_info = f"{len(report.stems_tested)} stem(s)" if len(report.stems_tested) > 1 else report.stems_tested[0] if report.stems_tested else "full_mix"
+    click.echo(f"\nSweep complete: {n} permutations ({stem_info})\n")
+    click.echo(f"  {'RANK':<5} {'SCORE':<7} {'MARKS':<7} {'AVG INTERVAL':<14} {'STEM':<12} PARAMETERS")
+    for r in report.results[:10]:
+        param_str = ", ".join(f"{k}={v}" for k, v in r.parameters.items())
+        click.echo(
+            f"  {r.rank:<5} {r.quality_score:<7.2f} {r.mark_count:<7} "
+            f"{r.avg_interval_ms:<14} {r.stem:<12} {param_str}"
+        )
+    if len(report.results) > 10:
+        click.echo(f"  ... ({len(report.results) - 10} more in report JSON)")
+    click.echo(f"\nReport: {output}")
+    click.echo("Use 'sweep-save' to persist the winning config (stem + parameters).")
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# params command
+# ──────────────────────────────────────────────────────────────────────────────
+
+@cli.command("params")
+@click.argument("plugin_key")
+@click.option(
+    "--suggest-steps", "suggest_steps", default=None, type=int,
+    help="Also print N evenly-spaced candidate values for each numeric parameter",
+)
+def params_cmd(plugin_key: str, suggest_steps: int | None) -> None:
+    """List all tunable parameters for an installed Vamp plugin."""
+    from src.analyzer.vamp_params import VampParamDiscovery, PluginNotFoundError
+
+    discovery = VampParamDiscovery()
+    try:
+        descriptors = discovery.list_params(plugin_key)
+    except PluginNotFoundError as exc:
+        click.echo(f"ERROR: {exc}", err=True)
+        sys.exit(1)
+
+    if not descriptors:
+        click.echo(f"Plugin '{plugin_key}' has no tunable parameters.")
+        return
+
+    click.echo(f"\nPlugin: {plugin_key}\n")
+    click.echo(f"  {'PARAM':<16} {'TYPE':<10} {'RANGE':<22} {'DEFAULT':<10} DESCRIPTION")
+    for d in descriptors:
+        if d.value_names:
+            type_str = "enum"
+            range_str = f"0–{len(d.value_names) - 1}"
+        elif d.is_quantized:
+            type_str = "int"
+            range_str = f"{d.min_value:.4g}–{d.max_value:.4g}"
+        else:
+            type_str = "float"
+            range_str = f"{d.min_value:.4g}–{d.max_value:.4g}"
+        default_str = f"{d.default_value:.4g}"
+        click.echo(
+            f"  {d.identifier:<16} {type_str:<10} {range_str:<22} {default_str:<10} {d.description or d.name}"
+        )
+        if d.value_names:
+            labels = "  ".join(f"{i}={v}" for i, v in enumerate(d.value_names))
+            click.echo(f"  {'':<16}   ({labels})")
+        if suggest_steps is not None:
+            try:
+                vals = discovery.suggest_values(d, steps=suggest_steps)
+                click.echo(f"  {'':<16}   Suggested: {[round(v, 4) for v in vals]}")
+            except ValueError:
+                pass
+
+    click.echo(
+        "\nUse these keys in your sweep config's \"sweep\" or \"fixed\" sections."
+    )
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# sweep-suggest command
+# ──────────────────────────────────────────────────────────────────────────────
+
+@cli.command("sweep-suggest")
+@click.argument("plugin_key")
+@click.argument("param_name")
+@click.option("--steps", default=5, show_default=True, help="Number of evenly-spaced values")
+def sweep_suggest_cmd(plugin_key: str, param_name: str, steps: int) -> None:
+    """Print N evenly-spaced candidate values for a numeric Vamp parameter."""
+    from src.analyzer.vamp_params import VampParamDiscovery, PluginNotFoundError
+
+    discovery = VampParamDiscovery()
+    try:
+        descriptors = {d.identifier: d for d in discovery.list_params(plugin_key)}
+    except PluginNotFoundError as exc:
+        click.echo(f"ERROR: {exc}", err=True)
+        sys.exit(1)
+
+    if param_name not in descriptors:
+        click.echo(
+            f"ERROR: Parameter '{param_name}' not found in plugin '{plugin_key}'.\n"
+            f"Available: {', '.join(sorted(descriptors))}",
+            err=True,
+        )
+        sys.exit(1)
+
+    desc = descriptors[param_name]
+    try:
+        vals = discovery.suggest_values(desc, steps=steps)
+    except ValueError as exc:
+        click.echo(f"ERROR: {exc}", err=True)
+        sys.exit(2)
+
+    rounded = [round(v, 4) for v in vals]
+    click.echo(
+        f"Suggested values for '{param_name}' "
+        f"(range {desc.min_value:.4g}–{desc.max_value:.4g}, default {desc.default_value:.4g}):"
+    )
+    click.echo(f"  {rounded}")
+    click.echo(f'\nAdd to your sweep config:\n  "{param_name}": {rounded}')
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# sweep-save command
+# ──────────────────────────────────────────────────────────────────────────────
+
+@cli.command("sweep-save")
+@click.argument("report_json", type=click.Path(exists=True, dir_okay=False))
+@click.option("--name", required=True, help="Name for the saved config")
+@click.option("--rank", "rank", default=1, show_default=True, type=int,
+              help="Rank of the result to save (1 = best)")
+def sweep_save_cmd(report_json: str, name: str, rank: int) -> None:
+    """Save the ranked sweep result as a named config for future use."""
+    from src.analyzer.sweep import SweepReport, SavedConfig
+
+    try:
+        report = SweepReport.read(report_json)
+    except Exception as exc:
+        click.echo(f"ERROR: Cannot read report: {exc}", err=True)
+        sys.exit(1)
+
+    try:
+        cfg = SavedConfig.from_report(report, rank=rank, name=name)
+    except ValueError as exc:
+        click.echo(f"ERROR: {exc}", err=True)
+        sys.exit(2)
+
+    saved_path = cfg.save()
+    click.echo(
+        f"Saved config '{name}' (rank {rank}): "
+        f"stem={cfg.stem}, algorithm={cfg.algorithm}"
+    )
+    click.echo(f"  Parameters: {cfg.parameters}")
+    click.echo(f"  Saved to: {saved_path}")
+
+
 def main() -> None:
     cli()

@@ -9,6 +9,8 @@ Auto-generated from all feature plans. Last updated: 2026-03-22
 - JSON files + `.xtiming` XML files (local filesystem) (009-vocal-phoneme-tracks)
 - Python 3.11+ + click 8+, Flask 3+ (existing); no new dependencies (010-analysis-cache-library)
 - JSON files — `_analysis.json` (existing, extended with `source_hash`); `~/.xlight/library.json` (new) (010-analysis-cache-library)
+- Python 3.11+ + vamp, numpy, click 8+ (all existing — no new deps) (005-vamp-parameter-tuning)
+- JSON files (local filesystem); new `~/.xlight/sweep_configs/` directory (005-vamp-parameter-tuning)
 
 - **Language**: Python 3.11+
 - **Audio analysis**: vamp (Python host), librosa 0.10+, madmom 0.16+
@@ -83,9 +85,9 @@ pytest tests/ -v
 - Timestamps are always stored as integers (milliseconds) — never floats
 
 ## Recent Changes
+- 005-vamp-parameter-tuning: Added Python 3.11+ + vamp, numpy, click 8+ (all existing — no new deps)
 - 010-analysis-cache-library: Added Python 3.11+ + click 8+, Flask 3+ (existing); no new dependencies
 - 009-vocal-phoneme-tracks: Added Python 3.11+ + whisperx (faster-whisper + wav2vec2), nltk cmudict, existing deps (vamp, librosa, madmom, demucs, click, Flask)
-- 010-analysis-cache-library: Added [if applicable, e.g., PostgreSQL, CoreData, files or N/A]
   `htdemucs_6s` separates audio into 6 stems (drums, bass, vocals, guitar, piano, other).
   Algorithms route to their preferred stem via `Algorithm.preferred_stem` class attribute.
   Stems are MD5-cached in `.stems/<hash>/` adjacent to the source file. Each `TimingTrack`
