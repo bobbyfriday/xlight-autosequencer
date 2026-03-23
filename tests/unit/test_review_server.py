@@ -11,6 +11,28 @@ import pytest
 from src.review.server import create_app
 
 
+FIXTURE_PHONEME_RESULT = {
+    "lyrics_block": {"text": "HELLO WORLD", "start_ms": 1000, "end_ms": 3000},
+    "word_track": {
+        "name": "whisperx-words",
+        "lyrics_source": "auto",
+        "marks": [
+            {"label": "HELLO", "start_ms": 1000, "end_ms": 2000},
+            {"label": "WORLD", "start_ms": 2100, "end_ms": 3000},
+        ],
+    },
+    "phoneme_track": {
+        "name": "whisperx-phonemes",
+        "marks": [
+            {"label": "AI", "start_ms": 1000, "end_ms": 1500},
+            {"label": "etc", "start_ms": 1500, "end_ms": 2000},
+        ],
+    },
+    "language": "en",
+    "model_name": "base",
+    "source_file": "/fake/song.mp3",
+}
+
 FIXTURE_ANALYSIS = {
     "schema_version": "1.0",
     "source_file": "/fake/song.mp3",
@@ -35,6 +57,7 @@ FIXTURE_ANALYSIS = {
          "quality_score": 0.60, "mark_count": 6, "avg_interval_ms": 833,
          "marks": [{"time_ms": i * 833, "confidence": None} for i in range(6)]},
     ],
+    "phoneme_result": FIXTURE_PHONEME_RESULT,
 }
 
 
@@ -148,6 +171,55 @@ def test_export_overwrite_returns_409_then_200(client, analysis_file):
     payload["overwrite"] = True
     r3 = client.post("/export", json=payload)
     assert r3.status_code == 200
+
+
+# ── T025: phoneme_result in /analysis endpoint ────────────────────────────────
+
+def test_analysis_includes_phoneme_result_when_present(client):
+    resp = client.get("/analysis")
+    data = resp.get_json()
+    assert "phoneme_result" in data
+    assert data["phoneme_result"] is not None
+
+
+def test_analysis_phoneme_result_has_word_track(client):
+    resp = client.get("/analysis")
+    data = resp.get_json()
+    pr = data["phoneme_result"]
+    assert "word_track" in pr
+    assert len(pr["word_track"]["marks"]) == 2
+
+
+def test_analysis_phoneme_result_has_phoneme_track(client):
+    resp = client.get("/analysis")
+    data = resp.get_json()
+    pr = data["phoneme_result"]
+    assert "phoneme_track" in pr
+    assert len(pr["phoneme_track"]["marks"]) == 2
+
+
+def test_analysis_phoneme_result_null_when_absent(tmp_path, audio_file):
+    """Analysis file without phoneme_result returns null for that field."""
+    analysis_no_phonemes = {
+        "schema_version": "1.0",
+        "source_file": "/fake/song.mp3",
+        "filename": "song.mp3",
+        "duration_ms": 10000,
+        "sample_rate": 44100,
+        "estimated_tempo_bpm": 120.0,
+        "run_timestamp": "2026-03-22T10:00:00",
+        "algorithms": [],
+        "timing_tracks": [],
+        "phoneme_result": None,
+    }
+    p = tmp_path / "no_phonemes.json"
+    p.write_text(json.dumps(analysis_no_phonemes), encoding="utf-8")
+    app = create_app(str(p), audio_file)
+    app.config["TESTING"] = True
+    with app.test_client() as c:
+        resp = c.get("/analysis")
+        data = resp.get_json()
+    assert data.get("phoneme_result") is None
 
 
 def test_export_preserves_all_mark_data(client):

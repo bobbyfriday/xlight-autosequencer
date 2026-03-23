@@ -2,7 +2,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
+
+if TYPE_CHECKING:
+    from src.analyzer.phonemes import PhonemeResult
 
 
 @dataclass
@@ -121,9 +124,11 @@ class AnalysisResult:
     timing_tracks: list[TimingTrack]
     stem_separation: bool = False
     stem_cache: Optional[str] = None
+    phoneme_result: Optional["PhonemeResult"] = None
 
     def to_dict(self) -> dict:
-        return {
+        from src.analyzer.phonemes import PhonemeResult as _PR
+        d: dict = {
             "schema_version": self.schema_version,
             "source_file": self.source_file,
             "filename": self.filename,
@@ -135,10 +140,15 @@ class AnalysisResult:
             "stem_cache": self.stem_cache,
             "algorithms": [a.to_dict() for a in self.algorithms],
             "timing_tracks": [t.to_dict() for t in self.timing_tracks],
+            "phoneme_result": self.phoneme_result.to_dict() if self.phoneme_result else None,
         }
+        return d
 
     @classmethod
     def from_dict(cls, d: dict) -> "AnalysisResult":
+        from src.analyzer.phonemes import PhonemeResult as _PR
+        pr_data = d.get("phoneme_result")
+        phoneme_result = _PR.from_dict(pr_data) if pr_data else None
         return cls(
             schema_version=d["schema_version"],
             source_file=d["source_file"],
@@ -151,4 +161,5 @@ class AnalysisResult:
             timing_tracks=[TimingTrack.from_dict(t) for t in d.get("timing_tracks", [])],
             stem_separation=d.get("stem_separation", False),
             stem_cache=d.get("stem_cache", None),
+            phoneme_result=phoneme_result,
         )

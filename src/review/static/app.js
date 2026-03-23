@@ -3,6 +3,8 @@
 // ── State ────────────────────────────────────────────────────────────────────
 
 let tracks = [];       // [{name, element_type, quality_score, mark_count, avg_interval_ms, marks_ms, selected, isHighDensity}]
+let phonemeLayers = []; // [{name, type, marks}] where marks = [{label, start_ms, end_ms}]
+                        // type: 'words' | 'phonemes'
 let durationMs = 0;
 let focusIndex = null; // int | null
 
@@ -25,6 +27,7 @@ const selectedCount = document.getElementById('selected-count');
 const status = document.getElementById('status');
 
 const LANE_H = 60;
+const PHONEME_LANE_H = 40; // shorter lanes for word/phoneme layers
 const AXIS_H = 24;
 const PX_PER_SEC = 100; // default zoom; canvas width = duration_s * PX_PER_SEC
 
@@ -41,7 +44,11 @@ function canvasWidth() {
 }
 
 function canvasHeight() {
-  return AXIS_H + tracks.length * LANE_H;
+  return AXIS_H + tracks.length * LANE_H + phonemeLayers.length * PHONEME_LANE_H;
+}
+
+function phonemeLayerY(i) {
+  return AXIS_H + tracks.length * LANE_H + i * PHONEME_LANE_H;
 }
 
 function timeToX(ms) {
@@ -96,6 +103,46 @@ function drawBackground() {
     });
     bgCtx.globalAlpha = 1.0;
   });
+
+  // Phoneme / word layers
+  const PHONEME_COLORS = { words: '#7ab', phonemes: '#a87', default: '#888' };
+  phonemeLayers.forEach((layer, i) => {
+    const y = phonemeLayerY(i);
+    const isEven = i % 2 === 0;
+    bgCtx.fillStyle = isEven ? '#161a1a' : '#1a1a16';
+    bgCtx.fillRect(0, y, w, PHONEME_LANE_H);
+
+    // Lane label
+    bgCtx.fillStyle = '#666';
+    bgCtx.font = '10px system-ui';
+    bgCtx.textBaseline = 'top';
+    bgCtx.fillText(layer.name, 4, y + 2);
+
+    // Lane separator
+    bgCtx.fillStyle = '#222';
+    bgCtx.fillRect(0, y + PHONEME_LANE_H - 1, w, 1);
+
+    const color = PHONEME_COLORS[layer.type] || PHONEME_COLORS.default;
+    bgCtx.font = '9px system-ui';
+    bgCtx.textBaseline = 'middle';
+
+    layer.marks.forEach(m => {
+      const x1 = timeToX(m.start_ms);
+      const x2 = timeToX(m.end_ms);
+      const barW = Math.max(1, x2 - x1 - 1);
+
+      bgCtx.fillStyle = color;
+      bgCtx.globalAlpha = 0.7;
+      bgCtx.fillRect(x1, y + 12, barW, PHONEME_LANE_H - 16);
+      bgCtx.globalAlpha = 1.0;
+
+      // Draw label if bar is wide enough
+      if (barW > 12) {
+        bgCtx.fillStyle = '#eee';
+        bgCtx.fillText(m.label, x1 + 2, y + PHONEME_LANE_H / 2);
+      }
+    });
+  });
 }
 
 // ── Foreground canvas (playhead + focus overlay) ──────────────────────────────
@@ -119,6 +166,23 @@ function drawForeground() {
     fgCtx.strokeStyle = '#4af';
     fgCtx.lineWidth = 2;
     fgCtx.strokeRect(1, focusY + 1, w - 2, LANE_H - 2);
+  }
+
+  // Highlight active word/phoneme marks at current playhead position
+  if (player.duration && isFinite(player.duration)) {
+    const currentMs = player.currentTime * 1000;
+    phonemeLayers.forEach((layer, i) => {
+      const y = phonemeLayerY(i);
+      const active = layer.marks.find(
+        m => currentMs >= m.start_ms && currentMs < m.end_ms
+      );
+      if (active) {
+        const x1 = timeToX(active.start_ms);
+        const x2 = timeToX(active.end_ms);
+        fgCtx.fillStyle = 'rgba(255,220,80,0.35)';
+        fgCtx.fillRect(x1, y + 1, Math.max(2, x2 - x1), PHONEME_LANE_H - 2);
+      }
+    });
   }
 
   // Playhead
@@ -453,12 +517,35 @@ async function init() {
         isHighDensity: t.quality_score === 0 || (t.avg_interval_ms > 0 && t.avg_interval_ms < 200),
       }));
 
+    // Build phoneme layers from phoneme_result (if present)
+    phonemeLayers = [];
+    const pr = data.phoneme_result;
+    if (pr) {
+      if (pr.word_track && pr.word_track.marks && pr.word_track.marks.length > 0) {
+        phonemeLayers.push({
+          name: pr.word_track.name || 'whisperx-words',
+          type: 'words',
+          marks: pr.word_track.marks,
+        });
+      }
+      if (pr.phoneme_track && pr.phoneme_track.marks && pr.phoneme_track.marks.length > 0) {
+        phonemeLayers.push({
+          name: pr.phoneme_track.name || 'whisperx-phonemes',
+          type: 'phonemes',
+          marks: pr.phoneme_track.marks,
+        });
+      }
+    }
+
     buildPanel();
     updateSelectedCount();
     drawBackground();
     drawForeground();
 
-    status.textContent = `Loaded ${tracks.length} tracks | ${fmtTime(durationMs / 1000)} | ${data.filename || ''}`;
+    const phonemeInfo = phonemeLayers.length > 0
+      ? ` | ${phonemeLayers[0].marks.length} words, ${phonemeLayers[1] ? phonemeLayers[1].marks.length + ' phonemes' : ''}`
+      : '';
+    status.textContent = `Loaded ${tracks.length} tracks${phonemeInfo} | ${fmtTime(durationMs / 1000)} | ${data.filename || ''}`;
 
     // Update time display when audio metadata loads
     player.addEventListener('loadedmetadata', () => {

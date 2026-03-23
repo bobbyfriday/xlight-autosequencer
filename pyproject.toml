@@ -26,6 +26,8 @@ madmom = ["madmom>=0.16"]
 vamp = ["vamp>=1.1"]
 # demucs for stem separation (htdemucs_6s model)
 stems = ["demucs>=4.0"]
+# whisperx for vocal phoneme analysis (--phonemes flag)
+phonemes = ["whisperx>=3.1", "nltk>=3.8"]
 dev = [
     "pytest>=7.4",
     "pytest-cov>=4.1",

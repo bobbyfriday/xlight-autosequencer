@@ -19,9 +19,9 @@
 
 **Purpose**: Install new dependencies and prepare fixture data
 
-- [ ] T001 Add whisperx and nltk to project dependencies in pyproject.toml
-- [ ] T002 [P] Create test fixture audio file tests/fixtures/10s_vocals.wav (short WAV with known spoken words for deterministic tests)
-- [ ] T003 [P] Create expected phoneme output fixture tests/fixtures/expected_phonemes.json (WordMarks + PhonemeMarks for the fixture audio)
+- [X] T001 Add whisperx and nltk to project dependencies in pyproject.toml
+- [X] T002 [P] Create test fixture audio file tests/fixtures/10s_vocals.wav (short WAV with known spoken words for deterministic tests)
+- [X] T003 [P] Create expected phoneme output fixture tests/fixtures/expected_phonemes.json (WordMarks + PhonemeMarks for the fixture audio)
 
 ---
 
@@ -31,10 +31,10 @@
 
 **CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T004 Define WordMark, PhonemeMark, WordTrack, PhonemeTrack, LyricsBlock, and PhonemeResult dataclasses in src/analyzer/phonemes.py (data-model.md entities; no logic yet)
-- [ ] T005 Implement ARPAbet-to-Papagayo mapping table and cmudict lookup helper in src/analyzer/phonemes.py (research.md Decision 2 mapping table; include unknown-word fallback)
-- [ ] T006 Implement phoneme timing distribution algorithm in src/analyzer/phonemes.py (research.md Decision 4: weighted duration distribution with etc transitions between mouth-shape changes)
-- [ ] T007 Add optional `phoneme_result: PhonemeResult | None` field to AnalysisResult in src/analyzer/result.py
+- [X] T004 Define WordMark, PhonemeMark, WordTrack, PhonemeTrack, LyricsBlock, and PhonemeResult dataclasses in src/analyzer/phonemes.py (data-model.md entities; no logic yet)
+- [X] T005 Implement ARPAbet-to-Papagayo mapping table and cmudict lookup helper in src/analyzer/phonemes.py (research.md Decision 2 mapping table; include unknown-word fallback)
+- [X] T006 Implement phoneme timing distribution algorithm in src/analyzer/phonemes.py (research.md Decision 4: weighted duration distribution with etc transitions between mouth-shape changes)
+- [X] T007 Add optional `phoneme_result: PhonemeResult | None` field to AnalysisResult in src/analyzer/result.py
 
 **Checkpoint**: Foundation ready — data classes, mapping, and timing distribution in place
 
@@ -50,20 +50,20 @@
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T008 [P] [US1] Unit tests for ARPAbet-to-Papagayo mapping and cmudict lookup in tests/unit/test_phonemes.py (verify all ARPAbet phonemes map correctly; verify unknown-word fallback)
-- [ ] T009 [P] [US1] Unit tests for phoneme timing distribution in tests/unit/test_phonemes.py (verify weighted distribution sums to word duration; verify etc transitions inserted between different categories)
-- [ ] T010 [P] [US1] Unit tests for PhonemeAnalyzer.analyze() in tests/unit/test_phonemes.py (mock WhisperX transcription output; verify WordTrack and PhonemeTrack produced from mock data)
-- [ ] T011 [P] [US1] Unit tests for XTimingWriter in tests/unit/test_xtiming.py (verify XML structure: timings > timing > 3 EffectLayers; verify Effect attributes label/starttime/endtime; verify song name sanitization)
-- [ ] T012 [P] [US1] Unit tests for phoneme_result JSON serialization/deserialization in tests/unit/test_phonemes.py (round-trip PhonemeResult through export.py; verify backward compat when phoneme_result is null/absent)
+- [X] T008 [P] [US1] Unit tests for ARPAbet-to-Papagayo mapping and cmudict lookup in tests/unit/test_phonemes.py (verify all ARPAbet phonemes map correctly; verify unknown-word fallback)
+- [X] T009 [P] [US1] Unit tests for phoneme timing distribution in tests/unit/test_phonemes.py (verify weighted distribution sums to word duration; verify etc transitions inserted between different categories)
+- [X] T010 [P] [US1] Unit tests for PhonemeAnalyzer.analyze() in tests/unit/test_phonemes.py (mock WhisperX transcription output; verify WordTrack and PhonemeTrack produced from mock data)
+- [X] T011 [P] [US1] Unit tests for XTimingWriter in tests/unit/test_xtiming.py (verify XML structure: timings > timing > 3 EffectLayers; verify Effect attributes label/starttime/endtime; verify song name sanitization)
+- [X] T012 [P] [US1] Unit tests for phoneme_result JSON serialization/deserialization in tests/unit/test_phonemes.py (round-trip PhonemeResult through export.py; verify backward compat when phoneme_result is null/absent)
 
 ### Implementation for User Story 1
 
-- [ ] T013 [US1] Implement PhonemeAnalyzer.analyze() in src/analyzer/phonemes.py — WhisperX transcription + wav2vec2 alignment, cmudict decomposition, timing distribution; returns PhonemeResult (research.md Decisions 1-4, 6)
-- [ ] T014 [US1] Implement XTimingWriter.write() in src/analyzer/xtiming.py — generate .xtiming XML with three EffectLayers (lyrics, words, phonemes) using xml.etree.ElementTree (research.md Decision 5; contracts/cli.md XML schema)
-- [ ] T015 [US1] Add phoneme_result serialization/deserialization to src/export.py (serialize PhonemeResult to JSON phoneme_result section; deserialize with backward compat for missing field)
-- [ ] T016 [US1] Add --phonemes flag to CLI analyze command in src/cli.py (--phonemes implies --stems; wire PhonemeAnalyzer after stem separation; write .xtiming alongside JSON output; contracts/cli.md behavior table)
-- [ ] T017 [US1] Handle edge cases in src/analyzer/phonemes.py and src/cli.py — no vocals detected (empty result + warning), phoneme analysis failure (warning, don't block other tracks), instrumental sections (no spurious marks via WhisperX VAD)
-- [ ] T018 [US1] Integration test for end-to-end --phonemes analysis in tests/integration/test_phoneme_pipeline.py (run CLI with --phonemes on fixture audio; verify JSON has phoneme_result; verify .xtiming file written and valid XML)
+- [X] T013 [US1] Implement PhonemeAnalyzer.analyze() in src/analyzer/phonemes.py — WhisperX transcription + wav2vec2 alignment, cmudict decomposition, timing distribution; returns PhonemeResult (research.md Decisions 1-4, 6)
+- [X] T014 [US1] Implement XTimingWriter.write() in src/analyzer/xtiming.py — generate .xtiming XML with three EffectLayers (lyrics, words, phonemes) using xml.etree.ElementTree (research.md Decision 5; contracts/cli.md XML schema)
+- [X] T015 [US1] Add phoneme_result serialization/deserialization to src/export.py (serialize PhonemeResult to JSON phoneme_result section; deserialize with backward compat for missing field)
+- [X] T016 [US1] Add --phonemes flag to CLI analyze command in src/cli.py (--phonemes implies --stems; wire PhonemeAnalyzer after stem separation; write .xtiming alongside JSON output; contracts/cli.md behavior table)
+- [X] T017 [US1] Handle edge cases in src/analyzer/phonemes.py and src/cli.py — no vocals detected (empty result + warning), phoneme analysis failure (warning, don't block other tracks), instrumental sections (no spurious marks via WhisperX VAD)
+- [X] T018 [US1] Integration test for end-to-end --phonemes analysis in tests/integration/test_phoneme_pipeline.py (run CLI with --phonemes on fixture audio; verify JSON has phoneme_result; verify .xtiming file written and valid XML)
 
 **Checkpoint**: `xlight-analyze analyze song.mp3 --phonemes` produces valid .xtiming + JSON with phoneme_result
 
@@ -77,15 +77,15 @@
 
 ### Tests for User Story 2
 
-- [ ] T019 [P] [US2] Unit tests for lyrics-assisted alignment in tests/unit/test_phonemes.py (mock WhisperX alignment-only mode with provided text; verify words come from provided lyrics not auto-transcription)
-- [ ] T020 [P] [US2] Unit tests for lyrics mismatch detection in tests/unit/test_phonemes.py (mock low alignment coverage < 50%; verify fallback to audio-only mode and warning returned)
+- [X] T019 [P] [US2] Unit tests for lyrics-assisted alignment in tests/unit/test_phonemes.py (mock WhisperX alignment-only mode with provided text; verify words come from provided lyrics not auto-transcription)
+- [X] T020 [P] [US2] Unit tests for lyrics mismatch detection in tests/unit/test_phonemes.py (mock low alignment coverage < 50%; verify fallback to audio-only mode and warning returned)
 
 ### Implementation for User Story 2
 
-- [ ] T021 [US2] Extend PhonemeAnalyzer.analyze() in src/analyzer/phonemes.py to accept lyrics_path parameter — read and normalize lyrics, use WhisperX alignment-only mode (research.md Decision 3)
-- [ ] T022 [US2] Implement mismatch detection in src/analyzer/phonemes.py — compute alignment coverage; if < 50% words aligned, fall back to audio-only and return warning (research.md Decision 3)
-- [ ] T023 [US2] Add --lyrics PATH option to CLI in src/cli.py — pass to PhonemeAnalyzer; warn and ignore if --phonemes not enabled (contracts/cli.md behavior table)
-- [ ] T024 [US2] Add lyrics_source field tracking ("auto" vs "provided") to WordTrack serialization in src/export.py
+- [X] T021 [US2] Extend PhonemeAnalyzer.analyze() in src/analyzer/phonemes.py to accept lyrics_path parameter — read and normalize lyrics, use WhisperX alignment-only mode (research.md Decision 3)
+- [X] T022 [US2] Implement mismatch detection in src/analyzer/phonemes.py — compute alignment coverage; if < 50% words aligned, fall back to audio-only and return warning (research.md Decision 3)
+- [X] T023 [US2] Add --lyrics PATH option to CLI in src/cli.py — pass to PhonemeAnalyzer; warn and ignore if --phonemes not enabled (contracts/cli.md behavior table)
+- [X] T024 [US2] Add lyrics_source field tracking ("auto" vs "provided") to WordTrack serialization in src/export.py
 
 **Checkpoint**: `--lyrics` flag works, mismatch detection falls back gracefully, lyrics_source tracked in output
 
@@ -99,13 +99,13 @@
 
 ### Tests for User Story 3
 
-- [ ] T025 [P] [US3] Unit tests for phoneme data endpoint in tests/unit/test_review_server.py (verify /analysis response includes phoneme_result when present; verify absent when no phoneme data)
+- [X] T025 [P] [US3] Unit tests for phoneme data endpoint in tests/unit/test_review_server.py (verify /analysis response includes phoneme_result when present; verify absent when no phoneme data)
 
 ### Implementation for User Story 3
 
-- [ ] T026 [US3] Extend /analysis endpoint in src/review/server.py to serve phoneme_result data (include word_track and phoneme_track in JSON response when available)
-- [ ] T027 [US3] Add word/phoneme track rendering to review UI in src/review/static/ (render WordTrack and PhonemeTrack as labeled duration marks on the timeline canvas; display Papagayo labels on phoneme marks)
-- [ ] T028 [US3] Add playback cursor sync for phoneme layers in src/review/static/ (highlight current word and phoneme marks during audio playback; scroll to active region)
+- [X] T026 [US3] Extend /analysis endpoint in src/review/server.py to serve phoneme_result data (include word_track and phoneme_track in JSON response when available)
+- [X] T027 [US3] Add word/phoneme track rendering to review UI in src/review/static/ (render WordTrack and PhonemeTrack as labeled duration marks on the timeline canvas; display Papagayo labels on phoneme marks)
+- [X] T028 [US3] Add playback cursor sync for phoneme layers in src/review/static/ (highlight current word and phoneme marks during audio playback; scroll to active region)
 
 **Checkpoint**: Review UI shows word/phoneme layers with labels, synced to playback
 
@@ -113,9 +113,9 @@
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T029 Update summary command output in src/cli.py to include phoneme track info (word count, phoneme count, language detected) when phoneme_result is present
-- [ ] T030 Run quickstart.md validation — verify all commands from quickstart.md work end-to-end
-- [ ] T031 Verify .xtiming backward compatibility — confirm existing analysis JSON files without phoneme_result load without error
+- [X] T029 Update summary command output in src/cli.py to include phoneme track info (word count, phoneme count, language detected) when phoneme_result is present
+- [X] T030 Run quickstart.md validation — verify all commands from quickstart.md work end-to-end
+- [X] T031 Verify .xtiming backward compatibility — confirm existing analysis JSON files without phoneme_result load without error
 
 ---
 

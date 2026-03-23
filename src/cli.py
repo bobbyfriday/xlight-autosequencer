@@ -65,6 +65,14 @@ def cli() -> None:
     "--stems/--no-stems", "use_stems", default=False,
     help="Run stem separation before analysis (requires demucs)",
 )
+@click.option(
+    "--phonemes/--no-phonemes", "use_phonemes", default=False,
+    help="Run vocal phoneme analysis and write .xtiming file (implies --stems)",
+)
+@click.option(
+    "--lyrics", "lyrics_path", default=None, type=click.Path(dir_okay=False),
+    help="Lyrics text file for improved word alignment (requires --phonemes)",
+)
 def analyze_cmd(
     mp3_file: str,
     output: str | None,
@@ -73,11 +81,25 @@ def analyze_cmd(
     no_madmom: bool,
     top_n: int | None,
     use_stems: bool,
+    use_phonemes: bool,
+    lyrics_path: str | None,
 ) -> None:
     """Run all analysis algorithms on MP3_FILE and write a JSON result."""
     from src.analyzer.runner import AnalysisRunner, default_algorithms
 
     audio_path = Path(mp3_file)
+
+    # --phonemes implies --stems
+    if use_phonemes:
+        use_stems = True
+
+    # Warn if --lyrics used without --phonemes
+    if lyrics_path is not None and not use_phonemes:
+        click.echo(
+            "WARNING: --lyrics is ignored without --phonemes. "
+            "Add --phonemes to enable phoneme analysis.",
+            err=True,
+        )
 
     # Determine output path
     if output is None:
@@ -157,13 +179,59 @@ def analyze_cmd(
         click.echo("ERROR: All algorithms failed — no output written.", err=True)
         sys.exit(2)
 
+    # Phoneme analysis (optional, requires whisperx)
+    xtiming_path: str | None = None
+    if use_phonemes:
+        try:
+            from src.analyzer.phonemes import PhonemeAnalyzer
+            from src.analyzer.xtiming import XTimingWriter
+
+            vocal_stem_path = str(audio_path)
+            if stems is not None:
+                stem_vocals = getattr(stems, "vocals", None)
+                if stem_vocals and Path(stem_vocals).exists():
+                    vocal_stem_path = stem_vocals
+
+            click.echo("Phoneme analysis:")
+            model_name = "base"
+            click.echo(f"  → Transcribing vocals (whisper {model_name} model)...")
+
+            analyzer = PhonemeAnalyzer(model_name=model_name)
+            phoneme_result = analyzer.analyze(
+                vocal_stem_path, str(audio_path), lyrics_path=lyrics_path
+            )
+
+            for warning in getattr(analyzer, "warnings", []):
+                click.echo(f"  → Warning: {warning}")
+
+            if phoneme_result is not None:
+                word_count = len(phoneme_result.word_track.marks)
+                phoneme_count = len(phoneme_result.phoneme_track.marks)
+                xtiming_path = str(audio_path.parent / (audio_path.stem + ".xtiming"))
+                click.echo(
+                    f"  → Writing {audio_path.stem}.xtiming "
+                    f"(3 layers: lyrics, {word_count} words, {phoneme_count} phonemes)"
+                )
+                XTimingWriter().write(phoneme_result, xtiming_path)
+                result.phoneme_result = phoneme_result
+            else:
+                click.echo("  → Warning: No vocals detected in audio. Skipping phoneme analysis.")
+
+        except RuntimeError as exc:
+            click.echo(f"WARNING: Phoneme analysis failed: {exc}", err=True)
+        except Exception as exc:
+            click.echo(f"WARNING: Phoneme analysis failed: {exc}", err=True)
+
     try:
         export_mod.write(result, out_path)
     except OSError as exc:
         click.echo(f"ERROR: Cannot write output: {exc}", err=True)
         sys.exit(3)
 
-    click.echo(f"\nAnalysis complete. Output: {out_path}")
+    if xtiming_path:
+        click.echo(f"\nAnalysis complete: {out_path} + {Path(xtiming_path).name}")
+    else:
+        click.echo(f"\nAnalysis complete. Output: {out_path}")
     _print_summary_table(result.timing_tracks)
 
     if top_n is not None:
@@ -212,6 +280,18 @@ def summary_cmd(analysis_json: str, top_n: int | None) -> None:
         f"Source: {result.filename} ({duration_str}) | BPM: {result.estimated_tempo_bpm} "
         f"| Analyzed: {result.run_timestamp} | {len(result.timing_tracks)} tracks"
     )
+
+    pr = result.phoneme_result
+    if pr is not None:
+        word_count = len(pr.word_track.marks)
+        phoneme_count = len(pr.phoneme_track.marks)
+        lang = pr.language
+        model = pr.model_name
+        click.echo(
+            f"Phonemes: {word_count} words | {phoneme_count} phonemes "
+            f"| Language: {lang} | Model: {model}"
+        )
+
     _print_summary_table(result.timing_tracks, limit=top_n)
 
 

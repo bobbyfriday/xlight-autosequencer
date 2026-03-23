@@ -1,0 +1,35 @@
+{
+  "lyrics_block": {
+    "text": "HELLO WORLD",
+    "start_ms": 1000,
+    "end_ms": 3000
+  },
+  "word_track": {
+    "name": "whisperx-words",
+    "lyrics_source": "auto",
+    "marks": [
+      {"label": "HELLO", "start_ms": 1000, "end_ms": 2000},
+      {"label": "WORLD", "start_ms": 2100, "end_ms": 3000}
+    ]
+  },
+  "phoneme_track": {
+    "name": "whisperx-phonemes",
+    "marks": [
+      {"label": "etc", "start_ms": 1000, "end_ms": 1086},
+      {"label": "etc", "start_ms": 1086, "end_ms": 1136},
+      {"label": "E", "start_ms": 1136, "end_ms": 1355},
+      {"label": "etc", "start_ms": 1355, "end_ms": 1405},
+      {"label": "L", "start_ms": 1405, "end_ms": 1513},
+      {"label": "etc", "start_ms": 1513, "end_ms": 1563},
+      {"label": "O", "start_ms": 1563, "end_ms": 2000},
+      {"label": "WQ", "start_ms": 2100, "end_ms": 2233},
+      {"label": "etc", "start_ms": 2233, "end_ms": 2283},
+      {"label": "E", "start_ms": 2283, "end_ms": 2548},
+      {"label": "etc", "start_ms": 2548, "end_ms": 2598},
+      {"label": "L", "start_ms": 2598, "end_ms": 2731},
+      {"label": "etc", "start_ms": 2731, "end_ms": 3000}
+    ]
+  },
+  "language": "en",
+  "model_name": "base"
+}
