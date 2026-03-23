@@ -24,14 +24,16 @@ class QMOnsetComplexAlgorithm(Algorithm):
     library = "vamp"
     plugin_key = "qm-vamp-plugins:qm-onsetdetector"
     parameters = {"dftype": 3}  # 3 = Complex Domain
+    vamp_output = "onsets"
     preferred_stem = "drums"
 
     def _run(self, audio: np.ndarray, sample_rate: int) -> TimingTrack:
         import vamp
 
         outputs = vamp.collect(
-            audio, sample_rate, self.plugin_key, output="onsets",
-            parameters={"dftype": 3},
+            audio, sample_rate, self.plugin_key,
+            output=self.vamp_output,
+            parameters=self.parameters,
         )
         marks = _vamp_outputs_to_marks(outputs.get("list", []))
         return TimingTrack(
@@ -51,14 +53,16 @@ class QMOnsetHFCAlgorithm(Algorithm):
     library = "vamp"
     plugin_key = "qm-vamp-plugins:qm-onsetdetector"
     parameters = {"dftype": 0}  # 0 = High-Frequency Content
+    vamp_output = "onsets"
     preferred_stem = "drums"
 
     def _run(self, audio: np.ndarray, sample_rate: int) -> TimingTrack:
         import vamp
 
         outputs = vamp.collect(
-            audio, sample_rate, self.plugin_key, output="onsets",
-            parameters={"dftype": 0},
+            audio, sample_rate, self.plugin_key,
+            output=self.vamp_output,
+            parameters=self.parameters,
         )
         marks = _vamp_outputs_to_marks(outputs.get("list", []))
         return TimingTrack(
@@ -78,14 +82,16 @@ class QMOnsetPhaseAlgorithm(Algorithm):
     library = "vamp"
     plugin_key = "qm-vamp-plugins:qm-onsetdetector"
     parameters = {"dftype": 2}  # 2 = Phase Deviation
+    vamp_output = "onsets"
     preferred_stem = "drums"
 
     def _run(self, audio: np.ndarray, sample_rate: int) -> TimingTrack:
         import vamp
 
         outputs = vamp.collect(
-            audio, sample_rate, self.plugin_key, output="onsets",
-            parameters={"dftype": 2},
+            audio, sample_rate, self.plugin_key,
+            output=self.vamp_output,
+            parameters=self.parameters,
         )
         marks = _vamp_outputs_to_marks(outputs.get("list", []))
         return TimingTrack(

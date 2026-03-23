@@ -23,13 +23,18 @@ class ChordinoAlgorithm(Algorithm):
     element_type = "harmonic"
     library = "vamp"
     plugin_key = "nnls-chroma:chordino"
-    parameters = {"output": "simplechord"}
+    parameters = {}
+    vamp_output = "simplechord"
     preferred_stem = "piano"
 
     def _run(self, audio: np.ndarray, sample_rate: int) -> TimingTrack:
         import vamp
 
-        outputs = vamp.collect(audio, sample_rate, self.plugin_key, output="simplechord")
+        outputs = vamp.collect(
+            audio, sample_rate, self.plugin_key,
+            output=self.vamp_output,
+            parameters=self.parameters,
+        )
         marks = _vamp_outputs_to_marks(outputs.get("list", []))
         return TimingTrack(
             name=self.name,
@@ -47,14 +52,17 @@ class NNLSChromaAlgorithm(Algorithm):
     element_type = "harmonic"
     library = "vamp"
     plugin_key = "nnls-chroma:nnls-chroma"
-    parameters = {"output": "chroma"}
+    parameters = {}
+    vamp_output = "chroma"
     preferred_stem = "piano"
 
     def _run(self, audio: np.ndarray, sample_rate: int) -> TimingTrack:
         import vamp
 
         # process_audio returns per-frame dicts with 'timestamp' and 'values'
-        frames = list(vamp.process_audio(audio, sample_rate, self.plugin_key, output="chroma"))
+        frames = list(vamp.process_audio(
+            audio, sample_rate, self.plugin_key, output=self.vamp_output
+        ))
         marks = []
         for frame in frames:
             t = frame["timestamp"]
