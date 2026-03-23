@@ -108,6 +108,17 @@
       padding: 0 0.3rem;
     }
 
+    .badge-phonemes {
+      display: inline-block;
+      font-size: 0.72rem;
+      background: #1a1a3a;
+      color: #7ec8e3;
+      border-radius: 3px;
+      padding: 0 0.3rem;
+    }
+    .badge-phonemes-link { cursor: pointer; }
+    .badge-phonemes-link:hover { background: #2a2a5a; color: #aee; }
+
     /* ── Upload section ─────────────────────────────────────────────────────── */
 
     #upload-section h2 {
@@ -262,6 +273,7 @@
           <th>BPM</th>
           <th>Tracks</th>
           <th>Stems</th>
+          <th>Vocals</th>
           <th>Analyzed</th>
         </tr>
       </thead>
@@ -290,6 +302,14 @@
         <label>
           <input type="checkbox" id="chk-madmom" checked />
           madmom (~2 tracks)
+        </label>
+        <label>
+          <input type="checkbox" id="chk-stems" />
+          Stem separation (demucs)
+        </label>
+        <label>
+          <input type="checkbox" id="chk-phonemes" />
+          Phonemes (whisperx)
         </label>
       </div>
 
