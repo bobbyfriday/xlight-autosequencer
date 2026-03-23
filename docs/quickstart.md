@@ -152,6 +152,75 @@ xlight-analyze review song_analysis.json
 
 ---
 
+## Level 6 — xLights export pipeline (one command)
+
+After running a full analysis, this generates the files you import into xLights:
+
+```bash
+xlight-analyze pipeline song.mp3 --output-dir ./xlight-export
+```
+
+This runs end-to-end:
+1. Inspects available stems (KEEP/REVIEW/SKIP verdict per stem)
+2. Analyzes the audio (or uses the cached analysis)
+3. Detects cross-stem interactions (leader changes, kick-bass lock, melodic handoffs)
+4. Conditions each timing track into a 0–100 value curve (downsampled to 20 fps, smoothed, normalized)
+5. Exports the top 5 timing tracks as a single `.xtiming` file
+6. Exports one `.xvc` value curve per timing track (full-resolution + macro)
+7. Writes `export_manifest.json` listing every output file
+
+**Import into xLights:**
+- `.xtiming` → Timing Tracks panel → right-click sequence → Import Timing Tracks
+- `.xvc` → any effect's value curve editor → load from file
+
+---
+
+## Level 6a — Stem quality check before export
+
+Inspect which stems are worth using before running the full pipeline:
+
+```bash
+xlight-analyze stem-inspect song.mp3
+```
+
+For an interactive prompt to confirm or override each verdict:
+
+```bash
+xlight-analyze stem-review song.mp3
+# or accept all automatic verdicts without prompting:
+xlight-analyze stem-review song.mp3 --yes
+```
+
+---
+
+## Level 6b — Intelligent sweep parameter initialization
+
+Generate algorithm-specific parameter sweep ranges tuned to the song's audio characteristics:
+
+```bash
+xlight-analyze sweep-init song.mp3
+```
+
+This estimates BPM and stem RMS levels, then writes one JSON config per algorithm to `analysis/sweep_configs/`. Each config includes a `rationale` field explaining why those parameter ranges were chosen.
+
+Preview without writing files:
+
+```bash
+xlight-analyze sweep-init song.mp3 --dry-run
+```
+
+---
+
+## Level 6c — Export from an existing analysis JSON
+
+If you already have a `song_analysis.json` and just want the xLights files:
+
+```bash
+xlight-analyze export-xlights song_analysis.json --output-dir ./xlight-export
+```
+
+---
+
 ## Where files are saved
 
 After analysis, all files land in `songs/<song_name>/` relative to where you ran the command:
@@ -163,13 +232,24 @@ songs/
     ├── My_Song_analysis.json    <- full analysis (re-used on re-runs)
     ├── My_Song.xtiming          <- xLights phoneme timing file
     ├── My_Song.lyrics.txt       <- editable auto-transcription
-    └── stems/
-        ├── drums.mp3
-        ├── bass.mp3
-        ├── vocals.mp3
-        ├── guitar.mp3
-        ├── piano.mp3
-        └── other.mp3
+    ├── stems/
+    │   ├── drums.mp3
+    │   ├── bass.mp3
+    │   ├── vocals.mp3
+    │   ├── guitar.mp3
+    │   ├── piano.mp3
+    │   └── other.mp3
+    └── analysis/
+        ├── My_Song_timing.xtiming   <- all timing tracks (xLights import)
+        ├── drums_beat.xvc           <- value curve (full resolution)
+        ├── drums_beat_macro.xvc     <- value curve (≤100 points, full song)
+        ├── bass_onset.xvc
+        ├── ...
+        ├── export_manifest.json     <- lists every exported file + warnings
+        └── sweep_configs/
+            ├── qm_beats.json
+            ├── qm_onsets_complex.json
+            └── ...
 ```
 
 Analyzed songs are also registered in `~/.xlight/library.json` so the review UI's song library can find them.

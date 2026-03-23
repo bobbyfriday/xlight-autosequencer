@@ -186,8 +186,9 @@ def analyze_cmd(
         )
 
     # Determine output path
+    analysis_dir = audio_path.parent / "analysis"
     if output is None:
-        out_path = str(audio_path.parent / (audio_path.stem + "_analysis.json"))
+        out_path = str(analysis_dir / (audio_path.stem + "_analysis.json"))
     else:
         out_path = output
 
@@ -314,7 +315,7 @@ def analyze_cmd(
             if phoneme_result is not None:
                 word_count = len(phoneme_result.word_track.marks)
                 phoneme_count = len(phoneme_result.phoneme_track.marks)
-                xtiming_path = str(audio_path.parent / (audio_path.stem + ".xtiming"))
+                xtiming_path = str(analysis_dir / (audio_path.stem + ".xtiming"))
                 click.echo(
                     f"  → Writing {audio_path.stem}.xtiming "
                     f"(3 layers: lyrics, {word_count} words, {phoneme_count} phonemes)"
@@ -324,7 +325,7 @@ def analyze_cmd(
 
                 # Write lyrics file if auto-transcribed and file not already present
                 if phoneme_result.word_track.lyrics_source == "auto" and lyrics_path is None:
-                    lyrics_out = audio_path.parent / (audio_path.stem + ".lyrics.txt")
+                    lyrics_out = analysis_dir / (audio_path.stem + ".lyrics.txt")
                     if not lyrics_out.exists():
                         marks = phoneme_result.word_track.marks
                         lines: list[str] = []
@@ -351,13 +352,17 @@ def analyze_cmd(
         except Exception as exc:
             click.echo(f"WARNING: Phoneme analysis failed: {exc}", err=True)
 
-    # Structure analysis (optional, requires allin1)
+    # Structure analysis
     if use_structure:
         try:
             from src.analyzer.structure import StructureAnalyzer
             click.echo("Structure analysis:")
-            click.echo("  → Detecting segments (intro/verse/chorus/bridge/outro)...")
-            song_structure = StructureAnalyzer().analyze(str(audio_path))
+            lyric_hint = " + lyrics" if result.phoneme_result is not None else ""
+            click.echo(f"  → Detecting segments (intro/verse/chorus/bridge/outro){lyric_hint}...")
+            song_structure = StructureAnalyzer().analyze(
+                str(audio_path),
+                phoneme_result=result.phoneme_result,
+            )
             if song_structure.segments:
                 result.song_structure = song_structure
                 labels = [s.label for s in song_structure.segments]
@@ -400,7 +405,7 @@ def analyze_cmd(
 
     if top_n is not None:
         click.echo(f"\nAuto-selecting top {top_n} tracks by quality score (with diversity filter)...")
-        top_path = str(audio_path.parent / f"{audio_path.stem}_top{top_n}.json")
+        top_path = str(analysis_dir / f"{audio_path.stem}_top{top_n}.json")
 
         from src.analyzer.diversity import DiversityFilter
         cfg = scoring_config or __import__("src.analyzer.scoring_config", fromlist=["ScoringConfig"]).ScoringConfig.default()
@@ -436,6 +441,69 @@ def analyze_cmd(
 
 
 # ──────────────────────────────────────────────────────────────────────────────
+# full command
+# ──────────────────────────────────────────────────────────────────────────────
+
+@cli.command("full")
+@click.argument("mp3_file", type=click.Path(exists=True, dir_okay=False))
+@click.option("--output", default=None, help="Output JSON path (default: analysis/<stem>_analysis.json)")
+@click.option("--top", "top_n", default=None, type=int, help="Auto-export top N tracks")
+@click.option(
+    "--lyrics", "lyrics_path", default=None, type=click.Path(dir_okay=False),
+    help="Lyrics text file for improved word alignment",
+)
+@click.option(
+    "--phoneme-model", "phoneme_model", default="base",
+    type=click.Choice(["tiny", "base", "small", "medium", "large-v2"], case_sensitive=False),
+    help="Whisper model size for phoneme transcription",
+    show_default=True,
+)
+@click.option(
+    "--no-cache", "no_cache", is_flag=True, default=False,
+    help="Re-run analysis even if a cached result exists for this file",
+)
+@click.option(
+    "--scoring-config", "scoring_config_path", default=None,
+    type=click.Path(exists=True, dir_okay=False),
+    help="Path to a TOML scoring configuration file",
+)
+@click.option(
+    "--scoring-profile", "scoring_profile_name", default=None,
+    help="Name of a saved scoring profile",
+)
+@click.pass_context
+def full_cmd(
+    ctx: click.Context,
+    mp3_file: str,
+    output: str | None,
+    top_n: int | None,
+    lyrics_path: str | None,
+    phoneme_model: str,
+    no_cache: bool,
+    scoring_config_path: str | None,
+    scoring_profile_name: str | None,
+) -> None:
+    """Run a full analysis: all algorithms + stems + phonemes + song structure."""
+    ctx.invoke(
+        analyze_cmd,
+        mp3_file=mp3_file,
+        output=output,
+        algorithms="all",
+        no_vamp=False,
+        no_madmom=False,
+        top_n=top_n,
+        use_stems=True,
+        use_phonemes=True,
+        lyrics_path=lyrics_path,
+        phoneme_model=phoneme_model,
+        use_structure=True,
+        no_cache=no_cache,
+        scoring_config_path=scoring_config_path,
+        scoring_profile_name=scoring_profile_name,
+    )
+
+
+# ──────────────────────────────────────────────────────────────────────────────
 # summary command
 # ──────────────────────────────────────────────────────────────────────────────
 
@@ -468,6 +536,15 @@ def summary_cmd(analysis_json: str, top_n: int | None, show_breakdown: bool) -> 
             f"Phonemes: {word_count} words | {phoneme_count} phonemes "
             f"| Language: {lang} | Model: {model}"
         )
+
+    ss = result.song_structure
+    if ss is not None and ss.segments:
+        click.echo(f"\nSong Structure ({len(ss.segments)} segments):")
+        for seg in ss.segments:
+            start = _format_duration(seg.start_ms)
+            end = _format_duration(seg.end_ms)
+            duration_s = (seg.end_ms - seg.start_ms) / 1000
+            click.echo(f"  {start} – {end}  ({duration_s:.1f}s)  {seg.label}")
 
     tracks = result.timing_tracks
     if top_n is not None:
@@ -990,6 +1067,272 @@ def sweep_save_cmd(report_json: str, name: str, rank: int) -> None:
     )
     click.echo(f"  Parameters: {cfg.parameters}")
     click.echo(f"  Saved to: {saved_path}")
+
+
+@cli.command("stem-inspect")
+@click.argument("mp3_file", type=click.Path(exists=True, dir_okay=False))
+@click.option("--stem-dir", type=click.Path(file_okay=False), default=None,
+              help="Explicit path to stem directory (default: auto-detect)")
+def stem_inspect_cmd(mp3_file: str, stem_dir: str | None) -> None:
+    """Evaluate which stems are worth analyzing (KEEP / REVIEW / SKIP)."""
+    from src.analyzer.stem_inspector import inspect_stems
+
+    stem_dir_path = Path(stem_dir) if stem_dir else None
+    try:
+        metrics = inspect_stems(mp3_file, stem_dir=stem_dir_path)
+    except Exception as exc:
+        click.echo(f"ERROR: {exc}", err=True)
+        sys.exit(1)
+
+    click.echo(f"\nStem Inspection: {Path(mp3_file).name}")
+    click.echo(f"  {'STEM':<12} {'VERDICT':<8} {'RMS dB':>8}  {'CREST dB':>9}  {'COVERAGE':>9}  {'CENTROID':>10}  REASON")
+    click.echo("  " + "-" * 90)
+    for m in metrics:
+        verdict_style = {"keep": "green", "review": "yellow", "skip": "red"}.get(m.verdict, "white")
+        verdict_str = click.style(m.verdict.upper(), fg=verdict_style, bold=True)
+        click.echo(
+            f"  {m.name:<12} {verdict_str:<8}  {m.rms_db:>7.1f}  {m.crest_db:>9.1f}  "
+            f"{m.coverage * 100:>8.0f}%  {m.spectral_centroid_hz:>9.0f} Hz  {m.reason}"
+        )
+    click.echo()
+
+
+@cli.command("stem-review")
+@click.argument("mp3_file", type=click.Path(exists=True, dir_okay=False))
+@click.option("--stem-dir", type=click.Path(file_okay=False), default=None,
+              help="Explicit path to stem directory (default: auto-detect)")
+@click.option("--yes", "auto_accept", is_flag=True, default=False,
+              help="Accept all automatic verdicts without prompting")
+def stem_review_cmd(mp3_file: str, stem_dir: str | None, auto_accept: bool) -> None:
+    """Interactively review stem verdicts and confirm the final selection.
+
+    Shows each stem's KEEP/REVIEW/SKIP verdict with audio measurements, then
+    prompts to accept or override each verdict. Prints the final stem selection.
+    """
+    from src.analyzer.stem_inspector import inspect_stems, interactive_review
+
+    stem_dir_path = Path(stem_dir) if stem_dir else None
+    try:
+        metrics = inspect_stems(mp3_file, stem_dir=stem_dir_path)
+    except Exception as exc:
+        click.echo(f"ERROR: {exc}", err=True)
+        sys.exit(1)
+
+    click.echo(f"\nStem Review: {Path(mp3_file).name}\n")
+    selection = interactive_review(metrics, auto_accept=auto_accept)
+
+    click.echo("\n── Final Selection ──────────────────────────────────")
+    for stem, verdict in selection.stems.items():
+        marker = "✓" if verdict == "keep" else "✗"
+        override_note = " (overridden)" if stem in selection.overrides else ""
+        click.echo(f"  {marker} {stem:<12} {verdict.upper()}{override_note}")
+    if selection.fallback_to_mix:
+        click.echo("\n  [fallback] All stems skipped — full_mix will be used.")
+    kept = selection.kept_stems
+    click.echo(f"\nKept {len(kept)} stem(s): {', '.join(kept) if kept else '(none)'}")
+
+
+@cli.command("sweep-init")
+@click.argument("mp3_file", type=click.Path(exists=True, dir_okay=False))
+@click.option("--output-dir", "-o", type=click.Path(file_okay=False), default=None,
+              help="Directory to write sweep config JSONs (default: analysis/ next to MP3)")
+@click.option("--stem-dir", type=click.Path(file_okay=False), default=None,
+              help="Explicit path to stem directory")
+@click.option("--algorithms", default=None,
+              help="Comma-separated list of algorithms to generate configs for (default: all)")
+@click.option("--dry-run", is_flag=True, default=False,
+              help="Print configs without writing files")
+def sweep_init_cmd(
+    mp3_file: str,
+    output_dir: str | None,
+    stem_dir: str | None,
+    algorithms: str | None,
+    dry_run: bool,
+) -> None:
+    """Generate intelligent sweep configs for an MP3 based on its audio characteristics."""
+    from src.analyzer.stem_inspector import inspect_stems, generate_sweep_configs
+
+    audio_path = Path(mp3_file)
+    stem_dir_path = Path(stem_dir) if stem_dir else None
+    alg_list = [a.strip() for a in algorithms.split(",")] if algorithms else None
+
+    click.echo(f"Inspecting stems for {audio_path.name}…")
+    try:
+        stem_metrics = inspect_stems(str(audio_path), stem_dir=stem_dir_path)
+    except Exception as exc:
+        click.echo(f"ERROR: stem inspection failed: {exc}", err=True)
+        sys.exit(1)
+
+    # Print stem summary
+    for m in stem_metrics:
+        verdict_style = {"keep": "green", "review": "yellow", "skip": "red"}.get(m.verdict, "white")
+        click.echo(
+            f"  {m.name:<12} {click.style(m.verdict.upper(), fg=verdict_style):<8}  {m.reason}"
+        )
+
+    click.echo(f"\nGenerating sweep configs…")
+    try:
+        configs, bpm = generate_sweep_configs(str(audio_path), stem_metrics, algorithms=alg_list)
+    except Exception as exc:
+        click.echo(f"ERROR: config generation failed: {exc}", err=True)
+        sys.exit(1)
+
+    click.echo(f"Estimated BPM: {bpm:.1f}")
+    click.echo(f"Generated {len(configs)} configs\n")
+
+    if dry_run:
+        for cfg in configs:
+            meta = cfg.pop("_meta", {})
+            click.echo(f"  [{cfg['algorithm']}]")
+            click.echo(f"    stems:   {cfg['stems']}")
+            click.echo(f"    sweep:   {cfg['sweep']}")
+            click.echo(f"    fixed:   {cfg['fixed']}")
+            click.echo(f"    rationale: {meta.get('rationale', '')}")
+            cfg["_meta"] = meta  # restore
+        return
+
+    out_dir = Path(output_dir) if output_dir else audio_path.parent / "analysis" / "sweep_configs"
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    written: list[Path] = []
+    for cfg in configs:
+        alg_name = cfg["algorithm"]
+        out_path = out_dir / f"{audio_path.stem}_{alg_name}.json"
+        # Remove _meta before writing (SweepConfig.from_file ignores it anyway, but keep clean)
+        payload = {k: v for k, v in cfg.items() if k != "_meta"}
+        out_path.write_text(json.dumps(payload, indent=2))
+        written.append(out_path)
+        meta = cfg.get("_meta", {})
+        click.echo(
+            f"  {alg_name:<24}  stems={payload['stems']}  "
+            f"sweep={list(payload['sweep'].keys()) or '—'}"
+        )
+        if meta.get("rationale"):
+            click.echo(f"    → {meta['rationale']}")
+
+    click.echo(f"\nWrote {len(written)} config files to: {out_dir}")
+
+
+@cli.command("pipeline")
+@click.argument("audio_file", type=click.Path(exists=True, dir_okay=False))
+@click.option("--stem-dir", type=click.Path(file_okay=False), default=None,
+              help="Explicit path to stem directory")
+@click.option("--output-dir", "-o", type=click.Path(file_okay=False), default=None,
+              help="Output directory for all exported files (default: analysis/ next to audio)")
+@click.option("--fps", default=20, show_default=True, type=int,
+              help="Target frame rate for value curves")
+@click.option("--top", "top_n", default=5, show_default=True, type=int,
+              help="Export only the top N timing tracks by quality score")
+@click.option("--interactive", is_flag=True, default=False,
+              help="Pause after stem inspection for manual review")
+@click.option("--no-sweep", is_flag=True, default=False,
+              help="Skip parameter sweep; use default algorithm settings")
+@click.option("--scoring-config", default=None,
+              help="Path to custom scoring TOML config")
+def pipeline_cmd(
+    audio_file: str,
+    stem_dir: str | None,
+    output_dir: str | None,
+    fps: int,
+    top_n: int,
+    interactive: bool,
+    no_sweep: bool,
+    scoring_config: str | None,
+) -> None:
+    """Run the full xLights export pipeline end-to-end.
+
+    Stages: stem inspection → (optional review) → analysis →
+    interaction detection → conditioning → .xtiming + .xvc export.
+    """
+    from src.analyzer.pipeline import run_pipeline
+
+    click.echo(f"Pipeline: {Path(audio_file).name}")
+
+    try:
+        manifest = run_pipeline(
+            audio_path=audio_file,
+            stem_dir=stem_dir,
+            output_dir=output_dir,
+            fps=fps,
+            top_n=top_n,
+            interactive=interactive,
+            no_sweep=no_sweep,
+        )
+    except Exception as exc:
+        click.echo(f"ERROR: {exc}", err=True)
+        raise SystemExit(1)
+
+    # ── Summary output (T050) ─────────────────────────────────────────────────
+    click.echo(f"\nStems used ({len(manifest.stems_used)}): {', '.join(manifest.stems_used)}")
+    click.echo(f"Timing tracks exported: {len(manifest.timing_tracks)}")
+    click.echo(f"Value curves exported:  {len(manifest.value_curves)}")
+
+    if manifest.warnings:
+        click.echo(f"\nWarnings ({len(manifest.warnings)}):")
+        for w in manifest.warnings:
+            click.echo(f"  ! {w}")
+
+    click.echo(f"\nOutput: {manifest.export_dir}/")
+    click.echo(f"Manifest: {manifest.export_dir}/export_manifest.json")
+
+
+@cli.command("export-xlights")
+@click.argument("analysis_json", type=click.Path(exists=True, dir_okay=False))
+@click.option("--output-dir", "-o", type=click.Path(file_okay=False), default=None,
+              help="Directory for .xtiming and .xvc files (default: analysis/ next to JSON)")
+def export_xlights_cmd(analysis_json: str, output_dir: str | None) -> None:
+    """Export timing tracks and feature curves for xLights import.
+
+    Reads ANALYSIS_JSON, exports all timing tracks as .xtiming files and
+    writes export_manifest.json to the output directory.
+    """
+    import datetime
+    import json as _json
+    from src.analyzer.xtiming import write_timing_tracks
+    from src.analyzer.result import ExportManifest, TimingTrackExport
+
+    json_path = Path(analysis_json)
+    result = AnalysisResult.from_dict(_json.loads(json_path.read_text(encoding="utf-8")))
+
+    if output_dir is None:
+        out_dir = json_path.parent / "analysis"
+    else:
+        out_dir = Path(output_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    # ── Export timing tracks ──────────────────────────────────────────────────
+    xtiming_path = str(out_dir / f"{json_path.stem}_timing.xtiming")
+    write_timing_tracks(result.timing_tracks, xtiming_path)
+    timing_exports = [
+        TimingTrackExport(
+            file_path=xtiming_path,
+            track_name=t.name,
+            source_stem=getattr(t, "stem_source", None) or "full_mix",
+            element_type=t.element_type,
+            mark_count=t.mark_count,
+        )
+        for t in result.timing_tracks
+    ]
+    click.echo(f"Wrote timing tracks → {xtiming_path}  ({len(result.timing_tracks)} tracks)")
+
+    # ── Write manifest ────────────────────────────────────────────────────────
+    stems_used = list({
+        getattr(t, "stem_source", None) or "full_mix"
+        for t in result.timing_tracks
+    })
+    manifest = ExportManifest(
+        song_file=str(json_path),
+        export_dir=str(out_dir),
+        exported_at=datetime.datetime.now().isoformat(),
+        stems_used=stems_used,
+        timing_tracks=timing_exports,
+        value_curves=[],
+    )
+    manifest_path = out_dir / "export_manifest.json"
+    manifest_path.write_text(
+        _json.dumps(manifest.to_dict(), indent=2), encoding="utf-8"
+    )
+    click.echo(f"Wrote manifest → {manifest_path}")
 
 
 def main() -> None:

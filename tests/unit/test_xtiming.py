@@ -153,6 +153,129 @@ class TestXTimingStructure:
         assert content.startswith("<?xml")
 
 
+# ── T008: write_timing_track() for beat/onset TimingTrack objects ─────────────
+
+class TestWriteTimingTrack:
+    """T008 — write_timing_track() exports a TimingTrack as a one-layer .xtiming file."""
+
+    def _make_track(self, times_ms: list[int], element_type: str = "beat") -> "TimingTrack":
+        from src.analyzer.result import TimingMark, TimingTrack
+        marks = [TimingMark(time_ms=t, confidence=None) for t in times_ms]
+        return TimingTrack(
+            name=f"test_{element_type}",
+            algorithm_name="test_algo",
+            element_type=element_type,
+            marks=marks,
+            quality_score=0.8,
+        )
+
+    def test_produces_valid_xml(self, tmp_path):
+        from src.analyzer.xtiming import write_timing_track
+        track = self._make_track([1000, 2000, 3000])
+        out = str(tmp_path / "beats.xtiming")
+        write_timing_track(track, out, track_name="drums_beats")
+        tree = ET.parse(out)
+        assert tree is not None
+
+    def test_root_is_timings(self, tmp_path):
+        from src.analyzer.xtiming import write_timing_track
+        track = self._make_track([1000, 2000])
+        out = str(tmp_path / "beats.xtiming")
+        write_timing_track(track, out, track_name="drums_beats")
+        root = ET.parse(out).getroot()
+        assert root.tag == "timings"
+
+    def test_timing_name_attribute(self, tmp_path):
+        from src.analyzer.xtiming import write_timing_track
+        track = self._make_track([1000, 2000])
+        out = str(tmp_path / "beats.xtiming")
+        write_timing_track(track, out, track_name="drums_beats_qm")
+        timing = ET.parse(out).getroot().find("timing")
+        assert timing.get("name") == "drums_beats_qm"
+
+    def test_one_effect_per_mark(self, tmp_path):
+        from src.analyzer.xtiming import write_timing_track
+        times = [500, 1000, 1500, 2000]
+        track = self._make_track(times)
+        out = str(tmp_path / "beats.xtiming")
+        write_timing_track(track, out, track_name="test")
+        timing = ET.parse(out).getroot().find("timing")
+        layer = timing.find("EffectLayer")
+        effects = layer.findall("Effect")
+        assert len(effects) == len(times)
+
+    def test_starttime_matches_mark(self, tmp_path):
+        from src.analyzer.xtiming import write_timing_track
+        track = self._make_track([1500])
+        out = str(tmp_path / "beats.xtiming")
+        write_timing_track(track, out, track_name="test")
+        timing = ET.parse(out).getroot().find("timing")
+        effect = timing.find("EffectLayer").find("Effect")
+        assert effect.get("starttime") == "1500"
+
+    def test_endtime_after_starttime(self, tmp_path):
+        from src.analyzer.xtiming import write_timing_track
+        track = self._make_track([1000])
+        out = str(tmp_path / "beats.xtiming")
+        write_timing_track(track, out, track_name="test")
+        timing = ET.parse(out).getroot().find("timing")
+        effect = timing.find("EffectLayer").find("Effect")
+        assert int(effect.get("endtime")) > int(effect.get("starttime"))
+
+    def test_label_is_element_type(self, tmp_path):
+        from src.analyzer.xtiming import write_timing_track
+        track = self._make_track([1000], element_type="onset")
+        out = str(tmp_path / "onsets.xtiming")
+        write_timing_track(track, out, track_name="test")
+        timing = ET.parse(out).getroot().find("timing")
+        effect = timing.find("EffectLayer").find("Effect")
+        assert effect.get("label") == "onset"
+
+    def test_xml_declaration_present(self, tmp_path):
+        from src.analyzer.xtiming import write_timing_track
+        track = self._make_track([1000])
+        out = str(tmp_path / "beats.xtiming")
+        write_timing_track(track, out, track_name="test")
+        content = Path(out).read_text(encoding="utf-8")
+        assert content.startswith("<?xml")
+
+
+class TestWriteTimingTracks:
+    """write_timing_tracks() exports multiple tracks as separate <timing> elements."""
+
+    def _make_track(self, name: str, times_ms: list[int]) -> "TimingTrack":
+        from src.analyzer.result import TimingMark, TimingTrack
+        marks = [TimingMark(time_ms=t, confidence=None) for t in times_ms]
+        return TimingTrack(
+            name=name, algorithm_name="test", element_type="beat",
+            marks=marks, quality_score=0.8,
+        )
+
+    def test_multiple_timing_elements(self, tmp_path):
+        from src.analyzer.xtiming import write_timing_tracks
+        tracks = [
+            self._make_track("beats", [1000, 2000]),
+            self._make_track("onsets", [500, 1500, 2500]),
+        ]
+        out = str(tmp_path / "multi.xtiming")
+        write_timing_tracks(tracks, out)
+        root = ET.parse(out).getroot()
+        assert len(root.findall("timing")) == 2
+
+    def test_timing_names_preserved(self, tmp_path):
+        from src.analyzer.xtiming import write_timing_tracks
+        tracks = [
+            self._make_track("my_beats", [1000]),
+            self._make_track("my_onsets", [500]),
+        ]
+        out = str(tmp_path / "multi.xtiming")
+        write_timing_tracks(tracks, out)
+        root = ET.parse(out).getroot()
+        names = [t.get("name") for t in root.findall("timing")]
+        assert "my_beats" in names
+        assert "my_onsets" in names
+
+
 class TestSanitizeName:
     def test_strips_extension(self):
         assert _sanitize_name("song.mp3") == "song"
