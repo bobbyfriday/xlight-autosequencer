@@ -102,6 +102,9 @@ pip install vamp
 # whisperx (if you want phoneme analysis — see Prerequisites section above)
 pip install torch torchaudio --index-url https://download.pytorch.org/whl/cpu
 pip install whisperx
+
+# Genius lyric segments (if you want --genius segment detection)
+pip install lyricsgenius mutagen
 ```
 
 ---
@@ -128,6 +131,7 @@ Opens a browser at `http://localhost:5173`. From here you can:
 | madmom | ~2 tracks via RNN beat tracking (slower but high quality). |
 | Stem separation (demucs) | Separates audio into drums/bass/vocals/guitar/piano/other. First run downloads ~200 MB model and takes 2–5 min on CPU; subsequent runs use the stem cache. |
 | Phonemes (whisperx) | Transcribes vocals and generates word/phoneme timing. Requires stem separation. Requires `whisperx` installed. |
+| Genius segment detection | Fetches verified lyrics from Genius, aligns section headers ([Chorus], [Verse 1], etc.) to precise timestamps. Requires `lyricsgenius` + `mutagen` and a `GENIUS_API_TOKEN` env var. |
 
 ---
 
@@ -153,6 +157,11 @@ xlight-analyze analyze song.mp3 --phonemes --phoneme-model large-v2
 
 # Re-run phonemes only (skip algorithm cache, use edited lyrics file)
 xlight-analyze analyze song.mp3 --phonemes --lyrics song.lyrics.txt --no-cache
+
+# Genius lyric segment detection (adds labeled song sections to output)
+export GENIUS_API_TOKEN="your-token-here"   # get from genius.com/api-clients
+xlight-analyze analyze song.mp3 --genius
+xlight-analyze analyze song.mp3 --stems --genius   # best accuracy (vocals stem)
 
 # View track quality scores for an existing analysis
 xlight-analyze summary song_analysis.json
@@ -212,35 +221,36 @@ If the word timing doesn't match the song well:
 
 ## Output files
 
-All files for a song are saved under `./songs/<song_name>/`:
+All output files for a song are placed in a folder named after the audio file, adjacent to the MP3:
 
 ```
-songs/
-└── My_Song/
-    ├── My_Song.mp3              <- uploaded or analyzed file
-    ├── My_Song_analysis.json    <- full analysis result (cached by MD5)
-    ├── My_Song.xtiming          <- xLights timing file (phonemes)
-    ├── My_Song.lyrics.txt       <- auto-transcribed lyrics (edit and rerun)
-    ├── stems/
-    │   ├── drums.mp3
-    │   ├── bass.mp3
-    │   ├── vocals.mp3
-    │   ├── guitar.mp3
-    │   ├── piano.mp3
-    │   ├── other.mp3
-    │   └── manifest.json
-    └── analysis/                <- created by pipeline / export-xlights
-        ├── My_Song_timing.xtiming   <- all timing tracks (import into xLights)
-        ├── drums_beat.xvc           <- value curve, full resolution
-        ├── drums_beat_macro.xvc     <- value curve, ≤100 points (full song)
-        ├── bass_onset.xvc
-        ├── ...
-        ├── export_manifest.json     <- every output file + warnings list
-        └── sweep_configs/           <- created by sweep-init
-            ├── qm_beats.json
-            ├── qm_onsets_complex.json
-            └── ...
+My_Song.mp3                      <- source audio (stays where it is)
+My_Song/
+├── My_Song_analysis.json        <- full analysis result (cached by MD5)
+├── My_Song.xtiming              <- xLights timing file (phonemes)
+├── My_Song.lyrics.txt           <- auto-transcribed lyrics (edit and rerun)
+├── stems/
+│   ├── drums.mp3
+│   ├── bass.mp3
+│   ├── vocals.mp3
+│   ├── guitar.mp3
+│   ├── piano.mp3
+│   ├── other.mp3
+│   └── manifest.json
+└── analysis/                    <- created by pipeline / export-xlights
+    ├── My_Song_timing.xtiming   <- all timing tracks (import into xLights)
+    ├── drums_beat.xvc           <- value curve, full resolution
+    ├── drums_beat_macro.xvc     <- value curve, ≤100 points (full song)
+    ├── bass_onset.xvc
+    ├── ...
+    ├── export_manifest.json     <- every output file + warnings list
+    └── sweep_configs/           <- created by sweep-init
+        ├── qm_beats.json
+        ├── qm_onsets_complex.json
+        └── ...
 ```
+
+> **Note:** If the MP3 is already inside a folder of the same name (e.g. `songs/My_Song/My_Song.mp3`), output goes directly into that folder rather than creating a double-nested `My_Song/My_Song/`.
 
 Analyzed songs are also registered in `~/.xlight/library.json` for the library view.
 

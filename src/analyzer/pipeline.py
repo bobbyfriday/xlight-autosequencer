@@ -80,7 +80,52 @@ def run_pipeline(
             timing_tracks, key=lambda t: t.quality_score, reverse=True
         )[:top_n]
 
-    # ── 3. Interaction analysis ───────────────────────────────────────────────
+    # ── 3. Parameter sweep ────────────────────────────────────────────────────
+    if not no_sweep:
+        try:
+            from src.analyzer.stem_inspector import generate_sweep_configs
+            from src.analyzer.sweep import SweepConfig, SweepRunner, build_algorithm_registry
+
+            registry = build_algorithm_registry()
+            if registry and stem_metrics:
+                configs, _bpm = generate_sweep_configs(str(audio_path_p), stem_metrics)
+                sweep_runner = SweepRunner(registry)
+                sweep_tracks: list[dict] = []
+                for cfg_dict in configs:
+                    alg_name = cfg_dict.get("algorithm", "")
+                    if alg_name not in registry:
+                        continue
+                    cfg = SweepConfig(
+                        algorithm=alg_name,
+                        sweep_params=cfg_dict.get("sweep", {}),
+                        fixed_params=cfg_dict.get("fixed", {}),
+                        stems=cfg_dict.get("stems", []),
+                    )
+                    try:
+                        report = sweep_runner.run(str(audio_path_p), cfg)
+                        for result in report.results:
+                            d = result.to_dict()
+                            d["name"] = f"{alg_name}_sweep_r{result.rank}_{result.stem}"
+                            d["algorithm"] = alg_name
+                            d["element_type"] = "beat"
+                            d["stem_source"] = result.stem
+                            d["is_sweep"] = True
+                            sweep_tracks.append(d)
+                    except Exception as exc:
+                        warnings.append(f"Sweep failed for {alg_name}: {exc}")
+                # Deduplicate: skip permutations whose mark set is identical
+                seen_fps: set[tuple] = set()
+                deduped: list[dict] = []
+                for d in sweep_tracks:
+                    fp = tuple(m["time_ms"] for m in d.get("marks", []))
+                    if fp not in seen_fps:
+                        seen_fps.add(fp)
+                        deduped.append(d)
+                analysis_result.sweep_tracks = deduped
+        except Exception as exc:
+            warnings.append(f"Sweep generation failed: {exc}")
+
+    # ── 4. Interaction analysis ───────────────────────────────────────────────
     interaction_result = None
     if len(stems_used) > 1:
         try:
@@ -105,7 +150,7 @@ def run_pipeline(
         except Exception as exc:
             warnings.append(f"Interaction analysis failed: {exc}")
 
-    # ── 4. Condition and export value curves ──────────────────────────────────
+    # ── 5. Condition and export value curves ──────────────────────────────────
     exporter = XvcExporter()
     xvc_exports = []
 
@@ -133,7 +178,7 @@ def run_pipeline(
         except Exception as exc:
             warnings.append(f"Curve conditioning failed for {track.name}: {exc}")
 
-    # ── 5. Export timing tracks ───────────────────────────────────────────────
+    # ── 6. Export timing tracks ───────────────────────────────────────────────
     xtiming_path = str(out_dir / f"{audio_path_p.stem}_timing.xtiming")
     write_timing_tracks(timing_tracks, xtiming_path)
 
@@ -148,7 +193,13 @@ def run_pipeline(
         for t in timing_tracks
     ]
 
-    # ── 6. Write manifest ─────────────────────────────────────────────────────
+    # ── 7. Save analysis JSON (includes sweep_tracks for review UI) ───────────
+    analysis_json_path = out_dir / f"{audio_path_p.stem}_analysis.json"
+    analysis_json_path.write_text(
+        json.dumps(analysis_result.to_dict(), indent=2), encoding="utf-8"
+    )
+
+    # ── 8. Write manifest ─────────────────────────────────────────────────────
     manifest = ExportManifest(
         song_file=str(audio_path_p),
         export_dir=str(out_dir),

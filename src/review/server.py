@@ -296,6 +296,19 @@ def create_app(analysis_path: str | None = None, audio_path: str | None = None) 
             resp.headers["Accept-Ranges"] = "bytes"
             return resp
 
+        @app.route("/stem-audio")
+        def stem_audio_upload():
+            stem_name = request.args.get("stem", "")
+            job = _current_job
+            if not stem_name or job is None:
+                return jsonify({"error": "No stem or job"}), 400
+            stem_file = Path(job.mp3_path).parent / "stems" / f"{stem_name}.mp3"
+            if not stem_file.exists():
+                return jsonify({"error": f"Stem {stem_name} not found"}), 404
+            resp = send_file(str(stem_file), mimetype="audio/mpeg", conditional=True)
+            resp.headers["Accept-Ranges"] = "bytes"
+            return resp
+
         @app.route("/open-from-library", methods=["POST"])
         def open_from_library():
             global _current_job
@@ -459,10 +472,9 @@ def create_app(analysis_path: str | None = None, audio_path: str | None = None) 
             with open(job.result_path, "r", encoding="utf-8") as fh:
                 source = json.load(fh)
 
-            selected_tracks = [
-                t for t in source.get("timing_tracks", [])
-                if t["name"] in selected_names
-            ]
+            name_set = set(selected_names)
+            all_tracks = source.get("timing_tracks", []) + source.get("sweep_tracks", [])
+            selected_tracks = [t for t in all_tracks if t.get("name") in name_set]
 
             src_path = Path(job.result_path)
             stem = src_path.stem
@@ -511,6 +523,17 @@ def create_app(analysis_path: str | None = None, audio_path: str | None = None) 
             resp.headers["Accept-Ranges"] = "bytes"
             return resp
 
+        @app.route("/stem-audio")
+        def stem_audio():
+            stem_name = request.args.get("stem", "")
+            audio_path = Path(app.config["AUDIO_PATH"])
+            stem_file = audio_path.parent / "stems" / f"{stem_name}.mp3"
+            if not stem_name or not stem_file.exists():
+                return jsonify({"error": f"Stem {stem_name} not found"}), 404
+            resp = send_file(str(stem_file), mimetype="audio/mpeg", conditional=True)
+            resp.headers["Accept-Ranges"] = "bytes"
+            return resp
+
         @app.route("/export", methods=["POST"])
         def export():
             body = request.get_json(force=True) or {}
@@ -523,10 +546,9 @@ def create_app(analysis_path: str | None = None, audio_path: str | None = None) 
             with open(app.config["ANALYSIS_PATH"], "r", encoding="utf-8") as fh:
                 source = json.load(fh)
 
-            selected_tracks = [
-                t for t in source.get("timing_tracks", [])
-                if t["name"] in selected_names
-            ]
+            name_set = set(selected_names)
+            all_tracks = source.get("timing_tracks", []) + source.get("sweep_tracks", [])
+            selected_tracks = [t for t in all_tracks if t.get("name") in name_set]
 
             src_path = Path(app.config["ANALYSIS_PATH"])
             stem = src_path.stem

@@ -2,12 +2,13 @@
 
 // ── State ────────────────────────────────────────────────────────────────────
 
-let tracks = [];        // [{name, element_type, quality_score, mark_count, avg_interval_ms, marks_ms, selected, isHighDensity}]
-let phonemeLayers = []; // [{name, type, marks}] where marks = [{label, start_ms, end_ms}]
-                        // type: 'words' | 'phonemes'
-let songSegments = [];  // [{label, start_ms, end_ms}] from song_structure
+let tracks = [];          // all tracks, in user-defined order within each group
+let dragSrcIndex = null;
+let phonemeLayers = [];   // [{name, type, marks}]
+let songSegments = [];    // [{label, start_ms, end_ms}]
 let durationMs = 0;
-let focusIndex = null;  // int | null
+let focusIndex = null;    // index into displayTracks() | null
+let activeStemFilter = null; // stem name string | null
 
 const SEGMENT_FILL = {
   'intro':        'rgba(60,  180,  80, 0.10)',
@@ -38,6 +39,8 @@ const fgCanvas = document.getElementById('fg-canvas');
 const bgCtx = bgCanvas.getContext('2d');
 const fgCtx = fgCanvas.getContext('2d');
 const panel = document.getElementById('panel');
+const stemFilterBar = document.getElementById('stem-filter-bar');
+const trackList = document.getElementById('track-list');
 const canvasWrap = document.getElementById('canvas-wrap');
 const beatFlash = document.getElementById('beat-flash');
 const btnPlay = document.getElementById('btn-play');
@@ -51,9 +54,10 @@ const selectedCount = document.getElementById('selected-count');
 const status = document.getElementById('status');
 
 const LANE_H = 60;
-const PHONEME_LANE_H = 40; // shorter lanes for word/phoneme layers
+const PHONEME_LANE_H = 40;
 const AXIS_H = 24;
-const PX_PER_SEC = 100; // default zoom; canvas width = duration_s * PX_PER_SEC
+const QUEUE_DIVIDER_H = 20; // canvas height of the export-queue / available divider
+const PX_PER_SEC = 100;
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -67,12 +71,36 @@ function canvasWidth() {
   return Math.max(canvasWrap.clientWidth, Math.ceil((durationMs / 1000) * PX_PER_SEC));
 }
 
+// Returns the tracks to display: selected (all stems) first, then unselected
+// filtered by activeStemFilter.
+function displayTracks() {
+  const sel = tracks.filter(t => t.selected);
+  const avail = tracks.filter(t => !t.selected &&
+    (!activeStemFilter || t.stem_source === activeStemFilter));
+  return [...sel, ...avail];
+}
+
+// Y position on the canvas for a given index into displayTracks().
+// Phoneme layers sit at the top (just below the time axis), so all tracks
+// are offset down by their combined height.
+function trackY(displayIdx) {
+  const dt = displayTracks();
+  const queueLen = dt.filter(t => t.selected).length;
+  const phonemeOffset = phonemeLayers.length * PHONEME_LANE_H;
+  if (displayIdx < queueLen) return AXIS_H + phonemeOffset + displayIdx * LANE_H;
+  return AXIS_H + phonemeOffset + queueLen * LANE_H + QUEUE_DIVIDER_H + (displayIdx - queueLen) * LANE_H;
+}
+
 function canvasHeight() {
-  return AXIS_H + tracks.length * LANE_H + phonemeLayers.length * PHONEME_LANE_H;
+  const dt = displayTracks();
+  const queueLen = dt.filter(t => t.selected).length;
+  const availLen = dt.length - queueLen;
+  return AXIS_H + phonemeLayers.length * PHONEME_LANE_H +
+         queueLen * LANE_H + QUEUE_DIVIDER_H + availLen * LANE_H;
 }
 
 function phonemeLayerY(i) {
-  return AXIS_H + tracks.length * LANE_H + i * PHONEME_LANE_H;
+  return AXIS_H + i * PHONEME_LANE_H;
 }
 
 function timeToX(ms) {
@@ -108,7 +136,7 @@ function drawBackground() {
 
   // Song structure segments — colored bands behind track lanes
   if (songSegments.length > 0) {
-    const tracksH = tracks.length * LANE_H + phonemeLayers.length * PHONEME_LANE_H;
+    const tracksH = canvasHeight() - AXIS_H;
     songSegments.forEach(seg => {
       const x1 = timeToX(seg.start_ms);
       const x2 = timeToX(seg.end_ms);
@@ -130,10 +158,16 @@ function drawBackground() {
   }
 
   // Track lanes
-  tracks.forEach((track, i) => {
-    const y = AXIS_H + i * LANE_H;
+  const dt = displayTracks();
+  const queueLen = dt.filter(t => t.selected).length;
+
+  dt.forEach((track, i) => {
+    const y = trackY(i);
+    const inQueue = i < queueLen;
     const isEven = i % 2 === 0;
-    bgCtx.fillStyle = isEven ? '#141414' : '#181818';
+    bgCtx.fillStyle = inQueue
+      ? (isEven ? '#141820' : '#161a24')   // slight blue tint for export queue
+      : (isEven ? '#141414' : '#181818');
     bgCtx.fillRect(0, y, w, LANE_H);
 
     // Lane separator
@@ -141,8 +175,7 @@ function drawBackground() {
     bgCtx.fillRect(0, y + LANE_H - 1, w, 1);
 
     // Marks
-    const opacity = track.selected ? 1.0 : 0.4;
-    bgCtx.globalAlpha = opacity;
+    bgCtx.globalAlpha = track.selected ? 1.0 : 0.4;
     bgCtx.fillStyle = track.isHighDensity ? '#e44' : '#4a9';
     track.marks_ms.forEach(ms => {
       const x = timeToX(ms);
@@ -150,6 +183,22 @@ function drawBackground() {
     });
     bgCtx.globalAlpha = 1.0;
   });
+
+  // Queue / available divider band
+  const divY = AXIS_H + phonemeLayers.length * PHONEME_LANE_H + queueLen * LANE_H;
+  bgCtx.fillStyle = '#16161e';
+  bgCtx.fillRect(0, divY, w, QUEUE_DIVIDER_H);
+  bgCtx.fillStyle = '#3a4a7a';
+  bgCtx.fillRect(0, divY, w, 1);
+  bgCtx.fillStyle = '#3a4a7a';
+  bgCtx.fillRect(0, divY + QUEUE_DIVIDER_H - 1, w, 1);
+  bgCtx.fillStyle = '#4af';
+  bgCtx.font = '10px system-ui';
+  bgCtx.textBaseline = 'middle';
+  bgCtx.fillText(
+    queueLen > 0 ? `▲ ${queueLen} track${queueLen !== 1 ? 's' : ''} selected for export  ·  available below` : '▲ export queue empty  ·  check tracks below to add',
+    8, divY + QUEUE_DIVIDER_H / 2
+  );
 
   // Phoneme / word layers
   const PHONEME_COLORS = { words: '#7ab', phonemes: '#a87', default: '#888' };
@@ -191,16 +240,15 @@ function drawBackground() {
     });
   });
 
-  // Focus dimming — drawn here because it only changes on user action, not every frame
-  if (focusIndex !== null) {
-    tracks.forEach((_, i) => {
+  // Focus dimming
+  if (focusIndex !== null && focusIndex < dt.length) {
+    dt.forEach((_, i) => {
       if (i !== focusIndex) {
-        const y = AXIS_H + i * LANE_H;
         bgCtx.fillStyle = 'rgba(0,0,0,0.65)';
-        bgCtx.fillRect(0, y, w, LANE_H);
+        bgCtx.fillRect(0, trackY(i), w, LANE_H);
       }
     });
-    const focusY = AXIS_H + focusIndex * LANE_H;
+    const focusY = trackY(focusIndex);
     bgCtx.strokeStyle = '#4af';
     bgCtx.lineWidth = 2;
     bgCtx.strokeRect(1, focusY + 1, w - 2, LANE_H - 2);
@@ -258,76 +306,163 @@ function drawForeground() {
 // ── Panel (left lane controls) ────────────────────────────────────────────────
 
 function buildPanel() {
-  panel.innerHTML = '';
-  tracks.forEach((track, i) => {
+  trackList.innerHTML = '';
+
+  // Phoneme / word layers at the top of the panel, matching their canvas position
+  const PHONEME_TYPE_LABEL = { words: 'words', phonemes: 'phonemes' };
+  phonemeLayers.forEach(layer => {
     const div = document.createElement('div');
-    div.className = 'lane-control';
-    div.dataset.index = i;
+    div.className = 'lane-control phoneme-lane-control';
+    div.style.height = PHONEME_LANE_H + 'px';
+    div.innerHTML = `
+      <div class="lane-content">
+        <div class="lane-top">
+          <span class="lane-name" title="${layer.name}">${layer.name}</span>
+          <span class="stem-badge">${PHONEME_TYPE_LABEL[layer.type] || layer.type}</span>
+        </div>
+        <div class="lane-meta"><span>${layer.marks.length} marks</span></div>
+      </div>
+    `;
+    trackList.appendChild(div);
+  });
+
+  const dt = displayTracks();
+  const queueLen = dt.filter(t => t.selected).length;
+
+  dt.forEach((track, displayIdx) => {
+    // Export queue / available divider
+    if (displayIdx === queueLen) {
+      const div = document.createElement('div');
+      div.className = 'queue-divider';
+      div.textContent = 'Available tracks';
+      trackList.appendChild(div);
+    }
+
+    // Sweep section separator within available tracks
+    if (displayIdx >= queueLen && track.isSweep) {
+      const prev = displayIdx > 0 ? dt[displayIdx - 1] : null;
+      if (!prev || !prev.isSweep || prev.selected) {
+        const sep = document.createElement('div');
+        sep.className = 'sweep-separator';
+        sep.textContent = 'Sweep variants';
+        trackList.appendChild(sep);
+      }
+    }
+
+    const div = document.createElement('div');
+    div.className = 'lane-control' + (track.isSweep ? ' sweep-track' : '');
+    div.dataset.trackName = track.name;
+    div.dataset.displayIdx = displayIdx;
+    div.draggable = true;
 
     const score = track.quality_score;
     const scoreClass = score >= 0.5 ? '' : score >= 0.2 ? 'mid' : 'low';
-
     const stemLabel = track.stem_source && track.stem_source !== 'full_mix'
-      ? `<span class="stem-badge">${track.stem_source}</span>`
-      : '';
+      ? `<span class="stem-badge">${track.stem_source}</span>` : '';
+    const sweepLabel = track.isSweep
+      ? `<span class="sweep-badge" title="rank ${track.sweepRank}">sweep #${track.sweepRank}</span>` : '';
+
     div.innerHTML = `
-      <div class="lane-top">
-        <span class="lane-name" title="${track.name}">${track.name}</span>
-        <span class="score-badge ${scoreClass}">${score.toFixed(2)}</span>
-        ${stemLabel}
-      </div>
-      <div class="lane-meta">
-        <span class="type-tag">${track.element_type}</span>
-        <span>${track.mark_count} marks</span>
-        <button class="btn-solo" data-index="${i}">Solo</button>
-        <input type="checkbox" class="chk-select" data-index="${i}" ${track.selected ? 'checked' : ''}>
+      <div class="lane-drag-handle" title="Drag to reorder">&#8942;</div>
+      <div class="lane-content">
+        <div class="lane-top">
+          <span class="lane-name" title="${track.name}">${track.isSweep ? track.algorithm : track.name}</span>
+          <span class="score-badge ${scoreClass}">${score.toFixed(2)}</span>
+          ${stemLabel}${sweepLabel}
+        </div>
+        <div class="lane-meta">
+          <span class="type-tag">${track.element_type}</span>
+          <span>${track.mark_count} marks</span>
+          <button class="btn-solo" data-display-idx="${displayIdx}">Solo</button>
+          <input type="checkbox" class="chk-select" data-track-name="${track.name}" ${track.selected ? 'checked' : ''}>
+        </div>
       </div>
     `;
-    panel.appendChild(div);
+    trackList.appendChild(div);
   });
 
   // Solo button clicks
-  panel.querySelectorAll('.btn-solo').forEach(btn => {
+  trackList.querySelectorAll('.btn-solo').forEach(btn => {
     btn.addEventListener('click', e => {
-      const i = parseInt(e.currentTarget.dataset.index);
-      if (focusIndex === i) {
-        clearFocus();
-      } else {
-        setFocus(i);
-      }
+      const i = parseInt(e.currentTarget.dataset.displayIdx);
+      focusIndex === i ? clearFocus() : setFocus(i);
     });
   });
 
-  // Checkbox toggles
-  panel.querySelectorAll('.chk-select').forEach(chk => {
+  // Checkbox toggles — rebuild display (moves track between queue/available)
+  trackList.querySelectorAll('.chk-select').forEach(chk => {
     chk.addEventListener('change', e => {
-      const i = parseInt(e.currentTarget.dataset.index);
-      tracks[i].selected = e.currentTarget.checked;
-      updatePanelClasses();
+      const name = e.currentTarget.dataset.trackName;
+      const t = tracks.find(tr => tr.name === name);
+      if (t) t.selected = e.currentTarget.checked;
+      focusIndex = null; // reset focus as display order changes
+      buildPanel();
       updateSelectedCount();
       drawBackground();
     });
   });
+
+  // Drag-to-reorder within tracks[]
+  trackList.querySelectorAll('.lane-control').forEach(div => {
+    div.addEventListener('dragstart', e => {
+      dragSrcIndex = parseInt(div.dataset.displayIdx);
+      e.dataTransfer.effectAllowed = 'move';
+      div.classList.add('dragging');
+    });
+    div.addEventListener('dragend', () => {
+      div.classList.remove('dragging');
+      trackList.querySelectorAll('.lane-control').forEach(d => d.classList.remove('drag-over'));
+    });
+    div.addEventListener('dragover', e => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      trackList.querySelectorAll('.lane-control').forEach(d => d.classList.remove('drag-over'));
+      div.classList.add('drag-over');
+    });
+    div.addEventListener('dragleave', () => div.classList.remove('drag-over'));
+    div.addEventListener('drop', e => {
+      e.preventDefault();
+      div.classList.remove('drag-over');
+      const destDisplayIdx = parseInt(div.dataset.displayIdx);
+      if (dragSrcIndex !== null && dragSrcIndex !== destDisplayIdx) {
+        const dt2 = displayTracks();
+        const srcTrack = dt2[dragSrcIndex];
+        const destTrack = dt2[destDisplayIdx];
+        const si = tracks.indexOf(srcTrack);
+        const di = tracks.indexOf(destTrack);
+        if (si !== -1 && di !== -1) {
+          tracks.splice(si, 1);
+          const newDi = tracks.indexOf(destTrack);
+          tracks.splice(newDi >= 0 ? newDi : di, 0, srcTrack);
+        }
+        if (focusIndex === dragSrcIndex) focusIndex = destDisplayIdx;
+        buildPanel();
+        drawBackground();
+        drawForeground();
+      }
+      dragSrcIndex = null;
+    });
+  });
+
+  updatePanelClasses();
 }
 
 function updatePanelClasses() {
-  panel.querySelectorAll('.lane-control').forEach((div, i) => {
+  trackList.querySelectorAll('.lane-control').forEach(div => {
+    const displayIdx = parseInt(div.dataset.displayIdx);
+    const dt = displayTracks();
+    const track = dt[displayIdx];
+    if (!track) return;
+
     div.classList.remove('focused', 'unfocused', 'deselected');
-    if (!tracks[i].selected) {
+    if (!track.selected) {
       div.classList.add('deselected');
-    } else if (focusIndex === null) {
-      // normal
-    } else if (i === focusIndex) {
-      div.classList.add('focused');
-    } else {
-      div.classList.add('unfocused');
+    } else if (focusIndex !== null) {
+      div.classList.add(displayIdx === focusIndex ? 'focused' : 'unfocused');
     }
 
-    // Update solo button active state
     const soloBtn = div.querySelector('.btn-solo');
-    if (soloBtn) {
-      soloBtn.classList.toggle('active', focusIndex === i);
-    }
+    if (soloBtn) soloBtn.classList.toggle('active', focusIndex === displayIdx);
   });
 }
 
@@ -340,8 +475,10 @@ function updateSelectedCount() {
 // ── Focus management ──────────────────────────────────────────────────────────
 
 function setFocus(i) {
+  const dt = displayTracks();
+  if (i < 0 || i >= dt.length) return;
   focusIndex = i;
-  focusLabel.textContent = `Focus: ${tracks[i].name}`;
+  focusLabel.textContent = `Focus: ${dt[i].name}`;
   updatePanelClasses();
   drawBackground();
   drawForeground();
@@ -358,21 +495,15 @@ function clearFocus() {
 }
 
 function focusNext() {
-  if (tracks.length === 0) return;
-  if (focusIndex === null) {
-    setFocus(0);
-  } else {
-    setFocus((focusIndex + 1) % tracks.length);
-  }
+  const n = displayTracks().length;
+  if (n === 0) return;
+  setFocus(focusIndex === null ? 0 : (focusIndex + 1) % n);
 }
 
 function focusPrev() {
-  if (tracks.length === 0) return;
-  if (focusIndex === null) {
-    setFocus(tracks.length - 1);
-  } else {
-    setFocus((focusIndex - 1 + tracks.length) % tracks.length);
-  }
+  const n = displayTracks().length;
+  if (n === 0) return;
+  setFocus(focusIndex === null ? n - 1 : (focusIndex - 1 + n) % n);
 }
 
 // ── Playback ──────────────────────────────────────────────────────────────────
@@ -405,7 +536,8 @@ function cancelFlashTimers() {
 function scheduleFlashes() {
   cancelFlashTimers();
   if (player.paused || player.ended || !player.duration) return;
-  const monitorTrack = focusIndex !== null ? tracks[focusIndex] : tracks.find(t => t.selected);
+  const dt = displayTracks();
+  const monitorTrack = focusIndex !== null ? dt[focusIndex] : dt.find(t => t.selected);
   if (!monitorTrack) return;
   const currentMs = player.currentTime * 1000;
   for (const markMs of monitorTrack.marks_ms) {
@@ -551,13 +683,85 @@ btnExport.addEventListener('click', () => doExport(false));
 
 // ── Scroll / resize handling ──────────────────────────────────────────────────
 
-// Reposition the viewport-sized fg-canvas when the user scrolls
-canvasWrap.addEventListener('scroll', drawForeground);
+// Sync vertical scroll between panel and canvas-wrap so lane labels always
+// align with canvas rows. Use flags to prevent infinite scroll loops.
+let _syncingPanelScroll = false;
+let _syncingCanvasScroll = false;
+
+trackList.addEventListener('scroll', () => {
+  if (_syncingCanvasScroll) return;
+  _syncingPanelScroll = true;
+  canvasWrap.scrollTop = trackList.scrollTop;
+  _syncingPanelScroll = false;
+});
+
+canvasWrap.addEventListener('scroll', () => {
+  if (_syncingPanelScroll) return;
+  _syncingCanvasScroll = true;
+  trackList.scrollTop = canvasWrap.scrollTop;
+  _syncingCanvasScroll = false;
+  drawForeground();
+});
 
 window.addEventListener('resize', () => {
   drawBackground();
   drawForeground();
 });
+
+// ── Stem filter ───────────────────────────────────────────────────────────────
+
+function switchStemAudio(stemName) {
+  const wasPlaying = !player.paused;
+  const pos = player.currentTime;
+  player.src = stemName ? `/stem-audio?stem=${encodeURIComponent(stemName)}` : '/audio';
+  player.currentTime = pos;
+  if (wasPlaying) player.play().catch(() => {});
+}
+
+function buildStemFilter() {
+  const stems = [...new Set(tracks.map(t => t.stem_source).filter(s => s && s !== 'full_mix'))];
+  if (stems.length === 0) {
+    stemFilterBar.innerHTML = '';
+    return;
+  }
+  const label = document.createElement('div');
+  label.className = 'filter-label';
+  label.textContent = 'Filter by stem';
+  stemFilterBar.innerHTML = '';
+  stemFilterBar.appendChild(label);
+
+  const allBtn = document.createElement('button');
+  allBtn.className = 'stem-btn' + (!activeStemFilter ? ' active' : '');
+  allBtn.textContent = 'all';
+  allBtn.addEventListener('click', () => {
+    activeStemFilter = null;
+    focusIndex = null;
+    switchStemAudio(null);
+    stemFilterBar.querySelectorAll('.stem-btn').forEach(b => b.classList.remove('active'));
+    allBtn.classList.add('active');
+    buildPanel();
+    drawBackground();
+    drawForeground();
+  });
+  stemFilterBar.appendChild(allBtn);
+
+  stems.sort().forEach(stem => {
+    const btn = document.createElement('button');
+    btn.className = 'stem-btn' + (activeStemFilter === stem ? ' active' : '');
+    btn.textContent = stem;
+    btn.addEventListener('click', () => {
+      activeStemFilter = activeStemFilter === stem ? null : stem;
+      focusIndex = null;
+      switchStemAudio(activeStemFilter);
+      stemFilterBar.querySelectorAll('.stem-btn').forEach(b => b.classList.remove('active'));
+      (activeStemFilter ? btn : allBtn).classList.add('active');
+      buildPanel();
+      drawBackground();
+      drawForeground();
+    });
+    stemFilterBar.appendChild(btn);
+  });
+}
 
 // ── Initialise ────────────────────────────────────────────────────────────────
 
@@ -570,7 +774,7 @@ async function init() {
     durationMs = data.duration_ms || 0;
 
     // Build track list sorted by quality_score descending
-    tracks = (data.timing_tracks || [])
+    const regularTracks = (data.timing_tracks || [])
       .sort((a, b) => b.quality_score - a.quality_score)
       .map(t => ({
         name: t.name,
@@ -580,9 +784,30 @@ async function init() {
         avg_interval_ms: t.avg_interval_ms,
         marks_ms: (t.marks || []).map(m => m.time_ms),
         stem_source: t.stem_source || 'full_mix',
-        selected: true,
+        selected: false,
+        isSweep: false,
         isHighDensity: t.quality_score === 0 || (t.avg_interval_ms > 0 && t.avg_interval_ms < 200),
       }));
+
+    const sweepTracks = (data.sweep_tracks || [])
+      .sort((a, b) => b.quality_score - a.quality_score)
+      .map(t => ({
+        name: t.name,
+        element_type: t.element_type || 'beat',
+        quality_score: t.quality_score,
+        mark_count: t.mark_count,
+        avg_interval_ms: t.avg_interval_ms,
+        marks_ms: (t.marks || []).map(m => m.time_ms),
+        stem_source: t.stem_source || t.stem || 'full_mix',
+        selected: false,
+        isSweep: true,
+        algorithm: t.algorithm || '',
+        sweepRank: t.rank,
+        sweepParams: t.parameters || {},
+        isHighDensity: t.avg_interval_ms > 0 && t.avg_interval_ms < 200,
+      }));
+
+    tracks = [...regularTracks, ...sweepTracks];
 
     // Enable Phonemes button when phoneme data is present
     const btnPhonemes = document.getElementById('btn-phonemes');
@@ -617,6 +842,7 @@ async function init() {
       }
     }
 
+    buildStemFilter();
     buildPanel();
     updateSelectedCount();
     drawBackground();
@@ -625,7 +851,8 @@ async function init() {
     const phonemeInfo = phonemeLayers.length > 0
       ? ` | ${phonemeLayers[0].marks.length} words, ${phonemeLayers[1] ? phonemeLayers[1].marks.length + ' phonemes' : ''}`
       : '';
-    status.textContent = `Loaded ${tracks.length} tracks${phonemeInfo} | ${fmtTime(durationMs / 1000)} | ${data.filename || ''}`;
+    const sweepInfo = sweepTracks.length > 0 ? ` | ${sweepTracks.length} sweep variants` : '';
+    status.textContent = `Loaded ${regularTracks.length} tracks${sweepInfo}${phonemeInfo} | ${fmtTime(durationMs / 1000)} | ${data.filename || ''}`;
 
     // Update time display when audio metadata loads
     player.addEventListener('loadedmetadata', () => {

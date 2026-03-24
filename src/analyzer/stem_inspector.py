@@ -229,8 +229,9 @@ def generate_sweep_configs(
         tempo_cv = 1.0  # uncertain
 
     stem_map = {m.name: m for m in stem_metrics}
-    keep_stems = {m.name for m in stem_metrics if m.verdict == "keep"}
-    # Always keep full_mix as fallback even if it scored "review"
+    # Include "review" stems in sweep — the sweep is the right place to evaluate them.
+    # Only hard-exclude "skip" stems (nearly silent / too sparse to be useful).
+    keep_stems = {m.name for m in stem_metrics if m.verdict in ("keep", "review")}
     keep_stems.add("full_mix")
 
     all_algorithms = list(_STEM_AFFINITY.keys())

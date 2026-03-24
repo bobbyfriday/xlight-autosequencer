@@ -15,6 +15,8 @@ Auto-generated from all feature plans. Last updated: 2026-03-23
 - JSON files (local filesystem); new `~/.xlight/sweep_configs/` directory (005-vamp-parameter-tuning)
 - Python 3.11+ + numpy (signal processing, cross-correlation), librosa 0.10+ (audio features, onset detection), vamp (plugin host), click 8+ (CLI), xml.etree.ElementTree (stdlib, xLights XML export) (012-intelligent-stem-sweep)
 - JSON files (analysis output), XML files (`.xtiming`, `.xvc` exports), WAV stem files in `.stems/<md5>/` (012-intelligent-stem-sweep)
+- Python 3.11+ + `lyricsgenius` (new optional dep), `mutagen` (new lightweight dep), (013-genius-lyric-segments)
+- JSON files — existing MD5-keyed `_analysis.json` cache; `song_structure` field (013-genius-lyric-segments)
 
 - **Language**: Python 3.11+
 - **Audio analysis**: vamp (Python host), librosa 0.10+, madmom 0.16+
@@ -89,9 +91,9 @@ pytest tests/ -v
 - Timestamps are always stored as integers (milliseconds) — never floats
 
 ## Recent Changes
+- 013-genius-lyric-segments: Added Python 3.11+ + `lyricsgenius` (new optional dep), `mutagen` (new lightweight dep),
 - 012-intelligent-stem-sweep: Added Python 3.11+ + numpy (signal processing, cross-correlation), librosa 0.10+ (audio features, onset detection), vamp (plugin host), click 8+ (CLI), xml.etree.ElementTree (stdlib, xLights XML export)
 - 011-quality-score-config: Added Python 3.11+ + numpy (scoring math), tomllib (TOML config parsing, stdlib in 3.11+), click 8+ (CLI), pytest (testing)
-- 005-vamp-parameter-tuning: Added Python 3.11+ + vamp, numpy, click 8+ (all existing — no new deps)
   `htdemucs_6s` separates audio into 6 stems (drums, bass, vocals, guitar, piano, other).
   Algorithms route to their preferred stem via `Algorithm.preferred_stem` class attribute.
   Stems are MD5-cached in `.stems/<hash>/` adjacent to the source file. Each `TimingTrack`

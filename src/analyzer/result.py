@@ -578,6 +578,7 @@ class AnalysisResult:
     song_structure: Optional["SongStructure"] = None
     source_hash: Optional[str] = None
     interaction_result: Optional[InteractionResult] = None
+    sweep_tracks: list[dict] = field(default_factory=list)
 
     def to_dict(self) -> dict:
         d: dict = {
@@ -593,6 +594,7 @@ class AnalysisResult:
             "stem_cache": self.stem_cache,
             "algorithms": [a.to_dict() for a in self.algorithms],
             "timing_tracks": [t.to_dict() for t in self.timing_tracks],
+            "sweep_tracks": self.sweep_tracks,
             "phoneme_result": self.phoneme_result.to_dict() if self.phoneme_result else None,
             "song_structure": self.song_structure.to_dict() if self.song_structure else None,
             "interaction_result": self.interaction_result.to_dict() if self.interaction_result else None,
@@ -625,4 +627,5 @@ class AnalysisResult:
             song_structure=song_structure,
             source_hash=d.get("source_hash"),
             interaction_result=interaction_result,
+            sweep_tracks=d.get("sweep_tracks", []),
         )
