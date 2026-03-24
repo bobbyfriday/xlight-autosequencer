@@ -113,6 +113,10 @@ def cli() -> None:
     help="Detect song structure (intro/verse/chorus/bridge/outro) using All-in-One (allin1)",
 )
 @click.option(
+    "--genius", "use_genius", is_flag=True, default=False,
+    help="Fetch section headers from Genius and align to audio timestamps (requires GENIUS_API_TOKEN env var)",
+)
+@click.option(
     "--no-cache", "no_cache", is_flag=True, default=False,
     help="Re-run analysis even if a cached result exists for this file",
 )
@@ -137,6 +141,7 @@ def analyze_cmd(
     lyrics_path: str | None,
     phoneme_model: str,
     use_structure: bool,
+    use_genius: bool,
     no_cache: bool,
     scoring_config_path: str | None,
     scoring_profile_name: str | None,
@@ -186,7 +191,13 @@ def analyze_cmd(
         )
 
     # Determine output path
-    analysis_dir = audio_path.parent / "analysis"
+    # Song folder: named after the audio stem, adjacent to the MP3.
+    # If the MP3 is already inside a folder with the same name (e.g. songs/MySong/MySong.mp3),
+    # use that folder directly to avoid double-nesting.
+    if audio_path.parent.name == audio_path.stem:
+        analysis_dir = audio_path.parent
+    else:
+        analysis_dir = audio_path.parent / audio_path.stem
     if output is None:
         out_path = str(analysis_dir / (audio_path.stem + "_analysis.json"))
     else:
@@ -203,14 +214,26 @@ def analyze_cmd(
         click.echo(
             f"Analysis cache: hit ({(result.source_hash or '')[:8]}) — skipping algorithms."
         )
-        if not (use_phonemes and result.phoneme_result is None):
+        genius_cached = (
+            result.song_structure is not None
+            and result.song_structure.source == "genius"
+            and result.phoneme_result is not None
+            and getattr(result.phoneme_result.word_track, "lyrics_source", "") == "genius"
+        )
+        needs_more = (use_phonemes and result.phoneme_result is None) or (
+            use_genius and not genius_cached
+        )
+        if not needs_more:
             from src.analyzer.scorer import score_all_tracks
             from src.analyzer.scoring_config import ScoringConfig, load_profile
             score_all_tracks(result.timing_tracks, result.duration_ms, scoring_config)
             click.echo(f"Output: {out_path}")
             _print_summary_table(result.timing_tracks)
             return
-        click.echo("Phoneme data missing from cache — running phoneme analysis...")
+        if use_phonemes and result.phoneme_result is None:
+            click.echo("Phoneme data missing from cache — running phoneme analysis...")
+        if use_genius and not genius_cached:
+            click.echo("Genius data missing from cache — running Genius alignment...")
 
     # ── Full analysis run ─────────────────────────────────────────────────────
 
@@ -373,6 +396,72 @@ def analyze_cmd(
             click.echo(f"WARNING: Structure analysis failed: {exc}", err=True)
         except Exception as exc:
             click.echo(f"WARNING: Structure analysis failed: {exc}", err=True)
+
+    # Genius lyric segment detection (optional, requires lyricsgenius + mutagen)
+    if use_genius:
+        import os
+        genius_token = os.environ.get("GENIUS_API_TOKEN", "")
+        if not genius_token:
+            click.echo(
+                "WARNING: GENIUS_API_TOKEN is not set. Obtain a token at "
+                "genius.com/api-clients and set: export GENIUS_API_TOKEN=\"<your-token>\". "
+                "Skipping Genius segment detection.",
+                err=True,
+            )
+        else:
+            genius_cached = (
+                result.song_structure is not None
+                and result.song_structure.source == "genius"
+                and result.phoneme_result is not None
+                and getattr(result.phoneme_result.word_track, "lyrics_source", "") == "genius"
+            )
+            if genius_cached and not no_cache:
+                seg_count = len(result.song_structure.segments)
+                click.echo(
+                    f"Genius segments: cache hit — {seg_count} segments loaded."
+                )
+            else:
+                from src.analyzer.genius_segments import GeniusSegmentAnalyzer
+                from pathlib import Path as _Path
+
+                click.echo("Genius segment detection:")
+                click.echo("  → Fetching lyrics and aligning sections...")
+
+                stem_dir: Path | None = None
+                try:
+                    from src.analyzer.stems import StemCache
+                    sc = StemCache(audio_path)
+                    if sc.stem_dir.exists():
+                        stem_dir = sc.stem_dir
+                except Exception:
+                    pass
+
+                genius_analyzer = GeniusSegmentAnalyzer()
+                song_structure, genius_phoneme_result, genius_warnings = genius_analyzer.run(
+                    audio_path=str(audio_path),
+                    token=genius_token,
+                    stem_dir=stem_dir,
+                    duration_ms=result.duration_ms,
+                )
+
+                for w in genius_warnings:
+                    click.echo(f"  → Warning: {w}")
+
+                if song_structure is not None and song_structure.segments:
+                    result.song_structure = song_structure
+                    labels = [s.label for s in song_structure.segments]
+                    click.echo(
+                        f"  → Found {len(labels)} segments: {', '.join(labels)}"
+                    )
+                else:
+                    click.echo("  → No Genius segments produced. See warnings above.")
+
+                # Genius word-level alignment replaces auto-transcription —
+                # verified lyrics text with WhisperX-derived timestamps
+                if genius_phoneme_result is not None:
+                    result.phoneme_result = genius_phoneme_result
+                    word_count = len(genius_phoneme_result.word_track.marks)
+                    click.echo(f"  → Genius word track: {word_count} words aligned")
 
     try:
         cache.save(result)

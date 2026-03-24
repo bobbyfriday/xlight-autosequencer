@@ -77,20 +77,73 @@ body {
 #panel {
   width: 220px;
   flex-shrink: 0;
-  overflow-y: auto;
+  overflow: hidden;
   background: #1e1e1e;
   border-right: 1px solid #333;
+  display: flex;
+  flex-direction: column;
+}
+
+#stem-filter-bar {
+  flex-shrink: 0;
+  padding: 5px 8px;
+  border-bottom: 1px solid #2a2a2a;
+  background: #1a1a1a;
+}
+
+#stem-filter-bar .filter-label {
+  font-size: 10px;
+  color: #555;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 3px;
+}
+
+.stem-btn {
+  display: inline-block;
+  padding: 2px 7px;
+  margin: 2px 2px 0 0;
+  font-size: 10px;
+  background: #2a2a2a;
+  border: 1px solid #444;
+  border-radius: 3px;
+  color: #999;
+  cursor: pointer;
+}
+.stem-btn:hover { background: #333; color: #ccc; }
+.stem-btn.active { background: #1a3a5a; border-color: #4af; color: #cdf; }
+
+#track-list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.queue-divider {
+  height: 20px;
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  background: #16161e;
+  border-top: 1px solid #2a2a35;
+  border-bottom: 1px solid #2a2a35;
+  font-size: 10px;
+  color: #4af;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+  user-select: none;
 }
 
 .lane-control {
   height: 60px;
   display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 4px 8px;
+  flex-direction: row;
+  align-items: center;
+  padding: 0;
   border-bottom: 1px solid #2a2a2a;
   cursor: default;
   transition: background 0.1s;
+  user-select: none;
 }
 .lane-control.focused {
   background: #1a2a3a;
@@ -98,6 +151,44 @@ body {
 }
 .lane-control.unfocused { opacity: 0.35; }
 .lane-control.deselected { opacity: 0.4; }
+.lane-control.drag-over { background: #253535; border-top: 2px solid #4af; }
+.lane-control.dragging { opacity: 0.5; }
+.lane-control.sweep-track { background: #1a1a22; }
+
+.lane-drag-handle {
+  width: 16px;
+  flex-shrink: 0;
+  text-align: center;
+  color: #444;
+  cursor: grab;
+  font-size: 14px;
+  padding: 0 2px;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.lane-drag-handle:hover { color: #888; }
+.lane-drag-handle:active { cursor: grabbing; }
+
+.lane-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 4px 6px 4px 2px;
+  min-width: 0;
+}
+
+.sweep-separator {
+  padding: 4px 8px;
+  font-size: 10px;
+  color: #555;
+  background: #161622;
+  border-bottom: 1px solid #2a2a35;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
 
 .lane-top {
   display: flex;
@@ -133,6 +224,15 @@ body {
   border-radius: 3px;
   background: #2855a5;
   color: #cdf;
+  flex-shrink: 0;
+}
+
+.sweep-badge {
+  font-size: 10px;
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: #3a2855;
+  color: #cbc;
   flex-shrink: 0;
 }
 
@@ -188,6 +288,19 @@ canvas {
 }
 
 #fg-canvas { pointer-events: none; }
+
+/* Phoneme lane rows in the left panel (no drag handle, slightly dimmed) */
+.phoneme-lane-control {
+  background: #161a1a;
+  border-left: 2px solid #7ab;
+  padding-left: 8px;
+  opacity: 0.85;
+  cursor: default;
+}
+.phoneme-lane-control:nth-child(2) {
+  background: #1a1a16;
+  border-left-color: #a87;
+}
 
 /* ── Status bar ──────────────────────────────────────────────────────────── */
 #status {
