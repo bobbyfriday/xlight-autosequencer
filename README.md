@@ -136,6 +136,8 @@ Opens a browser at `http://localhost:5173`. From here you can:
 ```bash
 source .venv/bin/activate
 
+# ── Analysis ─────────────────────────────────────────────────────────────────
+
 # Analyze a file (beats, onsets, chords — no stems)
 xlight-analyze analyze song.mp3
 
@@ -157,6 +159,31 @@ xlight-analyze summary song_analysis.json
 
 # Open the review UI (no upload page — jumps straight to timeline)
 xlight-analyze review song_analysis.json
+
+# ── xLights export pipeline ───────────────────────────────────────────────────
+
+# Full end-to-end pipeline: analyze → condition → export .xtiming + .xvc files
+xlight-analyze pipeline song.mp3 --output-dir ./xlight-export
+
+# With interactive stem selection (prompts KEEP/SKIP per stem)
+xlight-analyze pipeline song.mp3 --interactive
+
+# Skip parameter sweep, export top 8 tracks
+xlight-analyze pipeline song.mp3 --no-sweep --top 8
+
+# Inspect stem quality without running the full pipeline
+xlight-analyze stem-inspect song.mp3
+
+# Interactive stem review (confirm or override KEEP/REVIEW/SKIP verdicts)
+xlight-analyze stem-review song.mp3
+xlight-analyze stem-review song.mp3 --yes    # accept all automatic verdicts
+
+# Generate intelligent sweep parameter configs based on audio characteristics
+xlight-analyze sweep-init song.mp3
+xlight-analyze sweep-init song.mp3 --dry-run  # preview without writing
+
+# Export .xtiming + .xvc from an already-computed analysis JSON
+xlight-analyze export-xlights song_analysis.json --output-dir ./xlight-export
 ```
 
 ### Phoneme model sizes
@@ -194,17 +221,35 @@ songs/
     ├── My_Song_analysis.json    <- full analysis result (cached by MD5)
     ├── My_Song.xtiming          <- xLights timing file (phonemes)
     ├── My_Song.lyrics.txt       <- auto-transcribed lyrics (edit and rerun)
-    └── stems/
-        ├── drums.mp3
-        ├── bass.mp3
-        ├── vocals.mp3
-        ├── guitar.mp3
-        ├── piano.mp3
-        ├── other.mp3
-        └── manifest.json
+    ├── stems/
+    │   ├── drums.mp3
+    │   ├── bass.mp3
+    │   ├── vocals.mp3
+    │   ├── guitar.mp3
+    │   ├── piano.mp3
+    │   ├── other.mp3
+    │   └── manifest.json
+    └── analysis/                <- created by pipeline / export-xlights
+        ├── My_Song_timing.xtiming   <- all timing tracks (import into xLights)
+        ├── drums_beat.xvc           <- value curve, full resolution
+        ├── drums_beat_macro.xvc     <- value curve, ≤100 points (full song)
+        ├── bass_onset.xvc
+        ├── ...
+        ├── export_manifest.json     <- every output file + warnings list
+        └── sweep_configs/           <- created by sweep-init
+            ├── qm_beats.json
+            ├── qm_onsets_complex.json
+            └── ...
 ```
 
 Analyzed songs are also registered in `~/.xlight/library.json` for the library view.
+
+### Importing into xLights
+
+| File type | Where to import |
+|-----------|----------------|
+| `*.xtiming` | Sequence editor → right-click sequence → Import Timing Tracks |
+| `*.xvc` | Any effect → value curve editor → load from file |
 
 ---
 
@@ -256,12 +301,17 @@ pytest tests/ -v
 src/
 ├── analyzer/
 │   ├── audio.py              # MP3 loading
-│   ├── result.py             # Data classes
+│   ├── result.py             # Data classes (TimingTrack, ConditionedCurve, etc.)
 │   ├── runner.py             # Orchestrates algorithm runs
 │   ├── scorer.py             # Quality scoring
 │   ├── stems.py              # Demucs stem separation + cache
+│   ├── stem_inspector.py     # Stem quality inspection + sweep config generation
 │   ├── phonemes.py           # WhisperX phoneme analysis
+│   ├── interaction.py        # Cross-stem analysis (leader, tightness, sidechain, handoffs)
+│   ├── conditioning.py       # Downsample → smooth → normalize feature curves
 │   ├── xtiming.py            # xLights .xtiming XML writer
+│   ├── xvc_export.py         # xLights .xvc value curve XML writer
+│   ├── pipeline.py           # End-to-end export pipeline (feature 012)
 │   └── algorithms/           # Individual algorithm implementations
 ├── cache.py                  # MD5-keyed analysis result cache
 ├── library.py                # ~/.xlight/library.json song index
