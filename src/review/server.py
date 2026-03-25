@@ -527,11 +527,20 @@ def create_app(analysis_path: str | None = None, audio_path: str | None = None) 
         def stem_audio():
             stem_name = request.args.get("stem", "")
             audio_path = Path(app.config["AUDIO_PATH"])
-            stem_file = audio_path.parent / "stems" / f"{stem_name}.mp3"
-            if not stem_name or not stem_file.exists():
-                # Try .stems fallback
-                stem_file = audio_path.parent / ".stems" / f"{stem_name}.mp3"
-            if not stem_file.exists():
+            if not stem_name:
+                return jsonify({"error": "No stem specified"}), 400
+            # Check all possible stem locations
+            stem_file = None
+            for stem_dir in [
+                audio_path.parent / "stems",
+                audio_path.parent / audio_path.stem / "stems",
+                audio_path.parent / ".stems",
+            ]:
+                candidate = stem_dir / f"{stem_name}.mp3"
+                if candidate.exists():
+                    stem_file = candidate
+                    break
+            if stem_file is None:
                 return jsonify({"error": f"Stem {stem_name} not found"}), 404
             resp = send_file(str(stem_file), mimetype="audio/mpeg", conditional=True)
             resp.headers["Accept-Ranges"] = "bytes"
@@ -540,7 +549,9 @@ def create_app(analysis_path: str | None = None, audio_path: str | None = None) 
         @app.route("/vocal-audio")
         def vocal_audio():
             audio_path = Path(app.config["AUDIO_PATH"])
-            for stem_dir in [audio_path.parent / "stems", audio_path.parent / ".stems"]:
+            for stem_dir in [audio_path.parent / "stems",
+                             audio_path.parent / audio_path.stem / "stems",
+                             audio_path.parent / ".stems"]:
                 vocals = stem_dir / "vocals.mp3"
                 if vocals.exists():
                     resp = send_file(str(vocals), mimetype="audio/mpeg", conditional=True)
@@ -609,7 +620,8 @@ def create_app(analysis_path: str | None = None, audio_path: str | None = None) 
             audio_path = Path(app.config["AUDIO_PATH"])
             has_vocals = any(
                 (audio_path.parent / d / "vocals.mp3").exists()
-                for d in ["stems", ".stems"]
+                for d in ["stems", ".stems",
+                          f"{audio_path.stem}/stems"]
             )
             pr["duration_ms"] = data.get("duration_ms", 0)
             pr["filename"] = data.get("filename", "")
@@ -659,11 +671,15 @@ def create_app(analysis_path: str | None = None, audio_path: str | None = None) 
             stem = request.args.get("stem", "")
             audio_src = Path(app.config["AUDIO_PATH"])
             if stem:
-                stem_file = audio_src.parent / "stems" / f"{stem}.mp3"
-                if not stem_file.exists():
-                    stem_file = audio_src.parent / ".stems" / f"{stem}.mp3"
-                if stem_file.exists():
-                    audio_src = stem_file
+                for stem_dir in [
+                    audio_src.parent / "stems",
+                    audio_src.parent / audio_src.stem / "stems",
+                    audio_src.parent / ".stems",
+                ]:
+                    candidate = stem_dir / f"{stem}.mp3"
+                    if candidate.exists():
+                        audio_src = candidate
+                        break
 
             samples_per_pixel = int(request.args.get("spp", 512))
             try:
