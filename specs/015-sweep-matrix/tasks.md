@@ -53,12 +53,12 @@
 
 **Independent Test**: Run `sweep-matrix` on a fixture audio with `--dry-run` — verify permutation count is N_stems × Y_params. Then run without `--dry-run` — verify result files are written with correct structure.
 
-- [ ] T015 [US1] Write failing tests for new algorithm wrappers in `tests/unit/test_vamp_new_algorithms.py`: verify each produces timing marks or value curves from fixture audio; verify plugin_key is correct; verify preferred_stem is set; run tests now — MUST fail (classes not yet implemented)
-- [ ] T016 [P] [US1] Implement all 3 aubio algorithm classes in `src/analyzer/algorithms/vamp_aubio.py` (AubioOnsetAlgorithm, AubioTempoAlgorithm, AubioNotesAlgorithm) inheriting from Algorithm base; set name, plugin_key, preferred_stem, depends_on, element_type; implement `_run()`
-- [ ] T017 [P] [US1] Implement all 4 BBC algorithm classes in `src/analyzer/algorithms/vamp_bbc.py` (BBCEnergyAlgorithm, BBCSpectralFluxAlgorithm, BBCPeaksAlgorithm, BBCRhythmAlgorithm); BBC energy/flux/peaks return value curves (vector output), rhythm returns timing marks
-- [ ] T018 [P] [US1] Implement SegmentinoAlgorithm in `src/analyzer/algorithms/vamp_segmentation.py`
-- [ ] T019 [P] [US1] Implement 6 algorithm classes in `src/analyzer/algorithms/vamp_extra.py` (QMKeyAlgorithm, QMTranscriptionAlgorithm, SilvetNotesAlgorithm, PercussionOnsetsAlgorithm, AmplitudeFollowerAlgorithm, TempogramAlgorithm)
-- [ ] T020 [US1] Run T015 tests against T016–T019 implementations — fix until all pass
+- [x] T015 [US1] Write failing tests for new algorithm wrappers in `tests/unit/test_vamp_new_algorithms.py`: verify each produces timing marks or value curves from fixture audio; verify plugin_key is correct; verify preferred_stem is set; run tests now — MUST fail (classes not yet implemented)
+- [x] T016 [P] [US1] Implement all 3 aubio algorithm classes in `src/analyzer/algorithms/vamp_aubio.py` (AubioOnsetAlgorithm, AubioTempoAlgorithm, AubioNotesAlgorithm) inheriting from Algorithm base; set name, plugin_key, preferred_stem, depends_on, element_type; implement `_run()`
+- [x] T017 [P] [US1] Implement all 4 BBC algorithm classes in `src/analyzer/algorithms/vamp_bbc.py` (BBCEnergyAlgorithm, BBCSpectralFluxAlgorithm, BBCPeaksAlgorithm, BBCRhythmAlgorithm); BBC energy/flux/peaks return value curves (vector output), rhythm returns timing marks
+- [x] T018 [P] [US1] Implement SegmentinoAlgorithm in `src/analyzer/algorithms/vamp_segmentation.py`
+- [x] T019 [P] [US1] Implement 6 algorithm classes in `src/analyzer/algorithms/vamp_extra.py` (QMKeyAlgorithm, QMTranscriptionAlgorithm, SilvetNotesAlgorithm, PercussionOnsetsAlgorithm, AmplitudeFollowerAlgorithm, TempogramAlgorithm)
+- [x] T020 [US1] Run T015 tests against T016–T019 implementations — fix until all pass
 - [ ] T021 [US1] Register all new algorithms in `src/analyzer/runner.py` `default_algorithms()` function so they appear in the full algorithm list
 - [ ] T022 [US1] Implement `MatrixSweepRunner` in `src/analyzer/sweep_matrix.py`: accepts `SweepMatrix`, loads audio segment via `segment_selector`, runs each permutation (dispatching to existing `SweepRunner` or subprocess for vamp), collects `PermutationResult` objects, writes unified report JSON + per-algorithm JSONs
 - [ ] T023 [US1] Write failing integration test in `tests/integration/test_sweep_matrix_e2e.py`: run `MatrixSweepRunner` on fixture audio with 2 algorithms; verify result count = stems × params; verify unified report has metadata only; verify per-algorithm files have full marks
