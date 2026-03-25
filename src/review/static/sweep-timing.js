@@ -9,8 +9,10 @@ let selectedSet = new Set(); // indices into allResults for export
 let activeStem = null;   // stem filter or null = all
 let durationMs = 0;
 let pxPerSec = 80;
+let waveformData = null; // {samples: number[], duration_s: number}
 const ZOOM_MIN = 15, ZOOM_MAX = 500, ZOOM_DEFAULT = 80;
 const AXIS_H = 22;
+const WAVE_H = 60;
 const LANE_H = 28;
 
 const STEM_COLORS = {
@@ -58,6 +60,12 @@ async function init() {
     buildStemFilters(stems);
 
     applyFilter();
+
+    // Load full mix waveform by default
+    try {
+      const wr = await fetch('/waveform?stem=');
+      if (wr.ok) waveformData = await wr.json();
+    } catch (e) { /* optional */ }
 
     // Load full-song winner marks first, then segment marks as fallback
     await loadWinnerMarks();
@@ -140,9 +148,41 @@ function applyFilter() {
   document.getElementById('result-count').textContent =
     `${filteredResults.length} timing tracks`;
 
+  // Switch audio source and load waveform for selected stem
+  switchStemAudio(activeStem);
+
   buildPanel();
   drawAll();
   updateExportBar();
+}
+
+async function switchStemAudio(stem) {
+  const wasPlaying = !player.paused;
+  const currentTime = player.currentTime;
+
+  if (stem && stem !== 'full_mix') {
+    // Try to play the stem audio
+    player.src = `/stem-audio?stem=${stem}`;
+  } else {
+    player.src = '/audio';
+  }
+  player.currentTime = currentTime;
+  if (wasPlaying) player.play();
+
+  // Load waveform for this stem
+  const waveformStem = (stem && stem !== 'full_mix') ? stem : '';
+  try {
+    const url = waveformStem ? `/waveform?stem=${waveformStem}` : '/waveform?stem=';
+    const resp = await fetch(url);
+    if (resp.ok) {
+      waveformData = await resp.json();
+    } else {
+      waveformData = null;
+    }
+  } catch (e) {
+    waveformData = null;
+  }
+  drawAll();
 }
 
 // ── Panel (left sidebar) ─────────────────────────────────────────────────────
@@ -155,6 +195,21 @@ function buildPanel() {
   axisRow.style.height = AXIS_H + 'px';
   axisRow.style.borderBottom = '1px solid #333';
   panelEl.appendChild(axisRow);
+
+  // Waveform spacer (matches waveform lane height)
+  if (waveformData) {
+    const waveRow = document.createElement('div');
+    waveRow.className = 'lane-row';
+    waveRow.style.height = WAVE_H + 'px';
+    waveRow.style.background = '#0a140a';
+    waveRow.style.borderBottom = '1px solid #333';
+    waveRow.style.color = '#4a8';
+    waveRow.style.fontSize = '10px';
+    waveRow.style.paddingLeft = '8px';
+    waveRow.style.alignItems = 'center';
+    waveRow.textContent = activeStem ? `${activeStem} waveform` : 'full mix waveform';
+    panelEl.appendChild(waveRow);
+  }
 
   filteredResults.forEach((r, i) => {
     const globalIdx = allResults.indexOf(r);
@@ -202,9 +257,18 @@ function buildPanel() {
 
 function totalW() { return Math.ceil((durationMs / 1000) * pxPerSec); }
 
+function canvasH() {
+  const waveH = waveformData ? WAVE_H : 0;
+  return AXIS_H + waveH + filteredResults.length * LANE_H;
+}
+
+function laneY(i) {
+  return AXIS_H + (waveformData ? WAVE_H : 0) + i * LANE_H;
+}
+
 function drawAll() {
   const vw = canvasWrap.clientWidth;
-  const h = AXIS_H + filteredResults.length * LANE_H;
+  const h = canvasH();
   bgCanvas.width = fgCanvas.width = vw;
   bgCanvas.height = fgCanvas.height = h;
   spacer.style.width = totalW() + 'px';
@@ -235,9 +299,34 @@ function drawFast() {
     bgCtx.fillText(`${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`, x + 2, 14);
   }
 
+  // Waveform lane
+  if (waveformData && waveformData.samples && waveformData.samples.length > 0) {
+    const wy = AXIS_H;
+    bgCtx.fillStyle = '#0a140a';
+    bgCtx.fillRect(0, wy, vw, WAVE_H);
+    const samples = waveformData.samples;
+    const durS = waveformData.duration_s;
+    const mid = wy + WAVE_H / 2;
+    const halfH = (WAVE_H - 6) / 2;
+    const stemColor = activeStem ? (STEM_COLORS[activeStem] || '#3a8') : '#3a8';
+    bgCtx.fillStyle = stemColor + '99';
+    const startIdx = Math.max(0, Math.floor((scrollX / pxPerSec) / durS * samples.length) - 1);
+    const endIdx = Math.min(samples.length, Math.ceil(((scrollX + vw) / pxPerSec) / durS * samples.length) + 1);
+    const barW = Math.max(1, Math.ceil((durS / samples.length) * pxPerSec));
+    for (let si = startIdx; si < endIdx; si++) {
+      const amp = samples[si] * halfH;
+      if (amp < 0.5) continue;
+      const x = Math.round((si / samples.length) * durS * pxPerSec) - scrollX;
+      bgCtx.fillRect(x, Math.round(mid - amp), barW, Math.max(1, Math.round(amp * 2)));
+    }
+    // Divider
+    bgCtx.fillStyle = '#333';
+    bgCtx.fillRect(0, wy + WAVE_H - 1, vw, 1);
+  }
+
   // Track lanes
   filteredResults.forEach((r, i) => {
-    const y = AXIS_H + i * LANE_H;
+    const y = laneY(i);
     const globalIdx = allResults.indexOf(r);
     const isSelected = selectedSet.has(globalIdx);
 
@@ -276,15 +365,16 @@ function drawFast() {
   });
 
   // Playhead
+  const ph = canvasH();
+  fgCtx.clearRect(0, 0, vw, ph);
   if (player.currentTime) {
     const x = (player.currentTime * pxPerSec) - scrollX;
     if (x >= 0 && x <= vw) {
-      fgCtx.clearRect(0, 0, vw, h);
       fgCtx.strokeStyle = '#ff4444';
       fgCtx.lineWidth = 1.5;
       fgCtx.beginPath();
       fgCtx.moveTo(x, 0);
-      fgCtx.lineTo(x, h);
+      fgCtx.lineTo(x, ph);
       fgCtx.stroke();
     }
   }
