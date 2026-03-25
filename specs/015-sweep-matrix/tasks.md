@@ -76,9 +76,9 @@
 
 **Independent Test**: Run `sweep-results` on a sweep report file and verify ranked table output with correct columns; verify `--algorithm`, `--stem`, `--best`, `--top` filters.
 
-- [ ] T027 [US2] Add `sweep-results` CLI command to `src/cli.py` per contract: accept sweep report path, `--algorithm`, `--stem`, `--best`, `--top`, `--type`, `--export`; load report JSON; display ranked table with columns: rank, score, type, algorithm, stem, marks, avg interval, parameters
-- [ ] T028 [US2] Implement `--best` flag: group results by algorithm, show only the top-scoring result per algorithm
-- [ ] T029 [US2] Implement `--export` flag: export displayed results as `.xtiming` (timing tracks) or `.xvc` (value curves) to `winners/` directory
+- [x] T027 [US2] Add `sweep-results` CLI command to `src/cli.py` per contract: accept sweep report path, `--algorithm`, `--stem`, `--best`, `--top`, `--type`, `--export`; load report JSON; display ranked table with columns: rank, score, type, algorithm, stem, marks, avg interval, parameters
+- [x] T028 [US2] Implement `--best` flag: group results by algorithm, show only the top-scoring result per algorithm
+- [x] T029 [US2] Implement `--export` flag: export displayed results as `.xtiming` (timing tracks) or `.xvc` (value curves) to `winners/` directory
 
 **Checkpoint**: `sweep-results` displays ranked, filterable table. `--best --export` auto-exports winners.
 
@@ -90,10 +90,10 @@
 
 **Independent Test**: Open review UI, navigate to Sweep Results, verify table loads with sorting and filtering; select two results and compare on timeline.
 
-- [ ] T030 [P] [US3] Create `src/review/static/sweep.html` with toolbar (back to timeline, filter box, sort dropdowns), results table, and comparison area with two canvases + shared audio player
-- [ ] T031 [P] [US3] Create `src/review/static/sweep.js` with: fetch sweep report from `/sweep-report` endpoint; render sortable table; filter by text input; checkbox selection for compare mode; timeline comparison view with two color-coded timing tracks and shared playhead
-- [ ] T032 [US3] Add server endpoints to `src/review/server.py` in review mode: `/sweep-view` (serves sweep.html), `/sweep-report` (returns sweep_report.json), `/sweep-detail?algorithm=X` (returns per-algorithm full data for comparison)
-- [ ] T033 [US3] Add "Sweep Results" button to `src/review/static/index.html` toolbar linking to `/sweep-view`
+- [x] T030 [P] [US3] Create `src/review/static/sweep.html` with toolbar (back to timeline, filter box, sort dropdowns), results table, and comparison area with two canvases + shared audio player
+- [x] T031 [P] [US3] Create `src/review/static/sweep.js` with: fetch sweep report from `/sweep-report` endpoint; render sortable table; filter by text input; checkbox selection for compare mode; timeline comparison view with two color-coded timing tracks and shared playhead
+- [x] T032 [US3] Add server endpoints to `src/review/server.py` in review mode: `/sweep-view` (serves sweep.html), `/sweep-report` (returns sweep_report.json), `/sweep-detail?algorithm=X` (returns per-algorithm full data for comparison)
+- [x] T033 [US3] Add "Sweep Results" button to `src/review/static/index.html` toolbar linking to `/sweep-view`
 
 **Checkpoint**: Review UI Sweep Results view loads, sorts, filters, and compares two results on the timeline.
 
@@ -105,9 +105,9 @@
 
 **Independent Test**: Create a TOML config with 2 algorithms and custom param ranges; run `sweep-matrix --config`; verify only specified algorithms/params run.
 
-- [ ] T034 [US4] Write failing test in `tests/unit/test_sweep_matrix.py` for TOML override/merge behavior: verify per-algorithm param overrides replace auto-derived ranges; verify TOML stems merge with CLI `--stems` flag (CLI wins); verify missing TOML fields fall back to defaults
-- [ ] T035 [US4] Implement TOML parsing in `SweepMatrixConfig.from_toml()` in `src/analyzer/sweep_matrix.py` using `tomllib`; run T034 test — MUST pass
-- [ ] T036 [US4] Wire `--config` flag in `sweep-matrix` CLI to load TOML and merge with CLI flags (CLI flags override TOML)
+- [x] T034 [US4] Write failing test in `tests/unit/test_sweep_matrix.py` for TOML override/merge behavior: verify per-algorithm param overrides replace auto-derived ranges; verify TOML stems merge with CLI `--stems` flag (CLI wins); verify missing TOML fields fall back to defaults
+- [x] T035 [US4] Implement TOML parsing in `SweepMatrixConfig.from_toml()` in `src/analyzer/sweep_matrix.py` using `tomllib`; run T034 test — MUST pass
+- [x] T036 [US4] Wire `--config` flag in `sweep-matrix` CLI to load TOML and merge with CLI flags (CLI flags override TOML)
 
 **Checkpoint**: `sweep-matrix --config sweep.toml` applies custom algorithm/stem/param configuration.
 
@@ -119,10 +119,10 @@
 
 **Independent Test**: After a sweep, verify best-per-algorithm selection is displayed and export produces correctly named files.
 
-- [ ] T037 [US5] Implement `auto_select_best(report)` in `src/analyzer/sweep_matrix.py`: group results by algorithm, pick highest quality_score (tie-break: fewer marks), return dict of winners
-- [ ] T038 [US5] After sweep completes in `MatrixSweepRunner`, call `auto_select_best()`, display winners table, prompt user to confirm export
-- [ ] T039 [US5] Re-run winning parameter sets on the full song (not sample segment) via `MatrixSweepRunner` to produce final timing tracks and value curves with complete song coverage (FR-007c)
-- [ ] T040 [US5] Implement winner export: load full-song results from T039, export timing tracks as `.xtiming` via existing `XTimingWriter`, export value curves as `.xvc` via existing `xvc_export`, write to `winners/` subdirectory with names like `qm_beats_drums.xtiming`
+- [x] T037 [US5] Implement `auto_select_best(report)` in `src/analyzer/sweep_matrix.py`: group results by algorithm, pick highest quality_score (tie-break: fewer marks), return dict of winners
+- [x] T038 [US5] After sweep completes in `MatrixSweepRunner`, call `auto_select_best()`, display winners table, prompt user to confirm export
+- [x] T039 [US5] Re-run winning parameter sets on the full song (not sample segment) via `MatrixSweepRunner` to produce final timing tracks and value curves with complete song coverage (FR-007c)
+- [x] T040 [US5] Implement winner export: load full-song results from T039, export timing tracks as `.xtiming` via existing `XTimingWriter`, export value curves as `.xvc` via existing `xvc_export`, write to `winners/` subdirectory with names like `qm_beats_drums.xtiming`
 
 **Checkpoint**: Sweep auto-selects, re-runs winners on full song, and exports best results per algorithm.
 
@@ -134,10 +134,10 @@
 
 **Independent Test**: Run a sweep with ≥20 permutations; verify wall clock < sequential time; verify progress display shows completion count and ETA.
 
-- [ ] T041 [US6] Implement parallel execution in `MatrixSweepRunner`: use `ThreadPoolExecutor` for local algorithms, separate subprocesses for vamp/madmom; max workers = `min(cpu_count, 4)`
-- [ ] T042 [US6] Implement progress display using `rich.live.Live` + `rich.table.Table` in `MatrixSweepRunner`: show current algorithm, stem, params, N/M completed, estimated time remaining; fall back to `click.echo` line-per-event when stdout is not a TTY
-- [ ] T043 [US6] Handle Ctrl-C gracefully in `MatrixSweepRunner`: on `KeyboardInterrupt`, cancel pending futures, wait for in-progress to complete, save all completed results to disk before exiting with code 130
-- [ ] T044 [US6] Handle failed permutations: catch exceptions per permutation, log error, mark result as `status="failed"`, continue with remaining permutations
+- [x] T041 [US6] Implement parallel execution in `MatrixSweepRunner`: use `ThreadPoolExecutor` for local algorithms, separate subprocesses for vamp/madmom; max workers = `min(cpu_count, 4)`
+- [x] T042 [US6] Implement progress display using `rich.live.Live` + `rich.table.Table` in `MatrixSweepRunner`: show current algorithm, stem, params, N/M completed, estimated time remaining; fall back to `click.echo` line-per-event when stdout is not a TTY
+- [x] T043 [US6] Handle Ctrl-C gracefully in `MatrixSweepRunner`: on `KeyboardInterrupt`, cancel pending futures, wait for in-progress to complete, save all completed results to disk before exiting with code 130
+- [x] T044 [US6] Handle failed permutations: catch exceptions per permutation, log error, mark result as `status="failed"`, continue with remaining permutations
 
 **Checkpoint**: Sweep runs in parallel with live progress. Interrupts preserve results. Failures don't abort the sweep.
 
@@ -147,10 +147,10 @@
 
 **Purpose**: Documentation, integration tests, backward compatibility.
 
-- [ ] T045 [P] Write end-to-end integration test in `tests/integration/test_sweep_matrix_e2e.py`: run full `sweep-matrix` CLI on fixture audio with `--dry-run` and without; verify file outputs; verify `sweep-results --best` works on the output
-- [ ] T046 [P] Update `src/analyzer/stem_inspector.py`: remove `_STEM_AFFINITY` dict and `_preferred_stems_for()` function; import from `src/analyzer/stem_affinity.py` instead; update `generate_sweep_configs()` to use new affinity module
-- [ ] T047 [P] Add `sweep-matrix` and `sweep-results` to `xlight-analyze --help` documentation; verify they appear in the command list
-- [ ] T048 Validate quickstart.md commands work end-to-end
+- [x] T045 [P] Write end-to-end integration test in `tests/integration/test_sweep_matrix_e2e.py`: run full `sweep-matrix` CLI on fixture audio with `--dry-run` and without; verify file outputs; verify `sweep-results --best` works on the output
+- [x] T046 [P] Update `src/analyzer/stem_inspector.py`: remove `_STEM_AFFINITY` dict and `_preferred_stems_for()` function; import from `src/analyzer/stem_affinity.py` instead; update `generate_sweep_configs()` to use new affinity module
+- [x] T047 [P] Add `sweep-matrix` and `sweep-results` to `xlight-analyze --help` documentation; verify they appear in the command list
+- [x] T048 Validate quickstart.md commands work end-to-end
 
 ---
 

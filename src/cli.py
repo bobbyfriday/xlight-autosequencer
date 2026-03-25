@@ -1810,6 +1810,19 @@ def sweep_matrix_cmd(
     out_dir = output_dir or str(audio_path.parent / "analysis" / "sweep")
     click.echo(f"\nResults: {out_dir}/sweep_report.json")
 
+    # Offer to re-run winners on full song and export
+    if best and sys.stdin.isatty() and not skip_confirm:
+        click.echo("")
+        if click.confirm("Re-run winners on full song and export?", default=True):
+            from src.analyzer.sweep_matrix import rerun_winners_full_song
+            click.echo("Re-running winners on full song...")
+            full_results = rerun_winners_full_song(
+                str(audio_path), best, out_dir,
+            )
+            click.echo(f"\nExported {len(full_results)} winners to {out_dir}/winners/")
+            for algo, r in sorted(full_results.items()):
+                click.echo(f"  ✓ {algo}_{r.stem} — score {r.quality_score:.2f}")
+
 
 # ──────────────────────────────────────────────────────────────────────────────
 # sweep-results command (015)
