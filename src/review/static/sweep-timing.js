@@ -190,23 +190,29 @@ async function switchStemAudio(stem) {
 function buildPanel() {
   panelEl.innerHTML = '';
 
-  // Axis spacer
+  // Axis spacer — must exactly match AXIS_H on the canvas
   const axisRow = document.createElement('div');
   axisRow.style.height = AXIS_H + 'px';
-  axisRow.style.borderBottom = '1px solid #333';
+  axisRow.style.minHeight = AXIS_H + 'px';
+  axisRow.style.maxHeight = AXIS_H + 'px';
+  axisRow.style.boxSizing = 'border-box';
+  axisRow.style.background = '#181818';
   panelEl.appendChild(axisRow);
 
-  // Waveform spacer (matches waveform lane height)
+  // Waveform spacer — must exactly match WAVE_H on the canvas
   if (waveformData) {
     const waveRow = document.createElement('div');
-    waveRow.className = 'lane-row';
     waveRow.style.height = WAVE_H + 'px';
+    waveRow.style.minHeight = WAVE_H + 'px';
+    waveRow.style.maxHeight = WAVE_H + 'px';
+    waveRow.style.boxSizing = 'border-box';
+    waveRow.style.display = 'flex';
+    waveRow.style.alignItems = 'center';
     waveRow.style.background = '#0a140a';
     waveRow.style.borderBottom = '1px solid #333';
     waveRow.style.color = '#4a8';
     waveRow.style.fontSize = '10px';
     waveRow.style.paddingLeft = '8px';
-    waveRow.style.alignItems = 'center';
     waveRow.textContent = activeStem ? `${activeStem} waveform` : 'full mix waveform';
     panelEl.appendChild(waveRow);
   }

@@ -32,8 +32,9 @@
     }
 
     .lane-row {
-      display: flex; align-items: center; height: 28px; padding: 0 6px;
-      border-bottom: 1px solid #222; font-size: 11px; cursor: pointer;
+      display: flex; align-items: center; height: 28px; min-height: 28px; max-height: 28px;
+      padding: 0 6px; font-size: 11px; cursor: pointer;
+      box-sizing: border-box; border-bottom: 1px solid #222;
     }
     .lane-row:hover { background: #252530; }
     .lane-row.selected { background: #1a3050; }
