@@ -59,8 +59,9 @@ async function init() {
 
     applyFilter();
 
-    // Load actual marks for all algorithms in background
-    loadAllMarks();
+    // Load full-song winner marks first, then segment marks as fallback
+    await loadWinnerMarks();
+    loadSegmentMarks();  // background — fills in non-winner tracks
 
     statusEl.style.display = 'none';
   } catch (e) {
@@ -68,7 +69,23 @@ async function init() {
   }
 }
 
-async function loadAllMarks() {
+async function loadWinnerMarks() {
+  try {
+    const resp = await fetch('/sweep-winners');
+    if (!resp.ok) return;
+    const data = await resp.json();
+    for (const entry of (data.results || [])) {
+      const key = `${entry.algorithm}_${entry.stem}_${JSON.stringify(entry.parameters || {})}`;
+      if (entry.marks) {
+        markCache[key] = entry.marks.map(m => m.time_ms);
+      }
+    }
+    drawFast();
+  } catch (e) { /* winners not available yet */ }
+}
+
+async function loadSegmentMarks() {
+  // Load per-algorithm files for tracks that don't have winner marks
   const algos = [...new Set(allResults.map(r => r.algorithm))];
   for (const algo of algos) {
     try {
@@ -77,13 +94,13 @@ async function loadAllMarks() {
       const data = await resp.json();
       for (const entry of (data.results || [])) {
         const key = `${entry.algorithm}_${entry.stem}_${JSON.stringify(entry.parameters || {})}`;
-        if (entry.marks) {
+        if (!markCache[key] && entry.marks) {
           markCache[key] = entry.marks.map(m => m.time_ms);
         }
       }
     } catch (e) { /* skip */ }
   }
-  drawFast(); // redraw with real marks
+  drawFast();
 }
 
 // ── Stem Filters ─────────────────────────────────────────────────────────────
@@ -277,12 +294,19 @@ function drawFast() {
 
 canvasWrap.addEventListener('scroll', () => drawFast());
 
-// Sync panel scroll with canvas
+// Sync vertical scroll between panel and canvas
+let _syncingPanel = false, _syncingCanvas = false;
 canvasWrap.addEventListener('scroll', () => {
+  if (_syncingCanvas) return;
+  _syncingPanel = true;
   panelEl.scrollTop = canvasWrap.scrollTop;
+  _syncingPanel = false;
 });
 panelEl.addEventListener('scroll', () => {
+  if (_syncingPanel) return;
+  _syncingCanvas = true;
   canvasWrap.scrollTop = panelEl.scrollTop;
+  _syncingCanvas = false;
 });
 
 // Click to seek

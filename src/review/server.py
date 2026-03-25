@@ -570,6 +570,19 @@ def create_app(analysis_path: str | None = None, audio_path: str | None = None) 
                         return jsonify(json.load(fh))
             return jsonify({"error": "No sweep results found. Run sweep-matrix first."}), 404
 
+        @app.route("/sweep-winners")
+        def sweep_winners():
+            """Return full-song winner marks for the UI."""
+            audio_path = Path(app.config["AUDIO_PATH"])
+            for sweep_dir in [audio_path.parent / "sweep",
+                              audio_path.parent / audio_path.stem / "sweep",
+                              audio_path.parent / "analysis" / "sweep"]:
+                winners_path = sweep_dir / "winners" / "winners.json"
+                if winners_path.exists():
+                    with open(winners_path, "r", encoding="utf-8") as fh:
+                        return jsonify(json.load(fh))
+            return jsonify({"error": "No winners found. Run sweep-matrix and export winners first."}), 404
+
         @app.route("/sweep-algo-detail")
         def sweep_algo_detail():
             """Return full per-algorithm sweep data (including timing marks)."""

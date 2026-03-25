@@ -223,9 +223,15 @@ def rerun_winners_full_song(
 
     log = get_logger("xlight.sweep_matrix")
     y, sr = librosa.load(audio_path, sr=None, mono=True)
-    stems_dir = Path(audio_path).parent / "stems"
-    if not stems_dir.exists():
-        stems_dir = Path(audio_path).parent / ".stems"
+    audio_p = Path(audio_path)
+    stems_dir = None
+    for cand in [audio_p.parent / "stems", audio_p.parent / audio_p.stem / "stems",
+                 audio_p.parent / ".stems"]:
+        if cand.exists():
+            stems_dir = cand
+            break
+    if stems_dir is None:
+        stems_dir = audio_p.parent / "stems"
 
     out = Path(output_dir) / "winners"
     out.mkdir(parents=True, exist_ok=True)
@@ -233,6 +239,7 @@ def rerun_winners_full_song(
     from src.analyzer.runner import default_algorithms
     algo_map = {a.name: a for a in default_algorithms()}
     full_results: dict[str, PermutationResult] = {}
+    winners_data: list[dict] = []  # full marks for winners.json
 
     for algo_name, winner in winners.items():
         algo = algo_map.get(algo_name)
@@ -297,6 +304,21 @@ def rerun_winners_full_song(
                 log.warning("Failed to export .xtiming for %s: %s", algo_name, exc)
 
         full_results[algo_name] = result
+
+        # Collect full-song marks for winners.json
+        entry = result.to_dict()
+        entry["marks"] = [{"time_ms": m.time_ms} for m in track.marks]
+        if hasattr(track, "value_curve"):
+            entry["value_curve"] = track.value_curve
+        winners_data.append(entry)
+
+    # Write winners.json with full marks for the UI
+    winners_json_path = out / "winners.json"
+    winners_json_path.write_text(json.dumps({
+        "audio_path": str(Path(audio_path).resolve()),
+        "results": winners_data,
+    }, indent=2), encoding="utf-8")
+    log.info("Wrote winners.json with %d full-song results", len(winners_data))
 
     return full_results
 
