@@ -199,3 +199,191 @@ def auto_select_best(
               and r.mark_count < current.mark_count):
             best[r.algorithm] = r
     return best
+
+
+class MatrixSweepRunner:
+    """Execute a sweep matrix: run every permutation, collect results, write reports.
+
+    Usage::
+
+        config = SweepMatrixConfig(...)
+        matrix = config.build_matrix()
+        runner = MatrixSweepRunner(audio_path="song.mp3", matrix=matrix)
+        results = runner.run(progress_callback=my_callback)
+    """
+
+    def __init__(
+        self,
+        audio_path: str,
+        matrix: SweepMatrix,
+        output_dir: str | None = None,
+        sample_start_ms: int | None = None,
+        sample_end_ms: int | None = None,
+    ) -> None:
+        self._audio_path = audio_path
+        self._matrix = matrix
+        self._output_dir = output_dir
+        self._sample_start_ms = sample_start_ms
+        self._sample_end_ms = sample_end_ms
+
+    def run(
+        self,
+        progress_callback=None,
+    ) -> list[PermutationResult]:
+        """Execute all permutations and return results.
+
+        If *progress_callback* is provided, it is called with
+        ``(permutation_index, total, permutation, result)`` after each run.
+        """
+        import json
+        import time
+        from pathlib import Path
+
+        from src.analyzer.scorer import score_track
+        from src.analyzer.value_curve_scorer import score_value_curve
+        from src.log import get_logger
+
+        log = get_logger("xlight.sweep_matrix")
+
+        output_dir = Path(self._output_dir) if self._output_dir else Path(self._audio_path).parent / "analysis" / "sweep"
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        # Load audio segment
+        import librosa
+        import numpy as np
+        y, sr = librosa.load(self._audio_path, sr=None, mono=True)
+
+        if self._sample_start_ms is not None and self._sample_end_ms is not None:
+            start_sample = int(self._sample_start_ms / 1000 * sr)
+            end_sample = int(self._sample_end_ms / 1000 * sr)
+            y_segment = y[start_sample:end_sample]
+            log.info("Using segment %dms–%dms (%d samples)",
+                     self._sample_start_ms, self._sample_end_ms, len(y_segment))
+        else:
+            y_segment = y
+            log.info("Using full audio (%d samples)", len(y_segment))
+
+        # Load stems if available
+        stems_dir = Path(self._audio_path).parent / "stems"
+        if not stems_dir.exists():
+            stems_dir = Path(self._audio_path).parent / ".stems"
+
+        total = self._matrix.total_count
+        results: list[PermutationResult] = []
+        # Per-algorithm result accumulator (includes full marks)
+        algo_results: dict[str, list[dict]] = {}
+
+        for idx, perm in enumerate(self._matrix.permutations):
+            t0 = time.perf_counter()
+            result = PermutationResult(
+                algorithm=perm.algorithm,
+                stem=perm.stem,
+                parameters=perm.parameters,
+                result_type=perm.result_type,
+            )
+
+            try:
+                # Select audio for this stem
+                if perm.stem == "full_mix":
+                    audio = y_segment
+                else:
+                    stem_file = stems_dir / f"{perm.stem}.mp3"
+                    if stem_file.exists():
+                        stem_y, stem_sr = librosa.load(str(stem_file), sr=sr, mono=True)
+                        if self._sample_start_ms is not None and self._sample_end_ms is not None:
+                            start_s = int(self._sample_start_ms / 1000 * stem_sr)
+                            end_s = int(self._sample_end_ms / 1000 * stem_sr)
+                            audio = stem_y[start_s:end_s]
+                        else:
+                            audio = stem_y
+                    else:
+                        log.warning("Stem %s not found, skipping", perm.stem)
+                        result.status = "skipped"
+                        result.error = f"Stem file not found: {stem_file}"
+                        results.append(result)
+                        continue
+
+                # Find and run the algorithm
+                from src.analyzer.runner import default_algorithms
+                algo_instance = None
+                for algo in default_algorithms():
+                    if algo.name == perm.algorithm:
+                        algo_instance = algo
+                        break
+
+                if algo_instance is None:
+                    result.status = "skipped"
+                    result.error = f"Algorithm {perm.algorithm} not found"
+                    results.append(result)
+                    continue
+
+                # Apply parameters
+                if perm.parameters:
+                    algo_instance.parameters = dict(perm.parameters)
+
+                track = algo_instance.run(audio, sr)
+
+                if track is not None:
+                    if perm.result_type == "value_curve" and hasattr(track, "value_curve"):
+                        curve = track.value_curve
+                        result.quality_score = score_value_curve(curve)
+                        result.sample_count = len(curve)
+                        result.dynamic_range = (max(curve) - min(curve)) if curve else 0
+                    else:
+                        result.quality_score = score_track(track)
+                        result.mark_count = track.mark_count
+                        result.avg_interval_ms = track.avg_interval_ms
+
+                    result.status = "success"
+
+                    # Store full data for per-algorithm file
+                    full_entry = result.to_dict()
+                    full_entry["marks"] = [{"time_ms": m.time_ms} for m in track.marks]
+                    if hasattr(track, "value_curve"):
+                        full_entry["value_curve"] = track.value_curve
+                    algo_results.setdefault(perm.algorithm, []).append(full_entry)
+                else:
+                    result.status = "failed"
+                    result.error = "Algorithm returned None"
+
+            except Exception as exc:
+                result.status = "failed"
+                result.error = str(exc)[:200]
+                log.warning("Permutation %s/%s failed: %s", perm.algorithm, perm.stem, exc)
+
+            result.duration_ms = int((time.perf_counter() - t0) * 1000)
+            results.append(result)
+
+            if progress_callback:
+                progress_callback(idx + 1, total, perm, result)
+
+        # Write unified report (metadata only)
+        report = {
+            "audio_path": str(Path(self._audio_path).resolve()),
+            "timestamp": __import__("datetime").datetime.now().isoformat(),
+            "segment_start_ms": self._sample_start_ms,
+            "segment_end_ms": self._sample_end_ms,
+            "total_permutations": total,
+            "completed": sum(1 for r in results if r.status == "success"),
+            "failed": sum(1 for r in results if r.status == "failed"),
+            "results": [r.to_dict() for r in results],
+            "best_per_algorithm": {
+                algo: r.to_dict()
+                for algo, r in auto_select_best(results).items()
+            },
+        }
+        report_path = output_dir / "sweep_report.json"
+        report_path.write_text(json.dumps(report, indent=2), encoding="utf-8")
+        log.info("Wrote unified report: %s (%d results)", report_path, len(results))
+
+        # Write per-algorithm files (full data)
+        for algo_name, algo_entries in algo_results.items():
+            algo_path = output_dir / f"sweep_{algo_name}.json"
+            algo_path.write_text(json.dumps({
+                "algorithm": algo_name,
+                "results": algo_entries,
+            }, indent=2), encoding="utf-8")
+
+        log.info("Wrote %d per-algorithm files", len(algo_results))
+
+        return results

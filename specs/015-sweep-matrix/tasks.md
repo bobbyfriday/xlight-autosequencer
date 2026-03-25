@@ -59,12 +59,12 @@
 - [x] T018 [P] [US1] Implement SegmentinoAlgorithm in `src/analyzer/algorithms/vamp_segmentation.py`
 - [x] T019 [P] [US1] Implement 6 algorithm classes in `src/analyzer/algorithms/vamp_extra.py` (QMKeyAlgorithm, QMTranscriptionAlgorithm, SilvetNotesAlgorithm, PercussionOnsetsAlgorithm, AmplitudeFollowerAlgorithm, TempogramAlgorithm)
 - [x] T020 [US1] Run T015 tests against T016–T019 implementations — fix until all pass
-- [ ] T021 [US1] Register all new algorithms in `src/analyzer/runner.py` `default_algorithms()` function so they appear in the full algorithm list
-- [ ] T022 [US1] Implement `MatrixSweepRunner` in `src/analyzer/sweep_matrix.py`: accepts `SweepMatrix`, loads audio segment via `segment_selector`, runs each permutation (dispatching to existing `SweepRunner` or subprocess for vamp), collects `PermutationResult` objects, writes unified report JSON + per-algorithm JSONs
-- [ ] T023 [US1] Write failing integration test in `tests/integration/test_sweep_matrix_e2e.py`: run `MatrixSweepRunner` on fixture audio with 2 algorithms; verify result count = stems × params; verify unified report has metadata only; verify per-algorithm files have full marks
-- [ ] T024 [US1] Run T023 integration test — fix until passing
-- [ ] T025 [US1] Add `sweep-matrix` CLI command to `src/cli.py` per contract: accept audio file, `--algorithms`, `--stems`, `--max-permutations`, `--dry-run`, `--config`, `--output-dir`, `--sample-start`, `--sample-duration`, `--yes`; wire to `MatrixSweepRunner`
-- [ ] T026 [US1] Implement `--dry-run` mode in `sweep-matrix` CLI: compute and display full matrix table (algorithm × stem × params × total count) without executing
+- [x] T021 [US1] Register all new algorithms in `src/analyzer/runner.py` `default_algorithms()` function so they appear in the full algorithm list
+- [x] T022 [US1] Implement `MatrixSweepRunner` in `src/analyzer/sweep_matrix.py`: accepts `SweepMatrix`, loads audio segment via `segment_selector`, runs each permutation (dispatching to existing `SweepRunner` or subprocess for vamp), collects `PermutationResult` objects, writes unified report JSON + per-algorithm JSONs
+- [x] T023 [US1] Write failing integration test in `tests/integration/test_sweep_matrix_e2e.py`: run `MatrixSweepRunner` on fixture audio with 2 algorithms; verify result count = stems × params; verify unified report has metadata only; verify per-algorithm files have full marks
+- [x] T024 [US1] Run T023 integration test — fix until passing
+- [x] T025 [US1] Add `sweep-matrix` CLI command to `src/cli.py` per contract: accept audio file, `--algorithms`, `--stems`, `--max-permutations`, `--dry-run`, `--config`, `--output-dir`, `--sample-start`, `--sample-duration`, `--yes`; wire to `MatrixSweepRunner`
+- [x] T026 [US1] Implement `--dry-run` mode in `sweep-matrix` CLI: compute and display full matrix table (algorithm × stem × params × total count) without executing
 
 **Checkpoint**: `xlight-analyze sweep-matrix song.mp3` runs full matrix sweep. `--dry-run` shows the matrix. Results stored in unified + per-algorithm files.
 
