@@ -521,13 +521,15 @@ def export_cmd(
 # ──────────────────────────────────────────────────────────────────────────────
 
 @cli.command("review")
-@click.argument("audio_or_json", required=False, default=None, type=click.Path(dir_okay=False))
+@click.argument("audio_or_json", required=False, default=None, type=click.Path())
 def review_cmd(audio_or_json: str | None) -> None:
     """Launch the track review UI in the default browser.
 
-    AUDIO_OR_JSON can be a previously generated analysis JSON, an audio file
-    path (resolved via the song library), or omitted to open the library home
-    page.
+    AUDIO_OR_JSON can be:
+      - A directory: scans for *_hierarchy.json files and shows a scored library
+      - A *_hierarchy.json file: opens the timeline directly for that song
+      - An audio (.mp3) file: looks up cached analysis via the library
+      - Omitted: opens the library home page
     """
     from src.review.server import create_app
 
@@ -551,6 +553,22 @@ def review_cmd(audio_or_json: str | None) -> None:
         return
 
     given_path = Path(audio_or_json)
+
+    # ── Directory: scan for hierarchy files and open library view ─────────────
+    if given_path.is_dir():
+        app = create_app(scan_dir=str(given_path.resolve()))
+        url = "http://127.0.0.1:5173/library-view"
+        click.echo(f"Starting library UI at {url} (scanning {given_path})")
+        click.echo("Press Ctrl-C to stop.")
+        threading.Timer(0.5, webbrowser.open, args=[url]).start()
+        try:
+            app.run(host="127.0.0.1", port=5173, use_reloader=False, debug=False)
+        except OSError as exc:
+            if exc.errno == errno.EADDRINUSE:
+                click.echo("ERROR: Port 5173 is already in use.", err=True)
+                sys.exit(5)
+            raise
+        return
 
     # ── Audio file path: look up via library ──────────────────────────────────
     if given_path.suffix.lower() != ".json":
