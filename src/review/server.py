@@ -570,6 +570,22 @@ def create_app(analysis_path: str | None = None, audio_path: str | None = None) 
                         return jsonify(json.load(fh))
             return jsonify({"error": "No sweep results found. Run sweep-matrix first."}), 404
 
+        @app.route("/sweep-algo-detail")
+        def sweep_algo_detail():
+            """Return full per-algorithm sweep data (including timing marks)."""
+            algo_name = request.args.get("algorithm", "")
+            if not algo_name:
+                return jsonify({"error": "algorithm parameter required"}), 400
+            audio_path = Path(app.config["AUDIO_PATH"])
+            for sweep_dir in [audio_path.parent / "sweep",
+                              audio_path.parent / audio_path.stem / "sweep",
+                              audio_path.parent / "analysis" / "sweep"]:
+                algo_file = sweep_dir / f"sweep_{algo_name}.json"
+                if algo_file.exists():
+                    with open(algo_file, "r", encoding="utf-8") as fh:
+                        return jsonify(json.load(fh))
+            return jsonify({"error": f"No data for algorithm {algo_name}"}), 404
+
         @app.route("/phonemes")
         def phonemes():
             with open(app.config["ANALYSIS_PATH"], "r", encoding="utf-8") as fh:
