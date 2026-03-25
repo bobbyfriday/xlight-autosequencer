@@ -560,8 +560,10 @@ def create_app(analysis_path: str | None = None, audio_path: str | None = None) 
         def sweep_report():
             """Return the sweep report JSON for the current song."""
             audio_path = Path(app.config["AUDIO_PATH"])
-            for sweep_dir in [audio_path.parent / "analysis" / "sweep",
-                              audio_path.parent / "sweep"]:
+            # Check song folder convention: <stem>/sweep/ or <parent>/sweep/
+            for sweep_dir in [audio_path.parent / "sweep",
+                              audio_path.parent / audio_path.stem / "sweep",
+                              audio_path.parent / "analysis" / "sweep"]:
                 report_path = sweep_dir / "sweep_report.json"
                 if report_path.exists():
                     with open(report_path, "r", encoding="utf-8") as fh:

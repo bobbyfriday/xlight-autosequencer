@@ -1807,7 +1807,12 @@ def sweep_matrix_cmd(
             marks = str(r.mark_count) if r.result_type == "timing" else f"{r.sample_count} samples"
             click.echo(f"  {algo:<25} {r.stem:<12} {r.quality_score:<7.2f} {marks:<7} {param_str}")
 
-    out_dir = output_dir or str(audio_path.parent / "analysis" / "sweep")
+    if output_dir:
+        out_dir = output_dir
+    elif audio_path.parent.name == audio_path.stem:
+        out_dir = str(audio_path.parent / "sweep")
+    else:
+        out_dir = str(audio_path.parent / audio_path.stem / "sweep")
     click.echo(f"\nResults: {out_dir}/sweep_report.json")
 
     # Offer to re-run winners on full song and export

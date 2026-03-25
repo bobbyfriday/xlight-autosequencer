@@ -351,7 +351,16 @@ class MatrixSweepRunner:
 
         log = get_logger("xlight.sweep_matrix")
 
-        output_dir = Path(self._output_dir) if self._output_dir else Path(self._audio_path).parent / "analysis" / "sweep"
+        # Follow the project convention: song files go under <song_name>/ folder
+        audio_p = Path(self._audio_path)
+        if self._output_dir:
+            output_dir = Path(self._output_dir)
+        elif audio_p.parent.name == audio_p.stem:
+            # Already in song folder (e.g., highway/highway.mp3)
+            output_dir = audio_p.parent / "sweep"
+        else:
+            # Create song folder (e.g., highway.mp3 → highway/sweep/)
+            output_dir = audio_p.parent / audio_p.stem / "sweep"
         output_dir.mkdir(parents=True, exist_ok=True)
 
         # Load audio
@@ -364,10 +373,19 @@ class MatrixSweepRunner:
         else:
             y_segment = y
 
-        # Pre-load stems
-        stems_dir = Path(self._audio_path).parent / "stems"
-        if not stems_dir.exists():
-            stems_dir = Path(self._audio_path).parent / ".stems"
+        # Pre-load stems — check song folder first, then parent
+        audio_p = Path(self._audio_path)
+        stems_dir = None
+        for candidate in [
+            audio_p.parent / "stems",                      # song folder convention
+            audio_p.parent / audio_p.stem / "stems",       # created from root
+            audio_p.parent / ".stems",                     # legacy hidden
+        ]:
+            if candidate.exists():
+                stems_dir = candidate
+                break
+        if stems_dir is None:
+            stems_dir = audio_p.parent / "stems"  # fallback
 
         stem_cache: dict[str, np.ndarray] = {"full_mix": y_segment}
         for stem_name in {p.stem for p in self._matrix.permutations} - {"full_mix"}:
