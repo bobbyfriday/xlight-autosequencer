@@ -396,6 +396,16 @@ def run_orchestrator(
     # Filter L4 events to top-60% energy onsets per stem (removes ghost notes)
     events = _filter_events_by_energy(events, _early_energy_curves, energy_curve_full)
 
+    # Classify drum events as kick / snare / hihat
+    if "drums" in events and stems is not None:
+        drum_audio = stems.get("drums")
+        if drum_audio is not None:
+            try:
+                from src.analyzer.drum_classifier import classify_drum_events
+                classify_drum_events(events["drums"], drum_audio, sr)
+            except Exception as exc:
+                warnings.append(f"Drum classification failed: {exc}")
+
     # L5: energy curves per stem
     energy_curves: dict[str, "ValueCurve"] = {}
     spectral_flux: "ValueCurve | None" = None
@@ -599,10 +609,10 @@ def _add_section_layer(root, name: str, marks: "list") -> None:
     layer = ET.SubElement(timing_el, "EffectLayer")
     for i, mark in enumerate(marks):
         start = mark.time_ms
-        if mark.duration_ms:
-            end = start + mark.duration_ms
-        elif i + 1 < len(marks):
+        if i + 1 < len(marks):
             end = marks[i + 1].time_ms
+        elif mark.duration_ms:
+            end = start + mark.duration_ms
         else:
             end = start + 10000
         label = mark.label or "section"
