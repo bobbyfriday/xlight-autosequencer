@@ -569,7 +569,21 @@ def _section_summary(marks: list) -> str:
 
 
 def _collect_onset_times(tracks_by_name: dict) -> list[int]:
-    for name in ("aubio_onset", "librosa_onsets", "qm_onsets_complex"):
+    """Return onset times for use in bar/beat selector scoring.
+
+    Prefers aubio_onset on full_mix (densest, most accurate for beat alignment),
+    then falls back to librosa_onsets or qm_onsets_complex.
+    """
+    # Prefer full_mix aubio onsets
+    for t in tracks_by_name.get("aubio_onset", []):
+        if (t.stem_source or "full_mix") == "full_mix":
+            return [m.time_ms for m in t.marks]
+    # Fallback: any aubio track
+    aubio = tracks_by_name.get("aubio_onset", [])
+    if aubio:
+        return [m.time_ms for m in aubio[0].marks]
+    # Final fallbacks
+    for name in ("librosa_onsets", "qm_onsets_complex"):
         tracks = tracks_by_name.get(name, [])
         if tracks:
             return [m.time_ms for m in tracks[0].marks]
