@@ -5,7 +5,7 @@
 
 ## Summary
 
-Parse any `xlights_rgbeffects.xml` layout, normalize prop coordinates, classify props by geometry and density, and generate hierarchical "Power Groups" (6 tiers) compatible with the xLights sequence editor. Output is injected back into the XML file. A `--profile` option filters which tiers to generate. A `--dry-run` flag previews output without writing. Uses stdlib `xml.etree.ElementTree` — no new dependencies.
+Parse any `xlights_rgbeffects.xml` layout, normalize prop coordinates, classify props by geometry and density, and generate hierarchical "Power Groups" (8 tiers) compatible with the xLights sequence editor. Output is injected back into the XML file. A `--profile` option filters which tiers to generate. A `--dry-run` flag previews output without writing. Supports `--hero` for explicit hero designation and `--no-auto-heroes` to disable pixel-outlier detection. Uses stdlib `xml.etree.ElementTree` — no new dependencies.
 
 ## Technical Context
 
@@ -104,7 +104,7 @@ tests/
 
 ### Hero Detection Keywords
 - Name contains (case-insensitive): `"face"`, `"megatree"`, `"mega_tree"`, `"mega tree"`, `"tree"`
-- Each detected hero prop becomes one `06_HERO_<PropName>` group containing its sub-models
+- Each detected hero prop becomes one `08_HERO_<PropName>` group containing its sub-models
 - If a hero prop has no sub-models, it is placed alone in the hero group
 
 ### Backup Strategy (implementation decision)

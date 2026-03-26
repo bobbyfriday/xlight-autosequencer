@@ -59,10 +59,10 @@ Controls which tiers are generated.
 
 | Profile | Active Tiers |
 |---------|-------------|
-| `energetic` | 3 (Architecture), 4 (Rhythm), 6 (Heroes) |
-| `cinematic` | 1 (Canvas), 2 (Spatial), 6 (Heroes) |
+| `energetic` | 3 (Architecture), 4 (Rhythm), 6 (Prop Type), 8 (Heroes) |
+| `cinematic` | 1 (Canvas), 2 (Spatial), 7 (Compound), 8 (Heroes) |
 | `technical` | 1 (Canvas), 5 (Fidelity) |
-| *(none / all)* | 1, 2, 3, 4, 5, 6 |
+| *(none / all)* | 1, 2, 3, 4, 5, 6, 7, 8 |
 
 ---
 
@@ -86,7 +86,9 @@ The parsed in-memory representation of `xlights_rgbeffects.xml`.
 | 3 | Architecture | `03_TYPE_` | Two groups: Vertical (aspect ≥ 1.5) and Horizontal |
 | 4 | Rhythm | `04_BEAT_` | N groups of 4 by L-R sort; N groups of 4 by Center-Out sort |
 | 5 | Fidelity | `05_TEX_` | Two groups: HiDens (pixel_count > 500) and LoDens |
-| 6 | Heroes | `06_HERO_` | One group per detected hero prop, containing its sub-models |
+| 6 | Prop Type | `06_PROP_` | All props of the same kind (by root name extraction) |
+| 7 | Compound | `07_COMP_` | Multi-piece fixtures (shared name prefix before last ` - `) |
+| 8 | Heroes | `08_HERO_` | Keyword match + pixel outlier gap + explicit `--hero` picks |
 
 ---
 
@@ -118,6 +120,6 @@ xlights_rgbeffects.xml
 
 ## Auto-Group Identification
 
-Groups are identified as auto-generated (and therefore safe to remove on re-run) if their `name` attribute starts with any of: `01_BASE_`, `02_GEO_`, `03_TYPE_`, `04_BEAT_`, `05_TEX_`, `06_HERO_`.
+Groups are identified as auto-generated (and therefore safe to remove on re-run) if their `name` attribute starts with any of: `01_BASE_`, `02_GEO_`, `03_TYPE_`, `04_BEAT_`, `05_TEX_`, `06_PROP_`, `07_COMP_`, `08_HERO_`.
 
 Manual groups (no auto prefix) are never touched.
