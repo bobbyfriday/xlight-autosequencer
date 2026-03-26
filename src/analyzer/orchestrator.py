@@ -396,6 +396,19 @@ def run_orchestrator(
     # Filter L4 events to top-60% energy onsets per stem (removes ghost notes)
     events = _filter_events_by_energy(events, _early_energy_curves, energy_curve_full)
 
+    # Classify drum events as kick / snare / hihat
+    if "drums" in events and stems is not None:
+        drum_audio = stems.get("drums")
+        if drum_audio is not None:
+            try:
+                from src.analyzer.drum_classifier import classify_drum_events
+                classify_drum_events(events["drums"], drum_audio, sr)
+            except Exception as exc:
+                warnings.append(f"Drum classification failed: {exc}")
+
+    # Label non-drum events with energy tier: h / m / l
+    _label_energy_tiers(events, _early_energy_curves, energy_curve_full)
+
     # L5: energy curves per stem
     energy_curves: dict[str, "ValueCurve"] = {}
     spectral_flux: "ValueCurve | None" = None
@@ -599,10 +612,10 @@ def _add_section_layer(root, name: str, marks: "list") -> None:
     layer = ET.SubElement(timing_el, "EffectLayer")
     for i, mark in enumerate(marks):
         start = mark.time_ms
-        if mark.duration_ms:
-            end = start + mark.duration_ms
-        elif i + 1 < len(marks):
+        if i + 1 < len(marks):
             end = marks[i + 1].time_ms
+        elif mark.duration_ms:
+            end = start + mark.duration_ms
         else:
             end = start + 10000
         label = mark.label or "section"
@@ -827,6 +840,48 @@ def _filter_events_by_energy(
         print(f"  L4 energy filter: removed {removed}/{total_before} low-energy onsets "
               f"(bottom {percentile:.0f}%)")
     return filtered
+
+
+def _label_energy_tiers(
+    events: dict,
+    energy_curves: dict,
+    full_mix_curve,
+) -> None:
+    """Label non-drum event marks with energy tier: h (top third), m, or l.
+
+    Drums are skipped — they already have kick/snare/hihat labels.
+    Tiers are relative to each stem's own surviving mark distribution so
+    a quiet stem and a loud stem both get a full h/m/l spread.
+    """
+    for stem, track in events.items():
+        if stem == "drums" or not track or not track.marks:
+            continue
+        curve = energy_curves.get(stem) or full_mix_curve
+        if not curve or not curve.values:
+            continue
+
+        values = curve.values
+        n = len(values)
+        fps = curve.fps
+
+        energies = [
+            values[max(0, min(n - 1, int(m.time_ms * fps / 1000)))]
+            for m in track.marks
+        ]
+
+        # Rank-based assignment guarantees equal thirds regardless of value clustering
+        ranked = sorted(range(len(energies)), key=lambda i: energies[i])
+        n_marks = len(ranked)
+        tiers = ["l"] * n_marks
+        for rank, idx in enumerate(ranked):
+            if rank >= 2 * n_marks // 3:
+                tiers[idx] = "h"
+            elif rank >= n_marks // 3:
+                tiers[idx] = "m"
+            # else stays "l"
+
+        for mark, tier in zip(track.marks, tiers):
+            mark.label = tier
 
 
 def _label_beats(beats: "TimingTrack", bars: "TimingTrack") -> None:
