@@ -406,6 +406,9 @@ def run_orchestrator(
             except Exception as exc:
                 warnings.append(f"Drum classification failed: {exc}")
 
+    # Label non-drum events with energy tier: h / m / l
+    _label_energy_tiers(events, _early_energy_curves, energy_curve_full)
+
     # L5: energy curves per stem
     energy_curves: dict[str, "ValueCurve"] = {}
     spectral_flux: "ValueCurve | None" = None
@@ -837,6 +840,48 @@ def _filter_events_by_energy(
         print(f"  L4 energy filter: removed {removed}/{total_before} low-energy onsets "
               f"(bottom {percentile:.0f}%)")
     return filtered
+
+
+def _label_energy_tiers(
+    events: dict,
+    energy_curves: dict,
+    full_mix_curve,
+) -> None:
+    """Label non-drum event marks with energy tier: h (top third), m, or l.
+
+    Drums are skipped — they already have kick/snare/hihat labels.
+    Tiers are relative to each stem's own surviving mark distribution so
+    a quiet stem and a loud stem both get a full h/m/l spread.
+    """
+    for stem, track in events.items():
+        if stem == "drums" or not track or not track.marks:
+            continue
+        curve = energy_curves.get(stem) or full_mix_curve
+        if not curve or not curve.values:
+            continue
+
+        values = curve.values
+        n = len(values)
+        fps = curve.fps
+
+        energies = [
+            values[max(0, min(n - 1, int(m.time_ms * fps / 1000)))]
+            for m in track.marks
+        ]
+
+        # Rank-based assignment guarantees equal thirds regardless of value clustering
+        ranked = sorted(range(len(energies)), key=lambda i: energies[i])
+        n_marks = len(ranked)
+        tiers = ["l"] * n_marks
+        for rank, idx in enumerate(ranked):
+            if rank >= 2 * n_marks // 3:
+                tiers[idx] = "h"
+            elif rank >= n_marks // 3:
+                tiers[idx] = "m"
+            # else stays "l"
+
+        for mark, tier in zip(track.marks, tiers):
+            mark.label = tier
 
 
 def _label_beats(beats: "TimingTrack", bars: "TimingTrack") -> None:
