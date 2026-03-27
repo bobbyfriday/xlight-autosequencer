@@ -1,58 +1,49 @@
 # xlight-autosequencer
 
-Analyzes MP3 files and generates timing tracks (beats, onsets, chords, stems, phonemes) for use with xLights LED sequencing software.
+Automatically generate xLights sequences from audio files. Analyzes your music, detects beats/onsets/chords/sections, groups your layout props, and applies themed effects — all driven by the audio.
+
+## What It Does
+
+1. **Audio Analysis** — Analyzes MP3 files to extract beats, onsets, chords, sections, energy curves, and stem separation (drums/bass/vocals/guitar/piano)
+2. **Layout Grouping** — Reads your `xlights_rgbeffects.xml` and auto-generates 8-tier Power Groups (spatial, rhythmic, prop type, compound, heroes)
+3. **Effect Library** — 35 xLights effects cataloged with parameters, prop suitability ratings, and analysis-to-parameter mappings
+4. **Theme Engine** — 21 composite "looks" (Inferno, Aurora, Winter Wonderland, etc.) organized by mood, occasion, and genre
+5. **Review UI** — Browser-based timeline for visualizing timing tracks, synchronized playback, and export
 
 ---
 
-## Prerequisites
+## Quick Start
 
-### 1. Python 3.11 or 3.12
+### Prerequisites
 
-Install from [python.org](https://www.python.org/downloads/) or via Homebrew:
+- **Python 3.11 or 3.12** — [python.org](https://www.python.org/downloads/) or `brew install python@3.12`
+- **ffmpeg** — `brew install ffmpeg`
+- **Vamp plugins** (recommended) — Download from [vamp-plugins.org](https://vamp-plugins.org/pack.html) and copy `.dylib` files to `~/Library/Audio/Plug-Ins/Vamp/`:
+  - QM Vamp Plugins, BeatRoot, pYIN, NNLS Chroma/Chordino, Silvet
 
-```bash
-brew install python@3.12
-```
-
-> **macOS Python.org installer only:** After installing, run the SSL certificate fix once or network-dependent features (demucs model downloads) will fail with SSL errors:
-> ```bash
-> open "/Applications/Python 3.12/Install Certificates.command"
-> ```
-> Adjust the version number to match your install.
-
-### 2. ffmpeg
-
-Required for MP3 loading and stem export:
+### Install
 
 ```bash
-brew install ffmpeg
+git clone https://github.com/bobbyfriday/xlight-autosequencer.git
+cd xlight-autosequencer
+python3.12 -m venv .venv
+source .venv/bin/activate
+
+# Install everything
+pip install -e ".[all]"
+
+# PyTorch (required for stem separation and phonemes)
+pip install torch torchaudio --index-url https://download.pytorch.org/whl/cpu
+
+# nltk data (for phoneme analysis)
+python -c "import nltk; nltk.download('cmudict')"
 ```
 
-### 3. Vamp Plugins (optional, recommended)
+> **macOS Python.org installer:** Run `open "/Applications/Python 3.12/Install Certificates.command"` once for SSL certs.
 
-Vamp plugins provide ~14 high-quality timing tracks. Without them you still get librosa and madmom tracks.
+### Optional: Vamp + madmom secondary environment
 
-1. Download the following plugin packs from [vamp-plugins.org](https://vamp-plugins.org/pack.html):
-   - **QM Vamp Plugins** — bar/beat tracking, onset detection, segmentation
-   - **BeatRoot** — beat tracking
-   - **pYIN** — pitch and note detection
-   - **NNLS Chroma / Chordino** — chord detection
-   - **Silvet** — note transcription
-
-2. Copy the `.dylib` files to:
-   ```
-   ~/Library/Audio/Plug-Ins/Vamp/
-   ```
-   Create the folder if it doesn't exist.
-
-3. Install the Python Vamp host:
-   ```bash
-   pip install vamp
-   ```
-
-### 4. Vamp + madmom venv (optional, for full track count)
-
-The Vamp Python bindings (`vampyhost`) and `madmom` were compiled against NumPy 1.x and cannot run in the same environment as `whisperx` (which requires NumPy ≥ 2). The solution is a separate virtual environment used only for those algorithms.
+Vamp and madmom require NumPy 1.x, which conflicts with whisperx. A separate venv is auto-detected:
 
 ```bash
 python3.12 -m venv .venv-vamp
@@ -61,238 +52,151 @@ pip install "numpy<2" vamp madmom librosa soundfile
 deactivate
 ```
 
-When `.venv-vamp/bin/python` exists, the analyzer automatically routes Vamp and madmom algorithms through it as a subprocess. Without it, those ~14 tracks are silently skipped and only librosa tracks are produced.
-
-### 5. whisperx (optional, for phoneme/lyric analysis)
-
-whisperx transcribes vocals and generates word/phoneme timing tracks. It requires a specific install sequence because of PyTorch dependencies:
-
-```bash
-# Install PyTorch first (CPU-only, stable)
-pip install torch torchaudio --index-url https://download.pytorch.org/whl/cpu
-
-# Then install whisperx
-pip install whisperx
-
-# nltk cmudict data (downloaded automatically on first run, or manually):
-python -c "import nltk; nltk.download('cmudict')"
-```
-
-> **Note:** You may see a warning about `torchcodec` not being installed correctly. This is harmless — whisperx loads audio a different way and the warning can be ignored.
-
-> **First phoneme run:** whisperx downloads the Whisper model (~145 MB for `base`, up to ~3 GB for `large-v2`) and a wav2vec2 alignment model on first use. These are cached in `~/.cache/` and only download once.
+When `.venv-vamp/` exists, Vamp and madmom algorithms run through it automatically (~14 additional tracks).
 
 ---
 
-## Installation
+## Usage
 
-```bash
-git clone <repo>
-cd xlight-autosequencer
-python3.12 -m venv .venv
-source .venv/bin/activate
-
-# Core dependencies
-pip install -e .
-pip install librosa madmom click flask demucs
-
-# Vamp (if you installed the plugin packs above)
-pip install vamp
-
-# whisperx (if you want phoneme analysis — see Prerequisites section above)
-pip install torch torchaudio --index-url https://download.pytorch.org/whl/cpu
-pip install whisperx
-
-# Genius lyric segments (if you want --genius segment detection)
-pip install lyricsgenius mutagen
-```
-
----
-
-## Running the Review UI
+### Review UI (recommended starting point)
 
 ```bash
 source .venv/bin/activate
 xlight-analyze review
 ```
 
-Opens a browser at `http://localhost:5173`. From here you can:
+Opens `http://localhost:5173` with drag-and-drop analysis, timeline visualization, and export.
 
-- **Song Library** — view previously analyzed songs, click to reopen any analysis
-- **Analyze New File** — drag-and-drop or browse for an MP3, choose options, click Analyze
-- **Timeline** — visualize timing tracks, play audio, select tracks, export
-- **Phonemes** — view word/phoneme timing synchronized with lyrics and audio
-
-### Analysis options
-
-| Option | Description |
-|--------|-------------|
-| Vamp plugins | ~14 additional tracks via QM/BeatRoot/pYIN/Chordino. Requires Vamp plugin packs installed. |
-| madmom | ~2 tracks via RNN beat tracking (slower but high quality). |
-| Stem separation (demucs) | Separates audio into drums/bass/vocals/guitar/piano/other. First run downloads ~200 MB model and takes 2–5 min on CPU; subsequent runs use the stem cache. |
-| Phonemes (whisperx) | Transcribes vocals and generates word/phoneme timing. Requires stem separation. Requires `whisperx` installed. |
-| Genius segment detection | Fetches verified lyrics from Genius, aligns section headers ([Chorus], [Verse 1], etc.) to precise timestamps. Requires `lyricsgenius` + `mutagen` and a `GENIUS_API_TOKEN` env var. |
-
----
-
-## CLI Usage
+### Analyze a song
 
 ```bash
-source .venv/bin/activate
-
-# ── Analysis ─────────────────────────────────────────────────────────────────
-
-# Analyze a file (beats, onsets, chords — no stems)
+# Basic analysis (beats, onsets, chords)
 xlight-analyze analyze song.mp3
 
-# With stem separation (routes algorithms to their best stem)
-xlight-analyze analyze song.mp3 --stems
+# Full analysis with stems and phonemes
+xlight-analyze analyze song.mp3 --stems --phonemes
 
-# With phoneme analysis (implies --stems, generates .xtiming + .lyrics.txt)
-xlight-analyze analyze song.mp3 --phonemes
-
-# Better phoneme timing accuracy (tradeoff: slower, larger model download)
-xlight-analyze analyze song.mp3 --phonemes --phoneme-model small
-xlight-analyze analyze song.mp3 --phonemes --phoneme-model large-v2
-
-# Re-run phonemes only (skip algorithm cache, use edited lyrics file)
-xlight-analyze analyze song.mp3 --phonemes --lyrics song.lyrics.txt --no-cache
-
-# Genius lyric segment detection (adds labeled song sections to output)
-export GENIUS_API_TOKEN="your-token-here"   # get from genius.com/api-clients
-xlight-analyze analyze song.mp3 --genius
-xlight-analyze analyze song.mp3 --stems --genius   # best accuracy (vocals stem)
-
-# View track quality scores for an existing analysis
-xlight-analyze summary song_analysis.json
-
-# Open the review UI (no upload page — jumps straight to timeline)
-xlight-analyze review song_analysis.json
-
-# ── xLights export pipeline ───────────────────────────────────────────────────
-
-# Full end-to-end pipeline: analyze → condition → export .xtiming + .xvc files
+# End-to-end pipeline: analyze → export .xtiming + .xvc files for xLights
 xlight-analyze pipeline song.mp3 --output-dir ./xlight-export
-
-# With interactive stem selection (prompts KEEP/SKIP per stem)
-xlight-analyze pipeline song.mp3 --interactive
-
-# Skip parameter sweep, export top 8 tracks
-xlight-analyze pipeline song.mp3 --no-sweep --top 8
-
-# Inspect stem quality without running the full pipeline
-xlight-analyze stem-inspect song.mp3
-
-# Interactive stem review (confirm or override KEEP/REVIEW/SKIP verdicts)
-xlight-analyze stem-review song.mp3
-xlight-analyze stem-review song.mp3 --yes    # accept all automatic verdicts
-
-# Generate intelligent sweep parameter configs based on audio characteristics
-xlight-analyze sweep-init song.mp3
-xlight-analyze sweep-init song.mp3 --dry-run  # preview without writing
-
-# Export .xtiming + .xvc from an already-computed analysis JSON
-xlight-analyze export-xlights song_analysis.json --output-dir ./xlight-export
 ```
 
-### Phoneme model sizes
+### Group your layout
 
-| Model | Download size | Notes |
-|-------|--------------|-------|
-| `tiny` | ~75 MB | Fastest, least accurate |
-| `base` | ~145 MB | Default |
-| `small` | ~466 MB | Good balance for most songs |
-| `medium` | ~1.5 GB | High accuracy |
-| `large-v2` | ~3 GB | Best accuracy, slowest |
+```bash
+# Preview Power Groups without modifying files
+xlight-analyze group-layout ~/xLights/xlights_rgbeffects.xml --dry-run
 
-### Improving phoneme timing
+# Generate groups (creates .xml.bak backup first)
+xlight-analyze group-layout ~/xLights/xlights_rgbeffects.xml
 
-If the word timing doesn't match the song well:
-
-1. Run analysis with `--phonemes` — this auto-generates a `song.lyrics.txt` file next to the MP3.
-2. Open the lyrics file and correct any mis-transcribed words.
-3. Re-run with your corrected lyrics and a larger model:
-   ```bash
-   xlight-analyze analyze song.mp3 --phonemes --phoneme-model small --lyrics song.lyrics.txt --no-cache
-   ```
-   The lyrics file won't be overwritten on re-runs so your edits are safe.
+# Use a show profile to filter tiers
+xlight-analyze group-layout ~/xLights/xlights_rgbeffects.xml --profile energetic
+```
 
 ---
 
-## Output files
-
-All output files for a song are placed in a folder named after the audio file, adjacent to the MP3:
+## Output Files
 
 ```
-My_Song.mp3                      <- source audio (stays where it is)
-My_Song/
-├── My_Song_analysis.json        <- full analysis result (cached by MD5)
-├── My_Song.xtiming              <- xLights timing file (phonemes)
-├── My_Song.lyrics.txt           <- auto-transcribed lyrics (edit and rerun)
-├── stems/
-│   ├── drums.mp3
-│   ├── bass.mp3
-│   ├── vocals.mp3
-│   ├── guitar.mp3
-│   ├── piano.mp3
-│   ├── other.mp3
+song.mp3
+song/
+├── song_analysis.json          # Full analysis (cached by MD5)
+├── song.xtiming                # xLights timing file (phonemes)
+├── song.lyrics.txt             # Auto-transcribed lyrics (edit and rerun)
+├── stems/                      # Separated audio stems
+│   ├── drums.mp3, bass.mp3, vocals.mp3, guitar.mp3, piano.mp3, other.mp3
 │   └── manifest.json
-└── analysis/                    <- created by pipeline / export-xlights
-    ├── My_Song_timing.xtiming   <- all timing tracks (import into xLights)
-    ├── drums_beat.xvc           <- value curve, full resolution
-    ├── drums_beat_macro.xvc     <- value curve, ≤100 points (full song)
-    ├── bass_onset.xvc
-    ├── ...
-    ├── export_manifest.json     <- every output file + warnings list
-    └── sweep_configs/           <- created by sweep-init
-        ├── qm_beats.json
-        ├── qm_onsets_complex.json
-        └── ...
+└── analysis/                   # xLights export files
+    ├── song_timing.xtiming     # All timing tracks
+    ├── drums_beat.xvc          # Value curves (full resolution + macro)
+    └── export_manifest.json
 ```
-
-> **Note:** If the MP3 is already inside a folder of the same name (e.g. `songs/My_Song/My_Song.mp3`), output goes directly into that folder rather than creating a double-nested `My_Song/My_Song/`.
-
-Analyzed songs are also registered in `~/.xlight/library.json` for the library view.
 
 ### Importing into xLights
 
-| File type | Where to import |
-|-----------|----------------|
-| `*.xtiming` | Sequence editor → right-click sequence → Import Timing Tracks |
-| `*.xvc` | Any effect → value curve editor → load from file |
+| File | How to import |
+|------|---------------|
+| `*.xtiming` | Sequence editor → right-click → Import Timing Tracks |
+| `*.xvc` | Effect → value curve editor → load from file |
 
 ---
 
-## Known Issues & Workarounds
+## CLI Reference
 
-### `SSLCertVerificationError` during demucs model download
-Run the Install Certificates command for your Python version (see Prerequisites above). This is only needed for Python.org installs — Homebrew Python includes certs automatically.
-
-### `No module named 'demucs.api'`
-The `demucs.api` high-level module does not exist in demucs 4.0.1. The code uses `demucs.pretrained` and `demucs.apply` directly. Ensure you are on demucs ≥ 4.0.1:
 ```bash
-pip install -U demucs
+# Analysis
+xlight-analyze analyze song.mp3 [--stems] [--phonemes] [--genius]
+xlight-analyze summary song_analysis.json
+xlight-analyze review [song_analysis.json]
+
+# xLights pipeline
+xlight-analyze pipeline song.mp3 [--output-dir DIR] [--interactive] [--top N]
+xlight-analyze export-xlights song_analysis.json --output-dir DIR
+
+# Layout grouping
+xlight-analyze group-layout layout.xml [--profile energetic|cinematic|technical] [--dry-run]
+xlight-analyze group-layout layout.xml [--hero "Prop Name"] [--no-auto-heroes]
+
+# Stem tools
+xlight-analyze stem-inspect song.mp3
+xlight-analyze stem-review song.mp3 [--yes]
+xlight-analyze sweep-init song.mp3 [--dry-run]
 ```
 
-### `TorchCodec is required` warning
-A harmless warning from pyannote (a whisperx dependency) at import time. The pipeline uses `librosa` and `whisperx.load_audio()` for audio loading and doesn't require torchcodec.
+---
 
-### `FileNotFoundError: ffmpeg` during stem separation
-The server may not inherit your shell `PATH`. The code checks `/opt/homebrew/bin/ffmpeg` (Apple Silicon) and `/usr/local/bin/ffmpeg` (Intel) as fallbacks. If ffmpeg is installed somewhere else, add it to your PATH before starting the server:
-```bash
-export PATH="/your/ffmpeg/location:$PATH"
-xlight-analyze review
+## Project Structure
+
+```
+src/
+├── analyzer/               # Audio analysis pipeline
+│   ├── audio.py            # MP3 loading
+│   ├── result.py           # Data classes (TimingTrack, etc.)
+│   ├── runner.py           # Orchestrates algorithm runs
+│   ├── orchestrator.py     # Hierarchy assembly (L0–L6)
+│   ├── scorer.py           # Quality scoring
+│   ├── stems.py            # Demucs stem separation
+│   ├── phonemes.py         # WhisperX phoneme analysis
+│   ├── xtiming.py          # .xtiming XML writer
+│   ├── xvc_export.py       # .xvc value curve writer
+│   ├── pipeline.py         # End-to-end export pipeline
+│   └── algorithms/         # Individual algorithm implementations
+├── grouper/                # xLights layout → Power Groups
+│   ├── layout.py           # Parse xlights_rgbeffects.xml
+│   ├── classifier.py       # Normalize, classify, detect heroes
+│   ├── grouper.py          # 8-tier group generation
+│   └── writer.py           # Inject groups back into XML
+├── effects/                # xLights effect catalog
+│   ├── builtin_effects.json  # 35 effect definitions
+│   ├── models.py           # EffectDefinition, EffectParameter, AnalysisMapping
+│   ├── library.py          # Load, query, custom overrides
+│   └── validator.py        # Schema validation
+├── themes/                 # Composite effect themes
+│   ├── builtin_themes.json # 21 theme definitions
+│   ├── models.py           # Theme, EffectLayer
+│   ├── library.py          # Load, query by mood/occasion/genre
+│   └── validator.py        # Theme validation (checks effect refs)
+├── cli.py                  # Click CLI entry point
+├── cache.py                # MD5-keyed analysis cache
+├── library.py              # ~/.xlight/library.json song index
+├── export.py               # JSON serialization
+└── review/
+    ├── server.py           # Flask app
+    └── static/             # Browser UI (vanilla JS + Canvas)
 ```
 
-### Stem separation is slow on first run
-Demucs (`htdemucs_6s`) runs on CPU by default and takes 2–5 minutes for a typical song. Results are cached in `songs/<name>/stems/` — subsequent runs are instant.
+---
 
-### whisperx alignment model download fails
-whisperx downloads a wav2vec2 alignment model from Hugging Face on first use. If this fails with an auth error, you may need a Hugging Face token:
-```bash
-pip install huggingface_hub
-huggingface-cli login
-```
+## Known Issues
+
+| Issue | Fix |
+|-------|-----|
+| `SSLCertVerificationError` during demucs download | Run `open "/Applications/Python 3.12/Install Certificates.command"` (Python.org installs only) |
+| `No module named 'demucs.api'` | `pip install -U demucs` (need ≥ 4.0.1) |
+| `TorchCodec is required` warning | Harmless — can be ignored |
+| `FileNotFoundError: ffmpeg` | Add ffmpeg to PATH: `export PATH="/opt/homebrew/bin:$PATH"` |
+| Stem separation slow on first run | Normal — demucs downloads ~200 MB model. Cached after first run. |
+| whisperx alignment model fails | `pip install huggingface_hub && huggingface-cli login` |
 
 ---
 
@@ -305,29 +209,6 @@ pytest tests/ -v
 
 ---
 
-## Project Structure
+## Documentation
 
-```
-src/
-├── analyzer/
-│   ├── audio.py              # MP3 loading
-│   ├── result.py             # Data classes (TimingTrack, ConditionedCurve, etc.)
-│   ├── runner.py             # Orchestrates algorithm runs
-│   ├── scorer.py             # Quality scoring
-│   ├── stems.py              # Demucs stem separation + cache
-│   ├── stem_inspector.py     # Stem quality inspection + sweep config generation
-│   ├── phonemes.py           # WhisperX phoneme analysis
-│   ├── interaction.py        # Cross-stem analysis (leader, tightness, sidechain, handoffs)
-│   ├── conditioning.py       # Downsample → smooth → normalize feature curves
-│   ├── xtiming.py            # xLights .xtiming XML writer
-│   ├── xvc_export.py         # xLights .xvc value curve XML writer
-│   ├── pipeline.py           # End-to-end export pipeline (feature 012)
-│   └── algorithms/           # Individual algorithm implementations
-├── cache.py                  # MD5-keyed analysis result cache
-├── library.py                # ~/.xlight/library.json song index
-├── export.py                 # JSON serialization
-├── cli.py                    # Click CLI entry point
-└── review/
-    ├── server.py             # Flask app
-    └── static/               # Browser UI (vanilla JS + Canvas)
-```
+Detailed docs for each subsystem are in [`docs/`](docs/README.md).

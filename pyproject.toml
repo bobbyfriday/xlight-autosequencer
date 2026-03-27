@@ -30,6 +30,15 @@ vamp = ["vamp>=1.1"]
 stems = ["demucs>=4.0"]
 # whisperx for vocal phoneme analysis (--phonemes flag)
 phonemes = ["whisperx>=3.1", "nltk>=3.8"]
+# Install everything: pip install -e ".[all]"
+all = [
+    "demucs>=4.0",
+    "vamp>=1.1",
+    "whisperx>=3.1",
+    "nltk>=3.8",
+    "lyricsgenius>=3.0",
+    "mutagen>=1.47",
+]
 dev = [
     "pytest>=7.4",
     "pytest-cov>=4.1",
