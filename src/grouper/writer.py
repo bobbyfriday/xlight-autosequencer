@@ -50,7 +50,11 @@ def inject_groups(raw_tree: ET.ElementTree, groups: list[PowerGroup]) -> None:
             if not group.members:
                 continue
             el = ET.SubElement(groups_container, "modelGroup")
+            el.set("selected", "0")
             el.set("name", group.name)
+            el.set("layout", "minimalGrid")
+            el.set("GridSize", "400")
+            el.set("LayoutGroup", "Default")
             el.set("models", ",".join(group.members))
     else:
         # Legacy/test format: <ModelGroup .../> directly under root
@@ -62,7 +66,11 @@ def inject_groups(raw_tree: ET.ElementTree, groups: list[PowerGroup]) -> None:
             if not group.members:
                 continue
             el = ET.SubElement(root, "ModelGroup")
+            el.set("selected", "0")
             el.set("name", group.name)
+            el.set("layout", "minimalGrid")
+            el.set("GridSize", "400")
+            el.set("LayoutGroup", "Default")
             el.set("models", ",".join(group.members))
 
 

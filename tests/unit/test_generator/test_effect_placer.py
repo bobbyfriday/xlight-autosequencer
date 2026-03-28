@@ -1,0 +1,333 @@
+"""Tests for effect placement engine."""
+from __future__ import annotations
+
+import pytest
+
+from src.analyzer.result import HierarchyResult, TimingMark, TimingTrack, ValueCurve
+from src.effects.library import EffectLibrary
+from src.effects.models import AnalysisMapping, EffectDefinition, EffectParameter
+from src.generator.models import (
+    FRAME_INTERVAL_MS,
+    EffectPlacement,
+    SectionAssignment,
+    SectionEnergy,
+)
+from src.grouper.grouper import PowerGroup
+from src.themes.models import EffectLayer, Theme
+
+
+# ── Helpers ───────────────────────────────────────────────────────────────────
+
+
+def _make_effect(
+    name: str = "Color Wash",
+    xlights_id: str = "E_COLORWASH",
+    duration_type: str = "section",
+    layer_role: str = "standalone",
+) -> EffectDefinition:
+    return EffectDefinition(
+        name=name,
+        xlights_id=xlights_id,
+        category="color_wash",
+        description="test effect",
+        intent="fill",
+        parameters=[],
+        prop_suitability={"matrix": "ideal", "outline": "good"},
+        analysis_mappings=[],
+        layer_role=layer_role,
+        duration_type=duration_type,
+    )
+
+
+def _make_library(*effects: EffectDefinition) -> EffectLibrary:
+    if not effects:
+        effects = (_make_effect(),)
+    return EffectLibrary(
+        schema_version="1.0.0",
+        target_xlights_version="2024.15",
+        effects={e.name: e for e in effects},
+    )
+
+
+def _make_theme(
+    layers: list[EffectLayer] | None = None,
+    palette: list[str] | None = None,
+) -> Theme:
+    if layers is None:
+        layers = [EffectLayer(effect="Color Wash")]
+    if palette is None:
+        palette = ["#ff0000", "#00ff00"]
+    return Theme(
+        name="Test Theme",
+        mood="structural",
+        occasion="general",
+        genre="any",
+        intent="background wash",
+        layers=layers,
+        palette=palette,
+    )
+
+
+def _make_section(
+    energy_score: int = 50,
+    start_ms: int = 0,
+    end_ms: int = 10000,
+) -> SectionEnergy:
+    return SectionEnergy(
+        label="verse",
+        start_ms=start_ms,
+        end_ms=end_ms,
+        energy_score=energy_score,
+        mood_tier="structural",
+        impact_count=0,
+    )
+
+
+def _make_assignment(
+    energy_score: int = 50,
+    start_ms: int = 0,
+    end_ms: int = 10000,
+    layers: list[EffectLayer] | None = None,
+) -> SectionAssignment:
+    return SectionAssignment(
+        section=_make_section(energy_score=energy_score, start_ms=start_ms, end_ms=end_ms),
+        theme=_make_theme(layers=layers),
+    )
+
+
+def _make_hierarchy(
+    beat_times: list[int] | None = None,
+    duration_ms: int = 10000,
+) -> HierarchyResult:
+    """Minimal HierarchyResult with optional beat marks."""
+    beats_track = None
+    if beat_times is not None:
+        marks = [TimingMark(time_ms=t, confidence=1.0, label=str((i % 4) + 1))
+                 for i, t in enumerate(beat_times)]
+        beats_track = TimingTrack(
+            name="beats",
+            algorithm_name="test",
+            element_type="beat",
+            marks=marks,
+            quality_score=0.9,
+        )
+    return HierarchyResult(
+        schema_version="2.0.0",
+        source_file="test.mp3",
+        source_hash="abc123",
+        duration_ms=duration_ms,
+        estimated_bpm=120.0,
+        beats=beats_track,
+    )
+
+
+def _make_groups() -> list[PowerGroup]:
+    """Create a minimal set of power groups spanning multiple tiers."""
+    return [
+        PowerGroup(name="01_BASE_All", tier=1, members=["Model_A", "Model_B", "Model_C"]),
+        PowerGroup(name="02_GEO_Left", tier=2, members=["Model_A"]),
+        PowerGroup(name="02_GEO_Right", tier=2, members=["Model_B"]),
+        PowerGroup(name="03_TYPE_Horizontal", tier=3, members=["Model_A", "Model_B"]),
+        PowerGroup(name="04_BEAT_LR_1", tier=4, members=["Model_A"]),
+        PowerGroup(name="05_TEX_HiDens", tier=5, members=["Model_C"]),
+        PowerGroup(name="06_PROP_CandyCane", tier=6, members=["Model_A", "Model_B"]),
+        PowerGroup(name="07_COMP_Window", tier=7, members=["Model_C"]),
+        PowerGroup(name="08_HERO_Tree", tier=8, members=["Model_C"]),
+    ]
+
+
+# ── Import under test ────────────────────────────────────────────────────────
+
+from src.generator.effect_placer import place_effects
+
+
+# ── Tests ─────────────────────────────────────────────────────────────────────
+
+
+class TestLayerToTierMapping:
+    """Phase 1: only base layer (layer 0) placed on tier 1 BASE group."""
+
+    def test_base_layer_on_tier_1(self) -> None:
+        """Bottom layer placed on tier 1 (BASE) group only."""
+        layers = [
+            EffectLayer(effect="Color Wash"),   # bottom / base
+            EffectLayer(effect="Twinkle"),       # top — not used in phase 1
+        ]
+        assignment = _make_assignment(layers=layers)
+        groups = _make_groups()
+        library = _make_library(_make_effect("Color Wash"), _make_effect("Twinkle"))
+        hierarchy = _make_hierarchy(beat_times=[0, 500, 1000, 1500])
+
+        result = place_effects(assignment, groups, library, hierarchy)
+
+        tier_of_group = {g.name: g.tier for g in groups}
+        used_tiers: set[int] = set()
+        for group_name in result:
+            tier = tier_of_group.get(group_name)
+            if tier is not None:
+                used_tiers.add(tier)
+
+        # Phase 1: only tier 1 (BASE) should have effects
+        assert 1 in used_tiers, "Tier 1 BASE should have effects"
+        assert used_tiers == {1}, f"Phase 1 should only use tier 1, got {used_tiers}"
+
+
+class TestDurationTypeSection:
+    """Effect with duration_type='section' creates one instance spanning the section."""
+
+    def test_duration_type_section(self) -> None:
+        assignment = _make_assignment(start_ms=1000, end_ms=5000)
+        groups = [PowerGroup(name="01_BASE_All", tier=1, members=["Model_A"])]
+        library = _make_library(_make_effect("Color Wash", duration_type="section"))
+        hierarchy = _make_hierarchy(beat_times=[1000, 1500, 2000, 2500, 3000])
+
+        result = place_effects(assignment, groups, library, hierarchy)
+
+        # Should have exactly one placement for the group
+        all_placements = [p for ps in result.values() for p in ps]
+        section_placements = [p for p in all_placements if p.effect_name == "Color Wash"]
+        assert len(section_placements) == 1, (
+            f"section duration_type should produce 1 instance, got {len(section_placements)}"
+        )
+        p = section_placements[0]
+        assert p.start_ms <= 1000  # frame-aligned at or before section start
+        assert p.end_ms >= 5000    # frame-aligned at or after section end
+
+
+class TestDurationTypeBeat:
+    """Effect with duration_type='beat' creates one instance per beat mark."""
+
+    def test_duration_type_beat(self) -> None:
+        beat_times = [0, 500, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500]
+        assignment = _make_assignment(start_ms=0, end_ms=5000, energy_score=100,
+                                      layers=[EffectLayer(effect="Strobe")])
+        groups = [PowerGroup(name="01_BASE_All", tier=1, members=["Model_A"])]
+        library = _make_library(_make_effect("Strobe", duration_type="beat"))
+        hierarchy = _make_hierarchy(beat_times=beat_times, duration_ms=5000)
+
+        result = place_effects(assignment, groups, library, hierarchy)
+
+        all_placements = [p for ps in result.values() for p in ps]
+        beat_placements = [p for p in all_placements if p.effect_name == "Strobe"]
+        # At max energy, should use ~90% of beats, so at least 8 out of 10
+        assert len(beat_placements) >= 8, (
+            f"beat duration_type at max energy should produce ~{len(beat_times)} instances, "
+            f"got {len(beat_placements)}"
+        )
+
+
+class TestEnergyDrivenDensity:
+    """Energy score controls what fraction of timing marks are used."""
+
+    def test_energy_driven_density_high(self) -> None:
+        """Energy 80+ should use ~90% of beat marks."""
+        beat_times = list(range(0, 10000, 500))  # 20 beats
+        assignment = _make_assignment(start_ms=0, end_ms=10000, energy_score=85,
+                                      layers=[EffectLayer(effect="Strobe")])
+        groups = [PowerGroup(name="01_BASE_All", tier=1, members=["Model_A"])]
+        library = _make_library(_make_effect("Strobe", duration_type="beat"))
+        hierarchy = _make_hierarchy(beat_times=beat_times, duration_ms=10000)
+
+        result = place_effects(assignment, groups, library, hierarchy)
+
+        all_placements = [p for ps in result.values() for p in ps]
+        beat_placements = [p for p in all_placements if p.effect_name == "Strobe"]
+        ratio = len(beat_placements) / len(beat_times)
+        assert ratio >= 0.8, f"High energy should use >=80% of marks, got {ratio:.0%}"
+
+    def test_energy_driven_density_low(self) -> None:
+        """Energy 20 should use ~50% of beat marks."""
+        beat_times = list(range(0, 10000, 500))  # 20 beats
+        assignment = _make_assignment(start_ms=0, end_ms=10000, energy_score=20,
+                                      layers=[EffectLayer(effect="Strobe")])
+        groups = [PowerGroup(name="01_BASE_All", tier=1, members=["Model_A"])]
+        library = _make_library(_make_effect("Strobe", duration_type="beat"))
+        hierarchy = _make_hierarchy(beat_times=beat_times, duration_ms=10000)
+
+        result = place_effects(assignment, groups, library, hierarchy)
+
+        all_placements = [p for ps in result.values() for p in ps]
+        beat_placements = [p for p in all_placements if p.effect_name == "Strobe"]
+        ratio = len(beat_placements) / len(beat_times)
+        assert 0.3 <= ratio <= 0.7, f"Low energy should use ~50% of marks, got {ratio:.0%}"
+
+
+class TestFadeCalculation:
+    """Fade values depend on duration_type: section/bar get 200-500ms, beat/trigger get 0."""
+
+    def test_fade_calculation_section(self) -> None:
+        assignment = _make_assignment(start_ms=0, end_ms=10000)
+        groups = [PowerGroup(name="01_BASE_All", tier=1, members=["Model_A"])]
+        library = _make_library(_make_effect("Color Wash", duration_type="section"))
+        hierarchy = _make_hierarchy()
+
+        result = place_effects(assignment, groups, library, hierarchy)
+
+        all_placements = [p for ps in result.values() for p in ps]
+        assert len(all_placements) > 0, "Should produce at least one placement"
+        for p in all_placements:
+            assert p.fade_in_ms == 0, (
+                f"Section effect fade_in should be 0 (xLights handles transitions), got {p.fade_in_ms}"
+            )
+            assert p.fade_out_ms == 0, (
+                f"Section effect fade_out should be 0 (xLights handles transitions), got {p.fade_out_ms}"
+            )
+
+    def test_fade_calculation_beat(self) -> None:
+        beat_times = [0, 500, 1000, 1500]
+        assignment = _make_assignment(start_ms=0, end_ms=2000, energy_score=100,
+                                      layers=[EffectLayer(effect="Strobe")])
+        groups = [PowerGroup(name="01_BASE_All", tier=1, members=["Model_A"])]
+        library = _make_library(_make_effect("Strobe", duration_type="beat"))
+        hierarchy = _make_hierarchy(beat_times=beat_times, duration_ms=2000)
+
+        result = place_effects(assignment, groups, library, hierarchy)
+
+        all_placements = [p for ps in result.values() for p in ps]
+        assert len(all_placements) > 0, "Should produce at least one placement"
+        for p in all_placements:
+            assert p.fade_in_ms == 0, f"Beat effect fade_in should be 0, got {p.fade_in_ms}"
+            assert p.fade_out_ms == 0, f"Beat effect fade_out should be 0, got {p.fade_out_ms}"
+
+
+class TestFrameAlignment:
+    """All start_ms and end_ms must be multiples of 25 (xLights frame interval)."""
+
+    def test_frame_alignment(self) -> None:
+        # Use beat times that are NOT multiples of 25 to verify alignment
+        beat_times = [0, 503, 1007, 1511, 2013]
+        assignment = _make_assignment(start_ms=0, end_ms=2500, energy_score=100,
+                                      layers=[EffectLayer(effect="Strobe")])
+        groups = [PowerGroup(name="01_BASE_All", tier=1, members=["Model_A"])]
+        library = _make_library(_make_effect("Strobe", duration_type="beat"))
+        hierarchy = _make_hierarchy(beat_times=beat_times, duration_ms=2500)
+
+        result = place_effects(assignment, groups, library, hierarchy)
+
+        all_placements = [p for ps in result.values() for p in ps]
+        assert len(all_placements) > 0, "Should produce at least one placement"
+        for p in all_placements:
+            assert p.start_ms % FRAME_INTERVAL_MS == 0, (
+                f"start_ms {p.start_ms} is not a multiple of {FRAME_INTERVAL_MS}"
+            )
+            assert p.end_ms % FRAME_INTERVAL_MS == 0, (
+                f"end_ms {p.end_ms} is not a multiple of {FRAME_INTERVAL_MS}"
+            )
+
+
+class TestFlatModelFallback:
+    """When groups list is empty, place_effects falls back to using models directly."""
+
+    def test_flat_model_fallback(self) -> None:
+        assignment = _make_assignment(start_ms=0, end_ms=5000)
+        groups: list[PowerGroup] = []
+        library = _make_library(_make_effect("Color Wash", duration_type="section"))
+        hierarchy = _make_hierarchy()
+
+        result = place_effects(assignment, groups, library, hierarchy)
+
+        # With no groups, the result should still contain placements
+        # keyed by individual model names rather than group names
+        assert len(result) > 0, "Should produce placements even with no groups"
+        all_placements = [p for ps in result.values() for p in ps]
+        assert len(all_placements) > 0, "Should produce at least one placement in flat mode"

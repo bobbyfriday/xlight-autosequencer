@@ -41,9 +41,18 @@ tests/fixtures/**/*_hierarchy.json
 tests/fixtures/**/*.xtiming
 tests/fixtures/**/stems/
 
-# Local working/scratch directories
+# Generated sequence output (don't commit user song data)
+generated_sequences/
+*.xsq
+*.fseq
+*.xbkp
+
+# Local working/scratch/song directories (user song analysis output)
 analysis/
 highway/
+01_-_Highway_to_Hell/
+joy_to_the_world/
+mad_russian_christmas/
 
 # macOS
 .DS_Store
