@@ -1736,5 +1736,100 @@ def group_layout_cmd(
     click.echo(f"Written: {dest}")
 
 
+# ──────────────────────────────────────────────────────────────────────────────
+# Sequence generation
+# ──────────────────────────────────────────────────────────────────────────────
+
+@cli.command("generate")
+@click.argument("audio_file", type=click.Path(exists=True, dir_okay=False))
+@click.argument("layout_file", type=click.Path(exists=True, dir_okay=False))
+@click.option("--output-dir", "-o", type=click.Path(file_okay=False), default=None,
+              help="Output directory (default: same as audio file)")
+@click.option("--genre", default=None, help="Song genre (default: auto-detect from ID3)")
+@click.option("--occasion", default="general",
+              type=click.Choice(["general", "christmas", "halloween"]),
+              help="Occasion tag for theme selection")
+@click.option("--fresh", is_flag=True, default=False,
+              help="Force re-analysis (skip cache)")
+@click.option("--no-wizard", "no_wizard", is_flag=True, default=False,
+              help="Skip interactive wizard, use defaults/flags")
+@click.option("--section", "target_section", default=None,
+              help="Regenerate only this section type (e.g., 'chorus')")
+@click.option("--theme-override", "theme_overrides_raw", multiple=True,
+              help="Override theme: 'chorus=Inferno' (repeatable)")
+def generate_cmd(audio_file, layout_file, output_dir, genre, occasion,
+                 fresh, no_wizard, target_section, theme_overrides_raw):
+    """Generate an xLights .xsq sequence from an MP3 and layout file."""
+    from src.generator.models import GenerationConfig
+    from src.generator.plan import generate_sequence, read_song_metadata
+    from src.generator.xsq_writer import fseq_guidance
+
+    audio_path = Path(audio_file)
+    layout_path = Path(layout_file)
+
+    # Auto-detect genre from ID3 if not specified
+    if genre is None:
+        profile = read_song_metadata(audio_path)
+        genre = profile.genre
+        click.echo(f"Detected genre: {genre}")
+
+    # Parse theme overrides
+    theme_overrides = None
+    if theme_overrides_raw:
+        theme_overrides = {}
+        for override in theme_overrides_raw:
+            if "=" in override:
+                label, theme_name = override.split("=", 1)
+                # We'll map label to index later in the pipeline
+                theme_overrides[label.strip()] = theme_name.strip()
+
+    config = GenerationConfig(
+        audio_path=audio_path,
+        layout_path=layout_path,
+        output_dir=Path(output_dir) if output_dir else None,
+        genre=genre,
+        occasion=occasion,
+        force_reanalyze=fresh,
+        target_sections=[target_section] if target_section else None,
+    )
+
+    click.echo(f"\nGenerating sequence for: {audio_path.name}")
+    click.echo(f"Layout: {layout_path.name}")
+    click.echo(f"Genre: {genre} | Occasion: {occasion}")
+    click.echo("")
+
+    output_path = generate_sequence(config)
+
+    click.echo(f"\n✓ Sequence written: {output_path}")
+    click.echo(fseq_guidance(output_path))
+
+
+@cli.command("generate-wizard")
+@click.argument("audio_file", required=False, default=None,
+                type=click.Path(dir_okay=False))
+def generate_wizard_cmd(audio_file):
+    """Interactive wizard for sequence generation."""
+    from src.generator_wizard import GenerationWizard
+    from src.generator.plan import generate_sequence
+    from src.generator.xsq_writer import fseq_guidance
+
+    audio_path = Path(audio_file) if audio_file else None
+
+    wizard = GenerationWizard()
+    config = wizard.run(audio_path=audio_path)
+
+    if config is None:
+        raise SystemExit(130)
+
+    click.echo(f"\nGenerating sequence for: {config.audio_path.name}")
+    click.echo(f"Genre: {config.genre} | Occasion: {config.occasion}")
+    click.echo("")
+
+    output_path = generate_sequence(config)
+
+    click.echo(f"\n✓ Sequence written: {output_path}")
+    click.echo(fseq_guidance(output_path))
+
+
 def main() -> None:
     cli()
