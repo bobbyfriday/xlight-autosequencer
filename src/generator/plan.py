@@ -173,7 +173,7 @@ def generate_sequence(config: GenerationConfig) -> Path:
     # Write XSQ with timing tracks
     output_name = config.audio_path.stem + ".xsq"
     output_path = config.output_dir / output_name
-    write_xsq(plan, output_path, hierarchy=hierarchy)
+    write_xsq(plan, output_path, hierarchy=hierarchy, audio_path=config.audio_path)
 
     return output_path
 

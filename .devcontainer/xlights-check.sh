@@ -34,7 +34,7 @@ if [ "$ARCH" = "amd64" ]; then
   export LIBGL_ALWAYS_SOFTWARE=1
   export MESA_GL_VERSION_OVERRIDE=3.3
   exec xvfb-run -a -s "-screen 0 1280x1024x24 +extension GLX" \
-    xLights --checksequence --show="$SHOW_DIR" "$@"
+    xLights --checksequence --show="$SHOW_DIR" --media="$SHOW_DIR" "$@"
 else
   # ── Remote check via SSH to macOS host ──
   HOST_USER="${XLIGHTS_HOST_USER:?Set XLIGHTS_HOST_USER to your macOS username}"
@@ -59,8 +59,12 @@ else
     fi
   done
 
+  # Build a properly quoted command string for the remote shell
+  REMOTE_CMD="/Applications/xLights.app/Contents/MacOS/xLights --checksequence --show=${HOST_SHOW@Q} --media=${HOST_SHOW@Q}"
+  for arg in "${HOST_ARGS[@]}"; do
+    REMOTE_CMD+=" ${arg@Q}"
+  done
+
   echo "Checking sequences on macOS host via SSH (${HOST_USER}@host.docker.internal)..."
-  ssh -i "$SSH_KEY" "${HOST_USER}@host.docker.internal" \
-    /Applications/xLights.app/Contents/MacOS/xLights \
-    --checksequence --show="$HOST_SHOW" "${HOST_ARGS[@]}"
+  ssh -i "$SSH_KEY" "${HOST_USER}@host.docker.internal" "$REMOTE_CMD"
 fi
