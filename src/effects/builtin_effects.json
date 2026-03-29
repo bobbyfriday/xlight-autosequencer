@@ -1038,6 +1038,54 @@
           "choices": null,
           "description": "Use plasma coloring instead of solid colors",
           "supports_value_curve": false
+        },
+        {
+          "name": "Circles_Bubbles",
+          "storage_name": "E_CHECKBOX_Circles_Bubbles",
+          "widget_type": "checkbox",
+          "value_type": "bool",
+          "default": false,
+          "min": null,
+          "max": null,
+          "choices": null,
+          "description": "Render circles as semi-transparent bubbles",
+          "supports_value_curve": false
+        },
+        {
+          "name": "Circles_Radial_3D",
+          "storage_name": "E_CHECKBOX_Circles_Radial_3D",
+          "widget_type": "checkbox",
+          "value_type": "bool",
+          "default": false,
+          "min": null,
+          "max": null,
+          "choices": null,
+          "description": "Apply 3D radial shading to circles",
+          "supports_value_curve": false
+        },
+        {
+          "name": "Circles_Linear_Fade",
+          "storage_name": "E_CHECKBOX_Circles_Linear_Fade",
+          "widget_type": "checkbox",
+          "value_type": "bool",
+          "default": false,
+          "min": null,
+          "max": null,
+          "choices": null,
+          "description": "Linear fade from center to edge",
+          "supports_value_curve": false
+        },
+        {
+          "name": "Circles_Random_m",
+          "storage_name": "E_CHECKBOX_Circles_Random_m",
+          "widget_type": "checkbox",
+          "value_type": "bool",
+          "default": false,
+          "min": null,
+          "max": null,
+          "choices": null,
+          "description": "Randomize circle movement patterns",
+          "supports_value_curve": false
         }
       ],
       "prop_suitability": {
@@ -1350,6 +1398,30 @@
           "choices": null,
           "description": "Scale the fan to fit the model dimensions",
           "supports_value_curve": false
+        },
+        {
+          "name": "Fan_Reverse",
+          "storage_name": "E_CHECKBOX_Fan_Reverse",
+          "widget_type": "checkbox",
+          "value_type": "bool",
+          "default": false,
+          "min": null,
+          "max": null,
+          "choices": null,
+          "description": "Reverse fan rotation direction",
+          "supports_value_curve": false
+        },
+        {
+          "name": "Fan_Blend_Edges",
+          "storage_name": "E_CHECKBOX_Fan_Blend_Edges",
+          "widget_type": "checkbox",
+          "value_type": "bool",
+          "default": false,
+          "min": null,
+          "max": null,
+          "choices": null,
+          "description": "Blend edges between fan blades",
+          "supports_value_curve": false
         }
       ],
       "prop_suitability": {
@@ -1523,6 +1595,42 @@
           "choices": null,
           "description": "Vertical center offset of the marquee pattern",
           "supports_value_curve": true
+        },
+        {
+          "name": "Marquee_PixelOffsets",
+          "storage_name": "E_CHECKBOX_Marquee_PixelOffsets",
+          "widget_type": "checkbox",
+          "value_type": "bool",
+          "default": false,
+          "min": null,
+          "max": null,
+          "choices": null,
+          "description": "Use pixel-level offsets instead of percentage",
+          "supports_value_curve": false
+        },
+        {
+          "name": "Marquee_WrapX",
+          "storage_name": "E_CHECKBOX_Marquee_WrapX",
+          "widget_type": "checkbox",
+          "value_type": "bool",
+          "default": false,
+          "min": null,
+          "max": null,
+          "choices": null,
+          "description": "Wrap marquee horizontally",
+          "supports_value_curve": false
+        },
+        {
+          "name": "Marquee_WrapY",
+          "storage_name": "E_CHECKBOX_Marquee_WrapY",
+          "widget_type": "checkbox",
+          "value_type": "bool",
+          "default": false,
+          "min": null,
+          "max": null,
+          "choices": null,
+          "description": "Wrap marquee vertically",
+          "supports_value_curve": false
         }
       ],
       "prop_suitability": {
@@ -1667,6 +1775,33 @@
           "choices": null,
           "description": "Vertical center offset of the pinwheel",
           "supports_value_curve": true
+        },
+        {
+          "name": "Pinwheel_Rotation",
+          "storage_name": "E_CHECKBOX_Pinwheel_Rotation",
+          "widget_type": "checkbox",
+          "value_type": "bool",
+          "default": false,
+          "min": null,
+          "max": null,
+          "choices": null,
+          "description": "Reverse rotation direction",
+          "supports_value_curve": false
+        },
+        {
+          "name": "Pinwheel_Style",
+          "storage_name": "E_CHOICE_Pinwheel_Style",
+          "widget_type": "choice",
+          "value_type": "choice",
+          "default": "New Render Method",
+          "min": null,
+          "max": null,
+          "choices": [
+            "New Render Method",
+            "Old Render Method"
+          ],
+          "description": "Rendering method style",
+          "supports_value_curve": false
         }
       ],
       "prop_suitability": {
@@ -2200,6 +2335,102 @@
           "choices": null,
           "description": "Trigger shape spawns from audio level (music reactive)",
           "supports_value_curve": false
+        },
+        {
+          "name": "Shape_RandomLocation",
+          "storage_name": "E_CHECKBOX_Shape_RandomLocation",
+          "widget_type": "checkbox",
+          "value_type": "bool",
+          "default": true,
+          "min": null,
+          "max": null,
+          "choices": null,
+          "description": "Randomize shape spawn locations",
+          "supports_value_curve": false
+        },
+        {
+          "name": "Shape_FadeAway",
+          "storage_name": "E_CHECKBOX_Shape_FadeAway",
+          "widget_type": "checkbox",
+          "value_type": "bool",
+          "default": true,
+          "min": null,
+          "max": null,
+          "choices": null,
+          "description": "Shapes fade away over lifetime",
+          "supports_value_curve": false
+        },
+        {
+          "name": "Shape_RandomInitial",
+          "storage_name": "E_CHECKBOX_Shape_RandomInitial",
+          "widget_type": "checkbox",
+          "value_type": "bool",
+          "default": true,
+          "min": null,
+          "max": null,
+          "choices": null,
+          "description": "Randomize initial shape state",
+          "supports_value_curve": false
+        },
+        {
+          "name": "Shape_HoldColour",
+          "storage_name": "E_CHECKBOX_Shape_HoldColour",
+          "widget_type": "checkbox",
+          "value_type": "bool",
+          "default": true,
+          "min": null,
+          "max": null,
+          "choices": null,
+          "description": "Hold color throughout shape lifetime",
+          "supports_value_curve": false
+        },
+        {
+          "name": "Shapes_RandomMovement",
+          "storage_name": "E_CHECKBOX_Shapes_RandomMovement",
+          "widget_type": "checkbox",
+          "value_type": "bool",
+          "default": false,
+          "min": null,
+          "max": null,
+          "choices": null,
+          "description": "Enable random movement for shapes",
+          "supports_value_curve": false
+        },
+        {
+          "name": "Shapes_Direction",
+          "storage_name": "E_SLIDER_Shapes_Direction",
+          "widget_type": "slider",
+          "value_type": "int",
+          "default": 90,
+          "min": 0,
+          "max": 359,
+          "choices": null,
+          "description": "Direction of shape movement in degrees",
+          "supports_value_curve": true
+        },
+        {
+          "name": "Shapes_Velocity",
+          "storage_name": "E_SLIDER_Shapes_Velocity",
+          "widget_type": "slider",
+          "value_type": "int",
+          "default": 0,
+          "min": 0,
+          "max": 20,
+          "choices": null,
+          "description": "Movement velocity of shapes",
+          "supports_value_curve": true
+        },
+        {
+          "name": "Shape_Points",
+          "storage_name": "E_SLIDER_Shape_Points",
+          "widget_type": "slider",
+          "value_type": "int",
+          "default": 5,
+          "min": 3,
+          "max": 12,
+          "choices": null,
+          "description": "Number of points for star/polygon shapes",
+          "supports_value_curve": true
         }
       ],
       "prop_suitability": {
@@ -2967,6 +3198,30 @@
           "choices": null,
           "description": "Trigger fireworks from a timing track instead of auto-spawning",
           "supports_value_curve": false
+        },
+        {
+          "name": "Fireworks_HoldColour",
+          "storage_name": "E_CHECKBOX_Fireworks_HoldColour",
+          "widget_type": "checkbox",
+          "value_type": "bool",
+          "default": true,
+          "min": null,
+          "max": null,
+          "choices": null,
+          "description": "Hold color during explosion lifetime",
+          "supports_value_curve": false
+        },
+        {
+          "name": "Fireworks_Sensitivity",
+          "storage_name": "E_SLIDER_Fireworks_Sensitivity",
+          "widget_type": "slider",
+          "value_type": "int",
+          "default": 50,
+          "min": 0,
+          "max": 100,
+          "choices": null,
+          "description": "Music sensitivity for music-reactive mode",
+          "supports_value_curve": true
         }
       ],
       "prop_suitability": {
@@ -3771,6 +4026,54 @@
           "choices": null,
           "description": "Fine-tune the movement range and scale of the tendril animation",
           "supports_value_curve": true
+        },
+        {
+          "name": "Tendril_Friction",
+          "storage_name": "E_TEXTCTRL_Tendril_Friction",
+          "widget_type": "textctrl",
+          "value_type": "int",
+          "default": 10,
+          "min": 0,
+          "max": 20,
+          "choices": null,
+          "description": "Friction applied to tendril movement",
+          "supports_value_curve": false
+        },
+        {
+          "name": "Tendril_Dampening",
+          "storage_name": "E_TEXTCTRL_Tendril_Dampening",
+          "widget_type": "textctrl",
+          "value_type": "int",
+          "default": 10,
+          "min": 0,
+          "max": 20,
+          "choices": null,
+          "description": "Dampening of tendril oscillation",
+          "supports_value_curve": false
+        },
+        {
+          "name": "Tendril_Tension",
+          "storage_name": "E_TEXTCTRL_Tendril_Tension",
+          "widget_type": "textctrl",
+          "value_type": "int",
+          "default": 20,
+          "min": 0,
+          "max": 39,
+          "choices": null,
+          "description": "Spring tension of tendril segments",
+          "supports_value_curve": false
+        },
+        {
+          "name": "Tendril_Trails",
+          "storage_name": "E_TEXTCTRL_Tendril_Trails",
+          "widget_type": "textctrl",
+          "value_type": "int",
+          "default": 1,
+          "min": 1,
+          "max": 10,
+          "choices": null,
+          "description": "Number of trail copies drawn",
+          "supports_value_curve": false
         }
       ],
       "prop_suitability": {
@@ -4311,6 +4614,54 @@
           "max": null,
           "choices": null,
           "description": "Use a specific color for the morph head at the end position",
+          "supports_value_curve": false
+        },
+        {
+          "name": "Morph_Start_Link",
+          "storage_name": "E_CHECKBOX_Morph_Start_Link",
+          "widget_type": "checkbox",
+          "value_type": "bool",
+          "default": false,
+          "min": null,
+          "max": null,
+          "choices": null,
+          "description": "Link morph start points together",
+          "supports_value_curve": false
+        },
+        {
+          "name": "Morph_End_Link",
+          "storage_name": "E_CHECKBOX_Morph_End_Link",
+          "widget_type": "checkbox",
+          "value_type": "bool",
+          "default": false,
+          "min": null,
+          "max": null,
+          "choices": null,
+          "description": "Link morph end points together",
+          "supports_value_curve": false
+        },
+        {
+          "name": "ShowHeadAtStart",
+          "storage_name": "E_CHECKBOX_ShowHeadAtStart",
+          "widget_type": "checkbox",
+          "value_type": "bool",
+          "default": false,
+          "min": null,
+          "max": null,
+          "choices": null,
+          "description": "Show head marker at start position",
+          "supports_value_curve": false
+        },
+        {
+          "name": "Morph_AutoRepeat",
+          "storage_name": "E_CHECKBOX_Morph_AutoRepeat",
+          "widget_type": "checkbox",
+          "value_type": "bool",
+          "default": false,
+          "min": null,
+          "max": null,
+          "choices": null,
+          "description": "Auto-repeat morph animation",
           "supports_value_curve": false
         }
       ],
