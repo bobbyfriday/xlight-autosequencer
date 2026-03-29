@@ -143,6 +143,16 @@ def place_effects(
         )
 
         for tier, groups_for_tier in selected.items():
+            # Tier 4 (BEAT): use chase pattern — distribute beats across groups
+            if tier == 4 and groups_for_tier:
+                chase_result = _place_chase_across_groups(
+                    effect_def, layer, groups_for_tier,
+                    assignment.section, hierarchy, theme.palette,
+                )
+                for gname, placements in chase_result.items():
+                    result.setdefault(gname, []).extend(placements)
+                continue
+
             for group in groups_for_tier:
                 placements = _place_effect_on_group(
                     effect_def=effect_def,
