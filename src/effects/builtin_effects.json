@@ -242,6 +242,18 @@
           "choices": null,
           "description": "Wrap palette colors circularly (seamless loop between last and first color)",
           "supports_value_curve": false
+        },
+        {
+          "name": "ColorWash_ReverseFades",
+          "storage_name": "E_CHECKBOX_ColorWash_ReverseFades",
+          "widget_type": "checkbox",
+          "value_type": "bool",
+          "default": false,
+          "min": null,
+          "max": null,
+          "choices": null,
+          "description": "Reverse the direction of horizontal/vertical fades",
+          "supports_value_curve": false
         }
       ],
       "prop_suitability": {
@@ -665,7 +677,7 @@
           "value_type": "int",
           "default": 1,
           "min": 1,
-          "max": 100,
+          "max": 5,
           "choices": null,
           "description": "Number of color bars visible at once",
           "supports_value_curve": true
@@ -2073,7 +2085,10 @@
             "Snowflake",
             "Candy Cane",
             "Crucifix",
-            "Present"
+            "Present",
+            "Polygon",
+            "Octagon",
+            "Ellipse"
           ],
           "description": "Shape to draw",
           "supports_value_curve": false
@@ -3529,6 +3544,22 @@
           "choices": null,
           "description": "Snowflakes accumulate at the bottom instead of disappearing",
           "supports_value_curve": false
+        },
+        {
+          "name": "Falling",
+          "storage_name": "E_CHOICE_Falling",
+          "widget_type": "choice",
+          "value_type": "choice",
+          "default": "Driving",
+          "min": null,
+          "max": null,
+          "choices": [
+            "Driving",
+            "Falling",
+            "Falling & Accumulating"
+          ],
+          "description": "Falling behavior style",
+          "supports_value_curve": false
         }
       ],
       "prop_suitability": {
@@ -3636,7 +3667,11 @@
             "Horizontal",
             "Vertical",
             "Music Line",
-            "Music Circle"
+            "Music Circle",
+            "Vertical Zig Zag",
+            "Vert. Zig Zag Return",
+            "Horiz. Zig Zag Return",
+            "Manual"
           ],
           "description": "Movement pattern of the tendril",
           "supports_value_curve": false
@@ -4635,7 +4670,12 @@
             "Note On",
             "Note Level Pulse",
             "Spectrogram",
-            "Spectrogram Peak"
+            "Spectrogram Peak",
+            "Waveform",
+            "Timing Event Bar Bounce",
+            "Level Jump",
+            "Spectrogram Line",
+            "Frame Waveform"
           ],
           "description": "VU meter visualization type",
           "supports_value_curve": false
@@ -4682,7 +4722,16 @@
             "Heart",
             "Snowflake",
             "Candy Cane",
-            "Present"
+            "Present",
+            "Filled Circle",
+            "Filled Square",
+            "Filled Diamond",
+            "Filled Star",
+            "Filled Tree",
+            "Filled Crucifix",
+            "Filled Present",
+            "Filled Heart",
+            "SVG"
           ],
           "description": "Shape used for shape-based VU modes",
           "supports_value_curve": false
@@ -4986,6 +5035,25 @@
       "description": "Kaleidoscope mirror effect that reflects content in symmetric patterns",
       "intent": "Add visual symmetry and complexity to underlying effects",
       "parameters": [
+        {
+          "name": "Kaleidoscope_Type",
+          "storage_name": "E_CHOICE_Kaleidoscope_Type",
+          "widget_type": "choice",
+          "value_type": "choice",
+          "default": "Triangle",
+          "min": null,
+          "max": null,
+          "choices": [
+            "Triangle",
+            "Square",
+            "6-Fold",
+            "8-Fold",
+            "12-Fold",
+            "Radial"
+          ],
+          "description": "Kaleidoscope symmetry type",
+          "supports_value_curve": false
+        },
         {
           "name": "Kaleidoscope_X",
           "storage_name": "E_SLIDER_Kaleidoscope_X",
