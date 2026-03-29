@@ -18,6 +18,7 @@ from src.generator.models import (
 from src.generator.theme_selector import select_themes
 from src.generator.value_curves import generate_value_curves
 from src.generator.xsq_writer import write_xsq
+from src.grouper.classifier import classify_props, normalize_coords
 from src.grouper.grouper import PowerGroup, generate_groups
 from src.grouper.layout import Prop, parse_layout
 from src.themes.library import ThemeLibrary, load_theme_library
@@ -127,7 +128,8 @@ def build_plan(
     model_names = [p.name for p in props]
     for assignment in assignments:
         group_effects = place_effects(
-            assignment, groups, effect_library, hierarchy
+            assignment, groups, effect_library, hierarchy,
+            tiers=config.tiers,
         )
         assignment.group_effects = group_effects
 
@@ -156,9 +158,11 @@ def generate_sequence(config: GenerationConfig) -> Path:
         fresh=config.force_reanalyze,
     )
 
-    # Parse layout
+    # Parse layout and classify props (normalize coords, compute pixel count)
     layout = parse_layout(config.layout_path)
     props = layout.props
+    normalize_coords(props)
+    classify_props(props)
 
     # Generate power groups
     groups = generate_groups(props)
@@ -195,9 +199,11 @@ def regenerate_sections(config: GenerationConfig, existing_xsq: Path) -> Path:
     # Parse existing XSQ
     doc = parse_xsq(existing_xsq)
 
-    # Parse layout
+    # Parse layout and classify props
     layout = parse_layout(config.layout_path)
     props = layout.props
+    normalize_coords(props)
+    classify_props(props)
     groups = generate_groups(props)
 
     # Load libraries

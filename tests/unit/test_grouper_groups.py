@@ -203,52 +203,34 @@ class TestBeatGroups:
     def _beat_groups(self, props: list[Prop]) -> list[PowerGroup]:
         return [g for g in generate_groups(props) if g.name.startswith("04_BEAT_")]
 
-    def test_lr_groups_sorted_by_norm_x(self):
+    def test_sp_groups_have_max_4_members(self):
         props = [make_prop(f"P{i}", world_x=float(i * 100), world_y=100.0) for i in range(8)]
         normalize_coords(props)
         classify_props(props)
-        beat = self._beat_groups(props)
-        lr = sorted([g for g in beat if "LR" in g.name], key=lambda g: g.name)
-        assert lr[0].members == ["P0", "P1", "P2", "P3"]
-        assert lr[1].members == ["P4", "P5", "P6", "P7"]
+        sp = [g for g in generate_groups(props) if "BEAT_SP" in g.name]
+        assert all(len(g.members) <= 4 for g in sp)
 
-    def test_lr_group_count_for_8_props(self):
+    def test_sp_covers_all_props(self):
         props = [make_prop(f"P{i}", world_x=float(i * 100), world_y=100.0) for i in range(8)]
         normalize_coords(props)
         classify_props(props)
-        lr = [g for g in generate_groups(props) if "LR" in g.name]
-        assert len(lr) == 2
+        sp = [g for g in generate_groups(props) if "BEAT_SP" in g.name]
+        all_members = [m for g in sp for m in g.members]
+        assert set(all_members) == {f"P{i}" for i in range(8)}
 
-    def test_co_groups_sorted_by_distance_from_center(self):
-        # 4 props symmetrically placed around center
-        props = [
-            make_prop("L2", world_x=0.0, world_y=100.0),
-            make_prop("L1", world_x=200.0, world_y=100.0),
-            make_prop("R1", world_x=400.0, world_y=100.0),
-            make_prop("R2", world_x=600.0, world_y=100.0),
-        ]
-        normalize_coords(props)
-        classify_props(props)
-        co = [g for g in generate_groups(props) if "CO" in g.name]
-        assert len(co) == 1
-        # CO_1 should contain the two center-most props
-        co1 = co[0]
-        assert set(co1.members) == {"L1", "R1", "L2", "R2"}
-
-    def test_remainder_group_not_discarded(self):
-        props = [make_prop(f"P{i}", world_x=float(i * 100), world_y=100.0) for i in range(6)]
-        normalize_coords(props)
-        classify_props(props)
-        lr = [g for g in generate_groups(props) if "LR" in g.name]
-        member_counts = [len(g.members) for g in lr]
-        # Should have groups of 4 and 2 (remainder kept)
-        assert 2 in member_counts
-
-    def test_lr_and_co_are_independent(self):
+    def test_pt_groups_filter_single_member(self):
+        """PT groups should not have single-member entries."""
         props = [make_prop(f"P{i}", world_x=float(i * 100), world_y=100.0) for i in range(8)]
         normalize_coords(props)
         classify_props(props)
-        lr = [g for g in generate_groups(props) if "LR" in g.name]
-        co = [g for g in generate_groups(props) if "CO" in g.name]
-        assert len(lr) == 2
-        assert len(co) == 2
+        pt = [g for g in generate_groups(props) if "BEAT_PT" in g.name]
+        assert all(len(g.members) >= 2 for g in pt)
+
+    def test_sp_and_pt_are_independent(self):
+        props = [make_prop(f"P{i}", world_x=float(i * 100), world_y=100.0) for i in range(8)]
+        normalize_coords(props)
+        classify_props(props)
+        sp = [g for g in generate_groups(props) if "BEAT_SP" in g.name]
+        pt = [g for g in generate_groups(props) if "BEAT_PT" in g.name]
+        assert len(sp) > 0
+        assert sp[0].name != pt[0].name if pt else True

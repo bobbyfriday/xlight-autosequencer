@@ -1757,8 +1757,12 @@ def group_layout_cmd(
               help="Regenerate only this section type (e.g., 'chorus')")
 @click.option("--theme-override", "theme_overrides_raw", multiple=True,
               help="Override theme: 'chorus=Inferno' (repeatable)")
+@click.option("--tiers", "tiers_raw", default=None,
+              help="Comma-separated tiers to include (1-8 or names: "
+                   "base,geo,type,beat,fidelity,prop,compound,hero)")
 def generate_cmd(audio_file, layout_file, output_dir, genre, occasion,
-                 fresh, no_wizard, target_section, theme_overrides_raw):
+                 fresh, no_wizard, target_section, theme_overrides_raw,
+                 tiers_raw):
     """Generate an xLights .xsq sequence from an MP3 and layout file."""
     from src.generator.models import GenerationConfig
     from src.generator.plan import generate_sequence, read_song_metadata
@@ -1783,6 +1787,26 @@ def generate_cmd(audio_file, layout_file, output_dir, genre, occasion,
                 # We'll map label to index later in the pipeline
                 theme_overrides[label.strip()] = theme_name.strip()
 
+    # Parse tiers filter
+    _TIER_NAMES = {
+        "base": 1, "geo": 2, "type": 3, "beat": 4,
+        "fidelity": 5, "prop": 6, "compound": 7, "hero": 8,
+    }
+    tiers = None
+    if tiers_raw:
+        tiers = set()
+        for part in tiers_raw.split(","):
+            part = part.strip().lower()
+            if part in _TIER_NAMES:
+                tiers.add(_TIER_NAMES[part])
+            elif part.isdigit() and 1 <= int(part) <= 8:
+                tiers.add(int(part))
+            else:
+                raise click.BadParameter(
+                    f"Unknown tier '{part}'. Use 1-8 or: {', '.join(_TIER_NAMES)}",
+                    param_hint="--tiers",
+                )
+
     config = GenerationConfig(
         audio_path=audio_path,
         layout_path=layout_path,
@@ -1791,11 +1815,16 @@ def generate_cmd(audio_file, layout_file, output_dir, genre, occasion,
         occasion=occasion,
         force_reanalyze=fresh,
         target_sections=[target_section] if target_section else None,
+        tiers=tiers,
     )
+
+    tiers_label = ", ".join(sorted(
+        n for n, t in _TIER_NAMES.items() if tiers and t in tiers
+    )) if tiers else "all"
 
     click.echo(f"\nGenerating sequence for: {audio_path.name}")
     click.echo(f"Layout: {layout_path.name}")
-    click.echo(f"Genre: {genre} | Occasion: {occasion}")
+    click.echo(f"Genre: {genre} | Occasion: {occasion} | Tiers: {tiers_label}")
     click.echo("")
 
     output_path = generate_sequence(config)

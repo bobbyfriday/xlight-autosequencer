@@ -124,6 +124,7 @@ class GenerationConfig:
     force_reanalyze: bool = False
     target_sections: Optional[list[str]] = None
     theme_overrides: Optional[dict[int, str]] = None
+    tiers: Optional[set[int]] = None
 
     def __post_init__(self) -> None:
         self.audio_path = Path(self.audio_path)

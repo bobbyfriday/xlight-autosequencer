@@ -93,17 +93,27 @@ def _tier2_spatial(props: list[Prop]) -> list[PowerGroup]:
         "02_GEO_Center": [],
         "02_GEO_Right": [],
     }
+
+    # Use quantile-based thresholds so each zone gets ~1/3 of props
+    ys = sorted(p.norm_y for p in props)
+    xs = sorted(p.norm_x for p in props)
+    n = len(props)
+    y_low = ys[n // 3] if n >= 3 else 0.33
+    y_high = ys[2 * n // 3] if n >= 3 else 0.66
+    x_low = xs[n // 3] if n >= 3 else 0.33
+    x_high = xs[2 * n // 3] if n >= 3 else 0.66
+
     for p in props:
-        if p.norm_y > _TOP_Y:
+        if p.norm_y > y_high:
             bins["02_GEO_Top"].append(p.name)
-        elif p.norm_y < _BOT_Y:
+        elif p.norm_y <= y_low:
             bins["02_GEO_Bot"].append(p.name)
         else:
             bins["02_GEO_Mid"].append(p.name)
 
-        if p.norm_x < _LEFT_X:
+        if p.norm_x < x_low:
             bins["02_GEO_Left"].append(p.name)
-        elif p.norm_x > _RIGHT_X:
+        elif p.norm_x >= x_high:
             bins["02_GEO_Right"].append(p.name)
         else:
             bins["02_GEO_Center"].append(p.name)
@@ -123,25 +133,66 @@ def _tier3_architecture(props: list[Prop]) -> list[PowerGroup]:
 def _tier4_rhythm(props: list[Prop]) -> list[PowerGroup]:
     groups: list[PowerGroup] = []
 
-    # Method A: Left-to-Right (sort by norm_x)
-    lr_sorted = sorted(props, key=lambda p: p.norm_x)
-    for i, chunk in enumerate(_chunks(lr_sorted, 4), start=1):
+    # Method A: Spread — each group draws one prop from different type buckets,
+    # so each beat pop is distributed across the whole house.
+    type_buckets = _group_by_type(props)
+    bucket_iters = {k: iter(v) for k, v in type_buckets.items()}
+    bucket_keys = list(type_buckets.keys())
+    sp_groups: list[list[str]] = []
+    exhausted: set[str] = set()
+    while len(exhausted) < len(bucket_keys):
+        group: list[str] = []
+        for key in bucket_keys:
+            if key in exhausted:
+                continue
+            try:
+                p = next(bucket_iters[key])
+                group.append(p.name)
+            except StopIteration:
+                exhausted.add(key)
+            if len(group) >= 4:
+                break
+        if group:
+            sp_groups.append(group)
+    for i, members in enumerate(sp_groups, start=1):
         groups.append(PowerGroup(
-            name=f"04_BEAT_LR_{i}",
-            tier=4,
-            members=[p.name for p in chunk],
+            name=f"04_BEAT_SP_{i}", tier=4, members=members,
         ))
 
-    # Method B: Center-Out (sort by distance from 0.5)
-    co_sorted = sorted(props, key=lambda p: abs(p.norm_x - 0.5))
-    for i, chunk in enumerate(_chunks(co_sorted, 4), start=1):
-        groups.append(PowerGroup(
-            name=f"04_BEAT_CO_{i}",
-            tier=4,
-            members=[p.name for p in chunk],
-        ))
+    # Method B: Prop Type — each group is all props of one type (or a chunk
+    # of 4 from large types), so each beat lights up a whole prop category.
+    # Only include groups with 2+ props to avoid single-prop beats.
+    for type_name, typed_props in type_buckets.items():
+        if len(typed_props) < 2:
+            continue
+        short = _sanitize_label(type_name)
+        chunks = list(_chunks(typed_props, 4))
+        for i, chunk in enumerate(chunks, start=1):
+            if len(chunk) < 2:
+                continue
+            suffix = f"_{i}" if len(chunks) > 1 else ""
+            groups.append(PowerGroup(
+                name=f"04_BEAT_PT_{short}{suffix}",
+                tier=4,
+                members=[p.name for p in chunk],
+            ))
 
     return groups
+
+
+def _group_by_type(props: list[Prop]) -> dict[str, list[Prop]]:
+    """Group props by their type category (same logic as tier 6)."""
+    def _type_name(name: str) -> str:
+        s = name.split(" - ")[0]
+        s = re.sub(r"[\s-]*\d+\s*$", "", s)
+        s = re.sub(r"\s+[A-Z]\s*$", "", s)
+        return s.strip(" -")
+
+    buckets: dict[str, list[Prop]] = {}
+    for p in props:
+        key = _type_name(p.name)
+        buckets.setdefault(key, []).append(p)
+    return buckets
 
 
 def _tier5_fidelity(props: list[Prop]) -> list[PowerGroup]:
