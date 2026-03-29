@@ -54,17 +54,9 @@ _XLIGHTS_EFFECT_DEFAULTS: dict[str, dict[str, str]] = {
         "E_SLIDER_MorphDuration": "20",
         "E_SLIDER_MorphEndLength": "1",
         "E_SLIDER_MorphStartLength": "1",
-        "E_SLIDER_Morph_End_X1": "0",
-        "E_SLIDER_Morph_End_X2": "100",
-        "E_SLIDER_Morph_End_Y1": "100",
-        "E_SLIDER_Morph_End_Y2": "100",
         "E_SLIDER_Morph_Repeat_Count": "0",
         "E_SLIDER_Morph_Repeat_Skip": "1",
         "E_SLIDER_Morph_Stagger": "30",
-        "E_SLIDER_Morph_Start_X1": "0",
-        "E_SLIDER_Morph_Start_X2": "100",
-        "E_SLIDER_Morph_Start_Y1": "0",
-        "E_SLIDER_Morph_Start_Y2": "0",
     },
     "Fire": {
         "E_CHECKBOX_Fire_GrowWithMusic": "0",
@@ -260,15 +252,15 @@ def write_xsq(plan: SequencePlan, output_path: Path, hierarchy: HierarchyResult 
     ET.SubElement(head, "author").text = "xlight-autosequencer"
     ET.SubElement(head, "song").text = plan.song_profile.title
     ET.SubElement(head, "artist").text = plan.song_profile.artist
-    # Use a relative path — xLights resolves relative to the show/sequence directory
+    # Write media path and ensure the MP3 is alongside the XSQ
     if audio_path is not None:
-        try:
-            media_ref = str(audio_path.resolve().relative_to(output_path.parent.resolve()))
-        except ValueError:
-            media_ref = audio_path.name
+        dest = output_path.parent / audio_path.name
+        if not dest.exists() and audio_path.exists():
+            import shutil
+            shutil.copy2(audio_path, dest)
+        ET.SubElement(head, "mediaFile").text = audio_path.name
     else:
-        media_ref = plan.song_profile.title + ".mp3"
-    ET.SubElement(head, "mediaFile").text = media_ref
+        ET.SubElement(head, "mediaFile").text = plan.song_profile.title + ".mp3"
     ET.SubElement(head, "sequenceType").text = "Media"
     ET.SubElement(head, "sequenceTiming").text = f"{FRAME_INTERVAL_MS} ms"
     duration_sec = plan.song_profile.duration_ms / 1000.0

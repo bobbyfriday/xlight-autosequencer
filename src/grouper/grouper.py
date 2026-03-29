@@ -93,17 +93,27 @@ def _tier2_spatial(props: list[Prop]) -> list[PowerGroup]:
         "02_GEO_Center": [],
         "02_GEO_Right": [],
     }
+
+    # Use quantile-based thresholds so each zone gets ~1/3 of props
+    ys = sorted(p.norm_y for p in props)
+    xs = sorted(p.norm_x for p in props)
+    n = len(props)
+    y_low = ys[n // 3] if n >= 3 else 0.33
+    y_high = ys[2 * n // 3] if n >= 3 else 0.66
+    x_low = xs[n // 3] if n >= 3 else 0.33
+    x_high = xs[2 * n // 3] if n >= 3 else 0.66
+
     for p in props:
-        if p.norm_y > _TOP_Y:
+        if p.norm_y > y_high:
             bins["02_GEO_Top"].append(p.name)
-        elif p.norm_y < _BOT_Y:
+        elif p.norm_y <= y_low:
             bins["02_GEO_Bot"].append(p.name)
         else:
             bins["02_GEO_Mid"].append(p.name)
 
-        if p.norm_x < _LEFT_X:
+        if p.norm_x < x_low:
             bins["02_GEO_Left"].append(p.name)
-        elif p.norm_x > _RIGHT_X:
+        elif p.norm_x >= x_high:
             bins["02_GEO_Right"].append(p.name)
         else:
             bins["02_GEO_Center"].append(p.name)

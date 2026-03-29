@@ -37,6 +37,18 @@ class EffectLayer:
 
 
 @dataclass
+class ThemeVariant:
+    """Alternate layer set for a theme — same palette/mood, different visuals."""
+    layers: list[EffectLayer]
+
+    @classmethod
+    def from_dict(cls, data: dict) -> ThemeVariant:
+        return cls(
+            layers=[EffectLayer.from_dict(l) for l in data["layers"]],
+        )
+
+
+@dataclass
 class Theme:
     name: str
     mood: str
@@ -45,6 +57,7 @@ class Theme:
     intent: str
     layers: list[EffectLayer]
     palette: list[str]
+    variants: list[ThemeVariant] = field(default_factory=list)
 
     @classmethod
     def from_dict(cls, data: dict) -> Theme:
@@ -56,4 +69,5 @@ class Theme:
             intent=data["intent"],
             layers=[EffectLayer.from_dict(l) for l in data["layers"]],
             palette=data["palette"],
+            variants=[ThemeVariant.from_dict(v) for v in data.get("variants", [])],
         )
