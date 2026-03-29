@@ -70,6 +70,7 @@ def place_effects(
     groups: list[PowerGroup],
     effect_library: EffectLibrary,
     hierarchy: HierarchyResult,
+    tiers: set[int] | None = None,
 ) -> dict[str, list[EffectPlacement]]:
     """Place effects from theme layers onto power groups, aligned to timing tracks.
 
@@ -85,7 +86,13 @@ def place_effects(
     """
     section = assignment.section
     theme = assignment.theme
-    layers = theme.layers
+
+    # Use variant layers for repeated sections (variation_seed > 0)
+    if assignment.variation_seed > 0 and theme.variants:
+        variant_idx = (assignment.variation_seed - 1) % len(theme.variants)
+        layers = theme.variants[variant_idx].layers
+    else:
+        layers = theme.layers
 
     if not layers:
         return {}
@@ -112,9 +119,11 @@ def place_effects(
     # Map layers to tier sets
     layer_tier_map = _assign_layers_to_tiers(layers)
 
-    # Group groups by tier
+    # Group groups by tier, filtering to requested tiers if specified
     tier_groups: dict[int, list[PowerGroup]] = {}
     for g in groups:
+        if tiers is not None and g.tier not in tiers:
+            continue
         tier_groups.setdefault(g.tier, []).append(g)
 
     # If no groups provided, create a pseudo-group for each model
@@ -123,31 +132,33 @@ def place_effects(
 
     result: dict[str, list[EffectPlacement]] = {}
 
-    # Phase 1: Only process the base layer (layer 0) on tier 1 (BASE).
-    # Additional layers will be added in future phases.
-    layer = layers[0]
-    effect_def = effect_library.effects.get(layer.effect)
-    if effect_def is None:
-        return result
+    for layer_idx, layer in enumerate(layers):
+        effect_def = effect_library.effects.get(layer.effect)
+        if effect_def is None:
+            continue
 
-    base_groups = tier_groups.get(1, [])
-    if base_groups:
-        group = base_groups[0]  # 01_BASE_All — the whole-house group
-        placements = _place_effect_on_group(
-            effect_def=effect_def,
-            layer=layer,
-            group=group,
-            section=assignment.section,
-            hierarchy=hierarchy,
-            palette=theme.palette,
-            variation_seed=assignment.variation_seed,
-            chord_marks=chord_marks,
-            tension_curve=tension_curve,
-            danceability=danceability,
-            chord_weight=chord_weight,
+        target_tiers = layer_tier_map.get(layer_idx, set())
+        selected = _select_groups_for_layer(
+            target_tiers, tier_groups, layer_idx, len(layers),
         )
-        if placements:
-            result.setdefault(group.name, []).extend(placements)
+
+        for tier, groups_for_tier in selected.items():
+            for group in groups_for_tier:
+                placements = _place_effect_on_group(
+                    effect_def=effect_def,
+                    layer=layer,
+                    group=group,
+                    section=assignment.section,
+                    hierarchy=hierarchy,
+                    palette=theme.palette,
+                    variation_seed=assignment.variation_seed,
+                    chord_marks=chord_marks,
+                    tension_curve=tension_curve,
+                    danceability=danceability,
+                    chord_weight=chord_weight,
+                )
+                if placements:
+                    result.setdefault(group.name, []).extend(placements)
 
     return result
 
@@ -183,8 +194,8 @@ def _select_groups_for_layer(
                 selected[tier] = [available[0]]
 
         elif tier == 2:
-            # GEO: pick one spatial zone
-            selected[tier] = [available[layer_idx % len(available)]]
+            # GEO: use all spatial zones
+            selected[tier] = available
 
         elif tier in (3, 5):
             # TYPE / TEX: skip to avoid overlap with BASE
@@ -484,6 +495,11 @@ def _make_placement(
         if key in resolved_params:
             resolved_params[key] = directions[instance_index % len(directions)]
 
+    # Single Strand: alternate chase direction between instances
+    if effect_def.name == "Single Strand":
+        chase_key = "E_CHOICE_Chase_Type1"
+        resolved_params[chase_key] = ["Left-Right", "Right-Left"][instance_index % 2]
+
     return EffectPlacement(
         effect_name=effect_def.name,
         xlights_id=effect_def.xlights_id,
@@ -572,10 +588,17 @@ def _flat_model_fallback(
     section = assignment.section
     result: dict[str, list[EffectPlacement]] = {}
 
-    if not theme.layers:
+    # Use variant layers for repeated sections
+    if assignment.variation_seed > 0 and theme.variants:
+        variant_idx = (assignment.variation_seed - 1) % len(theme.variants)
+        layers = theme.variants[variant_idx].layers
+    else:
+        layers = theme.layers
+
+    if not layers:
         return result
 
-    layer = theme.layers[0]
+    layer = layers[0]
     effect_def = effect_library.effects.get(layer.effect)
     if effect_def is None:
         return result

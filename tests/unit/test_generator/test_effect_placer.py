@@ -148,10 +148,10 @@ class TestLayerToTierMapping:
     """Phase 1: only base layer (layer 0) placed on tier 1 BASE group."""
 
     def test_base_layer_on_tier_1(self) -> None:
-        """Bottom layer placed on tier 1 (BASE) group only."""
+        """Two-layer theme places bottom on low tiers, top on high tiers."""
         layers = [
-            EffectLayer(effect="Color Wash"),   # bottom / base
-            EffectLayer(effect="Twinkle"),       # top — not used in phase 1
+            EffectLayer(effect="Color Wash"),   # bottom → tiers 1, 2
+            EffectLayer(effect="Twinkle"),       # top → tiers 7, 8
         ]
         assignment = _make_assignment(layers=layers)
         groups = _make_groups()
@@ -167,9 +167,8 @@ class TestLayerToTierMapping:
             if tier is not None:
                 used_tiers.add(tier)
 
-        # Phase 1: only tier 1 (BASE) should have effects
         assert 1 in used_tiers, "Tier 1 BASE should have effects"
-        assert used_tiers == {1}, f"Phase 1 should only use tier 1, got {used_tiers}"
+        assert 7 in used_tiers or 8 in used_tiers, "High tiers should have effects from top layer"
 
 
 class TestDurationTypeSection:

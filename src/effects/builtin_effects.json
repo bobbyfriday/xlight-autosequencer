@@ -4057,6 +4057,28 @@
           ],
           "description": "How palette colors are applied in FX sub-mode",
           "supports_value_curve": false
+        },
+        {
+          "name": "Chase_Type1",
+          "storage_name": "E_CHOICE_Chase_Type1",
+          "widget_type": "choice",
+          "value_type": "choice",
+          "default": "Left-Right",
+          "min": null,
+          "max": null,
+          "choices": [
+            "Left-Right",
+            "Right-Left",
+            "Bounce from Left",
+            "Bounce from Right",
+            "Dual Chase",
+            "From Middle",
+            "To Middle",
+            "Bounce to Middle",
+            "Bounce from Middle"
+          ],
+          "description": "Chase direction pattern",
+          "supports_value_curve": false
         }
       ],
       "prop_suitability": {

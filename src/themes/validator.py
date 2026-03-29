@@ -64,6 +64,33 @@ def validate_theme(data: dict, effect_library: EffectLibrary) -> list[str]:
             if blend not in VALID_BLEND_MODES:
                 errors.append(f"Layer {i}: invalid blend_mode '{blend}'")
 
+    # Variants (optional)
+    for vi, variant in enumerate(data.get("variants", [])):
+        v_layers = variant.get("layers", [])
+        if not v_layers:
+            errors.append(f"Variant {vi}: must have at least one layer")
+            continue
+        v_bottom_blend = v_layers[0].get("blend_mode", "Normal")
+        if v_bottom_blend != "Normal":
+            errors.append(
+                f"Variant {vi} layer 0: bottom blend_mode must be 'Normal', got '{v_bottom_blend}'"
+            )
+        for j, v_layer in enumerate(v_layers):
+            v_effect_name = v_layer.get("effect", "")
+            v_effect_def = effect_library.get(v_effect_name)
+            if v_effect_def is None:
+                errors.append(
+                    f"Variant {vi} layer {j}: effect '{v_effect_name}' not found in effect library"
+                )
+            elif j == 0 and v_effect_def.layer_role == "modifier":
+                errors.append(
+                    f"Variant {vi} layer {j}: modifier effect '{v_effect_name}' "
+                    "cannot be on the bottom layer"
+                )
+            v_blend = v_layer.get("blend_mode", "Normal")
+            if v_blend not in VALID_BLEND_MODES:
+                errors.append(f"Variant {vi} layer {j}: invalid blend_mode '{v_blend}'")
+
     # Palette
     palette = data.get("palette", [])
     if len(palette) < 2:
