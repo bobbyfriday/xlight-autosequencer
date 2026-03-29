@@ -28,6 +28,27 @@ from src.themes.models import EffectLayer
 # Tier ranges for layer-to-group mapping
 _LOW_TIERS = {1, 2}        # base, geo
 _MID_TIERS = {3, 4, 5, 6}  # type, beat, fidelity, prop
+
+# Brightness multiplier per tier — low tiers are background, high tiers pop
+_TIER_BRIGHTNESS: dict[int, float] = {
+    1: 0.40,   # BASE: dim backdrop
+    2: 0.40,   # GEO: dim backdrop
+}
+
+
+def _dim_palette(palette: list[str], multiplier: float) -> list[str]:
+    """Scale hex color brightness by multiplier (0.0-1.0)."""
+    result = []
+    for color in palette:
+        c = color.lstrip("#")
+        if len(c) == 6:
+            r = int(int(c[0:2], 16) * multiplier)
+            g = int(int(c[2:4], 16) * multiplier)
+            b = int(int(c[4:6], 16) * multiplier)
+            result.append(f"#{r:02X}{g:02X}{b:02X}")
+        else:
+            result.append(color)
+    return result
 _HIGH_TIERS = {7, 8}       # compound, hero
 
 # Effects that default to Rainbow but should use Palette when we provide colors.
@@ -143,11 +164,16 @@ def place_effects(
         )
 
         for tier, groups_for_tier in selected.items():
+            # Dim palette for background tiers
+            tier_palette = theme.palette
+            if tier in _TIER_BRIGHTNESS:
+                tier_palette = _dim_palette(theme.palette, _TIER_BRIGHTNESS[tier])
+
             # Tier 4 (BEAT): use chase pattern — distribute beats across groups
             if tier == 4 and groups_for_tier:
                 chase_result = _place_chase_across_groups(
                     effect_def, layer, groups_for_tier,
-                    assignment.section, hierarchy, theme.palette,
+                    assignment.section, hierarchy, tier_palette,
                 )
                 for gname, placements in chase_result.items():
                     result.setdefault(gname, []).extend(placements)
@@ -160,7 +186,7 @@ def place_effects(
                     group=group,
                     section=assignment.section,
                     hierarchy=hierarchy,
-                    palette=theme.palette,
+                    palette=tier_palette,
                     variation_seed=assignment.variation_seed,
                     chord_marks=chord_marks,
                     tension_curve=tension_curve,
@@ -216,16 +242,12 @@ def _select_groups_for_layer(
             selected[tier] = available
 
         elif tier == 6:
-            # PROP: pick up to 3 prop-type groups
-            count = min(3, len(available))
-            start = layer_idx % max(1, len(available) - count + 1)
-            selected[tier] = available[start:start + count]
+            # PROP: all prop-type groups
+            selected[tier] = available
 
         elif tier == 7:
-            # COMP: pick up to 3 compound groups
-            count = min(3, len(available))
-            start = layer_idx % max(1, len(available) - count + 1)
-            selected[tier] = available[start:start + count]
+            # COMP: all compound groups
+            selected[tier] = available
 
         elif tier == 8:
             # HERO: pick one

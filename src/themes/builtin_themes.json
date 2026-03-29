@@ -6,7 +6,7 @@
       "mood": "ethereal",
       "occasion": "general",
       "genre": "any",
-      "intent": "Deep space and slow, infinite movement — shooting stars over shifting nebula gas",
+      "intent": "Deep space and slow, infinite movement \u2014 shooting stars over shifting nebula gas",
       "layers": [
         {
           "effect": "Butterfly",
@@ -17,20 +17,19 @@
           }
         },
         {
-          "effect": "Twinkle",
+          "effect": "Shockwave",
           "blend_mode": "Additive",
           "parameter_overrides": {
-            "E_SLIDER_Twinkle_Count": 12,
-            "E_SLIDER_Twinkle_Steps": 20
+            "E_SLIDER_Shockwave_Start_Width": 5,
+            "E_SLIDER_Shockwave_End_Radius": 80
           }
         },
         {
-          "effect": "Meteors",
+          "effect": "Ripple",
           "blend_mode": "Additive",
           "parameter_overrides": {
-            "E_SLIDER_Meteors_Count": 3,
-            "E_SLIDER_Meteors_Length": 25,
-            "E_SLIDER_Meteors_Speed": 10
+            "E_SLIDER_Ripple_Thickness": 4,
+            "E_SLIDER_Ripple_Movement": 20
           }
         }
       ],
@@ -61,7 +60,12 @@
           ]
         }
       ],
-      "palette": ["#1A0A4E", "#3322AA", "#6644CC", "#8866EE"]
+      "palette": [
+        "#1A0A4E",
+        "#3322AA",
+        "#6644CC",
+        "#8866EE"
+      ]
     },
     "Aurora": {
       "name": "Aurora",
@@ -79,11 +83,12 @@
           }
         },
         {
-          "effect": "Butterfly",
+          "effect": "Pinwheel",
           "blend_mode": "Additive",
           "parameter_overrides": {
-            "E_SLIDER_Butterfly_Speed": 20,
-            "E_SLIDER_Butterfly_Chunks": 5
+            "E_SLIDER_Pinwheel_Arms": 4,
+            "E_SLIDER_Pinwheel_Speed": 15,
+            "E_SLIDER_Pinwheel_Twist": 20
           }
         }
       ],
@@ -113,14 +118,19 @@
           ]
         }
       ],
-      "palette": ["#00CC66", "#00EEBB", "#22AADD", "#8844CC"]
+      "palette": [
+        "#00CC66",
+        "#00EEBB",
+        "#22AADD",
+        "#8844CC"
+      ]
     },
     "Bio-Lume": {
       "name": "Bio-Lume",
       "mood": "ethereal",
       "occasion": "general",
       "genre": "any",
-      "intent": "Pulsing deep-sea creatures or glowing forests — organic, living movement",
+      "intent": "Pulsing deep-sea creatures or glowing forests \u2014 organic, living movement",
       "layers": [
         {
           "effect": "Plasma",
@@ -131,11 +141,11 @@
           }
         },
         {
-          "effect": "Circles",
+          "effect": "Ripple",
           "blend_mode": "Additive",
           "parameter_overrides": {
-            "E_SLIDER_Circles_Size": 30,
-            "E_SLIDER_Circles_Speed": 10
+            "E_SLIDER_Ripple_Thickness": 5,
+            "E_SLIDER_Ripple_Movement": 15
           }
         }
       ],
@@ -164,14 +174,19 @@
           ]
         }
       ],
-      "palette": ["#002244", "#004466", "#006644", "#00CC88"]
+      "palette": [
+        "#002244",
+        "#004466",
+        "#006644",
+        "#00CC88"
+      ]
     },
     "Inferno": {
       "name": "Inferno",
       "mood": "aggressive",
       "occasion": "general",
       "genre": "rock",
-      "intent": "Raw power — house looks like it is on fire and exploding",
+      "intent": "Raw power \u2014 house looks like it is on fire and exploding",
       "layers": [
         {
           "effect": "Fire",
@@ -182,18 +197,20 @@
           }
         },
         {
-          "effect": "Morph",
-          "blend_mode": "Additive",
-          "parameter_overrides": {
-            "E_SLIDER_Morph_Stagger": 50
-          }
-        },
-        {
           "effect": "Shockwave",
           "blend_mode": "Additive",
           "parameter_overrides": {
-            "E_SLIDER_Shockwave_Start_Width": 5,
-            "E_SLIDER_Shockwave_End_Radius": 100
+            "E_SLIDER_Shockwave_Start_Width": 8,
+            "E_SLIDER_Shockwave_End_Radius": 100,
+            "E_SLIDER_Shockwave_Speed": 70
+          }
+        },
+        {
+          "effect": "Strobe",
+          "blend_mode": "Additive",
+          "parameter_overrides": {
+            "E_SLIDER_Strobe_Speed": 60,
+            "E_SLIDER_Strobe_Number": 3
           }
         }
       ],
@@ -224,7 +241,12 @@
           ]
         }
       ],
-      "palette": ["#FF4400", "#FF8800", "#FFCC00", "#FFFFFF"]
+      "palette": [
+        "#FF4400",
+        "#FF8800",
+        "#FFCC00",
+        "#FFFFFF"
+      ]
     },
     "Molten Metal": {
       "name": "Molten Metal",
@@ -242,11 +264,11 @@
           }
         },
         {
-          "effect": "Warp",
+          "effect": "Fan",
           "blend_mode": "Additive",
           "parameter_overrides": {
-            "E_SLIDER_Warp_Speed": 30,
-            "E_SLIDER_Warp_Frequency": 40
+            "E_SLIDER_Fan_Num_Blades": 6,
+            "E_SLIDER_Fan_Duration": 50
           }
         }
       ],
@@ -275,14 +297,19 @@
           ]
         }
       ],
-      "palette": ["#FFD700", "#FFFFFF", "#FF8C00", "#CC6600"]
+      "palette": [
+        "#FFD700",
+        "#FFFFFF",
+        "#FF8C00",
+        "#CC6600"
+      ]
     },
     "Tracer Fire": {
       "name": "Tracer Fire",
       "mood": "aggressive",
       "occasion": "general",
       "genre": "any",
-      "intent": "Sharp, fast, directional bullets of light — combat aesthetic",
+      "intent": "Sharp, fast, directional bullets of light \u2014 combat aesthetic",
       "layers": [
         {
           "effect": "Meteors",
@@ -328,7 +355,11 @@
           ]
         }
       ],
-      "palette": ["#FF0000", "#FFFFFF", "#FFEE00"]
+      "palette": [
+        "#FF0000",
+        "#FFFFFF",
+        "#FFEE00"
+      ]
     },
     "The Void": {
       "name": "The Void",
@@ -346,10 +377,11 @@
           }
         },
         {
-          "effect": "Liquid",
+          "effect": "Spirals",
           "blend_mode": "Subtractive",
           "parameter_overrides": {
-            "E_SLIDER_Liquid_Speed": 10
+            "E_SLIDER_Spirals_PaletteRepeat": 3,
+            "E_SLIDER_Spirals_Speed": 8
           }
         }
       ],
@@ -379,7 +411,12 @@
           ]
         }
       ],
-      "palette": ["#220044", "#000000", "#110033", "#0A0022"]
+      "palette": [
+        "#220044",
+        "#000000",
+        "#110033",
+        "#0A0022"
+      ]
     },
     "Glitch City": {
       "name": "Glitch City",
@@ -397,11 +434,11 @@
           }
         },
         {
-          "effect": "Shimmer",
+          "effect": "Strobe",
           "blend_mode": "Additive",
           "parameter_overrides": {
-            "E_SLIDER_Shimmer_Duty_Factor": 40,
-            "E_CHECKBOX_Shimmer_Use_All_Colors": 1
+            "E_SLIDER_Strobe_Speed": 40,
+            "E_SLIDER_Strobe_Number": 2
           }
         }
       ],
@@ -432,14 +469,19 @@
           ]
         }
       ],
-      "palette": ["#00FF44", "#FF00FF", "#000000", "#00CC33"]
+      "palette": [
+        "#00FF44",
+        "#FF00FF",
+        "#000000",
+        "#00CC33"
+      ]
     },
     "The Kraken": {
       "name": "The Kraken",
       "mood": "dark",
       "occasion": "general",
       "genre": "any",
-      "intent": "Organic, writhing movement that feels claustrophobic — tentacles in the deep",
+      "intent": "Organic, writhing movement that feels claustrophobic \u2014 tentacles in the deep",
       "layers": [
         {
           "effect": "Liquid",
@@ -449,11 +491,11 @@
           }
         },
         {
-          "effect": "Tendril",
+          "effect": "Spirals",
           "blend_mode": "Additive",
           "parameter_overrides": {
-            "E_SLIDER_Tendril_Speed": 15,
-            "E_SLIDER_Tendril_Length": 60
+            "E_SLIDER_Spirals_PaletteRepeat": 2,
+            "E_SLIDER_Spirals_Speed": 12
           }
         }
       ],
@@ -483,14 +525,19 @@
           ]
         }
       ],
-      "palette": ["#003322", "#004455", "#002244", "#006644"]
+      "palette": [
+        "#003322",
+        "#004455",
+        "#002244",
+        "#006644"
+      ]
     },
     "Cyber Grid": {
       "name": "Cyber Grid",
       "mood": "structural",
       "occasion": "general",
       "genre": "pop",
-      "intent": "Precise, mathematical beauty — Tron-inspired symmetry",
+      "intent": "Precise, mathematical beauty \u2014 Tron-inspired symmetry",
       "layers": [
         {
           "effect": "Shape",
@@ -501,10 +548,11 @@
           }
         },
         {
-          "effect": "Kaleidoscope",
+          "effect": "Shape",
           "blend_mode": "Additive",
           "parameter_overrides": {
-            "E_SLIDER_Kaleidoscope_Size": 50
+            "E_SLIDER_Shape_Thickness": 4,
+            "E_SLIDER_Shape_Count": 6
           }
         }
       ],
@@ -535,7 +583,12 @@
           ]
         }
       ],
-      "palette": ["#00FFFF", "#0088FF", "#FFFFFF", "#004488"]
+      "palette": [
+        "#00FFFF",
+        "#0088FF",
+        "#FFFFFF",
+        "#004488"
+      ]
     },
     "Scanning Beam": {
       "name": "Scanning Beam",
@@ -553,11 +606,11 @@
           }
         },
         {
-          "effect": "Fill",
+          "effect": "Single Strand",
           "blend_mode": "Additive",
           "parameter_overrides": {
-            "E_SLIDER_Fill_Position": 50,
-            "E_SLIDER_Fill_Band_Size": 10
+            "E_SLIDER_Single Strand_Speed": 30,
+            "E_SLIDER_Number_Chases": 4
           }
         }
       ],
@@ -587,14 +640,18 @@
           ]
         }
       ],
-      "palette": ["#FFFFFF", "#4488FF", "#88BBFF"]
+      "palette": [
+        "#FFFFFF",
+        "#4488FF",
+        "#88BBFF"
+      ]
     },
     "The Zipper": {
       "name": "The Zipper",
       "mood": "structural",
       "occasion": "general",
       "genre": "any",
-      "intent": "Interlocked movement across props — morphs that zip back and forth",
+      "intent": "Interlocked movement across props \u2014 morphs that zip back and forth",
       "layers": [
         {
           "effect": "Plasma",
@@ -638,14 +695,20 @@
           ]
         }
       ],
-      "palette": ["#FF4400", "#00AAFF", "#FFDD00", "#00FF66", "#FF00CC"]
+      "palette": [
+        "#FF4400",
+        "#00AAFF",
+        "#FFDD00",
+        "#00FF66",
+        "#FF00CC"
+      ]
     },
     "Winter Wonderland": {
       "name": "Winter Wonderland",
       "mood": "ethereal",
       "occasion": "christmas",
       "genre": "any",
-      "intent": "Gentle snowfall over twinkling cool blue lights — peaceful winter scene",
+      "intent": "Gentle snowfall over twinkling cool blue lights \u2014 peaceful winter scene",
       "layers": [
         {
           "effect": "Color Wash",
@@ -656,19 +719,19 @@
           }
         },
         {
-          "effect": "Twinkle",
+          "effect": "Shockwave",
           "blend_mode": "Additive",
           "parameter_overrides": {
-            "E_SLIDER_Twinkle_Count": 15,
-            "E_SLIDER_Twinkle_Steps": 25
+            "E_SLIDER_Shockwave_Start_Width": 4,
+            "E_SLIDER_Shockwave_End_Radius": 60
           }
         },
         {
-          "effect": "Snowflakes",
+          "effect": "Ripple",
           "blend_mode": "Additive",
           "parameter_overrides": {
-            "E_SLIDER_Snowflakes_Count": 15,
-            "E_SLIDER_Snowflakes_Speed": 5
+            "E_SLIDER_Ripple_Thickness": 3,
+            "E_SLIDER_Ripple_Movement": 15
           }
         }
       ],
@@ -698,14 +761,19 @@
           ]
         }
       ],
-      "palette": ["#88CCFF", "#FFFFFF", "#CCE5FF", "#AABBDD"]
+      "palette": [
+        "#88CCFF",
+        "#FFFFFF",
+        "#CCE5FF",
+        "#AABBDD"
+      ]
     },
     "Candy Cane Chase": {
       "name": "Candy Cane Chase",
       "mood": "structural",
       "occasion": "christmas",
       "genre": "pop",
-      "intent": "Classic candy cane stripes chasing along the roofline — fun and festive",
+      "intent": "Classic candy cane stripes chasing along the roofline \u2014 fun and festive",
       "layers": [
         {
           "effect": "Single Strand",
@@ -752,14 +820,17 @@
           ]
         }
       ],
-      "palette": ["#FF0000", "#FFFFFF"]
+      "palette": [
+        "#FF0000",
+        "#FFFFFF"
+      ]
     },
     "Warm Glow": {
       "name": "Warm Glow",
       "mood": "ethereal",
       "occasion": "christmas",
       "genre": "classical",
-      "intent": "Slow golden fire with warm twinkle — cozy fireplace warmth on a cold night",
+      "intent": "Slow golden fire with warm twinkle \u2014 cozy fireplace warmth on a cold night",
       "layers": [
         {
           "effect": "Fire",
@@ -770,11 +841,11 @@
           }
         },
         {
-          "effect": "Twinkle",
+          "effect": "Ripple",
           "blend_mode": "Additive",
           "parameter_overrides": {
-            "E_SLIDER_Twinkle_Count": 10,
-            "E_SLIDER_Twinkle_Steps": 30
+            "E_SLIDER_Ripple_Thickness": 4,
+            "E_SLIDER_Ripple_Movement": 10
           }
         }
       ],
@@ -804,14 +875,19 @@
           ]
         }
       ],
-      "palette": ["#FFAA33", "#FFD700", "#FFFDD0", "#CC8800"]
+      "palette": [
+        "#FFAA33",
+        "#FFD700",
+        "#FFFDD0",
+        "#CC8800"
+      ]
     },
     "North Star": {
       "name": "North Star",
       "mood": "structural",
       "occasion": "christmas",
       "genre": "any",
-      "intent": "Radiant star burst with expanding ripples — guiding light of the season",
+      "intent": "Radiant star burst with expanding ripples \u2014 guiding light of the season",
       "layers": [
         {
           "effect": "Pinwheel",
@@ -857,14 +933,18 @@
           ]
         }
       ],
-      "palette": ["#FFD700", "#FFFFFF", "#FFEEAA"]
+      "palette": [
+        "#FFD700",
+        "#FFFFFF",
+        "#FFEEAA"
+      ]
     },
     "Festive Flash": {
       "name": "Festive Flash",
       "mood": "aggressive",
       "occasion": "christmas",
       "genre": "rock",
-      "intent": "High-energy holiday hype — shockwaves and strobes in classic Christmas colors",
+      "intent": "High-energy holiday hype \u2014 shockwaves and strobes in classic Christmas colors",
       "layers": [
         {
           "effect": "Shockwave",
@@ -908,14 +988,18 @@
           ]
         }
       ],
-      "palette": ["#FF0000", "#00CC00", "#FFFFFF"]
+      "palette": [
+        "#FF0000",
+        "#00CC00",
+        "#FFFFFF"
+      ]
     },
     "Silent Night": {
       "name": "Silent Night",
       "mood": "ethereal",
       "occasion": "christmas",
       "genre": "classical",
-      "intent": "Slow, peaceful color wash with gentle snowfall — contemplative holiday stillness",
+      "intent": "Slow, peaceful color wash with gentle snowfall \u2014 contemplative holiday stillness",
       "layers": [
         {
           "effect": "Color Wash",
@@ -926,11 +1010,11 @@
           }
         },
         {
-          "effect": "Snowflakes",
+          "effect": "Ripple",
           "blend_mode": "Additive",
           "parameter_overrides": {
-            "E_SLIDER_Snowflakes_Count": 8,
-            "E_SLIDER_Snowflakes_Speed": 3
+            "E_SLIDER_Ripple_Thickness": 3,
+            "E_SLIDER_Ripple_Movement": 10
           }
         }
       ],
@@ -960,14 +1044,19 @@
           ]
         }
       ],
-      "palette": ["#1A1A66", "#6633AA", "#FFFFFF", "#CCCCff"]
+      "palette": [
+        "#1A1A66",
+        "#6633AA",
+        "#FFFFFF",
+        "#CCCCff"
+      ]
     },
     "Haunted Pulse": {
       "name": "Haunted Pulse",
       "mood": "dark",
       "occasion": "halloween",
       "genre": "any",
-      "intent": "Eerie purple plasma with unsettling slow strobe flickers — haunted house ambiance",
+      "intent": "Eerie purple plasma with unsettling slow strobe flickers \u2014 haunted house ambiance",
       "layers": [
         {
           "effect": "Plasma",
@@ -1011,14 +1100,19 @@
           ]
         }
       ],
-      "palette": ["#660099", "#00FF44", "#000000", "#440066"]
+      "palette": [
+        "#660099",
+        "#00FF44",
+        "#000000",
+        "#440066"
+      ]
     },
     "Jack-o-Lantern": {
       "name": "Jack-o-Lantern",
       "mood": "aggressive",
       "occasion": "halloween",
       "genre": "rock",
-      "intent": "Blazing orange fire with explosive shockwaves — carved pumpkin brought to life",
+      "intent": "Blazing orange fire with explosive shockwaves \u2014 carved pumpkin brought to life",
       "layers": [
         {
           "effect": "Fire",
@@ -1065,14 +1159,19 @@
           ]
         }
       ],
-      "palette": ["#FF6600", "#000000", "#FFCC00", "#FF4400"]
+      "palette": [
+        "#FF6600",
+        "#000000",
+        "#FFCC00",
+        "#FF4400"
+      ]
     },
     "Graveyard Fog": {
       "name": "Graveyard Fog",
       "mood": "dark",
       "occasion": "halloween",
       "genre": "any",
-      "intent": "Low creeping fog with tendrils reaching through the darkness — graveyard at midnight",
+      "intent": "Low creeping fog with tendrils reaching through the darkness \u2014 graveyard at midnight",
       "layers": [
         {
           "effect": "Liquid",
@@ -1082,11 +1181,11 @@
           }
         },
         {
-          "effect": "Tendril",
+          "effect": "Spirals",
           "blend_mode": "Additive",
           "parameter_overrides": {
-            "E_SLIDER_Tendril_Speed": 8,
-            "E_SLIDER_Tendril_Length": 45
+            "E_SLIDER_Spirals_PaletteRepeat": 2,
+            "E_SLIDER_Spirals_Speed": 6
           }
         }
       ],
@@ -1116,7 +1215,12 @@
           ]
         }
       ],
-      "palette": ["#666666", "#334433", "#553377", "#222222"]
+      "palette": [
+        "#666666",
+        "#334433",
+        "#553377",
+        "#222222"
+      ]
     }
   }
 }
