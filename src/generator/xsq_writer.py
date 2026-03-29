@@ -198,7 +198,7 @@ _XLIGHTS_EFFECT_DEFAULTS: dict[str, dict[str, str]] = {
 }
 
 
-def write_xsq(plan: SequencePlan, output_path: Path, hierarchy: HierarchyResult | None = None) -> None:
+def write_xsq(plan: SequencePlan, output_path: Path, hierarchy: HierarchyResult | None = None, audio_path: Path | None = None) -> None:
     """Write a SequencePlan as a valid xLights .xsq XML file.
 
     Follows the xLights 2024+ schema:
@@ -244,9 +244,15 @@ def write_xsq(plan: SequencePlan, output_path: Path, hierarchy: HierarchyResult 
     ET.SubElement(head, "author").text = "xlight-autosequencer"
     ET.SubElement(head, "song").text = plan.song_profile.title
     ET.SubElement(head, "artist").text = plan.song_profile.artist
-    # Use absolute path to the MP3 — xLights expects this
-    mp3_path = output_path.parent / (plan.song_profile.title + ".mp3")
-    ET.SubElement(head, "mediaFile").text = str(mp3_path.resolve())
+    # Use a relative path — xLights resolves relative to the show/sequence directory
+    if audio_path is not None:
+        try:
+            media_ref = str(audio_path.resolve().relative_to(output_path.parent.resolve()))
+        except ValueError:
+            media_ref = audio_path.name
+    else:
+        media_ref = plan.song_profile.title + ".mp3"
+    ET.SubElement(head, "mediaFile").text = media_ref
     ET.SubElement(head, "sequenceType").text = "Media"
     ET.SubElement(head, "sequenceTiming").text = f"{FRAME_INTERVAL_MS} ms"
     duration_sec = plan.song_profile.duration_ms / 1000.0
