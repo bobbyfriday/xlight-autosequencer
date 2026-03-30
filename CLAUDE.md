@@ -202,4 +202,37 @@ pytest tests/ -v
 - **Render style options**: beyond Per Model Default, explore Per Model Per Preview
   and Per Model Single Line for different prop types.
 
+### Section Transition Boundary Cleanup
+- Some section boundaries from the segmentino + QM merge produce awkward
+  transitions where effects cut abruptly or overlap in unexpected ways.
+  Issues to investigate:
+  - **Snap precision**: `_snap_sections_to_bars` uses a window of half the
+    median bar interval. Some boundaries may snap to the wrong bar, creating
+    short (<2s) or overlapping sub-sections.
+  - **Effect crossfade at boundaries**: currently effects end exactly at the
+    section boundary and the next section's effects start immediately. Adding
+    a short crossfade (fade_out_ms on the outgoing effect, fade_in_ms on the
+    incoming) would smooth transitions.
+  - **Theme change at boundaries**: when a section changes themes (e.g. A→N5),
+    the color palette and effect type change instantly. A 500ms blend or brief
+    "Off" gap between sections would create cleaner visual transitions.
+  - **QM merge edge cases**: QM boundaries very close to bar lines may create
+    sub-sections that are too short to render a full effect cycle. The current
+    min_gap_ms=5000 may need tuning per song tempo.
+  - Test with more songs to identify systematic boundary issues vs one-offs.
+
+### Custom Per-Song Themes
+- Allow users to create custom themes tailored to specific songs, beyond the
+  21 built-in themes. Implementation:
+  - Custom theme JSON files in `~/.xlight/custom_themes/*.json` (the theme
+    library loader already supports this path from feature 019)
+  - A `--theme` CLI flag on `generate` to force a specific theme for all sections
+  - A `--theme-file` flag to load a one-off theme JSON for a song
+  - Theme wizard: interactive prompts to build a theme by choosing mood, palette
+    colors, accent colors, base effect, upper effects, and blend modes
+  - Theme preview: render a 10-second sample of each section with the chosen
+    theme so users can evaluate before committing to a full sequence
+  - Song-theme mapping: a config file that remembers which custom theme to use
+    for each song (keyed by audio hash or filename)
+
 <!-- MANUAL ADDITIONS END -->
