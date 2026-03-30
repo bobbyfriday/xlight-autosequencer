@@ -7,6 +7,7 @@ name = "xlight-autosequencer"
 version = "0.1.0"
 description = "Automatically generate xLights sequences from audio files"
 requires-python = ">=3.11"
+license = {text = "MIT"}
 dependencies = [
     "librosa>=0.10",
     "click>=8.0",
