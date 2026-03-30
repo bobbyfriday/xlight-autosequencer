@@ -212,3 +212,7 @@ pytest tests/ -v
 ## Documentation
 
 Detailed docs for each subsystem are in [`docs/`](docs/README.md).
+
+## License
+
+This project is licensed under the MIT License — see [LICENSE](LICENSE) for details.
