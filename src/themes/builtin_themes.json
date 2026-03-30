@@ -65,6 +65,12 @@
         "#3322AA",
         "#6644CC",
         "#8866EE"
+      ],
+      "accent_palette": [
+        "#AA88FF",
+        "#CC99FF",
+        "#EEDDFF",
+        "#FFFFFF"
       ]
     },
     "Aurora": {
@@ -123,6 +129,12 @@
         "#00EEBB",
         "#22AADD",
         "#8844CC"
+      ],
+      "accent_palette": [
+        "#66FFAA",
+        "#88FFDD",
+        "#AAEEFF",
+        "#CC88FF"
       ]
     },
     "Bio-Lume": {
@@ -179,6 +191,12 @@
         "#004466",
         "#006644",
         "#00CC88"
+      ],
+      "accent_palette": [
+        "#00FFCC",
+        "#44FFAA",
+        "#88FF88",
+        "#CCFFEE"
       ]
     },
     "Inferno": {
@@ -246,6 +264,12 @@
         "#FF8800",
         "#FFCC00",
         "#FFFFFF"
+      ],
+      "accent_palette": [
+        "#FF6600",
+        "#FFAA00",
+        "#FFEE44",
+        "#FFFFFF"
       ]
     },
     "Molten Metal": {
@@ -302,6 +326,12 @@
         "#FFFFFF",
         "#FF8C00",
         "#CC6600"
+      ],
+      "accent_palette": [
+        "#FFEE66",
+        "#FFFFFF",
+        "#FFBB44",
+        "#FF9900"
       ]
     },
     "Tracer Fire": {
@@ -359,6 +389,11 @@
         "#FF0000",
         "#FFFFFF",
         "#FFEE00"
+      ],
+      "accent_palette": [
+        "#FF4444",
+        "#FFFFFF",
+        "#FFFF66"
       ]
     },
     "The Void": {
@@ -416,6 +451,12 @@
         "#000000",
         "#110033",
         "#0A0022"
+      ],
+      "accent_palette": [
+        "#6600AA",
+        "#440088",
+        "#330066",
+        "#220044"
       ]
     },
     "Glitch City": {
@@ -474,6 +515,12 @@
         "#FF00FF",
         "#000000",
         "#00CC33"
+      ],
+      "accent_palette": [
+        "#66FF88",
+        "#FF66FF",
+        "#44FF66",
+        "#FFFFFF"
       ]
     },
     "The Kraken": {
@@ -530,6 +577,12 @@
         "#004455",
         "#002244",
         "#006644"
+      ],
+      "accent_palette": [
+        "#00AA88",
+        "#0088AA",
+        "#006688",
+        "#00CCAA"
       ]
     },
     "Cyber Grid": {
@@ -540,19 +593,20 @@
       "intent": "Precise, mathematical beauty \u2014 Tron-inspired symmetry",
       "layers": [
         {
-          "effect": "Shape",
+          "effect": "Plasma",
           "blend_mode": "Normal",
           "parameter_overrides": {
-            "E_SLIDER_Shape_Thickness": 3,
-            "E_SLIDER_Shape_Count": 4
+            "E_SLIDER_Plasma_Speed": 12,
+            "E_SLIDER_Plasma_Line_Density": 4
           }
         },
         {
-          "effect": "Shape",
+          "effect": "Pinwheel",
           "blend_mode": "Additive",
           "parameter_overrides": {
-            "E_SLIDER_Shape_Thickness": 4,
-            "E_SLIDER_Shape_Count": 6
+            "E_SLIDER_Pinwheel_Arms": 6,
+            "E_SLIDER_Pinwheel_Speed": 15,
+            "E_SLIDER_Pinwheel_Twist": 25
           }
         }
       ],
@@ -588,6 +642,12 @@
         "#0088FF",
         "#FFFFFF",
         "#004488"
+      ],
+      "accent_palette": [
+        "#66FFFF",
+        "#44AAFF",
+        "#FFFFFF",
+        "#88CCFF"
       ]
     },
     "Scanning Beam": {
@@ -644,6 +704,11 @@
         "#FFFFFF",
         "#4488FF",
         "#88BBFF"
+      ],
+      "accent_palette": [
+        "#FFFFFF",
+        "#88BBFF",
+        "#CCDDFF"
       ]
     },
     "The Zipper": {
@@ -701,6 +766,13 @@
         "#FFDD00",
         "#00FF66",
         "#FF00CC"
+      ],
+      "accent_palette": [
+        "#FF8844",
+        "#66CCFF",
+        "#FFEE66",
+        "#66FF99",
+        "#FF66DD"
       ]
     },
     "Winter Wonderland": {
@@ -766,6 +838,12 @@
         "#FFFFFF",
         "#CCE5FF",
         "#AABBDD"
+      ],
+      "accent_palette": [
+        "#BBDDFF",
+        "#FFFFFF",
+        "#EEEEFF",
+        "#DDEEFF"
       ]
     },
     "Candy Cane Chase": {
@@ -822,6 +900,10 @@
       ],
       "palette": [
         "#FF0000",
+        "#FFFFFF"
+      ],
+      "accent_palette": [
+        "#FF6666",
         "#FFFFFF"
       ]
     },
@@ -880,6 +962,12 @@
         "#FFD700",
         "#FFFDD0",
         "#CC8800"
+      ],
+      "accent_palette": [
+        "#FFCC66",
+        "#FFEE44",
+        "#FFFEE8",
+        "#FFAA33"
       ]
     },
     "North Star": {
@@ -923,11 +1011,11 @@
         {
           "layers": [
             {
-              "effect": "Shape",
+              "effect": "Fan",
               "blend_mode": "Normal",
               "parameter_overrides": {
-                "E_SLIDER_Shape_Thickness": 4,
-                "E_SLIDER_Shape_Count": 6
+                "E_SLIDER_Fan_Num_Blades": 6,
+                "E_SLIDER_Fan_Duration": 80
               }
             }
           ]
@@ -937,6 +1025,11 @@
         "#FFD700",
         "#FFFFFF",
         "#FFEEAA"
+      ],
+      "accent_palette": [
+        "#FFEE66",
+        "#FFFFFF",
+        "#FFF5CC"
       ]
     },
     "Festive Flash": {
@@ -991,6 +1084,11 @@
       "palette": [
         "#FF0000",
         "#00CC00",
+        "#FFFFFF"
+      ],
+      "accent_palette": [
+        "#FF6666",
+        "#66EE66",
         "#FFFFFF"
       ]
     },
@@ -1049,6 +1147,12 @@
         "#6633AA",
         "#FFFFFF",
         "#CCCCff"
+      ],
+      "accent_palette": [
+        "#6666CC",
+        "#AA77DD",
+        "#FFFFFF",
+        "#EEEEFF"
       ]
     },
     "Haunted Pulse": {
@@ -1105,6 +1209,12 @@
         "#00FF44",
         "#000000",
         "#440066"
+      ],
+      "accent_palette": [
+        "#AA44DD",
+        "#66FF88",
+        "#440066",
+        "#8822AA"
       ]
     },
     "Jack-o-Lantern": {
@@ -1164,6 +1274,12 @@
         "#000000",
         "#FFCC00",
         "#FF4400"
+      ],
+      "accent_palette": [
+        "#FF9944",
+        "#FF6600",
+        "#FFEE66",
+        "#FF8833"
       ]
     },
     "Graveyard Fog": {
@@ -1220,6 +1336,12 @@
         "#334433",
         "#553377",
         "#222222"
+      ],
+      "accent_palette": [
+        "#999999",
+        "#668866",
+        "#8866AA",
+        "#555555"
       ]
     }
   }

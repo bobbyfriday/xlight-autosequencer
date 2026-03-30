@@ -49,6 +49,22 @@ def _dim_palette(palette: list[str], multiplier: float) -> list[str]:
         else:
             result.append(color)
     return result
+
+
+def _lighten_palette(palette: list[str], amount: float) -> list[str]:
+    """Lighten hex colors by blending toward white. amount 0.0=no change, 1.0=white."""
+    result = []
+    for color in palette:
+        c = color.lstrip("#")
+        if len(c) == 6:
+            r = int(int(c[0:2], 16) + (255 - int(c[0:2], 16)) * amount)
+            g = int(int(c[2:4], 16) + (255 - int(c[2:4], 16)) * amount)
+            b = int(int(c[4:6], 16) + (255 - int(c[4:6], 16)) * amount)
+            result.append(f"#{r:02X}{g:02X}{b:02X}")
+        else:
+            result.append(color)
+    return result
+
 _HIGH_TIERS = {7, 8}       # compound, hero
 
 # Effects that default to Rainbow but should use Palette when we provide colors.
@@ -84,6 +100,29 @@ _ALTERNATING_DIRECTIONS: dict[str, list[str]] = {
     "E_CHOICE_Fire_Location": ["Bottom", "Top", "Left", "Right"],
     "E_CHOICE_Fill_Direction": ["Up", "Down", "Left", "Right"],
 }
+
+# Effects suitable for tier 6 (PROP) and tier 7 (COMP) rotation.
+# These are punchy, visually distinct effects that look good on individual props.
+_PROP_EFFECT_POOL: list[str] = [
+    "Meteors", "Single Strand", "Ripple", "Spirals", "Bars",
+    "Curtain", "Shockwave", "Fire", "Strobe", "Galaxy",
+]
+
+
+def _build_effect_pool(
+    effect_library: EffectLibrary,
+    exclude: set[str] | None = None,
+) -> list[EffectDefinition]:
+    """Return EffectDefinition objects for the prop-effect pool, minus exclusions."""
+    exclude = exclude or set()
+    pool = []
+    for name in _PROP_EFFECT_POOL:
+        if name in exclude:
+            continue
+        edef = effect_library.effects.get(name)
+        if edef is not None:
+            pool.append(edef)
+    return pool
 
 
 def place_effects(
@@ -137,6 +176,16 @@ def place_effects(
         unique_chords = len({m.label for m in chord_marks if m.label and m.label != "N"})
         chord_weight = min(0.50, unique_chords / 80.0)
 
+    # Accent palette: explicit or auto-lightened from main palette
+    accent = theme.accent_palette if theme.accent_palette else _lighten_palette(theme.palette, 0.5)
+
+    # Background palette: dimmed for tiers 1-2
+    bg_palette = _dim_palette(theme.palette, 0.40)
+
+    # Detect drop/impact phase from section label (chorus, drop, bridge, etc.)
+    section_label = (section.label or "").lower()
+    is_high_energy = any(kw in section_label for kw in ("chorus", "drop", "hook", "climax"))
+
     # Map layers to tier sets
     layer_tier_map = _assign_layers_to_tiers(layers)
 
@@ -164,10 +213,38 @@ def place_effects(
         )
 
         for tier, groups_for_tier in selected.items():
-            # Dim palette for background tiers
-            tier_palette = theme.palette
+            # Per-tier palette selection
             if tier in _TIER_BRIGHTNESS:
-                tier_palette = _dim_palette(theme.palette, _TIER_BRIGHTNESS[tier])
+                # Tiers 1-2: dim background
+                tier_palette = bg_palette
+            elif tier >= 3:
+                # Tiers 3+: use accent palette for punch
+                tier_palette = accent
+            else:
+                tier_palette = theme.palette
+
+            # Tier 6-7 effect rotation: cycle through prop-effect pool
+            if tier in (6, 7) and groups_for_tier:
+                pool = _build_effect_pool(effect_library, exclude={layer.effect})
+                if pool:
+                    for gi, group in enumerate(groups_for_tier):
+                        rotated_def = pool[gi % len(pool)]
+                        rot_placements = _place_effect_on_group(
+                            effect_def=rotated_def,
+                            layer=layer,
+                            group=group,
+                            section=assignment.section,
+                            hierarchy=hierarchy,
+                            palette=tier_palette,
+                            variation_seed=assignment.variation_seed,
+                            chord_marks=chord_marks,
+                            tension_curve=tension_curve,
+                            danceability=danceability,
+                            chord_weight=chord_weight,
+                        )
+                        if rot_placements:
+                            result.setdefault(group.name, []).extend(rot_placements)
+                    continue
 
             # Tier 4 (BEAT): use chase pattern — distribute beats across groups
             if tier == 4 and groups_for_tier:
@@ -262,12 +339,12 @@ def _assign_layers_to_tiers(layers: list[EffectLayer]) -> dict[int, set[int]]:
     mapping: dict[int, set[int]] = {}
 
     if n == 1:
-        mapping[0] = _LOW_TIERS
+        mapping[0] = _LOW_TIERS | {4, 6}
     elif n == 2:
-        mapping[0] = _LOW_TIERS
+        mapping[0] = _LOW_TIERS | {4, 6}
         mapping[1] = _HIGH_TIERS
     else:
-        mapping[0] = _LOW_TIERS
+        mapping[0] = _LOW_TIERS | {4, 6}
         mapping[n - 1] = _HIGH_TIERS
         for i in range(1, n - 1):
             mapping[i] = _MID_TIERS
