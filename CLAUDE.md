@@ -235,4 +235,25 @@ pytest tests/ -v
   - Song-theme mapping: a config file that remembers which custom theme to use
     for each song (keyed by audio hash or filename)
 
+### Explore Advanced Visual Effects
+- Investigate underused xLights effects that could add visual interest:
+  - **Kaleidoscope**: mirrors and rotates the underlying effect to create
+    symmetrical patterns. Works as a modifier layer (blend on top of a base
+    effect). Could be powerful on matrices and large groups where symmetry
+    reads well.
+  - **Warp**: distorts the effect buffer with swirl/ripple/dissolve transforms.
+    Combined with a base like Color Wash or Plasma, could create organic
+    evolving visuals. Currently only used in Molten Metal (removed).
+  - **Spirograph**: mathematical curve patterns that animate over time.
+    Visually striking on matrices but untested in our pipeline.
+  - **Galaxy / Swirl patterns**: using Pinwheel with high twist + Kaleidoscope
+    overlay could simulate galaxy/vortex effects for dramatic moments.
+  - **Music-reactive modifiers**: Kaleidoscope size or Warp intensity driven
+    by beat energy or spectral flux, so the visual distortion pulses with
+    the music.
+- These are best used sparingly as accent effects on hero props or during
+  high-energy impact sections rather than as base layer backgrounds.
+- Test each on different prop types (1D strings, 2D matrices, custom shapes)
+  to determine suitability before adding to the effect pool.
+
 <!-- MANUAL ADDITIONS END -->
