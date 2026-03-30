@@ -138,4 +138,68 @@ pytest tests/ -v
   across the boundary (from L5 energy curves) and only merge boundaries with significant
   energy transitions.
 
+### Value Curves Integration
+- Value curves (`generate_value_curves` in `src/generator/value_curves.py`) are currently
+  disabled (Phase 1 comment in `build_plan`). These allow effect parameters to change
+  over time within a single effect placement — e.g. speed ramps up toward a beat drop,
+  brightness follows the energy curve, color mix shifts with chord changes.
+- Priority parameters for value curves:
+  - **Brightness**: follow L5 energy curve so effects breathe with the music
+  - **Speed**: ramp up during builds, slow down during drops
+  - **Color mix**: shift palette position to follow chord changes (L6 harmony)
+  - **Effect-specific**: Fire height follows energy, Ripple movement follows beats
+- xLights supports value curves via `VC_` prefixed parameters in the effect string.
+  The `supports_value_curve` flag in `builtin_effects.json` marks which parameters
+  can accept curves. See `src/generator/value_curves.py` for the existing framework.
+
+### Prop Effect Suitability and Selection
+- Currently all prop groups get effects from the same pool (`_PROP_EFFECT_POOL`) without
+  considering what looks good on each prop type. This needs a suitability matrix:
+  - **Arches/Candy Canes** (linear): Single Strand, Bars, Wave, Marquee work well.
+    Shockwave/Ripple render poorly on 1D props.
+  - **Matrices** (2D grids): Plasma, Butterfly, Fire, Pinwheel look great.
+    Single Strand wastes the 2D resolution.
+  - **Mini props** (stars, ornaments, low pixel): On/Off, Strobe, Twinkle are most
+    effective. Complex effects are wasted on <50 pixel props.
+  - **Deer/figures** (custom shapes): Shimmer, Color Wash, Twinkle preserve the shape.
+    Directional effects (Bars, Wave) ignore the form factor.
+- Implementation: add a `suitability` dict to each effect in `builtin_effects.json`
+  mapping prop display types (SingleLine, Custom, Matrix, Tree, etc.) to a 0-1 score.
+  Use these scores in `_build_effect_pool` to weight selection per group based on the
+  dominant prop type in that group.
+- Also consider prop pixel count: high-density props can handle complex effects,
+  low-density props should get simpler ones.
+
+### End-of-Song Fade Out
+- Songs that end with a gradual energy decrease (detected via L5 energy curves
+  and _drop tagged sections) should have a smooth visual fade-out rather than
+  an abrupt cut. Implementation options:
+  - Apply a brightness value curve that ramps from 100% to 0% over the final
+    _drop section on all active tiers
+  - Progressively kill upper tiers one by one (heroes first, then compounds,
+    then props, then beats) as energy decreases, leaving only the dim background
+    wash for the final seconds
+  - Use the existing fade_out_ms field on EffectPlacement to add crossfade
+    on the last effect in each group
+- This ties into the value curves integration above — a brightness ramp on
+  the final section would be the simplest and most effective approach.
+
+### 3D Effects, Blending, and Multi-Layer Effects
+- Current implementation places one effect per layer per group. xLights supports
+  stacking multiple effect layers on a single model/group with blend modes
+  (Additive, Subtractive, Mask, etc.) to create composite visuals.
+- **Layer stacking**: place the base effect on layer 1, then add an accent effect
+  on layer 2 with a blend mode. E.g. Color Wash (layer 1) + Twinkle (layer 2,
+  Additive) creates a twinkling wash. The theme already defines multi-layer
+  setups — this would render them as actual stacked layers in the XSQ instead
+  of mapping them to different tier groups.
+- **3D model awareness**: props with WorldPosZ (depth) or 3D model types could
+  use depth-based effects — front props brighter than back props, or effects
+  that sweep in the Z direction. The layout parser already reads WorldPosZ.
+- **Buffer transforms**: xLights supports per-layer transforms (rotation, zoom,
+  blur) via B_SLIDER parameters. Subtle rotation on Pinwheel or zoom pulses
+  on Shockwave timed to beats would add visual depth.
+- **Render style options**: beyond Per Model Default, explore Per Model Per Preview
+  and Per Model Single Line for different prop types.
+
 <!-- MANUAL ADDITIONS END -->
