@@ -99,6 +99,21 @@ xlight-analyze review song_analysis.json
 pytest tests/ -v
 ```
 
+## Segment Classification — Mandatory Changelog Rule
+
+Any change to segment detection, section merging, or section role classification
+**must** be logged in `docs/segment-classification-changelog.md` before the change
+is considered complete. This includes changes to:
+
+- `src/story/section_classifier.py`
+- `src/story/section_merger.py`
+- `src/story/builder.py` (section extraction, label handling, or post-processing)
+- Any orchestrator code that affects what boundaries are passed to the story builder
+
+**Append only — never remove old entries.** The log exists to prevent going in circles
+on classification logic. Read it before making any changes to understand what has
+already been tried and why.
+
 ## Code Style
 
 - Follow PEP 8

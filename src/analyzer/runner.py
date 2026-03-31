@@ -237,10 +237,9 @@ def _run_subprocess_batch(
             print(f"WARNING: vamp subprocess error: {msg.get('message', '')}", file=sys.stderr)
 
     proc.wait()
-    if proc.returncode != 0:
-        stderr_out = proc.stderr.read()
-        if stderr_out:
-            print(f"WARNING: vamp subprocess stderr: {stderr_out[:500]}", file=sys.stderr)
+    stderr_out = proc.stderr.read()
+    if stderr_out:
+        print(f"[vamp subprocess stderr]\n{stderr_out}", file=sys.stderr)
 
     return tracks, algo_meta
 

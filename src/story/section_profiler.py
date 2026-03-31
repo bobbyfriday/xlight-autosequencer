@@ -29,15 +29,15 @@ _BAND_WEIGHTS_BY_ENERGY_LEVEL = {
 
 def _get_frames_in_range(values: list[float], sample_rate: float,
                           start_ms: int, end_ms: int) -> list[float]:
-    """Return the source frames whose timestamps fall in [start_ms, end_ms)."""
+    """Return the source frames whose timestamps fall in [start_ms, end_ms).
+
+    Values are returned on their original scale (0–100 for energy curves).
+    """
     start_sec = start_ms / 1000.0
     end_sec = end_ms / 1000.0
-    frames = []
-    for i, v in enumerate(values):
-        t = i / sample_rate
-        if start_sec <= t < end_sec:
-            frames.append(v)
-    return frames
+    start_idx = max(0, int(start_sec * sample_rate))
+    end_idx = min(len(values), int(end_sec * sample_rate))
+    return values[start_idx:end_idx] if start_idx < end_idx else []
 
 
 def _mean(vals: list[float]) -> float:
@@ -100,10 +100,15 @@ def profile_section(start_ms: int, end_ms: int, hierarchy: dict) -> dict:
         energy_frames = [0.0]
 
     mean_energy = _mean(energy_frames)
-    energy_score = int(min(100, max(0, round(mean_energy * 100))))
-    energy_peak = int(min(100, max(0, round(max(energy_frames) * 100))))
-    energy_variance = float(min(1.0, max(0.0, _variance(energy_frames))))
+    # Energy curve values are already 0–100 integers (normalised by the BBC/librosa
+    # generators). Do NOT multiply by 100 again.
+    energy_score = int(min(100, max(0, round(mean_energy))))
+    energy_peak = int(min(100, max(0, round(max(energy_frames)))))
+    # Variance on a 0–100 scale; normalise to 0.0–1.0 by dividing by max possible (2500)
+    raw_var = _variance(energy_frames)
+    energy_variance = float(min(1.0, max(0.0, raw_var / 2500.0)))
 
+    # energy_score is now 0–100 (mean of 0–100 curve values)
     if energy_score <= 33:
         energy_level = "low"
     elif energy_score <= 66:

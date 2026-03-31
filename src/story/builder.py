@@ -7,6 +7,8 @@ from __future__ import annotations
 import copy
 import json
 import math
+import os
+import re
 from pathlib import Path
 from typing import Any
 
@@ -19,6 +21,126 @@ from src.story.lighting_mapper import map_lighting
 from src.story.stem_curves import extract_stem_curves
 
 SCHEMA_VERSION = "1.0.0"
+
+# ── Genius label → our role vocabulary ────────────────────────────────────────
+
+_GENIUS_ROLE_MAP = {
+    "intro": "intro",
+    "verse": "verse",
+    "chorus": "chorus",
+    "hook": "chorus",
+    "refrain": "chorus",
+    "pre-chorus": "pre_chorus",
+    "pre chorus": "pre_chorus",
+    "post-chorus": "post_chorus",
+    "post chorus": "post_chorus",
+    "bridge": "bridge",
+    "outro": "outro",
+    "interlude": "interlude",
+    "instrumental": "instrumental_break",
+    "guitar solo": "instrumental_break",
+    "solo": "instrumental_break",
+    "sax solo": "instrumental_break",
+    "piano solo": "instrumental_break",
+    "drum solo": "instrumental_break",
+    "break": "instrumental_break",
+    "rap": "verse",
+}
+
+
+def _normalize_genius_label(label: str) -> str:
+    """Convert a Genius section label like 'Verse 1' or 'Chorus: feat. X' to our role."""
+    raw = label.lower().strip()
+    # Strip artist/feature annotations: "Chorus: Ray Parker Jr." → "chorus"
+    if ":" in raw:
+        raw = raw.split(":")[0].strip()
+    # Strip parenthetical: "Verse (Remix)" → "verse"
+    raw = raw.split("(")[0].strip()
+
+    # Exact match
+    if raw in _GENIUS_ROLE_MAP:
+        return _GENIUS_ROLE_MAP[raw]
+    # Prefix match (e.g. "verse 1" → "verse")
+    for key, role in _GENIUS_ROLE_MAP.items():
+        if raw.startswith(key):
+            return role
+    return "verse"  # safe default for unknown Genius labels
+
+
+def _try_genius_sections(
+    audio_path: str,
+    duration_ms: int,
+) -> list[tuple[int, int, str]] | None:
+    """Try to get section boundaries from Genius lyrics.
+
+    Returns list of (start_ms, end_ms, role) on success, or None.
+
+    whisperx and lyricsgenius live in .venv-vamp — run the pipeline there
+    via subprocess to avoid import issues in the main venv.
+    """
+    token = os.environ.get("GENIUS_API_TOKEN", "")
+    if not token:
+        return None
+
+    import subprocess as _sp
+
+    repo_root = Path(__file__).resolve().parents[2]
+    vamp_python = repo_root / ".venv-vamp" / "bin" / "python"
+    if not vamp_python.exists():
+        return None
+
+    # Small script to run inside .venv-vamp
+    script = f'''
+import json, os, sys
+sys.path.insert(0, {str(repo_root)!r})
+os.environ["GENIUS_API_TOKEN"] = {token!r}
+from pathlib import Path
+from src.analyzer.genius_segments import GeniusSegmentAnalyzer
+audio_path = {str(audio_path)!r}
+audio_p = Path(audio_path)
+stem_dir = audio_p.parent / "stems"
+if not stem_dir.exists():
+    stem_dir = audio_p.parent / ".stems"
+analyzer = GeniusSegmentAnalyzer()
+structure, _phonemes, warnings = analyzer.run(
+    audio_path=audio_path,
+    token=os.environ["GENIUS_API_TOKEN"],
+    stem_dir=stem_dir if stem_dir.exists() else None,
+    duration_ms={duration_ms},
+)
+if structure is None or not structure.segments:
+    print(json.dumps({{"ok": False, "warnings": warnings}}))
+else:
+    segs = [{{"label": s.label, "start_ms": s.start_ms, "end_ms": s.end_ms}}
+            for s in structure.segments]
+    print(json.dumps({{"ok": True, "segments": segs, "warnings": warnings}}))
+'''
+    env = {**os.environ, "GENIUS_API_TOKEN": token}
+    # Pass through override artist/title if set (from user prompt)
+    for key in ("_GENIUS_OVERRIDE_ARTIST", "_GENIUS_OVERRIDE_TITLE"):
+        if key in os.environ:
+            env[key] = os.environ[key]
+
+    try:
+        proc = _sp.run(
+            [str(vamp_python), "-c", script],
+            capture_output=True, text=True, timeout=120,
+            env=env,
+        )
+        if proc.returncode != 0:
+            import sys
+            print(f"[genius subprocess stderr]\n{proc.stderr[:500]}", file=sys.stderr)
+            return None
+        data = json.loads(proc.stdout.strip().split("\n")[-1])
+        if not data.get("ok"):
+            return None
+        result: list[tuple[int, int, str]] = []
+        for seg in data["segments"]:
+            role = _normalize_genius_label(seg["label"])
+            result.append((seg["start_ms"], seg["end_ms"], role))
+        return result
+    except Exception:
+        return None
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
@@ -68,17 +190,119 @@ def build_song_story(hierarchy: dict, audio_path: str) -> dict:
     source_file: str = hierarchy.get("source_file", audio_path)
     stems_available: list[str] = list(hierarchy.get("stems_available") or [])
 
-    # ── Step 2: Extract section boundaries ────────────────────────────────────
-    raw_sections: list[dict] = hierarchy.get("sections") or []
-    raw_boundaries: list[int] = [int(s["time_ms"]) for s in raw_sections if "time_ms" in s]
-    # Deduplicate; always include 0
-    boundaries_ms: list[int] = sorted(set([0] + raw_boundaries))
+    # ── Step 2: Try Genius lyrics as primary section source ─────────────────
+    # When Genius API is available, it provides ground-truth section labels
+    # (chorus, verse, bridge, etc.) with WhisperX-aligned timestamps.
+    # Fall back to segmentino + energy heuristics when Genius isn't available.
+    genius_sections = _try_genius_sections(audio_path, duration_ms)
+    section_source = "genius" if genius_sections else "heuristic"
 
-    # ── Step 3: Merge sections ─────────────────────────────────────────────────
-    sections_ms: list[tuple[int, int]] = merge_sections(boundaries_ms, duration_ms)
+    if genius_sections:
+        # Use Genius sections directly as our section boundaries + roles
+        sections_ms = [(s, e) for s, e, _r in genius_sections]
+        roles = [{"role": r, "confidence": 0.95} for _s, _e, r in genius_sections]
 
-    # ── Step 4: Classify roles ─────────────────────────────────────────────────
-    roles: list[dict] = classify_section_roles(sections_ms, hierarchy)
+        # Post-process: detect implicit intro before first Genius section.
+        # Genius sections start at the first lyric, but there's often an
+        # instrumental intro before that.
+        if sections_ms and sections_ms[0][0] > 3_000:
+            sections_ms.insert(0, (0, sections_ms[0][0]))
+            roles.insert(0, {"role": "intro", "confidence": 0.90})
+
+        # Post-process: detect an implicit outro at the end.
+        # Genius often has no [Outro] tag — the last section runs to the song end.
+        # If the energy drops significantly in the tail, split off an outro.
+        if len(sections_ms) >= 2 and roles[-1]["role"] != "outro":
+            last_start, last_end = sections_ms[-1]
+            last_dur = last_end - last_start
+            energy_curves = hierarchy.get("energy_curves", {})
+            full_mix = energy_curves.get("full_mix", {})
+            fm_vals = full_mix.get("values", [])
+            fm_fps = float(full_mix.get("fps") or full_mix.get("sample_rate") or 10)
+
+            if fm_vals and last_dur > 15_000:
+                # Compare energy in first half vs last 15 seconds of this section
+                mid_ms = last_start + (last_dur // 2)
+                first_si = int(last_start / 1000 * fm_fps)
+                mid_si = int(mid_ms / 1000 * fm_fps)
+                tail_si = int((last_end - 15_000) / 1000 * fm_fps)
+                end_si = int(last_end / 1000 * fm_fps)
+
+                first_chunk = fm_vals[first_si:mid_si]
+                tail_chunk = fm_vals[tail_si:end_si]
+
+                if first_chunk and tail_chunk:
+                    first_mean = sum(first_chunk) / len(first_chunk)
+                    tail_mean = sum(tail_chunk) / len(tail_chunk)
+
+                    # If tail energy < 60% of first half → split off outro
+                    if first_mean > 5 and tail_mean < first_mean * 0.6:
+                        # Find the crossover point: scan backwards to find where
+                        # energy drops below 70% of first-half mean
+                        threshold = first_mean * 0.7
+                        split_idx = end_si
+                        for idx in range(end_si - 1, mid_si, -1):
+                            if idx < len(fm_vals) and fm_vals[idx] >= threshold:
+                                split_idx = idx + 1
+                                break
+                        split_ms = int(split_idx / fm_fps * 1000)
+                        # Clamp to reasonable range
+                        split_ms = max(mid_ms, min(split_ms, last_end - 5_000))
+
+                        sections_ms[-1] = (last_start, split_ms)
+                        sections_ms.append((split_ms, last_end))
+                        roles.append({"role": "outro", "confidence": 0.80})
+    else:
+        # Fallback: segmentino boundaries + energy/vocal heuristics
+        raw_sections: list[dict] = hierarchy.get("sections") or []
+        raw_boundaries: list[int] = [int(s["time_ms"]) for s in raw_sections if "time_ms" in s]
+        # Build a time→label map so we can propagate labels through merging
+        boundary_label: dict[int, str] = {
+            int(s["time_ms"]): s["label"]
+            for s in raw_sections
+            if "time_ms" in s and s.get("label")
+        }
+        boundaries_ms: list[int] = sorted(set([0] + raw_boundaries))
+
+        # ── Step 3: Merge sections ────────────────────────────────────────────
+        sections_ms = merge_sections(boundaries_ms, duration_ms)
+
+        # Derive dominant segmentino label for each merged section.
+        def _dominant_label(start_ms: int, end_ms: int) -> str | None:
+            candidates = [
+                (t, boundary_label[t])
+                for t in boundary_label
+                if start_ms <= t < end_ms
+            ]
+            if not candidates:
+                before = [(t, boundary_label[t]) for t in boundary_label if t <= start_ms]
+                if before:
+                    return max(before, key=lambda x: x[0])[1]
+                return None
+            return min(candidates, key=lambda x: x[0])[1]
+
+        section_labels: list[str | None] = [
+            _dominant_label(start, end) for start, end in sections_ms
+        ]
+
+        # ── Step 4: Classify roles ────────────────────────────────────────────
+        roles = classify_section_roles(sections_ms, hierarchy, section_labels)
+
+        # ── Step 4b: Merge consecutive same-role sections ─────────────────────
+        merged_sections: list[tuple[int, int]] = []
+        merged_roles: list[dict] = []
+        for sec, role in zip(sections_ms, roles):
+            if merged_sections and merged_roles[-1]["role"] == role["role"]:
+                prev_start = merged_sections[-1][0]
+                merged_sections[-1] = (prev_start, sec[1])
+                if role["confidence"] > merged_roles[-1]["confidence"]:
+                    merged_roles[-1] = role
+            else:
+                merged_sections.append(sec)
+                merged_roles.append(role)
+
+        sections_ms = merged_sections
+        roles = merged_roles
 
     # ── Step 5: Profile each section ──────────────────────────────────────────
     profiles: list[dict] = [
@@ -266,6 +490,7 @@ def build_song_story(hierarchy: dict, audio_path: str) -> dict:
             "harmonic_percussive_ratio": round(harmonic_percussive_ratio, 4),
             "onset_density_avg": round(onset_density_avg, 4),
             "stems_available": stems_available,
+            "section_source": section_source,
         },
         "preferences": {
             "mood": None,

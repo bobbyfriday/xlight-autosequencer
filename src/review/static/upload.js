@@ -6,11 +6,12 @@ const fileInput  = document.getElementById('file-input');
 const btnBrowse  = document.getElementById('btn-browse');
 const fileNameEl = document.getElementById('file-name');
 const fileErrorEl= document.getElementById('file-error');
-const chkVamp     = document.getElementById('chk-vamp');
-const chkMadmom   = document.getElementById('chk-madmom');
+const chkVamp      = document.getElementById('chk-vamp');
+const chkMadmom    = document.getElementById('chk-madmom');
 const chkStems     = document.getElementById('chk-stems');
 const chkPhonemes  = document.getElementById('chk-phonemes');
 const chkStructure = document.getElementById('chk-structure');
+const chkStory     = document.getElementById('chk-story');
 
 // Phonemes requires stems — keep them in sync
 if (chkPhonemes) {
@@ -99,11 +100,12 @@ btnAnalyze.addEventListener('click', async () => {
 
   const formData = new FormData();
   formData.append('mp3', selectedFile, selectedFile.name);
-  formData.append('vamp',     chkVamp.checked             ? 'true' : 'false');
-  formData.append('madmom',   chkMadmom.checked           ? 'true' : 'false');
-  formData.append('stems',     chkStems     && chkStems.checked     ? 'true' : 'false');
-  formData.append('phonemes',  chkPhonemes  && chkPhonemes.checked  ? 'true' : 'false');
-  formData.append('structure', chkStructure && chkStructure.checked ? 'true' : 'false');
+  formData.append('vamp',      chkVamp.checked                       ? 'true' : 'false');
+  formData.append('madmom',    chkMadmom.checked                     ? 'true' : 'false');
+  formData.append('stems',     chkStems     && chkStems.checked      ? 'true' : 'false');
+  formData.append('phonemes',  chkPhonemes  && chkPhonemes.checked   ? 'true' : 'false');
+  formData.append('structure', chkStructure && chkStructure.checked  ? 'true' : 'false');
+  formData.append('story',     chkStory     && chkStory.checked      ? 'true' : 'false');
 
   // Update status hint
   const families = [];
@@ -164,14 +166,27 @@ function updateStatusLine(context) {
 function startProgressStream() {
   const evtSource = new EventSource('/progress');
 
+  const STAGE_ICONS = {
+    stems:    '🎛',
+    analysis: '🔬',
+    story:    '✨',
+  };
+
   evtSource.onmessage = (e) => {
     const msg = JSON.parse(e.data);
 
     if (msg.done) {
       evtSource.close();
-      statusLine.textContent = 'Done! Navigating to timeline…';
       progressBar.style.width = '100%';
-      setTimeout(() => { window.location.href = '/'; }, 500);
+      if (msg.story_path) {
+        statusLine.textContent = 'Done! Opening story review…';
+        setTimeout(() => {
+          window.location.href = `/story-review?path=${encodeURIComponent(msg.story_path)}`;
+        }, 500);
+      } else {
+        statusLine.textContent = 'Done! Navigating to timeline…';
+        setTimeout(() => { window.location.href = '/timeline'; }, 500);
+      }
       return;
     }
 
@@ -180,6 +195,64 @@ function startProgressStream() {
       statusLine.textContent = 'Analysis failed.';
       errorMsg.textContent = msg.error;
       errorBlock.style.display = 'flex';
+      return;
+    }
+
+    if (msg.stage) {
+      // Reset per-stage counters so the progress bar tracks within each stage
+      doneCount = 0;
+      totalAlgos = 0;
+      statusLine.textContent = msg.label;
+      progressBar.style.width = '0%';
+      const row = document.createElement('div');
+      row.className = 'stage-row';
+      const icon = STAGE_ICONS[msg.stage] || '▶';
+      row.innerHTML = `<span class="stage-icon">${icon}</span><span>${msg.label}</span>`;
+      algoList.appendChild(row);
+      algoList.scrollTop = algoList.scrollHeight;
+      return;
+    }
+
+    if (msg.genius_prompt) {
+      statusLine.textContent = 'Lyrics not found — help identify this song';
+      const form = document.createElement('div');
+      form.className = 'genius-prompt';
+      form.innerHTML = `
+        <p>Could not find lyrics automatically. Enter the artist and title to search Genius:</p>
+        <div class="genius-fields">
+          <input type="text" id="genius-artist" placeholder="Artist" value="${msg.guessed_artist || ''}" />
+          <input type="text" id="genius-title" placeholder="Song title" value="${msg.guessed_title || ''}" />
+        </div>
+        <div class="genius-buttons">
+          <button id="btn-genius-submit" class="genius-submit">Search Genius</button>
+          <button id="btn-genius-skip" class="genius-skip">Skip (use heuristics)</button>
+        </div>
+      `;
+      algoList.appendChild(form);
+      algoList.scrollTop = algoList.scrollHeight;
+
+      document.getElementById('btn-genius-submit').addEventListener('click', async () => {
+        const artist = document.getElementById('genius-artist').value.trim();
+        const title = document.getElementById('genius-title').value.trim();
+        if (!title) return;
+        form.remove();
+        statusLine.textContent = 'Searching Genius…';
+        await fetch('/genius-retry', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ artist, title }),
+        });
+      });
+
+      document.getElementById('btn-genius-skip').addEventListener('click', async () => {
+        form.remove();
+        statusLine.textContent = 'Building story with heuristics…';
+        await fetch('/genius-retry', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ artist: '', title: '__skip__' }),
+        });
+      });
       return;
     }
 
@@ -197,15 +270,18 @@ function startProgressStream() {
     if (msg.total) totalAlgos = msg.total;
     const pct = totalAlgos > 0 ? Math.round(doneCount / totalAlgos * 100) : 0;
     progressBar.style.width = `${pct}%`;
-    statusLine.textContent = `Analyzing… (${doneCount} / ${totalAlgos})`;
+    statusLine.textContent = `${doneCount} / ${totalAlgos}`;
 
-    const ok = msg.mark_count > 0;
+    const ok = msg.mark_count > 0 || msg.has_curve;
+    const detail = msg.has_curve && msg.mark_count === 0
+      ? '(curve)'
+      : `(${msg.mark_count} marks)`;
     const row = document.createElement('div');
     row.className = 'algo-row';
     row.innerHTML =
       `<span class="${ok ? 'ok' : 'err'}">${ok ? '✓' : '✗'}</span>` +
       `<span>${msg.name}</span>` +
-      `<span class="marks">(${msg.mark_count} marks)</span>`;
+      `<span class="marks">${detail}</span>`;
     algoList.appendChild(row);
     algoList.scrollTop = algoList.scrollHeight;
   };
@@ -239,9 +315,11 @@ async function checkJobStatus() {
     showProgress('algorithms');
     startProgressStream();
   } else if (status.status === 'done') {
-    // Only auto-navigate to the timeline when not already on the library view
-    if (window.location.pathname !== '/library-view') {
-      window.location.reload();
+    if (window.location.pathname === '/library-view') return;
+    if (status.story_path) {
+      window.location.href = `/story-review?path=${encodeURIComponent(status.story_path)}`;
+    } else {
+      window.location.href = '/timeline';
     }
   }
   // idle → show upload form normally (already visible)

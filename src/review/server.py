@@ -89,14 +89,20 @@ def _adapt_hierarchy_for_ui(data: dict) -> dict:
 class AnalysisJob:
     """State for a single upload-triggered analysis run."""
 
-    def __init__(self, mp3_path: str) -> None:
+    def __init__(self, mp3_path: str, build_story: bool = False) -> None:
         self.mp3_path = mp3_path
+        self.build_story = build_story
         self.status: str = "running"  # "running" | "done" | "error"
         self.events: list[dict] = []
         self.total: int = 6  # orchestrator has ~6 stages
         self.result_path: str | None = None
+        self.story_path: str | None = None
         self.error_message: str | None = None
         self.lock = threading.Lock()
+        # Genius retry: background thread waits on this event
+        self._genius_event = threading.Event()
+        self.genius_artist: str | None = None
+        self.genius_title: str | None = None
 
     def record_progress(self, idx: int, total: int, name: str, mark_count: int = 0) -> None:
         with self.lock:
@@ -112,6 +118,31 @@ class AnalysisJob:
         with self.lock:
             self.events.append({"warning": message})
 
+    def record_stage(self, stage: str, label: str) -> None:
+        with self.lock:
+            self.events.append({"stage": stage, "label": label})
+
+    def prompt_genius(self, guessed_title: str, guessed_artist: str) -> None:
+        """Emit a genius_prompt event and clear the wait flag."""
+        with self.lock:
+            self._genius_event.clear()
+            self.events.append({
+                "genius_prompt": True,
+                "guessed_title": guessed_title,
+                "guessed_artist": guessed_artist,
+            })
+
+    def wait_for_genius_response(self, timeout: float = 120.0) -> tuple[str | None, str | None]:
+        """Block until the user submits artist/title or timeout expires."""
+        self._genius_event.wait(timeout=timeout)
+        return self.genius_artist, self.genius_title
+
+    def submit_genius_response(self, artist: str, title: str) -> None:
+        """Called by the /genius-retry endpoint to unblock the waiting thread."""
+        self.genius_artist = artist
+        self.genius_title = title
+        self._genius_event.set()
+
 
 _current_job: AnalysisJob | None = None
 _job_lock = threading.Lock()
@@ -123,13 +154,19 @@ def _run_analysis(app: Flask, job: AnalysisJob) -> None:
         try:
             from src.analyzer.orchestrator import run_orchestrator, _hierarchy_json_path
 
-            stage_idx = 0
+            # ── Stage 1: Stem separation (runs inside orchestrator) ───────────
+            job.record_stage("stems", "Separating stems…")
 
-            def _progress(msg: str) -> None:
-                nonlocal stage_idx
-                stage_idx += 1
-                job.record_progress(stage_idx, 6, msg)
+            first_algo = True
 
+            def _progress(idx: int, total: int, name: str, mark_count: int = 0) -> None:
+                nonlocal first_algo
+                if first_algo:
+                    job.record_stage("analysis", "Analyzing audio…")
+                    first_algo = False
+                job.record_progress(idx, total, name, mark_count)
+
+            # ── Stage 2: Analysis ─────────────────────────────────────────────
             result = run_orchestrator(
                 job.mp3_path,
                 fresh=True,
@@ -157,8 +194,52 @@ def _run_analysis(app: Flask, job: AnalysisJob) -> None:
             except Exception:
                 pass
 
+            # ── Stage 3: Story building (optional) ───────────────────────────
+            story_path: str | None = None
+            if job.build_story:
+                job.record_stage("story", "Building song story…")
+                try:
+                    from src.story.builder import build_song_story
+                    hierarchy_dict = json.loads(Path(out_path).read_text(encoding="utf-8"))
+
+                    # First attempt: automatic Genius lookup
+                    story_dict = build_song_story(hierarchy_dict, job.mp3_path)
+                    section_source = story_dict.get("global", {}).get("section_source", "")
+
+                    # If Genius failed, prompt user for artist/title and retry
+                    if section_source != "genius":
+                        # Extract what we guessed from the filename/ID3
+                        guessed_title = story_dict.get("song", {}).get("title", "")
+                        guessed_artist = story_dict.get("song", {}).get("artist", "")
+                        job.prompt_genius(guessed_title, guessed_artist)
+
+                        user_artist, user_title = job.wait_for_genius_response(timeout=120)
+                        if (user_artist is not None and user_title is not None
+                                and user_title != "__skip__"):
+                            # Retry with user-provided info
+                            import os as _os
+                            _os.environ["_GENIUS_OVERRIDE_ARTIST"] = user_artist
+                            _os.environ["_GENIUS_OVERRIDE_TITLE"] = user_title
+                            try:
+                                story_dict = build_song_story(hierarchy_dict, job.mp3_path)
+                            finally:
+                                _os.environ.pop("_GENIUS_OVERRIDE_ARTIST", None)
+                                _os.environ.pop("_GENIUS_OVERRIDE_TITLE", None)
+
+                    story_out = str(mp3.parent / (mp3.stem + "_story.json"))
+                    Path(story_out).write_text(
+                        json.dumps(story_dict, indent=2, ensure_ascii=False),
+                        encoding="utf-8",
+                    )
+                    story_path = story_out
+                    n_sections = len(story_dict.get("sections", []))
+                    job.record_progress(1, 1, "Song story complete", n_sections)
+                except Exception as exc:
+                    job.record_warning(f"Story building failed: {exc}")
+
             with job.lock:
                 job.result_path = out_path
+                job.story_path = story_path
                 job.status = "done"
 
         except Exception as exc:
@@ -181,7 +262,7 @@ def _progress_generator(job: AnalysisJob):
         if status != "running":
             # All events emitted — send terminal event
             if status == "done":
-                yield f"data: {json.dumps({'done': True, 'result_path': job.result_path})}\n\n"
+                yield f"data: {json.dumps({'done': True, 'result_path': job.result_path, 'story_path': job.story_path})}\n\n"
             else:
                 yield f"data: {json.dumps({'error': job.error_message or 'Analysis failed'})}\n\n"
             return
@@ -249,11 +330,11 @@ def create_app(analysis_path: str | None = None, audio_path: str | None = None,
 
         @app.route("/")
         def upload_index():
-            # Once analysis is done, serve the review timeline UI
-            job = _current_job
-            if job is not None and job.status == "done":
-                return send_from_directory(app.static_folder, "index.html")
-            return send_from_directory(app.static_folder, "library.html")
+            return send_from_directory(app.static_folder, "upload.html")
+
+        @app.route("/timeline")
+        def timeline():
+            return send_from_directory(app.static_folder, "index.html")
 
         @app.route("/library-view")
         def library_view():
@@ -415,6 +496,20 @@ def create_app(analysis_path: str | None = None, audio_path: str | None = None,
                 _current_job = job
             return jsonify({"ok": True})
 
+        @app.route("/genius-retry", methods=["POST"])
+        def genius_retry():
+            """User submits artist/title to retry Genius lookup."""
+            job = _current_job
+            if job is None or job.status != "running":
+                return jsonify({"error": "No active analysis job"}), 400
+            data = request.get_json(silent=True) or {}
+            artist = (data.get("artist") or "").strip()
+            title = (data.get("title") or "").strip()
+            if not title:
+                return jsonify({"error": "Title is required"}), 400
+            job.submit_genius_response(artist, title)
+            return jsonify({"ok": True})
+
         @app.route("/upload", methods=["POST"])
         def upload():
             global _current_job
@@ -445,7 +540,8 @@ def create_app(analysis_path: str | None = None, audio_path: str | None = None,
             except OSError as exc:
                 return jsonify({"error": f"Failed to save file: {exc}"}), 500
 
-            job = AnalysisJob(mp3_path=save_path)
+            build_story = request.form.get("story", "false").lower() == "true"
+            job = AnalysisJob(mp3_path=save_path, build_story=build_story)
 
             with _job_lock:
                 _current_job = job
@@ -484,6 +580,7 @@ def create_app(analysis_path: str | None = None, audio_path: str | None = None,
                 "events_count": len(job.events),
                 "total": job.total,
                 "result_path": job.result_path,
+                "story_path": getattr(job, "story_path", None),
                 "error": job.error_message,
             })
 
