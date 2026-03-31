@@ -249,12 +249,14 @@ def main() -> None:
             tracks.append(track.to_dict())
             algorithms_meta.append(algo.metadata().to_dict())
 
+        has_curve = track is not None and getattr(track, "value_curve", None) is not None
         _emit({
             "event": "progress",
             "idx": idx + 1,
             "total": total,
             "name": raw_name,
             "mark_count": track.mark_count if track else 0,
+            "has_curve": has_curve,
         })
 
     _emit({"event": "done", "tracks": tracks, "algorithms": algorithms_meta})

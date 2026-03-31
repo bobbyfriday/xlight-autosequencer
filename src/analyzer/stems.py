@@ -150,49 +150,96 @@ class StemSeparator:
         return stem_set
 
     def _run_demucs(self, audio_path: Path, source_hash: str) -> StemSet:
-        """Run Demucs and return a StemSet of mono float32 arrays.
+        """Run Demucs in .venv-vamp subprocess and return a StemSet.
 
-        Uses htdemucs_6s (single pass, all 6 stems) with shifts=0 for speed.
-        Quality is sufficient for onset detection and energy curve routing.
+        demucs/torch live in .venv-vamp (not the main venv). We run the
+        separation there, write stems to a temp dir, then load them back.
         """
-        import torch
-        import librosa
-        from demucs.pretrained import get_model
-        from demucs.apply import apply_model
+        import subprocess as _sp
+        import tempfile
 
-        wav_np, sr = librosa.load(str(audio_path), sr=None, mono=False, dtype=np.float32)
-        if wav_np.ndim == 1:
-            wav_np = np.stack([wav_np, wav_np])
+        repo_root = Path(__file__).resolve().parents[2]
+        vamp_python = repo_root / ".venv-vamp" / "bin" / "python"
+        if not vamp_python.exists():
+            raise RuntimeError(
+                ".venv-vamp not found — cannot run demucs. Run ./scripts/install.sh"
+            )
 
-        print("  → htdemucs_6s (drums, bass, vocals, guitar, piano, other)...", file=sys.stderr)
-        model = get_model("htdemucs_6s")
-        model.eval()
+        # Temp dir for the subprocess to write stems into
+        with tempfile.TemporaryDirectory(prefix="xlight_stems_") as tmp_dir:
+            script = f'''
+import sys, json, os
+import numpy as np
+import torch, librosa
+from demucs.pretrained import get_model
+from demucs.apply import apply_model
 
-        wav = torch.from_numpy(np.ascontiguousarray(wav_np))
-        if sr != model.samplerate:
-            import torchaudio
-            wav = torchaudio.functional.resample(wav, sr, model.samplerate)
-        if wav.shape[0] == 1:
-            wav = wav.repeat(2, 1)
-        elif wav.shape[0] > 2:
-            wav = wav[:2]
+audio_path = {str(audio_path)!r}
+out_dir = {tmp_dir!r}
 
-        with torch.no_grad():
-            out = apply_model(model, wav.unsqueeze(0), device="cpu", shifts=0, progress=False)
-        out = out[0]
+wav_np, sr = librosa.load(audio_path, sr=None, mono=False, dtype=np.float32)
+if wav_np.ndim == 1:
+    wav_np = np.stack([wav_np, wav_np])
 
-        arrays: dict[str, np.ndarray] = {}
-        for i, name in enumerate(model.sources):
-            if name in _STEM_NAMES:
-                arrays[name] = out[i].mean(dim=0).numpy().astype(np.float32)
+print("  → htdemucs_6s (drums, bass, vocals, guitar, piano, other)...", file=sys.stderr)
+model = get_model("htdemucs_6s")
+model.eval()
 
-        # Fill any missing stems with silence
-        n_samples = out.shape[-1]
-        for name in _STEM_NAMES:
-            if name not in arrays:
-                arrays[name] = np.zeros(n_samples, dtype=np.float32)
+wav = torch.from_numpy(np.ascontiguousarray(wav_np))
+if sr != model.samplerate:
+    import torchaudio
+    wav = torchaudio.functional.resample(wav, sr, model.samplerate)
+if wav.shape[0] == 1:
+    wav = wav.repeat(2, 1)
+elif wav.shape[0] > 2:
+    wav = wav[:2]
 
-        return StemSet(**arrays, sample_rate=model.samplerate)
+with torch.no_grad():
+    out = apply_model(model, wav.unsqueeze(0), device="cpu", shifts=0, progress=False)
+out = out[0]
+
+stem_names = ["drums", "bass", "vocals", "guitar", "piano", "other"]
+result = {{"sample_rate": model.samplerate}}
+for i, name in enumerate(model.sources):
+    if name in stem_names:
+        arr = out[i].mean(dim=0).numpy().astype(np.float32)
+        npy_path = os.path.join(out_dir, name + ".npy")
+        np.save(npy_path, arr)
+        result[name] = npy_path
+
+# Fill missing stems
+n_samples = out.shape[-1]
+for name in stem_names:
+    if name not in result:
+        npy_path = os.path.join(out_dir, name + ".npy")
+        np.save(npy_path, np.zeros(n_samples, dtype=np.float32))
+        result[name] = npy_path
+
+print(json.dumps(result))
+'''
+            print("  → htdemucs_6s (drums, bass, vocals, guitar, piano, other)...",
+                  file=sys.stderr)
+            proc = _sp.run(
+                [str(vamp_python), "-c", script],
+                capture_output=True, text=True, timeout=600,
+            )
+            if proc.returncode != 0:
+                raise RuntimeError(
+                    f"demucs subprocess failed:\n{proc.stderr[:1000]}"
+                )
+
+            # Parse the JSON output (last line of stdout)
+            data = json.loads(proc.stdout.strip().split("\n")[-1])
+            sr = int(data["sample_rate"])
+            arrays: dict[str, np.ndarray] = {}
+            for name in _STEM_NAMES:
+                npy_path = data.get(name)
+                if npy_path and Path(npy_path).exists():
+                    arrays[name] = np.load(npy_path)
+                else:
+                    arrays[name] = np.zeros(1, dtype=np.float32)
+
+            return StemSet(**arrays, sample_rate=sr)
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────

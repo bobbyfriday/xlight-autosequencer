@@ -1,6 +1,7 @@
 """Genius lyric segment timing: fetch, parse, and align section headers to audio."""
 from __future__ import annotations
 
+import os
 import re
 from dataclasses import dataclass
 from pathlib import Path
@@ -356,12 +357,27 @@ class GeniusSegmentAnalyzer:
             )
             return None, None, warnings
 
-        # ── Read ID3 tags ─────────────────────────────────────────────────────
-        try:
-            artist, title = read_id3_tags(audio_path)
-        except ValueError as exc:
-            warnings.append(str(exc))
-            return None, None, warnings
+        # ── Read artist/title (override → ID3 → filename) ─────────────────────
+        override_artist = os.environ.get("_GENIUS_OVERRIDE_ARTIST", "")
+        override_title = os.environ.get("_GENIUS_OVERRIDE_TITLE", "")
+        if override_artist or override_title:
+            artist = override_artist
+            title = override_title
+            log.info("Using user-provided override: artist=%r title=%r", artist, title)
+        else:
+            try:
+                artist, title = read_id3_tags(audio_path)
+            except ValueError:
+                # No ID3 tags — extract title from filename
+                from pathlib import Path as _Path
+                raw_name = _Path(audio_path).stem
+                clean = re.sub(r"^\d+[\s_]*[-.]?[\s_]*", "", raw_name)
+                clean = clean.replace("_", " ").strip()
+                title = clean if clean else raw_name
+                artist = ""
+                warnings.append(
+                    f"No ID3 tags found — using filename as title: '{title}'"
+                )
 
         # ── Sanitize title ────────────────────────────────────────────────────
         clean_title = sanitize_title(title)
