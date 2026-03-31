@@ -340,7 +340,12 @@ def wizard_cmd(
     # T010: validate file existence before launching wizard
     audio_path = Path(audio_file)
     if not audio_path.exists() or not audio_path.is_file():
-        click.echo(f"ERROR: File not found: {audio_file}", err=True)
+        from src.paths import PathContext
+        suggestion = PathContext().suggest_path(str(audio_path))
+        msg = f"ERROR: File not found: {audio_file}"
+        if suggestion:
+            msg += f"\n  Did you mean: {suggestion}"
+        click.echo(msg, err=True)
         sys.exit(1)
 
     flags = {
@@ -2152,6 +2157,30 @@ def tune_apply_cmd(defaults_json: str, dry_run: bool) -> None:
     else:
         click.echo("\n  To apply: update algorithm default parameters in their class definitions,")
         click.echo("  or pass these values via sweep configs / CLI overrides.")
+
+
+@cli.command("grouper-edit")
+@click.argument("layout_path", type=click.Path(exists=True))
+@click.option("--port", default=5173, show_default=True, help="Port for the local review server")
+@click.option("--no-browser", is_flag=True, help="Do not open browser automatically")
+def grouper_edit_cmd(layout_path: str, port: int, no_browser: bool) -> None:
+    """Open the interactive layout group editor in a browser.
+
+    LAYOUT_PATH is the path to xlights_rgbeffects.xml.
+    """
+    from src.review.server import create_app
+
+    abs_path = str(Path(layout_path).resolve())
+    app = create_app()
+    url = f"http://localhost:{port}/grouper?path={abs_path}"
+
+    click.echo(f"Starting layout group editor for: {abs_path}")
+    click.echo(f"Open in browser: {url}")
+
+    if not no_browser:
+        threading.Timer(1.0, lambda: webbrowser.open(url)).start()
+
+    app.run(host="127.0.0.1", port=port, debug=False)
 
 
 def main() -> None:
