@@ -280,5 +280,4 @@ pytest tests/ -v
   a comment to explain what a name means, the name is wrong.
 - **No dead code.** Don't comment out code "for reference." Don't leave unused imports,
   variables, or functions. Git history exists for a reason.
-
 <!-- MANUAL ADDITIONS END -->
