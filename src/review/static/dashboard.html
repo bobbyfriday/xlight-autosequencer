@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>xLight AutoSequencer</title>
+  <link rel="stylesheet" href="/navbar.css">
+  <link rel="stylesheet" href="/dashboard.css">
+</head>
+<body>
+
+  <!-- Upload section (collapsible) -->
+  <div id="upload-section" class="upload-section collapsed">
+    <button id="upload-toggle" class="upload-toggle">
+      <span class="toggle-icon">+</span> Upload &amp; Analyze New Song
+    </button>
+    <div id="upload-body" class="upload-body">
+      <div id="drop-zone" class="drop-zone">
+        <p>Drag &amp; drop an MP3 file here</p>
+        <p class="drop-sub">or <label class="file-label"><input type="file" id="file-input" accept=".mp3" hidden>browse files</label></p>
+        <p id="file-name" class="file-name"></p>
+      </div>
+      <div class="upload-options">
+        <label><input type="checkbox" id="opt-vamp" checked> Vamp plugins</label>
+        <label><input type="checkbox" id="opt-madmom" checked> madmom</label>
+        <label><input type="checkbox" id="opt-stems" checked> Stem separation</label>
+        <label><input type="checkbox" id="opt-phonemes"> Phonemes</label>
+        <label><input type="checkbox" id="opt-structure"> Song structure</label>
+        <label><input type="checkbox" id="opt-story" checked> Build story</label>
+      </div>
+      <button id="btn-analyze" class="btn btn-primary" disabled>Analyze</button>
+      <div id="duplicate-warning" class="duplicate-warning" style="display:none">
+        <p>This file has already been analyzed.</p>
+        <button id="btn-go-existing" class="btn btn-small">View Existing</button>
+        <button id="btn-reanalyze" class="btn btn-small btn-secondary">Re-analyze Anyway</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Progress section -->
+  <div id="progress-section" class="progress-section" style="display:none">
+    <div class="progress-header">
+      <span id="progress-label">Analyzing...</span>
+      <span id="progress-count"></span>
+    </div>
+    <div class="progress-bar-wrap">
+      <div id="progress-bar" class="progress-bar"></div>
+    </div>
+    <div id="progress-steps" class="progress-steps"></div>
+    <!-- Genius prompt -->
+    <div id="genius-prompt" class="genius-prompt" style="display:none">
+      <p>Genius lookup needs help. Enter artist and title:</p>
+      <input id="genius-artist" type="text" placeholder="Artist">
+      <input id="genius-title" type="text" placeholder="Title">
+      <button id="btn-genius-submit" class="btn btn-small">Submit</button>
+      <button id="btn-genius-skip" class="btn btn-small btn-secondary">Skip</button>
+    </div>
+    <div id="progress-error" class="progress-error" style="display:none"></div>
+    <div id="progress-done" class="progress-done" style="display:none">
+      <p>Analysis complete!</p>
+      <button id="btn-view-result" class="btn btn-primary btn-small">View Timeline</button>
+    </div>
+  </div>
+
+  <!-- Search and filter bar -->
+  <div class="filter-bar">
+    <input id="search-input" type="text" class="search-input" placeholder="Search songs by title or artist...">
+    <span id="song-count" class="song-count"></span>
+  </div>
+
+  <!-- Song library table -->
+  <div id="library-table-wrap" class="library-table-wrap">
+    <table id="library-table" class="library-table">
+      <thead>
+        <tr>
+          <th data-sort="title" class="sortable">Title <span class="sort-arrow"></span></th>
+          <th data-sort="artist" class="sortable">Artist <span class="sort-arrow"></span></th>
+          <th data-sort="duration_ms" class="sortable col-num">Duration <span class="sort-arrow"></span></th>
+          <th data-sort="estimated_tempo_bpm" class="sortable col-num">BPM <span class="sort-arrow"></span></th>
+          <th data-sort="quality_score" class="sortable col-num">Quality <span class="sort-arrow"></span></th>
+          <th class="col-badges">Info</th>
+          <th data-sort="analyzed_at" class="sortable col-num">Analyzed <span class="sort-arrow"></span></th>
+          <th class="col-actions">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="library-tbody"></tbody>
+    </table>
+  </div>
+
+  <!-- Empty state -->
+  <div id="empty-state" class="empty-state" style="display:none">
+    <div class="empty-icon">&#9836;</div>
+    <h2>No songs analyzed yet</h2>
+    <p>Upload an MP3 to get started with xLight AutoSequencer.</p>
+    <button id="btn-empty-upload" class="btn btn-primary">Upload Your First Song</button>
+  </div>
+
+  <!-- Song detail panel (injected below rows) -->
+  <template id="detail-template">
+    <tr class="detail-row">
+      <td colspan="8">
+        <div class="detail-panel">
+          <div class="detail-meta">
+            <div class="detail-col">
+              <h4>Quality Score</h4>
+              <div class="detail-quality-bar">
+                <div class="quality-fill"></div>
+              </div>
+              <span class="detail-quality-label"></span>
+            </div>
+            <div class="detail-col">
+              <h4>Details</h4>
+              <div class="detail-info"></div>
+            </div>
+          </div>
+          <div class="detail-actions">
+            <button class="btn btn-small btn-action" data-action="timeline">Review Timeline</button>
+            <button class="btn btn-small btn-action" data-action="story">Story Review</button>
+            <button class="btn btn-small btn-action" data-action="phonemes">Phonemes</button>
+            <button class="btn btn-small btn-action btn-secondary" data-action="reanalyze">Re-analyze</button>
+            <button class="btn btn-small btn-action btn-danger" data-action="delete">Delete</button>
+          </div>
+        </div>
+      </td>
+    </tr>
+  </template>
+
+  <!-- Delete confirmation dialog -->
+  <div id="delete-dialog" class="dialog-overlay" style="display:none">
+    <div class="dialog">
+      <h3>Delete Song</h3>
+      <p>Remove <strong id="delete-song-name"></strong> from the library?</p>
+      <label class="delete-files-label">
+        <input type="checkbox" id="delete-files-check"> Also delete analysis files from disk
+      </label>
+      <div class="dialog-buttons">
+        <button id="btn-delete-cancel" class="btn btn-small">Cancel</button>
+        <button id="btn-delete-confirm" class="btn btn-small btn-danger">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/navbar.js"></script>
+  <script src="/dashboard.js"></script>
+</body>
+</html>

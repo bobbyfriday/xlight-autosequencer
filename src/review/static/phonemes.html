@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Phoneme Review — xlight-analyze</title>
   <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/navbar.css">
   <style>
     #song-name {
       flex: 1;
@@ -68,8 +69,8 @@
 </head>
 <body>
   <div id="toolbar">
-    <button onclick="window.location.href='/library-view'">&#8592; Library</button>
-    <button onclick="window.location.href='/'">Timeline</button>
+    <button onclick="window.location.href='/'">&#8592; Library</button>
+    <button onclick="window.location.href='/timeline'">Timeline</button>
     <span id="song-name"></span>
     <div class="audio-toggle">
       <button id="btn-full-mix" class="active">Full Song</button>
@@ -130,6 +131,7 @@
     .menu-sep { height: 1px; background: #444; margin: 4px 0; }
   </style>
 
+  <script src="/navbar.js"></script>
   <script src="/phonemes.js"></script>
 </body>
 </html>

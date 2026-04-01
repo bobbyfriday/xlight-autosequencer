@@ -74,6 +74,18 @@ class Library:
         )
         return [_entry_from_dict(e) for e in sorted_raw]
 
+    def remove_entry(self, source_hash: str) -> bool:
+        """Remove the entry with *source_hash* from the index. Returns True if found."""
+        data = self._load()
+        original_count = len(data["entries"])
+        data["entries"] = [
+            e for e in data["entries"] if e.get("source_hash") != source_hash
+        ]
+        if len(data["entries"]) < original_count:
+            self._save(data)
+            return True
+        return False
+
     def find_by_hash(self, source_hash: str) -> LibraryEntry | None:
         """Return the entry whose ``source_hash`` matches, or ``None``."""
         data = self._load()
@@ -81,6 +93,8 @@ class Library:
             if raw.get("source_hash") == source_hash:
                 return _entry_from_dict(raw)
         return None
+
+    # ── Internal helpers ──────────────────────────────────────────────────────
 
     # ── Internal helpers ──────────────────────────────────────────────────────
 
@@ -100,3 +114,44 @@ class Library:
         self._path.write_text(
             json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8"
         )
+
+
+def delete_files_for_entry(entry: LibraryEntry) -> list[str]:
+    """Delete analysis artifacts from disk for a library entry.
+
+    Removes: analysis JSON, hierarchy JSON, story JSON, and stems directory.
+    Returns list of paths that were deleted.
+    """
+    import shutil
+
+    deleted: list[str] = []
+    mp3 = Path(entry.source_file)
+
+    # Analysis / hierarchy JSON
+    for path_str in [entry.analysis_path]:
+        p = Path(path_str)
+        if p.exists():
+            p.unlink()
+            deleted.append(str(p))
+
+    # Story JSON (adjacent to source MP3)
+    story_path = mp3.parent / (mp3.stem + "_story.json")
+    if story_path.exists():
+        story_path.unlink()
+        deleted.append(str(story_path))
+
+    # Story edits JSON
+    story_edits = mp3.parent / (mp3.stem + "_story_edits.json")
+    if story_edits.exists():
+        story_edits.unlink()
+        deleted.append(str(story_edits))
+
+    # Stems directory — only delete if the MP3 lives in its own dedicated
+    # song directory (songs/<stem>/<file>.mp3) to avoid nuking shared stems.
+    # Safety check: the parent directory name should match the MP3 stem.
+    stems_dir = mp3.parent / "stems"
+    if stems_dir.is_dir() and mp3.parent.name == mp3.stem:
+        shutil.rmtree(stems_dir)
+        deleted.append(str(stems_dir))
+
+    return deleted

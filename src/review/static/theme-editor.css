@@ -32,6 +32,9 @@ html, body {
   grid-template-rows: 40px 1fr;
   height: 100vh;
 }
+body.has-navbar #app {
+  height: calc(100vh - 40px);
+}
 
 #toolbar {
   display: flex;
