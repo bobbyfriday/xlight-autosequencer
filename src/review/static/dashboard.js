@@ -144,7 +144,7 @@
       // Click row to go to story view (but not on buttons)
       tr.addEventListener('click', function (ev) {
         if (ev.target.tagName === 'BUTTON') return;
-        openSong(e.source_hash, 'story');
+        openSong(e.source_hash, e.has_story ? 'story' : 'timeline', e.story_path);
       });
 
       tb.appendChild(tr);
@@ -225,7 +225,7 @@
       btn.addEventListener('click', function () {
         var action = btn.dataset.action;
         if (action === 'timeline') openSong(entry.source_hash, 'timeline');
-        else if (action === 'story') openSong(entry.source_hash, 'story');
+        else if (action === 'story') openSong(entry.source_hash, 'story', entry.story_path);
         else if (action === 'phonemes') openSong(entry.source_hash, 'phonemes');
         else if (action === 'reanalyze') reanalyzeSong(entry);
         else if (action === 'delete') showDeleteDialog(entry);
@@ -236,21 +236,17 @@
   }
 
   // ── Navigation helpers ─────────────────────────────────────────────────────
-  function openSong(hash, tool) {
-    // First, set current job to this library entry
+  function openSong(hash, tool, storyPath) {
+    // Set current job to this library entry, then navigate
     fetch('/open-from-library?hash=' + hash, { method: 'POST' })
-      .then(function (r) { return r.json(); })
-      .then(function (data) {
-        if (tool === 'timeline') window.location.href = '/timeline?hash=' + hash;
-        else if (tool === 'story') {
-          if (data.story_path) {
-            window.location.href = '/story-review?path=' + encodeURIComponent(data.story_path);
-          } else {
-            // No story file — fall back to timeline
-            window.location.href = '/timeline?hash=' + hash;
-          }
+      .then(function () {
+        if (tool === 'story' && storyPath) {
+          window.location.href = '/story-review?path=' + encodeURIComponent(storyPath);
+        } else if (tool === 'phonemes') {
+          window.location.href = '/phonemes-view?hash=' + hash;
+        } else {
+          window.location.href = '/timeline?hash=' + hash;
         }
-        else if (tool === 'phonemes') window.location.href = '/phonemes-view?hash=' + hash;
       });
   }
 
@@ -355,7 +351,7 @@
       if (existing && dup) {
         dup.style.display = '';
         document.getElementById('btn-go-existing').onclick = function () {
-          openSong(existing.source_hash, 'story');
+          openSong(existing.source_hash, existing.has_story ? 'story' : 'timeline', existing.story_path);
         };
         document.getElementById('btn-reanalyze').onclick = startAnalysis;
       } else if (dup) {

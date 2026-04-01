@@ -428,6 +428,7 @@ def create_app(analysis_path: str | None = None, audio_path: str | None = None,
             mp3 = Path(e.source_file)
             story_path = mp3.parent / (mp3.stem + "_story.json")
             has_story = story_path.exists()
+            entry_dict["story_path"] = str(story_path) if has_story else None
 
             try:
                 with open(e.analysis_path, "r", encoding="utf-8") as fh:
