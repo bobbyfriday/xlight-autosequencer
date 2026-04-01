@@ -17,6 +17,7 @@ dependencies = [
     "flask>=3.0",
     "questionary>=2.0",
     "rich>=13.0",
+    "mutagen>=1.47",
 ]
 
 [project.scripts]

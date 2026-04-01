@@ -410,6 +410,22 @@ def create_app(analysis_path: str | None = None, audio_path: str | None = None,
         lib = Library()
         entries = lib.all_entries()
 
+        def _clean_filename_title(filename: str) -> str:
+            """Turn '12_-_Carmina_Burana.mp3' into 'Carmina Burana'."""
+            import re
+            name = Path(filename).stem
+            # Strip leading track number patterns: "12 - ", "12_-_", "12. "
+            name = re.sub(r'^\d+[\s._-]+', '', name)
+            # Strip leading "- " left over from "12 - Title"
+            name = re.sub(r'^-[\s_]+', '', name)
+            # Replace underscores and multiple spaces
+            name = name.replace('_', ' ').strip()
+            name = re.sub(r'\s{2,}', ' ', name)
+            # Title-case if all lowercase
+            if name == name.lower():
+                name = name.title()
+            return name or filename
+
         def _enrich(e):
             """Enrich a library entry with dashboard display fields."""
             entry_dict = {**e.__dict__}
@@ -418,8 +434,8 @@ def create_app(analysis_path: str | None = None, audio_path: str | None = None,
             entry_dict["analysis_exists"] = Path(e.analysis_path).exists()
 
             # Title/artist: prefer stored values from library entry
-            title = e.title or e.filename
-            artist = e.artist or "Unknown"
+            title = e.title
+            artist = e.artist
             album = None
             genre = None
             year = None
@@ -438,43 +454,40 @@ def create_app(analysis_path: str | None = None, audio_path: str | None = None,
                 with open(e.analysis_path, "r", encoding="utf-8") as fh:
                     data = json.load(fh)
                 has_phonemes = data.get("phoneme_result") is not None
-                # Quality score from hierarchy validation
                 quality_score = (data.get("validation") or {}).get("overall_score")
-                # Song metadata from analysis JSON (fallback if not in library entry)
-                if title == e.filename or artist == "Unknown":
-                    song_meta = data.get("song") or {}
-                    if title == e.filename and song_meta.get("title"):
-                        title = song_meta["title"]
-                    if artist == "Unknown" and song_meta.get("artist"):
-                        artist = song_meta["artist"]
+                song_meta = data.get("song") or {}
+                if not title and song_meta.get("title"):
+                    title = song_meta["title"]
+                if not artist and song_meta.get("artist") and song_meta["artist"] != "Unknown":
+                    artist = song_meta["artist"]
             except Exception:
                 pass
 
-            # Story JSON: best source for Genius-resolved title/artist
-            if has_story and (title == e.filename or artist == "Unknown"):
+            # Story JSON: Genius-resolved title/artist
+            if has_story and (not title or not artist):
                 try:
                     story_data = json.loads(story_path.read_text(encoding="utf-8"))
                     song_meta = story_data.get("song") or {}
-                    if title == e.filename and song_meta.get("title"):
+                    if not title and song_meta.get("title"):
                         title = song_meta["title"]
-                    if artist == "Unknown" and song_meta.get("artist"):
+                    if not artist and song_meta.get("artist") and song_meta["artist"] != "Unknown":
                         artist = song_meta["artist"]
                 except Exception:
                     pass
 
-            # ID3 tags: remaining fallback + album, genre, year, cover art
+            # ID3 tags: album, genre, year, cover art + title/artist fallback
             if mp3.exists():
                 try:
                     import mutagen as _mutagen
                     mf = _mutagen.File(str(mp3))
                     if mf is not None and mf.tags is not None:
                         tags = mf.tags
-                        # Title/artist fallback
-                        if title == e.filename:
+                        # Title/artist from tags
+                        if not title:
                             v = tags.get("TIT2") or tags.get("title")
                             if v:
                                 title = str(v[0]) if isinstance(v, list) else str(v)
-                        if artist == "Unknown":
+                        if not artist:
                             v = tags.get("TPE1") or tags.get("artist")
                             if v:
                                 artist = str(v[0]) if isinstance(v, list) else str(v)
@@ -499,8 +512,8 @@ def create_app(analysis_path: str | None = None, audio_path: str | None = None,
                 except Exception:
                     pass
 
-            entry_dict["title"] = title
-            entry_dict["artist"] = artist
+            entry_dict["title"] = title or _clean_filename_title(e.filename)
+            entry_dict["artist"] = artist or "Unknown"
             entry_dict["album"] = album
             entry_dict["genre"] = genre
             entry_dict["year"] = year
