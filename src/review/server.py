@@ -516,6 +516,58 @@ def create_app(analysis_path: str | None = None, audio_path: str | None = None,
         }
         return jsonify(result)
 
+    @app.route("/library/debug")
+    def library_debug():
+        """Debug endpoint: show what metadata extraction finds for each song."""
+        from src.library import Library
+        entries = Library().all_entries()
+        results = []
+        for e in entries:
+            mp3 = Path(e.source_file)
+            info = {
+                "filename": e.filename,
+                "source_file": e.source_file,
+                "source_exists": mp3.exists(),
+                "analysis_path": e.analysis_path,
+                "analysis_exists": Path(e.analysis_path).exists(),
+                "stored_title": e.title,
+                "stored_artist": e.artist,
+            }
+            # Check story JSON
+            story_path = mp3.parent / (mp3.stem + "_story.json")
+            info["story_exists"] = story_path.exists()
+            if story_path.exists():
+                try:
+                    sd = json.loads(story_path.read_text(encoding="utf-8"))
+                    info["story_song"] = sd.get("song")
+                except Exception as exc:
+                    info["story_error"] = str(exc)
+            # Check analysis JSON
+            if Path(e.analysis_path).exists():
+                try:
+                    ad = json.loads(Path(e.analysis_path).read_text(encoding="utf-8"))
+                    info["analysis_song"] = ad.get("song")
+                except Exception as exc:
+                    info["analysis_error"] = str(exc)
+            # Check mutagen
+            if mp3.exists():
+                try:
+                    import mutagen as _mutagen
+                    mf = _mutagen.File(str(mp3))
+                    info["mutagen_type"] = type(mf).__name__ if mf else None
+                    info["mutagen_tags_type"] = type(mf.tags).__name__ if mf and mf.tags else None
+                    if mf and mf.tags:
+                        info["mutagen_keys"] = list(mf.tags.keys())[:20]
+                        # Try reading specific tags
+                        for key in ["TIT2", "TPE1", "TALB", "TCON", "TDRC", "TYER"]:
+                            v = mf.tags.get(key)
+                            if v:
+                                info[f"tag_{key}"] = str(v)
+                except Exception as exc:
+                    info["mutagen_error"] = str(exc)
+            results.append(info)
+        return jsonify(results)
+
     @app.route("/library/<source_hash>/cover")
     def library_cover(source_hash):
         """Serve embedded cover art from the MP3's tags."""
