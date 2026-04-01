@@ -7,7 +7,7 @@ import threading
 import time
 from pathlib import Path
 
-from flask import Flask, Response, jsonify, request, send_file, send_from_directory, stream_with_context
+from flask import Flask, Response, abort, jsonify, request, send_file, send_from_directory, stream_with_context
 from werkzeug.utils import secure_filename
 
 
@@ -420,6 +420,10 @@ def create_app(analysis_path: str | None = None, audio_path: str | None = None,
             # Title/artist: prefer stored values from library entry
             title = e.title or e.filename
             artist = e.artist or "Unknown"
+            album = None
+            genre = None
+            year = None
+            has_cover = False
             quality_score = None
             has_phonemes = False
             has_story = False
@@ -446,20 +450,40 @@ def create_app(analysis_path: str | None = None, audio_path: str | None = None,
             except Exception:
                 pass
 
-            # Fallback: try ID3 tags via mutagen
-            if title == e.filename or artist == "Unknown":
+            # ID3 tags: title/artist fallback + album, genre, year, cover art
+            if mp3.exists():
                 try:
-                    from mutagen.easyid3 import EasyID3
-                    tags = EasyID3(e.source_file)
-                    if title == e.filename and tags.get("title"):
-                        title = tags["title"][0]
-                    if artist == "Unknown" and tags.get("artist"):
-                        artist = tags["artist"][0]
+                    from mutagen.id3 import ID3 as _ID3
+                    tags = _ID3(str(mp3))
+                    if title == e.filename:
+                        v = tags.get("TIT2")
+                        if v:
+                            title = str(v)
+                    if artist == "Unknown":
+                        v = tags.get("TPE1")
+                        if v:
+                            artist = str(v)
+                    v = tags.get("TALB")
+                    if v:
+                        album = str(v)
+                    v = tags.get("TCON")
+                    if v:
+                        genre = str(v)
+                    v = tags.get("TDRC") or tags.get("TYER")
+                    if v:
+                        year = str(v)[:4]
+                    has_cover = any(
+                        k.startswith("APIC") for k in tags.keys()
+                    )
                 except Exception:
                     pass
 
             entry_dict["title"] = title
             entry_dict["artist"] = artist
+            entry_dict["album"] = album
+            entry_dict["genre"] = genre
+            entry_dict["year"] = year
+            entry_dict["has_cover"] = has_cover
             entry_dict["quality_score"] = quality_score
             entry_dict["has_phonemes"] = has_phonemes
             entry_dict["has_story"] = has_story
@@ -470,6 +494,24 @@ def create_app(analysis_path: str | None = None, audio_path: str | None = None,
             "entries": [_enrich(e) for e in entries],
         }
         return jsonify(result)
+
+    @app.route("/library/<source_hash>/cover")
+    def library_cover(source_hash):
+        """Serve embedded cover art from the MP3's ID3 APIC frame."""
+        from src.library import Library
+        entry = Library().find_by_hash(source_hash)
+        if entry is None:
+            abort(404)
+        try:
+            from mutagen.id3 import ID3 as _ID3
+            tags = _ID3(entry.source_file)
+            for key in tags.keys():
+                if key.startswith("APIC"):
+                    apic = tags[key]
+                    return Response(apic.data, mimetype=apic.mime or "image/jpeg")
+        except Exception:
+            pass
+        abort(404)
 
     @app.route("/library/<source_hash>", methods=["DELETE"])
     def library_delete(source_hash):

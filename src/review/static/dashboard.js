@@ -69,7 +69,9 @@
     if (q) {
       list = list.filter(function (e) {
         return (e.title || '').toLowerCase().indexOf(q) >= 0 ||
-               (e.artist || '').toLowerCase().indexOf(q) >= 0;
+               (e.artist || '').toLowerCase().indexOf(q) >= 0 ||
+               (e.album || '').toLowerCase().indexOf(q) >= 0 ||
+               (e.genre || '').toLowerCase().indexOf(q) >= 0;
       });
     }
     // Sort
@@ -131,9 +133,17 @@
       if (_expandedHash === e.source_hash) tr.classList.add('expanded');
       tr.dataset.hash = e.source_hash;
 
+      var coverHtml = e.has_cover
+        ? '<img class="cover-thumb" src="/library/' + esc(e.source_hash) + '/cover" alt="">'
+        : '<span class="cover-placeholder">&#9836;</span>';
+
       tr.innerHTML =
+        '<td class="col-cover">' + coverHtml + '</td>' +
         '<td class="song-title-cell">' + esc(e.title || e.filename) + '</td>' +
         '<td class="song-artist-cell">' + esc(e.artist || '') + '</td>' +
+        '<td class="song-album-cell">' + esc(e.album || '') + '</td>' +
+        '<td class="song-genre-cell">' + esc(e.genre || '') + '</td>' +
+        '<td class="col-num">' + esc(e.year || '') + '</td>' +
         '<td class="col-num">' + fmtDuration(e.duration_ms) + '</td>' +
         '<td class="col-num">' + fmtBpm(e.estimated_tempo_bpm) + '</td>' +
         '<td class="col-num">' + renderQuality(e.quality_score) + '</td>' +
@@ -420,8 +430,11 @@
         fetchLibrary();
 
         document.getElementById('btn-view-result').onclick = function () {
-          // Navigate to the story view for the most recent analysis
-          window.location.href = '/story-review';
+          if (data.story_path) {
+            window.location.href = '/story-review?path=' + encodeURIComponent(data.story_path);
+          } else {
+            window.location.href = '/timeline';
+          }
         };
         return;
       }
