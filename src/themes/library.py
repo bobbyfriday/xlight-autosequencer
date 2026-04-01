@@ -113,3 +113,58 @@ def load_theme_library(
                 logger.warning("Skipping malformed custom file '%s': %s", custom_file.name, exc)
 
     return ThemeLibrary(schema_version=schema_version, themes=themes)
+
+
+def _slugify(name: str) -> str:
+    """Convert a theme name to a filesystem-safe slug."""
+    import re
+    slug = name.lower().strip()
+    slug = re.sub(r"[^a-z0-9]+", "-", slug)
+    slug = slug.strip("-")
+    return slug or "theme"
+
+
+def save_custom_theme(
+    theme: Theme,
+    custom_dir: str | Path | None = None,
+) -> Path:
+    """Save a custom theme to ~/.xlight/custom_themes/{slug}.json."""
+    custom_dir = Path(custom_dir) if custom_dir else _DEFAULT_CUSTOM_DIR
+    custom_dir.mkdir(parents=True, exist_ok=True)
+
+    slug = _slugify(theme.name)
+    out_path = custom_dir / f"{slug}.json"
+
+    from dataclasses import asdict
+    data = asdict(theme)
+    out_path.write_text(
+        json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
+    return out_path
+
+
+def delete_custom_theme(
+    name: str,
+    custom_dir: str | Path | None = None,
+) -> None:
+    """Delete a custom theme file by name."""
+    custom_dir = Path(custom_dir) if custom_dir else _DEFAULT_CUSTOM_DIR
+
+    slug = _slugify(name)
+    target = custom_dir / f"{slug}.json"
+    if target.exists():
+        target.unlink()
+        return
+
+    # Fallback: scan by name field inside JSON files
+    if custom_dir.is_dir():
+        for f in custom_dir.glob("*.json"):
+            try:
+                data = json.loads(f.read_text(encoding="utf-8"))
+                if data.get("name", "").lower() == name.lower():
+                    f.unlink()
+                    return
+            except Exception:
+                continue
+
+    raise FileNotFoundError(f"Custom theme not found: {name}")

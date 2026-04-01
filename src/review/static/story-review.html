@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Song Story Review</title>
   <link rel="stylesheet" href="story-review.css">
+  <link rel="stylesheet" href="navbar.css">
 </head>
 <body>
 
@@ -12,7 +13,7 @@
 
   <div id="app" style="display:none;">
     <div id="toolbar">
-      <button id="back-btn" onclick="window.history.back()">&#8592; Back</button>
+      <button id="back-btn" onclick="window.location.href='/'">&#8592; Library</button>
       <span id="song-title">Song Story Review</span>
       <span class="toolbar-sep"></span>
       <button id="play-btn">&#9654; Play</button>
@@ -69,6 +70,7 @@
 
   <audio id="player" preload="auto"></audio>
 
+  <script src="navbar.js"></script>
   <script src="story-review.js?v=6"></script>
 </body>
 </html>

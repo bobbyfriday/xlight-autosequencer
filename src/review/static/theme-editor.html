@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Theme Editor — xLight</title>
+  <link rel="stylesheet" href="/navbar.css">
+  <link rel="stylesheet" href="/theme-editor.css">
+</head>
+<body>
+
+  <div class="theme-layout">
+    <!-- Left: theme list -->
+    <div class="theme-list-panel">
+      <div class="theme-list-header">
+        <h2>Themes</h2>
+        <button id="btn-new-theme" class="btn btn-primary btn-small">+ New Theme</button>
+      </div>
+      <div id="theme-list" class="theme-list"></div>
+    </div>
+
+    <!-- Right: detail/edit panel -->
+    <div class="theme-detail-panel">
+      <div id="detail-placeholder" class="detail-placeholder">
+        <p>Select a theme to view details</p>
+      </div>
+      <div id="theme-detail" class="theme-detail" style="display:none">
+        <div class="detail-header">
+          <h3 id="detail-name"></h3>
+          <div class="detail-header-actions">
+            <span id="detail-builtin-badge" class="badge-builtin" style="display:none">Built-in</span>
+            <button id="btn-duplicate" class="btn btn-small btn-secondary">Duplicate</button>
+            <button id="btn-edit" class="btn btn-small btn-primary" style="display:none">Edit</button>
+            <button id="btn-delete-theme" class="btn btn-small btn-danger" style="display:none">Delete</button>
+          </div>
+        </div>
+
+        <!-- View mode -->
+        <div id="view-mode">
+          <div class="detail-field">
+            <label>Mood</label>
+            <span id="view-mood"></span>
+          </div>
+          <div class="detail-field">
+            <label>Occasion</label>
+            <span id="view-occasion"></span>
+          </div>
+          <div class="detail-field">
+            <label>Genre</label>
+            <span id="view-genre"></span>
+          </div>
+          <div class="detail-field">
+            <label>Intent</label>
+            <span id="view-intent"></span>
+          </div>
+          <div class="detail-field">
+            <label>Palette</label>
+            <div id="view-palette" class="color-swatches"></div>
+          </div>
+          <div class="detail-field">
+            <label>Accent Palette</label>
+            <div id="view-accent" class="color-swatches"></div>
+          </div>
+          <div class="detail-field">
+            <label>Layers</label>
+            <div id="view-layers" class="layers-list"></div>
+          </div>
+        </div>
+
+        <!-- Edit mode -->
+        <div id="edit-mode" style="display:none">
+          <div class="detail-field">
+            <label for="edit-name">Name</label>
+            <input id="edit-name" type="text" class="field-input">
+          </div>
+          <div class="detail-field">
+            <label for="edit-mood">Mood</label>
+            <select id="edit-mood" class="field-input">
+              <option value="ethereal">Ethereal</option>
+              <option value="aggressive">Aggressive</option>
+              <option value="dark">Dark</option>
+              <option value="structural">Structural</option>
+            </select>
+          </div>
+          <div class="detail-field">
+            <label for="edit-occasion">Occasion</label>
+            <select id="edit-occasion" class="field-input">
+              <option value="general">General</option>
+              <option value="christmas">Christmas</option>
+              <option value="halloween">Halloween</option>
+            </select>
+          </div>
+          <div class="detail-field">
+            <label for="edit-genre">Genre</label>
+            <select id="edit-genre" class="field-input">
+              <option value="any">Any</option>
+              <option value="rock">Rock</option>
+              <option value="pop">Pop</option>
+              <option value="classical">Classical</option>
+            </select>
+          </div>
+          <div class="detail-field">
+            <label for="edit-intent">Intent</label>
+            <textarea id="edit-intent" class="field-input field-textarea" rows="2"></textarea>
+          </div>
+          <div class="detail-field">
+            <label>Palette <button id="btn-add-color" class="btn-icon" title="Add color">+</button></label>
+            <div id="edit-palette" class="color-edit-row"></div>
+          </div>
+          <div class="detail-field">
+            <label>Accent Palette <button id="btn-add-accent" class="btn-icon" title="Add accent">+</button></label>
+            <div id="edit-accent" class="color-edit-row"></div>
+          </div>
+          <div class="edit-actions">
+            <button id="btn-save" class="btn btn-primary">Save</button>
+            <button id="btn-cancel" class="btn btn-secondary">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/navbar.js"></script>
+  <script src="/theme-editor.js"></script>
+</body>
+</html>
