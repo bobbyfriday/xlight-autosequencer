@@ -160,15 +160,47 @@ def profile_section(start_ms: int, end_ms: int, hierarchy: dict) -> dict:
         texture = "balanced"
 
     # ── Spectral brightness ──────────────────────────────────────────────────
-    spectral_brightness_map = {"high": "bright", "medium": "neutral", "low": "dark"}
-    spectral_brightness = spectral_brightness_map[energy_level]
+    # Compute from actual stem balance: high-frequency stems (guitar, piano,
+    # vocals) vs low-frequency stems (bass, drums). A section dominated by
+    # treble instruments is "bright" regardless of overall energy level.
+    treble_stems = ["guitar", "piano", "vocals"]
+    low_stems = ["bass", "drums"]
+    treble_energy = sum(_stem_mean_in_range(s) for s in treble_stems)
+    low_energy = sum(_stem_mean_in_range(s) for s in low_stems)
+    total_stem_energy = treble_energy + low_energy
 
-    # ── Spectral centroid and flatness ───────────────────────────────────────
-    spectral_centroid_hz_map = {"high": 3500, "medium": 2000, "low": 800}
-    spectral_centroid_hz = spectral_centroid_hz_map[energy_level]
+    if total_stem_energy > 0:
+        treble_ratio = treble_energy / total_stem_energy
+    else:
+        treble_ratio = 0.5  # no data → neutral
 
-    spectral_flatness_map = {"percussive": 0.6, "harmonic": 0.2, "balanced": 0.4}
-    spectral_flatness = float(spectral_flatness_map[texture])
+    if treble_ratio > 0.65:
+        spectral_brightness = "bright"
+    elif treble_ratio < 0.35:
+        spectral_brightness = "dark"
+    else:
+        spectral_brightness = "neutral"
+
+    # ── Spectral centroid (estimated from stem balance) ──────────────────────
+    # Map treble_ratio (0–1) to approximate centroid Hz range (300–5000)
+    spectral_centroid_hz = int(300 + treble_ratio * 4700)
+
+    # ── Spectral flatness (from spectral flux variation) ────────────────────
+    # High spectral flux variance → tonal (peaky spectrum) → low flatness
+    # Low variance → noise-like (flat spectrum) → high flatness
+    sf_curve = hierarchy.get("spectral_flux", {})
+    sf_vals = sf_curve.get("values", [])
+    sf_fps = float(sf_curve.get("fps") or sf_curve.get("sample_rate") or 10.0)
+    sf_frames = _get_frames_in_range(sf_vals, sf_fps, start_ms, end_ms)
+    if sf_frames:
+        sf_mean = _mean(sf_frames)
+        sf_std = _stddev(sf_frames)
+        # Coefficient of variation: high CV → tonal, low CV → flat/noisy
+        sf_cv = sf_std / sf_mean if sf_mean > 0 else 0.0
+        spectral_flatness = float(max(0.0, min(1.0, 1.0 - sf_cv)))
+    else:
+        spectral_flatness_map = {"percussive": 0.6, "harmonic": 0.2, "balanced": 0.4}
+        spectral_flatness = float(spectral_flatness_map[texture])
 
     # ── Onset density ────────────────────────────────────────────────────────
     events: dict = hierarchy.get("events", {})
@@ -264,44 +296,134 @@ def profile_section(start_ms: int, end_ms: int, hierarchy: dict) -> dict:
                 break
 
     # ── Drum pattern ─────────────────────────────────────────────────────────
+    # Demucs routes some bass drum energy to the "bass" stem, so include bass
+    # onset count as a proxy for low-frequency percussive hits.
     drum_events = events.get("drums")
+    bass_events = events.get("bass")
     drum_pattern = None
+
+    def _count_marks_in_section(evt, label_filter=None):
+        if not evt or not isinstance(evt, dict):
+            return 0
+        marks = evt.get("marks", [])
+        return sum(1 for m in marks
+                   if start_ms <= m.get("time_ms", -1) < end_ms
+                   and (label_filter is None or m.get("label") == label_filter))
+
     if drum_events and isinstance(drum_events, dict):
         drum_marks = drum_events.get("marks", [])
         section_drum_marks = [
             m for m in drum_marks if start_ms <= m.get("time_ms", -1) < end_ms
         ]
-        if section_drum_marks:
-            kick_count = sum(1 for m in section_drum_marks if m.get("label") == "kick")
-            snare_count = sum(1 for m in section_drum_marks if m.get("label") == "snare")
-            hihat_count = sum(1 for m in section_drum_marks if m.get("label") == "hihat")
-            total_count = len(section_drum_marks)
-            total_density = float(total_count / duration_sec) if duration_sec > 0 else 0.0
 
-            # Dominant element
-            element_counts = {"kick": kick_count, "snare": snare_count, "hihat": hihat_count}
-            dominant_element = max(element_counts, key=lambda e: element_counts[e])
+        kick_count = sum(1 for m in section_drum_marks if m.get("label") == "kick")
+        snare_count = sum(1 for m in section_drum_marks if m.get("label") == "snare")
+        hihat_count = sum(1 for m in section_drum_marks if m.get("label") == "hihat")
+        total_drum_count = len(section_drum_marks)
 
-            # Style
-            if total_density < 1.0:
-                style = "sparse"
-            elif total_count > 0 and kick_count / total_count > 0.5:
-                style = "driving"
-            elif total_count > 0 and snare_count / total_count > 0.4:
-                style = "fills"
-            elif total_count > 0 and hihat_count / total_count > 0.6:
-                style = "riding"
-            else:
-                style = "balanced"
+        # Bass onsets as proxy for sub-bass kick hits (demucs routes bass drums here)
+        bass_onset_count = _count_marks_in_section(bass_events)
 
-            drum_pattern = {
-                "kick_count": kick_count,
-                "snare_count": snare_count,
-                "hihat_count": hihat_count,
-                "total_density": total_density,
-                "dominant_element": dominant_element,
-                "style": style,
-            }
+        # Combined percussion = drum onsets + bass onsets (deduplicated by density)
+        combined_count = total_drum_count + bass_onset_count
+        combined_density = float(combined_count / duration_sec) if duration_sec > 0 else 0.0
+        drum_density = float(total_drum_count / duration_sec) if duration_sec > 0 else 0.0
+
+        # Drum energy from the curves (for intensity measure)
+        drum_energy = _stem_mean_in_range("drums")
+        bass_energy = _stem_mean_in_range("bass")
+
+        # Dominant element
+        element_counts = {"kick": kick_count, "snare": snare_count, "hihat": hihat_count}
+        dominant_element = max(element_counts, key=lambda e: element_counts[e])
+
+        # Style classification
+        kick_ratio = kick_count / total_drum_count if total_drum_count > 0 else 0
+        snare_ratio = snare_count / total_drum_count if total_drum_count > 0 else 0
+        hihat_ratio = hihat_count / total_drum_count if total_drum_count > 0 else 0
+
+        # "kick_heavy": pronounced bass drum — either high kick ratio with
+        # strong drum/bass energy, or very few onsets but high bass energy
+        # (sub-bass drops that demucs puts in bass stem)
+        bass_dominant = bass_energy > drum_energy * 1.5
+        kick_dominant = kick_ratio > 0.6
+
+        if combined_density < 0.3:
+            style = "sparse"
+        elif kick_dominant and (drum_energy > 20 or bass_energy > 20):
+            style = "kick_heavy"
+        elif bass_dominant and combined_density > 0.5:
+            style = "kick_heavy"  # sub-bass hits via bass stem
+        elif kick_ratio > 0.5:
+            style = "driving"
+        elif snare_ratio > 0.4:
+            style = "fills"
+        elif hihat_ratio > 0.6:
+            style = "riding"
+        else:
+            style = "balanced"
+
+        # ── Detect big hits: dramatic accents that break the drum pattern ──
+        # Strategy: find all local peaks, compute median peak intensity, then
+        # keep only peaks that are outliers (well above the typical beat level).
+        # Regular rhythmic kicks at consistent volume are the beat, not big hits.
+        drum_curve = energy_curves.get("drums", {})
+        drum_vals = drum_curve.get("values", [])
+        drum_fps = float(drum_curve.get("fps") or drum_curve.get("sample_rate") or 10.0)
+        big_hits: list[dict] = []
+
+        if drum_vals and drum_energy > 0:
+            si_curve = int(start_ms / 1000 * drum_fps)
+            ei_curve = int(end_ms / 1000 * drum_fps)
+            section_drum_vals = drum_vals[si_curve:ei_curve]
+
+            if section_drum_vals:
+                # Step 1: Find ALL local peaks (above a low floor)
+                window = max(1, int(drum_fps * 0.15))
+                min_gap = int(drum_fps * 0.3)
+                floor = 20  # ignore noise
+                all_peaks: list[tuple[int, int]] = []  # (time_ms, intensity)
+
+                i = si_curve
+                while i < min(ei_curve, len(drum_vals)):
+                    chunk = drum_vals[i:i + window]
+                    peak = max(chunk) if chunk else 0
+                    if peak >= floor:
+                        hit_ms = int(i / drum_fps * 1000)
+                        all_peaks.append((hit_ms, int(peak)))
+                        i += max(window, min_gap)
+                    else:
+                        i += 1
+
+                # Step 2: Compute median peak intensity — this is the "normal beat" level
+                if len(all_peaks) >= 3:
+                    sorted_intensities = sorted(p[1] for p in all_peaks)
+                    median_intensity = sorted_intensities[len(sorted_intensities) // 2]
+                    p75 = sorted_intensities[int(len(sorted_intensities) * 0.75)]
+
+                    # A big hit must exceed the 75th percentile by at least 30%,
+                    # AND be at least 50 absolute (to avoid noise in quiet sections)
+                    big_threshold = max(p75 * 1.3, median_intensity * 1.8, 50)
+
+                    big_hits = [
+                        {"time_ms": t, "intensity": v}
+                        for t, v in all_peaks if v >= big_threshold
+                    ]
+
+        drum_pattern = {
+            "kick_count": kick_count,
+            "snare_count": snare_count,
+            "hihat_count": hihat_count,
+            "bass_onset_count": bass_onset_count,
+            "total_density": drum_density,
+            "combined_density": combined_density,
+            "drum_energy": round(drum_energy, 1),
+            "bass_energy": round(bass_energy, 1),
+            "dominant_element": dominant_element,
+            "style": style,
+            "big_hits": big_hits,
+            "big_hit_count": len(big_hits),
+        }
 
     # ── Tightness ─────────────────────────────────────────────────────────────
     drums_active = "drums" in active_stems

@@ -438,6 +438,29 @@ function renderTimeline() {
     }
   });
 
+  // ── Draw big hit markers ──
+  // Small triangles/ticks at the bottom of the timeline for each big drum hit
+  sections.forEach((section) => {
+    const dp = (section.stems || {}).drum_pattern;
+    if (!dp || !dp.big_hits) return;
+    dp.big_hits.forEach((hit) => {
+      const hx = timeToX(hit.time_ms / 1000, W);
+      if (hx < -2 || hx > W + 2) return;
+      const intensity = (hit.intensity || 50) / 100;
+      ctx.save();
+      ctx.globalAlpha = 0.5 + intensity * 0.5;
+      ctx.fillStyle = "#ff4444";
+      // Small upward triangle at the bottom
+      ctx.beginPath();
+      ctx.moveTo(hx, H);
+      ctx.lineTo(hx - 3, H - 6);
+      ctx.lineTo(hx + 3, H - 6);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    });
+  });
+
   // Register click + wheel + drag handlers once
   if (!_timelineClickBound) {
     canvas.addEventListener("click", onTimelineClick);
@@ -564,6 +587,30 @@ function renderStemTracks() {
     ctx.lineTo(x, H);
     ctx.stroke();
   });
+
+  // ── Draw big hit markers on the drums track ──
+  const drumsTrackIdx = STEM_TRACK_NAMES.indexOf("drums");
+  if (drumsTrackIdx >= 0) {
+    const dTrackY = drumsTrackIdx * trackH;
+    sections.forEach((section) => {
+      const dp = (section.stems || {}).drum_pattern;
+      if (!dp || !dp.big_hits) return;
+      dp.big_hits.forEach((hit) => {
+        const hx = timeToX(hit.time_ms / 1000, W);
+        if (hx < -2 || hx > W + 2) return;
+        const intensity = (hit.intensity || 50) / 100;
+        ctx.save();
+        ctx.globalAlpha = 0.3 + intensity * 0.5;
+        ctx.strokeStyle = "#ff4444";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(hx, dTrackY + 2);
+        ctx.lineTo(hx, dTrackY + trackH - 2);
+        ctx.stroke();
+        ctx.restore();
+      });
+    });
+  }
 
   // Highlight current section (zoom-aware)
   if (sections[state.currentSectionIdx]) {
@@ -811,7 +858,10 @@ function renderSectionDetail(idx) {
     ["Tempo",       char.local_tempo_bpm ? `${char.local_tempo_bpm.toFixed(1)} bpm` : "—"],
     ["Vocals",      stems.vocals_active ? "yes" : "no"],
     ["Dominant stem", stems.dominant_stem || "—"],
-    ["Drum style",  stems.drum_pattern ? stems.drum_pattern.style : "—"],
+    ["Drum style",  stems.drum_pattern ? stems.drum_pattern.style.replace(/_/g, " ") : "—"],
+    ["Big hits",    stems.drum_pattern && stems.drum_pattern.big_hit_count > 0
+                    ? `${stems.drum_pattern.big_hit_count} hits`
+                    : "—"],
     ["Active tiers", lighting.active_tiers ? lighting.active_tiers.join(", ") : "—"],
     ["Brightness ceil.", lighting.brightness_ceiling != null ? `${(lighting.brightness_ceiling * 100).toFixed(0)}%` : "—"],
     ["Moments",     `${lighting.moment_count ?? 0} (${lighting.moment_pattern || "isolated"})`],
