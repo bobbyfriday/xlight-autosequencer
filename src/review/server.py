@@ -237,6 +237,51 @@ def _run_analysis(app: Flask, job: AnalysisJob) -> None:
                 except Exception as exc:
                     job.record_warning(f"Story building failed: {exc}")
 
+            # Update library entry with resolved title/artist
+            try:
+                from src.library import Library
+                _title = None
+                _artist = None
+                # Prefer story metadata (Genius-resolved)
+                if story_path:
+                    try:
+                        _story = json.loads(Path(story_path).read_text(encoding="utf-8"))
+                        _song = _story.get("song") or {}
+                        _title = _song.get("title") or None
+                        _artist = _song.get("artist") or None
+                    except Exception:
+                        pass
+                # Fallback: hierarchy JSON song metadata
+                if not _title or not _artist:
+                    try:
+                        _hier = json.loads(Path(out_path).read_text(encoding="utf-8"))
+                        _song = _hier.get("song") or {}
+                        if not _title:
+                            _title = _song.get("title") or None
+                        if not _artist:
+                            _artist = _song.get("artist") or None
+                    except Exception:
+                        pass
+                # Fallback: ID3 tags
+                if not _title or not _artist:
+                    try:
+                        from mutagen.easyid3 import EasyID3
+                        tags = EasyID3(str(mp3))
+                        if not _title and tags.get("title"):
+                            _title = tags["title"][0]
+                        if not _artist and tags.get("artist"):
+                            _artist = tags["artist"][0]
+                    except Exception:
+                        pass
+                if _title or _artist:
+                    existing = Library().find_by_hash(result.source_hash)
+                    if existing:
+                        existing.title = _title
+                        existing.artist = _artist
+                        Library().upsert(existing)
+            except Exception:
+                pass
+
             with job.lock:
                 job.result_path = out_path
                 job.story_path = story_path
@@ -372,12 +417,17 @@ def create_app(analysis_path: str | None = None, audio_path: str | None = None,
             entry_dict["file_exists"] = entry_dict["source_file_exists"]
             entry_dict["analysis_exists"] = Path(e.analysis_path).exists()
 
-            # Title/artist from analysis JSON (Genius cache or ID3 tags)
-            title = e.filename
-            artist = "Unknown"
+            # Title/artist: prefer stored values from library entry
+            title = e.title or e.filename
+            artist = e.artist or "Unknown"
             quality_score = None
             has_phonemes = False
             has_story = False
+
+            # Check for story file (independent of analysis file)
+            mp3 = Path(e.source_file)
+            story_path = mp3.parent / (mp3.stem + "_story.json")
+            has_story = story_path.exists()
 
             try:
                 with open(e.analysis_path, "r", encoding="utf-8") as fh:
@@ -385,16 +435,13 @@ def create_app(analysis_path: str | None = None, audio_path: str | None = None,
                 has_phonemes = data.get("phoneme_result") is not None
                 # Quality score from hierarchy validation
                 quality_score = (data.get("validation") or {}).get("overall_score")
-                # Song metadata from story or song_structure
-                song_meta = data.get("song") or {}
-                if song_meta.get("title"):
-                    title = song_meta["title"]
-                if song_meta.get("artist"):
-                    artist = song_meta["artist"]
-                # Check for story file
-                mp3 = Path(e.source_file)
-                story_path = mp3.parent / (mp3.stem + "_story.json")
-                has_story = story_path.exists()
+                # Song metadata from analysis JSON (fallback if not in library entry)
+                if title == e.filename or artist == "Unknown":
+                    song_meta = data.get("song") or {}
+                    if title == e.filename and song_meta.get("title"):
+                        title = song_meta["title"]
+                    if artist == "Unknown" and song_meta.get("artist"):
+                        artist = song_meta["artist"]
             except Exception:
                 pass
 
@@ -566,7 +613,11 @@ def create_app(analysis_path: str | None = None, audio_path: str | None = None,
         job.build_story = False
         job.status = "done"
         job.result_path = entry.analysis_path
-        job.story_path = None
+        # Resolve story path from source file
+        mp3 = Path(entry.source_file)
+        story_path = mp3.parent / (mp3.stem + "_story.json")
+        story_path_str = str(story_path) if story_path.exists() else None
+        job.story_path = story_path_str
         job.events = []
         job.total = 0
         job.error_message = None
@@ -576,7 +627,7 @@ def create_app(analysis_path: str | None = None, audio_path: str | None = None,
         job.genius_title = None
         with _job_lock:
             _current_job = job
-        return jsonify({"ok": True}), 200
+        return jsonify({"ok": True, "story_path": story_path_str}), 200
 
     @app.route("/hierarchy-library")
     def hierarchy_library():

@@ -141,10 +141,10 @@
         '<td class="col-num">' + fmtDate(e.analyzed_at) + '</td>' +
         '<td class="col-actions"><button class="btn-expand" data-hash="' + esc(e.source_hash) + '">Details</button></td>';
 
-      // Click row to go to timeline (but not on buttons)
+      // Click row to go to story view (but not on buttons)
       tr.addEventListener('click', function (ev) {
         if (ev.target.tagName === 'BUTTON') return;
-        openSong(e.source_hash, 'timeline');
+        openSong(e.source_hash, 'story');
       });
 
       tb.appendChild(tr);
@@ -239,9 +239,17 @@
   function openSong(hash, tool) {
     // First, set current job to this library entry
     fetch('/open-from-library?hash=' + hash, { method: 'POST' })
-      .then(function () {
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
         if (tool === 'timeline') window.location.href = '/timeline?hash=' + hash;
-        else if (tool === 'story') window.location.href = '/story-review?hash=' + hash;
+        else if (tool === 'story') {
+          if (data.story_path) {
+            window.location.href = '/story-review?path=' + encodeURIComponent(data.story_path);
+          } else {
+            // No story file — fall back to timeline
+            window.location.href = '/timeline?hash=' + hash;
+          }
+        }
         else if (tool === 'phonemes') window.location.href = '/phonemes-view?hash=' + hash;
       });
   }
@@ -347,7 +355,7 @@
       if (existing && dup) {
         dup.style.display = '';
         document.getElementById('btn-go-existing').onclick = function () {
-          openSong(existing.source_hash, 'timeline');
+          openSong(existing.source_hash, 'story');
         };
         document.getElementById('btn-reanalyze').onclick = startAnalysis;
       } else if (dup) {
@@ -416,8 +424,8 @@
         fetchLibrary();
 
         document.getElementById('btn-view-result').onclick = function () {
-          // Navigate to the timeline for the most recent analysis
-          window.location.href = '/timeline';
+          // Navigate to the story view for the most recent analysis
+          window.location.href = '/story-review';
         };
         return;
       }

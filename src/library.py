@@ -24,6 +24,8 @@ class LibraryEntry:
     analyzed_at: int  # Unix timestamp in milliseconds
     relative_source_file: Optional[str] = None   # show-dir-relative (cross-env portable)
     relative_analysis_path: Optional[str] = None  # show-dir-relative (cross-env portable)
+    title: Optional[str] = None
+    artist: Optional[str] = None
 
 
 def _entry_from_dict(d: dict) -> LibraryEntry:
@@ -40,6 +42,8 @@ def _entry_from_dict(d: dict) -> LibraryEntry:
         analyzed_at=d["analyzed_at"],
         relative_source_file=d.get("relative_source_file"),
         relative_analysis_path=d.get("relative_analysis_path"),
+        title=d.get("title"),
+        artist=d.get("artist"),
     )
 
 
