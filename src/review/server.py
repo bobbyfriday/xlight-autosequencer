@@ -450,31 +450,52 @@ def create_app(analysis_path: str | None = None, audio_path: str | None = None,
             except Exception:
                 pass
 
-            # ID3 tags: title/artist fallback + album, genre, year, cover art
+            # Story JSON: best source for Genius-resolved title/artist
+            if has_story and (title == e.filename or artist == "Unknown"):
+                try:
+                    story_data = json.loads(story_path.read_text(encoding="utf-8"))
+                    song_meta = story_data.get("song") or {}
+                    if title == e.filename and song_meta.get("title"):
+                        title = song_meta["title"]
+                    if artist == "Unknown" and song_meta.get("artist"):
+                        artist = song_meta["artist"]
+                except Exception:
+                    pass
+
+            # ID3 tags: remaining fallback + album, genre, year, cover art
             if mp3.exists():
                 try:
-                    from mutagen.id3 import ID3 as _ID3
-                    tags = _ID3(str(mp3))
-                    if title == e.filename:
-                        v = tags.get("TIT2")
+                    import mutagen as _mutagen
+                    mf = _mutagen.File(str(mp3))
+                    if mf is not None and mf.tags is not None:
+                        tags = mf.tags
+                        # Title/artist fallback
+                        if title == e.filename:
+                            v = tags.get("TIT2") or tags.get("title")
+                            if v:
+                                title = str(v[0]) if isinstance(v, list) else str(v)
+                        if artist == "Unknown":
+                            v = tags.get("TPE1") or tags.get("artist")
+                            if v:
+                                artist = str(v[0]) if isinstance(v, list) else str(v)
+                        # Album
+                        v = tags.get("TALB") or tags.get("album")
                         if v:
-                            title = str(v)
-                    if artist == "Unknown":
-                        v = tags.get("TPE1")
+                            album = str(v[0]) if isinstance(v, list) else str(v)
+                        # Genre
+                        v = tags.get("TCON") or tags.get("genre")
                         if v:
-                            artist = str(v)
-                    v = tags.get("TALB")
-                    if v:
-                        album = str(v)
-                    v = tags.get("TCON")
-                    if v:
-                        genre = str(v)
-                    v = tags.get("TDRC") or tags.get("TYER")
-                    if v:
-                        year = str(v)[:4]
-                    has_cover = any(
-                        k.startswith("APIC") for k in tags.keys()
-                    )
+                            genre = str(v[0]) if isinstance(v, list) else str(v)
+                        # Year
+                        v = tags.get("TDRC") or tags.get("TYER") or tags.get("date")
+                        if v:
+                            year = (str(v[0]) if isinstance(v, list) else str(v))[:4]
+                        # Cover art
+                        has_cover = any(
+                            k.startswith("APIC") for k in tags.keys()
+                        ) if hasattr(tags, 'keys') else False
+                        if not has_cover and hasattr(mf, 'pictures'):
+                            has_cover = len(mf.pictures) > 0
                 except Exception:
                     pass
 
@@ -497,18 +518,24 @@ def create_app(analysis_path: str | None = None, audio_path: str | None = None,
 
     @app.route("/library/<source_hash>/cover")
     def library_cover(source_hash):
-        """Serve embedded cover art from the MP3's ID3 APIC frame."""
+        """Serve embedded cover art from the MP3's tags."""
         from src.library import Library
         entry = Library().find_by_hash(source_hash)
         if entry is None:
             abort(404)
         try:
-            from mutagen.id3 import ID3 as _ID3
-            tags = _ID3(entry.source_file)
-            for key in tags.keys():
-                if key.startswith("APIC"):
-                    apic = tags[key]
-                    return Response(apic.data, mimetype=apic.mime or "image/jpeg")
+            import mutagen as _mutagen
+            mf = _mutagen.File(entry.source_file)
+            if mf is not None and mf.tags is not None:
+                # ID3v2 APIC frames
+                for key in mf.tags.keys():
+                    if key.startswith("APIC"):
+                        apic = mf.tags[key]
+                        return Response(apic.data, mimetype=apic.mime or "image/jpeg")
+                # FLAC/OGG style pictures
+                if hasattr(mf, 'pictures') and mf.pictures:
+                    pic = mf.pictures[0]
+                    return Response(pic.data, mimetype=pic.mime or "image/jpeg")
         except Exception:
             pass
         abort(404)
