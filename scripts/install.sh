@@ -264,6 +264,9 @@ source "$REPO_ROOT/venv/bin/activate"
 
 echo "  Installing main package and dependencies..."
 pip install --quiet --upgrade pip
+# Always re-install in editable mode to pick up branch changes and clear stale bytecode
+find "$REPO_ROOT/src" -name '__pycache__' -type d -exec rm -rf {} + 2>/dev/null || true
+pip install --quiet --force-reinstall --no-deps -e "$REPO_ROOT"
 pip install --quiet -e "$REPO_ROOT"
 ok "Main package installed"
 

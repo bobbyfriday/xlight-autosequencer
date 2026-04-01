@@ -32,6 +32,11 @@ if [[ -z "${VIRTUAL_ENV:-}" && -f "$REPO_ROOT/venv/bin/activate" ]]; then
   source "$REPO_ROOT/venv/bin/activate"
 fi
 
+# ── Ensure editable install matches checked-out code ──────────────────────────
+# Clear stale bytecache and re-install so branch switches take effect immediately
+find "$REPO_ROOT/src" -name '__pycache__' -type d -exec rm -rf {} + 2>/dev/null || true
+pip install --quiet --no-deps -e "$REPO_ROOT" 2>/dev/null || true
+
 # ── Pre-flight checks ──────────────────────────────────────────────────────────
 echo ""
 echo "Pre-flight checks"
