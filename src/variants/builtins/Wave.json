@@ -2,12 +2,11 @@
   "effect": "Wave",
   "variants": [
     {
-      "name": "Wave Left Sine",
+      "name": "Wave Sine Horizontal",
       "base_effect": "Wave",
       "description": "Wave variant from professional sequences. Used on Cube, Horiz Matrix props across 2 packages.",
       "parameter_overrides": {
         "E_CHECKBOX_Mirror_Wave": 0,
-        "E_CHOICE_Wave_Direction": "Left to Right",
         "E_CHOICE_Wave_Type": "Sine",
         "E_SLIDER_Wave_YOffset": 0
       },
@@ -15,19 +14,26 @@
         "tier_affinity": null,
         "energy_level": null,
         "speed_feel": null,
-        "direction": "left",
+        "direction": "horizontal",
         "section_roles": [],
         "scope": "single-prop",
         "genre_affinity": "any"
+      },
+      "direction_cycle": {
+        "param": "E_CHOICE_Wave_Direction",
+        "values": [
+          "Left to Right",
+          "Right to Left"
+        ],
+        "mode": "alternate"
       }
     },
     {
-      "name": "Wave Left Sine Mirror",
+      "name": "Wave Sine Mirror Horizontal",
       "base_effect": "Wave",
       "description": "Wave variant from professional sequences. Used on Horiz Matrix props across 2 packages.",
       "parameter_overrides": {
         "E_CHECKBOX_Mirror_Wave": 1,
-        "E_CHOICE_Wave_Direction": "Left to Right",
         "E_CHOICE_Wave_Type": "Sine",
         "E_SLIDER_Wave_Height": 19,
         "E_SLIDER_Wave_YOffset": 0
@@ -36,19 +42,26 @@
         "tier_affinity": null,
         "energy_level": null,
         "speed_feel": null,
-        "direction": "left",
+        "direction": "horizontal",
         "section_roles": [],
         "scope": "single-prop",
         "genre_affinity": "any"
+      },
+      "direction_cycle": {
+        "param": "E_CHOICE_Wave_Direction",
+        "values": [
+          "Left to Right",
+          "Right to Left"
+        ],
+        "mode": "alternate"
       }
     },
     {
-      "name": "Wave Right Sine",
+      "name": "Wave Sine Horizontal A",
       "base_effect": "Wave",
       "description": "Wave variant from professional sequences. Used on Circle, Custom, Horiz Matrix props across 3 packages.",
       "parameter_overrides": {
         "E_CHECKBOX_Mirror_Wave": 0,
-        "E_CHOICE_Wave_Direction": "Right to Left",
         "E_CHOICE_Wave_Type": "Sine",
         "E_SLIDER_Wave_Height": 50,
         "E_SLIDER_Wave_YOffset": 0
@@ -57,60 +70,26 @@
         "tier_affinity": null,
         "energy_level": null,
         "speed_feel": null,
-        "direction": "right",
+        "direction": "horizontal",
         "section_roles": [],
         "scope": "single-prop",
         "genre_affinity": "any"
-      }
-    },
-    {
-      "name": "Wave Right Sine A",
-      "base_effect": "Wave",
-      "description": "Wave variant from professional sequences. Used on Cube, Horiz Matrix props across 2 packages.",
-      "parameter_overrides": {
-        "E_CHECKBOX_Mirror_Wave": 0,
-        "E_CHOICE_Wave_Direction": "Right to Left",
-        "E_CHOICE_Wave_Type": "Sine",
-        "E_SLIDER_Wave_YOffset": 0
       },
-      "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": null,
-        "direction": "right",
-        "section_roles": [],
-        "scope": "single-prop",
-        "genre_affinity": "any"
+      "direction_cycle": {
+        "param": "E_CHOICE_Wave_Direction",
+        "values": [
+          "Left to Right",
+          "Right to Left"
+        ],
+        "mode": "alternate"
       }
     },
     {
-      "name": "Wave Right Sine Mirror",
-      "base_effect": "Wave",
-      "description": "Wave variant from professional sequences. Used on Horiz Matrix props across 2 packages.",
-      "parameter_overrides": {
-        "E_CHECKBOX_Mirror_Wave": 1,
-        "E_CHOICE_Wave_Direction": "Right to Left",
-        "E_CHOICE_Wave_Type": "Sine",
-        "E_SLIDER_Wave_Height": 19,
-        "E_SLIDER_Wave_YOffset": 0
-      },
-      "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": null,
-        "direction": "right",
-        "section_roles": [],
-        "scope": "single-prop",
-        "genre_affinity": "any"
-      }
-    },
-    {
-      "name": "Wave Right Square Mirror",
+      "name": "Wave Square Mirror Horizontal",
       "base_effect": "Wave",
       "description": "Wave variant from professional sequences. Used on Tree 180, Tree 360 props across 2 packages.",
       "parameter_overrides": {
         "E_CHECKBOX_Mirror_Wave": 1,
-        "E_CHOICE_Wave_Direction": "Right to Left",
         "E_CHOICE_Wave_Type": "Square",
         "E_SLIDER_Wave_Height": 50,
         "E_SLIDER_Wave_YOffset": 0
@@ -119,10 +98,18 @@
         "tier_affinity": null,
         "energy_level": null,
         "speed_feel": null,
-        "direction": "right",
+        "direction": "horizontal",
         "section_roles": [],
         "scope": "single-prop",
         "genre_affinity": "any"
+      },
+      "direction_cycle": {
+        "param": "E_CHOICE_Wave_Direction",
+        "values": [
+          "Left to Right",
+          "Right to Left"
+        ],
+        "mode": "alternate"
       }
     }
   ]

@@ -254,3 +254,79 @@ class TestConstants:
 
     def test_scopes(self):
         assert set(VALID_SCOPES) == {"single-prop", "group"}
+
+
+class TestDirectionCycle:
+    def test_direction_cycle_from_dict(self):
+        data = {
+            "name": "Wave Sine Horizontal",
+            "base_effect": "Wave",
+            "description": "Horizontal wave",
+            "parameter_overrides": {"E_CHECKBOX_Mirror_Wave": 0},
+            "tags": {"direction": "horizontal"},
+            "direction_cycle": {
+                "param": "E_CHOICE_Wave_Direction",
+                "values": ["Left to Right", "Right to Left"],
+                "mode": "alternate",
+            },
+        }
+        v = EffectVariant.from_dict(data)
+        assert v.direction_cycle is not None
+        assert v.direction_cycle["param"] == "E_CHOICE_Wave_Direction"
+        assert v.direction_cycle["values"] == ["Left to Right", "Right to Left"]
+        assert v.direction_cycle["mode"] == "alternate"
+
+    def test_direction_cycle_to_dict(self):
+        v = EffectVariant(
+            name="Bars 4-Bar 3D Vertical",
+            base_effect="Bars",
+            description="Vertical bars",
+            parameter_overrides={"E_CHECKBOX_Bars_3D": 1},
+            tags=VariantTags(direction="vertical"),
+            direction_cycle={
+                "param": "E_CHOICE_Bars_Direction",
+                "values": ["up", "down"],
+                "mode": "alternate",
+            },
+        )
+        d = v.to_dict()
+        assert "direction_cycle" in d
+        assert d["direction_cycle"]["param"] == "E_CHOICE_Bars_Direction"
+        assert d["direction_cycle"]["values"] == ["up", "down"]
+        assert d["direction_cycle"]["mode"] == "alternate"
+
+    def test_direction_cycle_none_by_default(self):
+        data = {
+            "name": "Fire Blaze",
+            "base_effect": "Fire",
+            "description": "A fire effect",
+            "parameter_overrides": {"E_SLIDER_Fire_Height": 80},
+            "tags": {},
+        }
+        v = EffectVariant.from_dict(data)
+        assert v.direction_cycle is None
+        d = v.to_dict()
+        assert "direction_cycle" not in d
+
+    def test_identity_key_ignores_direction_cycle(self):
+        v1 = EffectVariant(
+            name="Wave Sine Horizontal",
+            base_effect="Wave",
+            description="desc",
+            parameter_overrides={"E_CHECKBOX_Mirror_Wave": 0},
+            tags=VariantTags(),
+            direction_cycle={
+                "param": "E_CHOICE_Wave_Direction",
+                "values": ["Left to Right", "Right to Left"],
+                "mode": "alternate",
+            },
+        )
+        v2 = EffectVariant(
+            name="Wave Sine Horizontal",
+            base_effect="Wave",
+            description="desc",
+            parameter_overrides={"E_CHECKBOX_Mirror_Wave": 0},
+            tags=VariantTags(),
+            direction_cycle=None,
+        )
+        assert v1.identity_key() == v2.identity_key()

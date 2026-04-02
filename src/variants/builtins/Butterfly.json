@@ -17,7 +17,7 @@
         "tier_affinity": null,
         "energy_level": null,
         "speed_feel": "slow",
-        "direction": null,
+        "direction": "fixed",
         "section_roles": [],
         "scope": "single-prop",
         "genre_affinity": "any"
@@ -39,7 +39,7 @@
         "tier_affinity": null,
         "energy_level": null,
         "speed_feel": "slow",
-        "direction": null,
+        "direction": "fixed",
         "section_roles": [],
         "scope": "single-prop",
         "genre_affinity": "any"
@@ -61,7 +61,7 @@
         "tier_affinity": null,
         "energy_level": null,
         "speed_feel": "slow",
-        "direction": null,
+        "direction": "fixed",
         "section_roles": [],
         "scope": "single-prop",
         "genre_affinity": "any"
@@ -83,7 +83,7 @@
         "tier_affinity": null,
         "energy_level": null,
         "speed_feel": "moderate",
-        "direction": null,
+        "direction": "fixed",
         "section_roles": [],
         "scope": "single-prop",
         "genre_affinity": "any"
@@ -105,7 +105,7 @@
         "tier_affinity": null,
         "energy_level": null,
         "speed_feel": "moderate",
-        "direction": null,
+        "direction": "fixed",
         "section_roles": [],
         "scope": "single-prop",
         "genre_affinity": "any"
@@ -127,7 +127,7 @@
         "tier_affinity": null,
         "energy_level": null,
         "speed_feel": "moderate",
-        "direction": null,
+        "direction": "fixed",
         "section_roles": [],
         "scope": "single-prop",
         "genre_affinity": "any"

@@ -2,14 +2,13 @@
   "effect": "Bars",
   "variants": [
     {
-      "name": "Bars 1-Bar 3D",
+      "name": "Bars 1-Bar 3D Radial",
       "base_effect": "Bars",
       "description": "Bars variant from professional sequences. Used on Custom props across 2 packages.",
       "parameter_overrides": {
         "E_CHECKBOX_Bars_3D": 1,
         "E_CHECKBOX_Bars_Gradient": 0,
         "E_CHECKBOX_Bars_Highlight": 0,
-        "E_CHOICE_Bars_Direction": "compress",
         "E_SLIDER_Bars_BarCount": 1,
         "E_TEXTCTRL_Bars_Cycles": 0.5
       },
@@ -17,21 +16,28 @@
         "tier_affinity": null,
         "energy_level": null,
         "speed_feel": null,
-        "direction": null,
+        "direction": "radial",
         "section_roles": [],
         "scope": "single-prop",
         "genre_affinity": "any"
+      },
+      "direction_cycle": {
+        "param": "E_CHOICE_Bars_Direction",
+        "values": [
+          "expand",
+          "compress"
+        ],
+        "mode": "alternate"
       }
     },
     {
-      "name": "Bars 1-Bar 3D A",
+      "name": "Bars 1-Bar 3D Radial A",
       "base_effect": "Bars",
       "description": "Bars variant from professional sequences. Used on Custom, Single Line props across 2 packages.",
       "parameter_overrides": {
         "E_CHECKBOX_Bars_3D": 1,
         "E_CHECKBOX_Bars_Gradient": 0,
         "E_CHECKBOX_Bars_Highlight": 0,
-        "E_CHOICE_Bars_Direction": "expand",
         "E_SLIDER_Bars_BarCount": 1,
         "E_TEXTCTRL_Bars_Cycles": 1.0
       },
@@ -39,21 +45,28 @@
         "tier_affinity": null,
         "energy_level": null,
         "speed_feel": null,
-        "direction": null,
+        "direction": "radial",
         "section_roles": [],
         "scope": "single-prop",
         "genre_affinity": "any"
+      },
+      "direction_cycle": {
+        "param": "E_CHOICE_Bars_Direction",
+        "values": [
+          "expand",
+          "compress"
+        ],
+        "mode": "alternate"
       }
     },
     {
-      "name": "Bars 1-Bar 3D B",
+      "name": "Bars 1-Bar 3D Radial B",
       "base_effect": "Bars",
       "description": "Bars variant from professional sequences. Used on Tree 180, Tree 360 props across 2 packages.",
       "parameter_overrides": {
         "E_CHECKBOX_Bars_3D": 1,
         "E_CHECKBOX_Bars_Gradient": 0,
         "E_CHECKBOX_Bars_Highlight": 0,
-        "E_CHOICE_Bars_Direction": "H-compress",
         "E_SLIDER_Bars_BarCount": 1,
         "E_TEXTCTRL_Bars_Cycles": 1
       },
@@ -61,21 +74,28 @@
         "tier_affinity": null,
         "energy_level": null,
         "speed_feel": null,
-        "direction": null,
+        "direction": "radial",
         "section_roles": [],
         "scope": "single-prop",
         "genre_affinity": "any"
+      },
+      "direction_cycle": {
+        "param": "E_CHOICE_Bars_Direction",
+        "values": [
+          "expand",
+          "compress"
+        ],
+        "mode": "alternate"
       }
     },
     {
-      "name": "Bars Down 4-Bar 3D",
+      "name": "Bars 4-Bar 3D Vertical",
       "base_effect": "Bars",
       "description": "Bars variant from professional sequences. Used on Tree 180, Tree 360 props across 2 packages.",
       "parameter_overrides": {
         "E_CHECKBOX_Bars_3D": 1,
         "E_CHECKBOX_Bars_Gradient": 0,
         "E_CHECKBOX_Bars_Highlight": 0,
-        "E_CHOICE_Bars_Direction": "down",
         "E_SLIDER_Bars_BarCount": 4,
         "E_TEXTCTRL_Bars_Cycles": 2
       },
@@ -83,21 +103,28 @@
         "tier_affinity": null,
         "energy_level": null,
         "speed_feel": null,
-        "direction": "down",
+        "direction": "vertical",
         "section_roles": [],
         "scope": "single-prop",
         "genre_affinity": "any"
+      },
+      "direction_cycle": {
+        "param": "E_CHOICE_Bars_Direction",
+        "values": [
+          "up",
+          "down"
+        ],
+        "mode": "alternate"
       }
     },
     {
-      "name": "Bars Up 1-Bar",
+      "name": "Bars 1-Bar Vertical",
       "base_effect": "Bars",
       "description": "Bars variant from professional sequences. Used on Arches, Custom, Tree 180 props across 3 packages.",
       "parameter_overrides": {
         "E_CHECKBOX_Bars_3D": 0,
         "E_CHECKBOX_Bars_Gradient": 0,
         "E_CHECKBOX_Bars_Highlight": 0,
-        "E_CHOICE_Bars_Direction": "up",
         "E_SLIDER_Bars_BarCount": 1,
         "E_TEXTCTRL_Bars_Cycles": 1.0
       },
@@ -105,21 +132,28 @@
         "tier_affinity": null,
         "energy_level": null,
         "speed_feel": null,
-        "direction": "up",
+        "direction": "vertical",
         "section_roles": [],
         "scope": "single-prop",
         "genre_affinity": "any"
+      },
+      "direction_cycle": {
+        "param": "E_CHOICE_Bars_Direction",
+        "values": [
+          "up",
+          "down"
+        ],
+        "mode": "alternate"
       }
     },
     {
-      "name": "Bars Up 1-Bar 3D",
+      "name": "Bars 1-Bar 3D Vertical",
       "base_effect": "Bars",
       "description": "Bars variant from professional sequences. Used on Custom props across 5 packages.",
       "parameter_overrides": {
         "E_CHECKBOX_Bars_3D": 1,
         "E_CHECKBOX_Bars_Gradient": 0,
         "E_CHECKBOX_Bars_Highlight": 0,
-        "E_CHOICE_Bars_Direction": "up",
         "E_SLIDER_Bars_BarCount": 1,
         "E_TEXTCTRL_Bars_Cycles": 1.0
       },
@@ -127,32 +161,18 @@
         "tier_affinity": null,
         "energy_level": null,
         "speed_feel": null,
-        "direction": "up",
+        "direction": "vertical",
         "section_roles": [],
         "scope": "single-prop",
         "genre_affinity": "any"
-      }
-    },
-    {
-      "name": "Bars Up 4-Bar 3D",
-      "base_effect": "Bars",
-      "description": "Bars variant from professional sequences. Used on Tree 180, Tree 360 props across 2 packages.",
-      "parameter_overrides": {
-        "E_CHECKBOX_Bars_3D": 1,
-        "E_CHECKBOX_Bars_Gradient": 0,
-        "E_CHECKBOX_Bars_Highlight": 0,
-        "E_CHOICE_Bars_Direction": "up",
-        "E_SLIDER_Bars_BarCount": 4,
-        "E_TEXTCTRL_Bars_Cycles": 2
       },
-      "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": null,
-        "direction": "up",
-        "section_roles": [],
-        "scope": "single-prop",
-        "genre_affinity": "any"
+      "direction_cycle": {
+        "param": "E_CHOICE_Bars_Direction",
+        "values": [
+          "up",
+          "down"
+        ],
+        "mode": "alternate"
       }
     }
   ]

@@ -101,4 +101,21 @@ def validate_variant(data: dict, effect_library: EffectLibrary) -> list[str]:
                         f"Invalid section_role '{role}' — must be one of {list(VALID_SECTION_ROLES)}"
                     )
 
+    # direction_cycle validation (optional field)
+    dc = data.get("direction_cycle")
+    if dc is not None:
+        if not isinstance(dc, dict):
+            errors.append("direction_cycle must be a dict")
+        else:
+            if "param" not in dc or not isinstance(dc.get("param"), str):
+                errors.append("direction_cycle.param must be a non-empty string")
+            if "values" not in dc or not isinstance(dc.get("values"), list) or len(dc.get("values", [])) < 2:
+                errors.append("direction_cycle.values must be a list of 2+ strings")
+            elif not all(isinstance(v, str) for v in dc["values"]):
+                errors.append("direction_cycle.values must contain only strings")
+            if "mode" not in dc or dc.get("mode") not in ("alternate", "random"):
+                errors.append(
+                    "direction_cycle.mode must be one of ['alternate', 'random']"
+                )
+
     return errors

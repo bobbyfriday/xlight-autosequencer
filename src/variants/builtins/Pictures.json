@@ -2,12 +2,11 @@
   "effect": "Pictures",
   "variants": [
     {
-      "name": "Pictures Left left",
+      "name": "Pictures Horizontal",
       "base_effect": "Pictures",
       "description": "Pictures variant from professional sequences. Used on Horiz Matrix props across 2 packages.",
       "parameter_overrides": {
         "E_CHECKBOX_Pictures_TransparentBlack": 0,
-        "E_CHOICE_Pictures_Direction": "left",
         "E_FILEPICKER_Pictures_Filename": "C:\\Users\\vette\\Desktop\\Light of Christmas\\xLights ATW Light of Christmas\\_lost\\Tree GIF.gif",
         "E_SLIDER_Pictures_EndScale": 0,
         "E_SLIDER_Pictures_StartScale": 100
@@ -16,19 +15,26 @@
         "tier_affinity": null,
         "energy_level": null,
         "speed_feel": null,
-        "direction": "left",
+        "direction": "horizontal",
         "section_roles": [],
         "scope": "single-prop",
         "genre_affinity": "any"
+      },
+      "direction_cycle": {
+        "param": "E_CHOICE_Pictures_Direction",
+        "values": [
+          "left",
+          "right"
+        ],
+        "mode": "alternate"
       }
     },
     {
-      "name": "Pictures Right right",
+      "name": "Pictures Horizontal A",
       "base_effect": "Pictures",
       "description": "Pictures variant from professional sequences. Used on Horiz Matrix props across 2 packages.",
       "parameter_overrides": {
         "E_CHECKBOX_Pictures_TransparentBlack": 0,
-        "E_CHOICE_Pictures_Direction": "right",
         "E_FILEPICKER_Pictures_Filename": "/Users/jordennash/Desktop/xLights/2212 XAtW/xLights/Downloads/Danger Zone/Kyle Bostick - BF Light Shows/Media/Danger Zone/Images/Santa Sleigh.png",
         "E_SLIDER_Pictures_EndScale": 60,
         "E_SLIDER_Pictures_StartScale": 60
@@ -37,40 +43,26 @@
         "tier_affinity": null,
         "energy_level": null,
         "speed_feel": null,
-        "direction": "right",
+        "direction": "horizontal",
         "section_roles": [],
         "scope": "single-prop",
         "genre_affinity": "any"
-      }
-    },
-    {
-      "name": "Pictures Right right A",
-      "base_effect": "Pictures",
-      "description": "Pictures variant from professional sequences. Used on Horiz Matrix props across 2 packages.",
-      "parameter_overrides": {
-        "E_CHECKBOX_Pictures_TransparentBlack": 0,
-        "E_CHOICE_Pictures_Direction": "right",
-        "E_FILEPICKER_Pictures_Filename": "C:\\Users\\vette\\Desktop\\Light of Christmas\\xLights ATW Light of Christmas\\_lost\\Tree GIF.gif",
-        "E_SLIDER_Pictures_EndScale": 0,
-        "E_SLIDER_Pictures_StartScale": 100
       },
-      "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": null,
-        "direction": "right",
-        "section_roles": [],
-        "scope": "single-prop",
-        "genre_affinity": "any"
+      "direction_cycle": {
+        "param": "E_CHOICE_Pictures_Direction",
+        "values": [
+          "left",
+          "right"
+        ],
+        "mode": "alternate"
       }
     },
     {
-      "name": "Pictures Up up",
+      "name": "Pictures Vertical",
       "base_effect": "Pictures",
       "description": "Pictures variant from professional sequences. Used on Tree 180 props across 2 packages.",
       "parameter_overrides": {
         "E_CHECKBOX_Pictures_TransparentBlack": 0,
-        "E_CHOICE_Pictures_Direction": "up",
         "E_FILEPICKER_Pictures_Filename": "/Users/jordennash/Desktop/xLights/2212 XAtW/xLights/Downloads/Danger Zone/Kyle Bostick - BF Light Shows/Media/Danger Zone/Images/sleigh_test.png",
         "E_SLIDER_Pictures_EndScale": 100,
         "E_SLIDER_Pictures_StartScale": 100
@@ -79,10 +71,18 @@
         "tier_affinity": null,
         "energy_level": null,
         "speed_feel": null,
-        "direction": "up",
+        "direction": "vertical",
         "section_roles": [],
         "scope": "single-prop",
         "genre_affinity": "any"
+      },
+      "direction_cycle": {
+        "param": "E_CHOICE_Pictures_Direction",
+        "values": [
+          "up",
+          "down"
+        ],
+        "mode": "alternate"
       }
     },
     {

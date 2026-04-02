@@ -56,6 +56,7 @@ class EffectVariant:
     description: str
     parameter_overrides: dict[str, int | float | bool | str]
     tags: VariantTags
+    direction_cycle: dict | None = None  # {"param": str, "values": [str], "mode": str}
 
     @classmethod
     def from_dict(cls, data: dict) -> EffectVariant:
@@ -65,16 +66,20 @@ class EffectVariant:
             description=data["description"],
             parameter_overrides=dict(data.get("parameter_overrides", {})),
             tags=VariantTags.from_dict(data.get("tags") or {}),
+            direction_cycle=data.get("direction_cycle"),
         )
 
     def to_dict(self) -> dict:
-        return {
+        d = {
             "name": self.name,
             "base_effect": self.base_effect,
             "description": self.description,
             "parameter_overrides": self.parameter_overrides,
             "tags": self.tags.to_dict(),
         }
+        if self.direction_cycle is not None:
+            d["direction_cycle"] = self.direction_cycle
+        return d
 
     def identity_key(self) -> str:
         """Stable key based on base_effect + sorted parameter_overrides.

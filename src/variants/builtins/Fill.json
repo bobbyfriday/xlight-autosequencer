@@ -2,13 +2,12 @@
   "effect": "Fill",
   "variants": [
     {
-      "name": "Fill Left Wrap",
+      "name": "Fill Wrap Horizontal",
       "base_effect": "Fill",
       "description": "Fill variant from professional sequences. Used on Icicles, Single Line props across 3 packages.",
       "parameter_overrides": {
         "E_CHECKBOX_Fill_Color_Time": 0,
         "E_CHECKBOX_Fill_Wrap": 1,
-        "E_CHOICE_Fill_Direction": "Left",
         "E_SLIDER_Fill_Band_Size": 0,
         "E_SLIDER_Fill_Offset": 0,
         "E_SLIDER_Fill_Skip_Size": 0
@@ -17,42 +16,27 @@
         "tier_affinity": null,
         "energy_level": null,
         "speed_feel": null,
-        "direction": "left",
+        "direction": "horizontal",
         "section_roles": [],
         "scope": "single-prop",
         "genre_affinity": "any"
-      }
-    },
-    {
-      "name": "Fill Right Wrap",
-      "base_effect": "Fill",
-      "description": "Fill variant from professional sequences. Used on Icicles, Single Line props across 3 packages.",
-      "parameter_overrides": {
-        "E_CHECKBOX_Fill_Color_Time": 0,
-        "E_CHECKBOX_Fill_Wrap": 1,
-        "E_CHOICE_Fill_Direction": "Right",
-        "E_SLIDER_Fill_Band_Size": 0,
-        "E_SLIDER_Fill_Offset": 0,
-        "E_SLIDER_Fill_Skip_Size": 0
       },
-      "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": null,
-        "direction": "right",
-        "section_roles": [],
-        "scope": "single-prop",
-        "genre_affinity": "any"
+      "direction_cycle": {
+        "param": "E_CHOICE_Fill_Direction",
+        "values": [
+          "Left",
+          "Right"
+        ],
+        "mode": "alternate"
       }
     },
     {
-      "name": "Fill Up Wrap",
+      "name": "Fill Wrap Vertical",
       "base_effect": "Fill",
       "description": "Fill variant from professional sequences. Used on Arches, Custom, Single Line props across 3 packages.",
       "parameter_overrides": {
         "E_CHECKBOX_Fill_Color_Time": 0,
         "E_CHECKBOX_Fill_Wrap": 1,
-        "E_CHOICE_Fill_Direction": "Up",
         "E_SLIDER_Fill_Band_Size": 0,
         "E_SLIDER_Fill_Offset": 0,
         "E_SLIDER_Fill_Skip_Size": 0
@@ -61,10 +45,18 @@
         "tier_affinity": null,
         "energy_level": null,
         "speed_feel": null,
-        "direction": "up",
+        "direction": "vertical",
         "section_roles": [],
         "scope": "single-prop",
         "genre_affinity": "any"
+      },
+      "direction_cycle": {
+        "param": "E_CHOICE_Fill_Direction",
+        "values": [
+          "Up",
+          "Down"
+        ],
+        "mode": "alternate"
       }
     }
   ]
