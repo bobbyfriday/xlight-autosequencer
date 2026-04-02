@@ -424,9 +424,13 @@ def _serialize_effect_params(placement: EffectPlacement) -> str:
 
 
 def _encode_value_curve(param_name: str, points: list[tuple[float, float]]) -> str:
-    """Encode a value curve in xLights inline format."""
-    values_str = "|".join(f"{x:.2f}:{y:.2f}" for x, y in points)
-    return f"Active=TRUE|Id=ID_{param_name}|Type=Ramp|Min=0.00|Max=100.00|Values={values_str}"
+    """Encode a value curve in xLights inline format.
+
+    Uses semicolons as point delimiters and Type=Custom to match xLights .xvc format.
+    The trailing semicolon after Values is required by the xLights parser.
+    """
+    values_str = ";".join(f"{x:.2f}:{y:.2f}" for x, y in points)
+    return f"Active=TRUE|Id=ID_{param_name}|Type=Custom|Min=0.00|Max=100.00|Values={values_str};"
 
 
 def _ensure_palette(

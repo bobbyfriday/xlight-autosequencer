@@ -1745,6 +1745,8 @@ def group_layout_cmd(
 # Sequence generation
 # ──────────────────────────────────────────────────────────────────────────────
 
+_VALID_CURVES_MODES = frozenset({"all", "brightness", "speed", "color", "none"})
+
 
 def _load_curves_mode_from_config() -> str:
     """Read curves_mode from ~/.xlight/generation.toml if present.
@@ -1792,7 +1794,7 @@ def _load_curves_mode_from_config() -> str:
               help="Section transition mode: none (no fades), subtle (1-beat), dramatic (1-bar). "
                    "Default: subtle")
 @click.option("--curves", "curves_mode", default=None,
-              type=click.Choice(["all", "brightness", "speed", "color", "none"]),
+              type=click.Choice(sorted(_VALID_CURVES_MODES)),
               help="Value curve generation mode (default: all). Overrides config file.")
 def generate_cmd(audio_file, layout_file, output_dir, genre, occasion,
                  fresh, no_wizard, target_section, theme_overrides_raw,
@@ -1815,7 +1817,6 @@ def generate_cmd(audio_file, layout_file, output_dir, genre, occasion,
     if curves_mode is None:
         curves_mode = _load_curves_mode_from_config()
 
-    _VALID_CURVES_MODES = {"all", "brightness", "speed", "color", "none"}
     if curves_mode not in _VALID_CURVES_MODES:
         curves_mode = "all"
 

@@ -112,11 +112,24 @@ def _extract_analysis_data(
 ) -> list[float]:
     """Extract raw analysis values for the effect's time range."""
     if mapping.analysis_level == "L5":
-        curve = hierarchy.energy_curves.get(mapping.analysis_field)
+        field = mapping.analysis_field
+        # Parse "energy_curves.<stem>" dotted path format used in builtin_effects.json.
+        # "overall" maps to the "full_mix" key in HierarchyResult.energy_curves.
+        if "." in field:
+            stem_key = field.split(".", 1)[1]
+            if stem_key == "overall":
+                stem_key = "full_mix"
+        else:
+            stem_key = field
+        curve = hierarchy.energy_curves.get(stem_key)
         if curve is None:
             curve = hierarchy.energy_curves.get("full_mix")
         return [float(v) for v in slice_curve(curve, start_ms, end_ms)]
 
+    # L3 (beats/BPM), L4 (onsets), L6 (harmony), L0 (impacts) analysis levels are
+    # not yet supported for value curves — they return empty so the mapping is skipped.
+    # Only L5 (energy curves) is implemented. Future work: L3 could modulate speed
+    # parameters based on BPM; L6 could modulate color parameters from chord data.
     return []
 
 
@@ -260,8 +273,8 @@ def apply_chord_accents(
         decay_x = min(1.0, peak_x + _CHORD_ACCENT_DECAY_MS / duration_ms)
         peak_boost = _CHORD_ACCENT_SHIFT * out_range
 
-        # Sample decay curve at several points
-        for step in range(10):
+        # Sample decay curve at several points (range(11) to include frac=1.0 endpoint)
+        for step in range(11):
             frac = step / 10.0
             x = peak_x + frac * (decay_x - peak_x)
             if x > 1.0:
