@@ -13,7 +13,7 @@ from src.variants.validator import validate_variant
 
 logger = logging.getLogger(__name__)
 
-_BUILTIN_PATH = Path(__file__).parent / "builtin_variants.json"
+_BUILTIN_DIR = Path(__file__).parent / "builtins"
 _DEFAULT_CUSTOM_DIR = Path.home() / ".xlight" / "custom_variants"
 
 
@@ -132,32 +132,15 @@ def _slugify(name: str) -> str:
     return slug or "variant"
 
 
-def load_variant_library(
-    builtin_path: str | Path | None = None,
-    custom_dir: str | Path | None = None,
-    effect_library: EffectLibrary | None = None,
-) -> VariantLibrary:
-    """Load the variant library from built-in JSON + optional custom overrides.
+def _load_variants_from_single_file(
+    path: Path,
+    effect_library: EffectLibrary | None,
+) -> tuple[str, dict[str, EffectVariant]]:
+    """Load variants from a single JSON file (legacy format).
 
-    Args:
-        builtin_path: Path to the built-in JSON catalog. Defaults to the
-            bundled builtin_variants.json.
-        custom_dir: Path to the custom overrides directory. Defaults to
-            ~/.xlight/custom_variants/. If the directory doesn't exist,
-            only built-in variants are returned.
-        effect_library: EffectLibrary used to validate base_effect references.
-            If None, validation is skipped (variants are loaded without checks).
-
-    Raises:
-        FileNotFoundError: If the built-in JSON file is missing.
+    Returns (schema_version, variants_dict).
     """
-    builtin_path = Path(builtin_path) if builtin_path else _BUILTIN_PATH
-    custom_dir = Path(custom_dir) if custom_dir else _DEFAULT_CUSTOM_DIR
-
-    if not builtin_path.exists():
-        raise FileNotFoundError(f"Built-in variant library not found: {builtin_path}")
-
-    with open(builtin_path, "r", encoding="utf-8") as f:
+    with open(path, "r", encoding="utf-8") as f:
         raw = json.load(f)
 
     schema_version = raw.get("schema_version", "0.0.0")
@@ -167,7 +150,6 @@ def load_variant_library(
         if effect_library is not None:
             errors = validate_variant(data, effect_library)
             if errors:
-                # Built-in catalog errors are programming mistakes, not user errors
                 logger.error(
                     "Built-in variant '%s' has validation errors: %s",
                     data.get("name", "<unknown>"),
@@ -176,6 +158,88 @@ def load_variant_library(
                 continue
         variant = EffectVariant.from_dict(data)
         variants[variant.name] = variant
+
+    return schema_version, variants
+
+
+def _load_variants_from_dir(
+    builtin_dir: Path,
+    effect_library: EffectLibrary | None,
+) -> tuple[str, dict[str, EffectVariant]]:
+    """Load variants from a per-effect directory of JSON files.
+
+    Returns (schema_version, variants_dict).
+    """
+    schema_version = "0.0.0"
+    manifest_path = builtin_dir / "_manifest.json"
+    if manifest_path.exists():
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        schema_version = manifest.get("schema_version", "0.0.0")
+
+    variants: dict[str, EffectVariant] = {}
+    for json_file in sorted(builtin_dir.glob("*.json")):
+        if json_file.name.startswith("_"):
+            continue
+        try:
+            raw = json.loads(json_file.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError) as exc:
+            logger.warning(
+                "Skipping malformed builtin file '%s': %s", json_file.name, exc
+            )
+            continue
+        for data in raw.get("variants", []):
+            if effect_library is not None:
+                errors = validate_variant(data, effect_library)
+                if errors:
+                    logger.error(
+                        "Built-in variant '%s' has validation errors: %s",
+                        data.get("name", "<unknown>"),
+                        errors,
+                    )
+                    continue
+            variant = EffectVariant.from_dict(data)
+            variants[variant.name] = variant
+
+    return schema_version, variants
+
+
+def load_variant_library(
+    builtin_dir: str | Path | None = None,
+    builtin_path: str | Path | None = None,
+    custom_dir: str | Path | None = None,
+    effect_library: EffectLibrary | None = None,
+) -> VariantLibrary:
+    """Load the variant library from built-in variants + optional custom overrides.
+
+    Args:
+        builtin_dir: Path to the per-effect builtins directory. Defaults to
+            the bundled ``builtins/`` directory. Ignored when *builtin_path*
+            is provided.
+        builtin_path: Legacy single-file mode — path to a monolithic JSON
+            catalog. When set, *builtin_dir* is ignored. Useful for test
+            fixtures that still ship a single file.
+        custom_dir: Path to the custom overrides directory. Defaults to
+            ~/.xlight/custom_variants/. If the directory doesn't exist,
+            only built-in variants are returned.
+        effect_library: EffectLibrary used to validate base_effect references.
+            If None, validation is skipped (variants are loaded without checks).
+
+    Raises:
+        FileNotFoundError: If the built-in source is missing.
+    """
+    custom_dir = Path(custom_dir) if custom_dir else _DEFAULT_CUSTOM_DIR
+
+    if builtin_path:
+        # Legacy single-file mode (test fixtures)
+        builtin_path = Path(builtin_path)
+        if not builtin_path.exists():
+            raise FileNotFoundError(f"Built-in variant library not found: {builtin_path}")
+        schema_version, variants = _load_variants_from_single_file(builtin_path, effect_library)
+    else:
+        resolved_dir = Path(builtin_dir) if builtin_dir else _BUILTIN_DIR
+        if not resolved_dir.is_dir():
+            raise FileNotFoundError(f"Built-in variant directory not found: {resolved_dir}")
+        schema_version, variants = _load_variants_from_dir(resolved_dir, effect_library)
 
     builtin_names = set(variants.keys())
 

@@ -1,0 +1,47 @@
+{
+  "effect": "Kaleidoscope",
+  "variants": [
+    {
+      "name": "Kaleidoscope Square Size47",
+      "base_effect": "Kaleidoscope",
+      "description": "Kaleidoscope variant from professional sequences. Used on Horiz Matrix, Tree 180, Tree 360 props across 2 packages.",
+      "parameter_overrides": {
+        "E_CHOICE_Kaleidoscope_Type": "Square",
+        "E_SLIDER_Kaleidoscope_Rotation": 0,
+        "E_SLIDER_Kaleidoscope_Size": 47,
+        "E_SLIDER_Kaleidoscope_X": 50,
+        "E_SLIDER_Kaleidoscope_Y": 50
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Kaleidoscope Triangle Size25",
+      "base_effect": "Kaleidoscope",
+      "description": "Kaleidoscope variant from professional sequences. Used on Horiz Matrix props across 2 packages.",
+      "parameter_overrides": {
+        "E_CHOICE_Kaleidoscope_Type": "Triangle",
+        "E_SLIDER_Kaleidoscope_Rotation": 0,
+        "E_SLIDER_Kaleidoscope_Size": 25,
+        "E_SLIDER_Kaleidoscope_X": 50,
+        "E_SLIDER_Kaleidoscope_Y": 50
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    }
+  ]
+}

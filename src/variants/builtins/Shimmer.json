@@ -1,0 +1,43 @@
+{
+  "effect": "Shimmer",
+  "variants": [
+    {
+      "name": "Shimmer Duty21 AllClr",
+      "base_effect": "Shimmer",
+      "description": "Shimmer variant from professional sequences. Used on Custom, Star props across 2 packages.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Shimmer_Use_All_Colors": 1,
+        "E_SLIDER_Shimmer_Duty_Factor": 21,
+        "E_TEXTCTRL_Shimmer_Cycles": 100.0
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Shimmer Duty50 AllClr",
+      "base_effect": "Shimmer",
+      "description": "Shimmer variant from professional sequences. Used on Icicles, Single Line, Star props across 2 packages.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Shimmer_Use_All_Colors": 1,
+        "E_SLIDER_Shimmer_Duty_Factor": 50,
+        "E_TEXTCTRL_Shimmer_Cycles": 4
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    }
+  ]
+}

@@ -56,7 +56,7 @@ def app(tmp_path):
     vr._effect_library = effect_lib
     vr._custom_dir = tmp_path
     vr._builtin_path = VARIANTS_FIXTURE
-    vr._builtin_names = None
+
 
     from src.review.server import create_app
     flask_app = create_app()
@@ -67,7 +67,7 @@ def app(tmp_path):
     vr._effect_library = None
     vr._custom_dir = None
     vr._builtin_path = None
-    vr._builtin_names = None
+
 
 
 @pytest.fixture

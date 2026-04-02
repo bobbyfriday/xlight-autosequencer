@@ -1,0 +1,51 @@
+{
+  "effect": "Circles",
+  "variants": [
+    {
+      "name": "Circles 1-Count Radial Slow",
+      "base_effect": "Circles",
+      "description": "Circles variant from professional sequences. Used on Star props across 2 packages.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Circles_Bounce": 0,
+        "E_CHECKBOX_Circles_Collide": 0,
+        "E_CHECKBOX_Circles_Plasma": 0,
+        "E_CHECKBOX_Circles_Radial": 1,
+        "E_SLIDER_Circles_Count": 1,
+        "E_SLIDER_Circles_Size": 5,
+        "E_SLIDER_Circles_Speed": 5
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": "slow",
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Circles 5-Count Slow",
+      "base_effect": "Circles",
+      "description": "Circles variant from professional sequences. Used on Single Line props across 2 packages.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Circles_Bounce": 0,
+        "E_CHECKBOX_Circles_Collide": 0,
+        "E_CHECKBOX_Circles_Plasma": 0,
+        "E_CHECKBOX_Circles_Radial": 0,
+        "E_SLIDER_Circles_Count": 5,
+        "E_SLIDER_Circles_Size": 5,
+        "E_SLIDER_Circles_Speed": 10
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": "slow",
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    }
+  ]
+}

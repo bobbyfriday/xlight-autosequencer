@@ -1,0 +1,45 @@
+{
+  "effect": "Snowflakes",
+  "variants": [
+    {
+      "name": "Snowflakes 15-Count Type5 Slow",
+      "base_effect": "Snowflakes",
+      "description": "Snowflakes variant from professional sequences. Used on Horiz Matrix, Tree 180, Tree 360 props across 2 packages.",
+      "parameter_overrides": {
+        "E_CHOICE_Falling": "Driving",
+        "E_SLIDER_Snowflakes_Count": 15,
+        "E_SLIDER_Snowflakes_Speed": 10,
+        "E_SLIDER_Snowflakes_Type": 5
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": "slow",
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Snowflakes 50-Count Type1 Slow",
+      "base_effect": "Snowflakes",
+      "description": "Snowflakes variant from professional sequences. Used on Tree 180 props across 2 packages.",
+      "parameter_overrides": {
+        "E_CHOICE_Falling": "Falling &amp; Accumulating",
+        "E_SLIDER_Snowflakes_Count": 50,
+        "E_SLIDER_Snowflakes_Speed": 10,
+        "E_SLIDER_Snowflakes_Type": 1
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": "slow",
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    }
+  ]
+}

@@ -1,0 +1,122 @@
+{
+  "effect": "Meteors",
+  "variants": [
+    {
+      "name": "Meteors 10-Count Explode Slow",
+      "base_effect": "Meteors",
+      "description": "Meteors variant from professional sequences. Used on Horiz Matrix props across 2 packages.",
+      "parameter_overrides": {
+        "E_CHECKBOX_FadeWithDistance": 0,
+        "E_CHECKBOX_Meteors_UseMusic": 0,
+        "E_CHOICE_Meteors_Effect": "Explode",
+        "E_CHOICE_Meteors_Type": "Palette",
+        "E_SLIDER_Meteors_Count": 10,
+        "E_SLIDER_Meteors_Length": 25,
+        "E_SLIDER_Meteors_Speed": 10,
+        "E_SLIDER_Meteors_Swirl_Intensity": 0
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": "slow",
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Meteors 10-Count Up Slow",
+      "base_effect": "Meteors",
+      "description": "Meteors variant from professional sequences. Used on Horiz Matrix, Tree 180, Tree 360 props across 2 packages.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Meteors_UseMusic": 1,
+        "E_CHOICE_Meteors_Effect": "Up",
+        "E_CHOICE_Meteors_Type": "Palette",
+        "E_SLIDER_Meteors_Count": 10,
+        "E_SLIDER_Meteors_Speed": 10,
+        "E_SLIDER_Meteors_Swirl_Intensity": 0
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": "slow",
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Meteors 15-Count Down Slow",
+      "base_effect": "Meteors",
+      "description": "Meteors variant from professional sequences. Used on Tree 180 props across 2 packages.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Meteors_UseMusic": 0,
+        "E_CHOICE_Meteors_Effect": "Down",
+        "E_CHOICE_Meteors_Type": "Range",
+        "E_SLIDER_Meteors_Count": 15,
+        "E_SLIDER_Meteors_Length": 25,
+        "E_SLIDER_Meteors_Speed": 10,
+        "E_SLIDER_Meteors_Swirl_Intensity": 0
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": "slow",
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Meteors 28-Count Explode Slow",
+      "base_effect": "Meteors",
+      "description": "Meteors variant from professional sequences. Used on Horiz Matrix props across 2 packages.",
+      "parameter_overrides": {
+        "E_CHECKBOX_FadeWithDistance": 0,
+        "E_CHECKBOX_Meteors_UseMusic": 0,
+        "E_CHOICE_Meteors_Effect": "Explode",
+        "E_CHOICE_Meteors_Type": "Palette",
+        "E_SLIDER_Meteors_Count": 28,
+        "E_SLIDER_Meteors_Length": 22,
+        "E_SLIDER_Meteors_Speed": 10,
+        "E_SLIDER_Meteors_Swirl_Intensity": 20
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": "slow",
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Meteors 79-Count Explode Moderate",
+      "base_effect": "Meteors",
+      "description": "Meteors variant from professional sequences. Used on Custom props across 2 packages.",
+      "parameter_overrides": {
+        "E_CHECKBOX_FadeWithDistance": 0,
+        "E_CHECKBOX_Meteors_UseMusic": 0,
+        "E_CHOICE_Meteors_Effect": "Explode",
+        "E_CHOICE_Meteors_Type": "Palette",
+        "E_SLIDER_Meteors_Count": 79,
+        "E_SLIDER_Meteors_Length": 25,
+        "E_SLIDER_Meteors_Speed": 50,
+        "E_SLIDER_Meteors_Swirl_Intensity": 0
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": "moderate",
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    }
+  ]
+}

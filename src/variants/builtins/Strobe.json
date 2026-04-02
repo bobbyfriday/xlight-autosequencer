@@ -1,0 +1,42 @@
+{
+  "effect": "Strobe",
+  "variants": [
+    {
+      "name": "Strobe 3-Strobe",
+      "base_effect": "Strobe",
+      "description": "Strobe variant from professional sequences. Used on Arches, Custom, Horiz Matrix props across 1 package.",
+      "parameter_overrides": {
+        "E_SLIDER_Number_Strobes": 3,
+        "E_SLIDER_Strobe_Duration": 10
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Strobe 3-Strobe A",
+      "base_effect": "Strobe",
+      "description": "Strobe variant from professional sequences. Used on Horiz Matrix props across 2 packages.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Strobe_Music": 0,
+        "E_SLIDER_Number_Strobes": 3,
+        "E_SLIDER_Strobe_Duration": 10
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    }
+  ]
+}

@@ -1,0 +1,92 @@
+{
+  "effect": "Color Wash",
+  "variants": [
+    {
+      "name": "Color Wash CircularPalette1",
+      "base_effect": "Color Wash",
+      "description": "Color Wash variant on Custom, Single Line, Star props (2 pkg, 24 uses)",
+      "parameter_overrides": {
+        "E_CHECKBOX_ColorWash_CircularPalette": 1
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Color Wash HFade0",
+      "base_effect": "Color Wash",
+      "description": "Color Wash variant on Star props (1 pkg, 6 uses)",
+      "parameter_overrides": {
+        "E_CHECKBOX_ColorWash_HFade": 0,
+        "E_CHECKBOX_ColorWash_VFade": 0
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Color Wash HFade1",
+      "base_effect": "Color Wash",
+      "description": "Color Wash variant on Arches, Cube, Custom props (3 pkg, 147 uses)",
+      "parameter_overrides": {
+        "E_CHECKBOX_ColorWash_HFade": 1,
+        "E_CHECKBOX_ColorWash_VFade": 1
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Color Wash HFade1 B",
+      "base_effect": "Color Wash",
+      "description": "Color Wash variant on Custom, Single Line, Star props (3 pkg, 32 uses)",
+      "parameter_overrides": {
+        "E_CHECKBOX_ColorWash_HFade": 1
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Color Wash VFade1",
+      "base_effect": "Color Wash",
+      "description": "Color Wash variant on Single Line, Tree 180, Tree 360 props (2 pkg, 9 uses)",
+      "parameter_overrides": {
+        "E_CHECKBOX_ColorWash_VFade": 1
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    }
+  ]
+}

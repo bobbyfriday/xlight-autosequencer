@@ -1,0 +1,139 @@
+{
+  "effect": "Ripple",
+  "variants": [
+    {
+      "name": "Ripple Circle Explode",
+      "base_effect": "Ripple",
+      "description": "Ripple variant from professional sequences. Used on Custom, Star, Tree 180 props across 4 packages.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Ripple3D": 0,
+        "E_CHOICE_Ripple_Movement": "Explode",
+        "E_CHOICE_Ripple_Object_To_Draw": "Circle",
+        "E_SLIDER_Ripple_Thickness": 3,
+        "E_SLIDER_Ripple_XC": 0,
+        "E_SLIDER_Ripple_YC": 0
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Ripple Circle Explode A",
+      "base_effect": "Ripple",
+      "description": "Ripple variant from professional sequences. Used on Custom props across 2 packages.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Ripple3D": 1,
+        "E_CHOICE_Ripple_Movement": "Explode",
+        "E_CHOICE_Ripple_Object_To_Draw": "Circle",
+        "E_SLIDER_Ripple_Thickness": 3,
+        "E_SLIDER_Ripple_XC": 26,
+        "E_SLIDER_Ripple_YC": 0
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Ripple Circle Explode B",
+      "base_effect": "Ripple",
+      "description": "Ripple variant from professional sequences. Used on Custom props across 4 packages.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Ripple3D": 0,
+        "E_CHOICE_Ripple_Movement": "Explode",
+        "E_CHOICE_Ripple_Object_To_Draw": "Circle",
+        "E_SLIDER_Ripple_Thickness": 6,
+        "E_SLIDER_Ripple_XC": 0,
+        "E_SLIDER_Ripple_YC": 0
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Ripple Circle Explode C",
+      "base_effect": "Ripple",
+      "description": "Ripple variant from professional sequences. Used on Custom, Horiz Matrix, Tree 360 props across 3 packages.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Ripple3D": 1,
+        "E_CHOICE_Ripple_Movement": "Explode",
+        "E_CHOICE_Ripple_Object_To_Draw": "Circle",
+        "E_SLIDER_Ripple_Thickness": 3,
+        "E_SLIDER_Ripple_XC": 0,
+        "E_SLIDER_Ripple_YC": 0
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Ripple Circle Implode",
+      "base_effect": "Ripple",
+      "description": "Ripple variant from professional sequences. Used on Custom props across 2 packages.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Ripple3D": 0,
+        "E_CHOICE_Ripple_Movement": "Implode",
+        "E_CHOICE_Ripple_Object_To_Draw": "Circle",
+        "E_SLIDER_Ripple_Thickness": 6,
+        "E_SLIDER_Ripple_XC": 0,
+        "E_SLIDER_Ripple_YC": 0
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Ripple Star Explode",
+      "base_effect": "Ripple",
+      "description": "Ripple variant from professional sequences. Used on Horiz Matrix props across 2 packages.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Ripple3D": 0,
+        "E_CHOICE_Ripple_Movement": "Explode",
+        "E_CHOICE_Ripple_Object_To_Draw": "Star",
+        "E_SLIDER_RIPPLE_POINTS": 5,
+        "E_SLIDER_Ripple_Rotation": 0,
+        "E_SLIDER_Ripple_Thickness": 100,
+        "E_SLIDER_Ripple_XC": 0,
+        "E_SLIDER_Ripple_YC": 0
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    }
+  ]
+}

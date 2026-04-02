@@ -1,0 +1,147 @@
+{
+  "effect": "Shockwave",
+  "variants": [
+    {
+      "name": "Shockwave Blend",
+      "base_effect": "Shockwave",
+      "description": "Shockwave variant from professional sequences. Used on Custom, Horiz Matrix, Single Line props across 2 packages.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Shockwave_Blend_Edges": 1,
+        "E_SLIDER_Shockwave_Accel": 0,
+        "E_SLIDER_Shockwave_CenterX": 50,
+        "E_SLIDER_Shockwave_CenterY": 50,
+        "E_SLIDER_Shockwave_End_Radius": 70,
+        "E_SLIDER_Shockwave_End_Width": 70,
+        "E_SLIDER_Shockwave_Start_Radius": 1,
+        "E_SLIDER_Shockwave_Start_Width": 15
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Shockwave Blend A",
+      "base_effect": "Shockwave",
+      "description": "Shockwave variant from professional sequences. Used on Custom props across 2 packages.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Shockwave_Blend_Edges": 1,
+        "E_SLIDER_Shockwave_Accel": 0,
+        "E_SLIDER_Shockwave_CenterX": 63,
+        "E_SLIDER_Shockwave_CenterY": 50,
+        "E_SLIDER_Shockwave_End_Radius": 31,
+        "E_SLIDER_Shockwave_End_Width": 24,
+        "E_SLIDER_Shockwave_Start_Radius": 5,
+        "E_SLIDER_Shockwave_Start_Width": 5
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Shockwave Blend B",
+      "base_effect": "Shockwave",
+      "description": "Shockwave variant from professional sequences. Used on Single Line props across 2 packages.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Shockwave_Blend_Edges": 1,
+        "E_SLIDER_Shockwave_Accel": 0,
+        "E_SLIDER_Shockwave_CenterX": 50,
+        "E_SLIDER_Shockwave_CenterY": 0,
+        "E_SLIDER_Shockwave_End_Radius": 225,
+        "E_SLIDER_Shockwave_End_Width": 200,
+        "E_SLIDER_Shockwave_Start_Radius": 0,
+        "E_SLIDER_Shockwave_Start_Width": 75
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Shockwave Blend C",
+      "base_effect": "Shockwave",
+      "description": "Shockwave variant from professional sequences. Used on Tree 360 props across 2 packages.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Shockwave_Blend_Edges": 1,
+        "E_SLIDER_Shockwave_Accel": 0,
+        "E_SLIDER_Shockwave_CenterX": 50,
+        "E_SLIDER_Shockwave_CenterY": 50,
+        "E_SLIDER_Shockwave_End_Radius": 10,
+        "E_SLIDER_Shockwave_End_Width": 10,
+        "E_SLIDER_Shockwave_Start_Radius": 1,
+        "E_SLIDER_Shockwave_Start_Width": 5
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Shockwave Blend D",
+      "base_effect": "Shockwave",
+      "description": "Shockwave variant from professional sequences. Used on Star props across 2 packages.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Shockwave_Blend_Edges": 1,
+        "E_SLIDER_Shockwave_Accel": 0,
+        "E_SLIDER_Shockwave_CenterX": 50,
+        "E_SLIDER_Shockwave_CenterY": 50,
+        "E_SLIDER_Shockwave_End_Radius": 10,
+        "E_SLIDER_Shockwave_End_Width": 39,
+        "E_SLIDER_Shockwave_Start_Radius": 1,
+        "E_SLIDER_Shockwave_Start_Width": 5
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Shockwave Blend E",
+      "base_effect": "Shockwave",
+      "description": "Shockwave variant from professional sequences. Used on Icicles, Single Line props across 2 packages.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Shockwave_Blend_Edges": 1,
+        "E_SLIDER_Shockwave_Accel": -7,
+        "E_SLIDER_Shockwave_CenterX": 50,
+        "E_SLIDER_Shockwave_CenterY": 50,
+        "E_SLIDER_Shockwave_Start_Radius": 0,
+        "E_SLIDER_Shockwave_Start_Width": 0
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    }
+  ]
+}

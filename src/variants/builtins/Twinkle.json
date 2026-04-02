@@ -1,0 +1,109 @@
+{
+  "effect": "Twinkle",
+  "variants": [
+    {
+      "name": "Twinkle",
+      "base_effect": "Twinkle",
+      "description": "Twinkle variant from professional sequences. Used on Custom, Single Line props across 3 packages.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Twinkle_ReRandom": 0,
+        "E_CHECKBOX_Twinkle_Strobe": 0,
+        "E_CHOICE_Twinkle_Style": "New Render Method",
+        "E_SLIDER_Twinkle_Steps": 30
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Twinkle 17-Count",
+      "base_effect": "Twinkle",
+      "description": "Twinkle variant from professional sequences. Used on Single Line props across 2 packages.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Twinkle_ReRandom": 0,
+        "E_CHECKBOX_Twinkle_Strobe": 0,
+        "E_CHOICE_Twinkle_Style": "New Render Method",
+        "E_SLIDER_Twinkle_Count": 17,
+        "E_SLIDER_Twinkle_Steps": 30
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Twinkle 3-Count",
+      "base_effect": "Twinkle",
+      "description": "Twinkle variant from professional sequences. Used on Custom, Horiz Matrix, Single Line props across 4 packages.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Twinkle_ReRandom": 0,
+        "E_CHECKBOX_Twinkle_Strobe": 0,
+        "E_CHOICE_Twinkle_Style": "New Render Method",
+        "E_SLIDER_Twinkle_Count": 3,
+        "E_SLIDER_Twinkle_Steps": 30
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Twinkle 30-Count",
+      "base_effect": "Twinkle",
+      "description": "Twinkle variant from professional sequences. Used on Custom, Horiz Matrix, Icicles props across 2 packages.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Twinkle_ReRandom": 0,
+        "E_CHECKBOX_Twinkle_Strobe": 0,
+        "E_CHOICE_Twinkle_Style": "New Render Method",
+        "E_SLIDER_Twinkle_Count": 30,
+        "E_SLIDER_Twinkle_Steps": 30
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Twinkle 50-Count Strobe",
+      "base_effect": "Twinkle",
+      "description": "Twinkle variant from professional sequences. Used on Circle, Custom, Tree 180 props across 2 packages.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Twinkle_ReRandom": 0,
+        "E_CHECKBOX_Twinkle_Strobe": 1,
+        "E_CHOICE_Twinkle_Style": "New Render Method",
+        "E_SLIDER_Twinkle_Count": 50,
+        "E_SLIDER_Twinkle_Steps": 30
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    }
+  ]
+}

@@ -1,0 +1,108 @@
+{
+  "effect": "Fan",
+  "variants": [
+    {
+      "name": "Fan 2-Blade",
+      "base_effect": "Fan",
+      "description": "Fan variant from professional sequences. Used on Custom props across 3 packages.",
+      "parameter_overrides": {
+        "E_SLIDER_Fan_Accel": 0,
+        "E_SLIDER_Fan_Blade_Angle": 90,
+        "E_SLIDER_Fan_Blade_Width": 100,
+        "E_SLIDER_Fan_CenterX": 50,
+        "E_SLIDER_Fan_CenterY": 50,
+        "E_SLIDER_Fan_Duration": 100,
+        "E_SLIDER_Fan_Element_Width": 100,
+        "E_SLIDER_Fan_Num_Blades": 2,
+        "E_SLIDER_Fan_Num_Elements": 1,
+        "E_SLIDER_Fan_Start_Angle": 0
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Fan 3-Blade",
+      "base_effect": "Fan",
+      "description": "Fan variant from professional sequences. Used on Custom, Horiz Matrix, Single Line props across 4 packages.",
+      "parameter_overrides": {
+        "E_SLIDER_Fan_Accel": 0,
+        "E_SLIDER_Fan_Blade_Angle": 90,
+        "E_SLIDER_Fan_Blade_Width": 100,
+        "E_SLIDER_Fan_CenterX": 50,
+        "E_SLIDER_Fan_CenterY": 50,
+        "E_SLIDER_Fan_Duration": 100,
+        "E_SLIDER_Fan_Element_Width": 100,
+        "E_SLIDER_Fan_Num_Blades": 3,
+        "E_SLIDER_Fan_Num_Elements": 1,
+        "E_SLIDER_Fan_Start_Angle": 0
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Fan 3-Blade A",
+      "base_effect": "Fan",
+      "description": "Fan variant from professional sequences. Used on Custom, Horiz Matrix, Single Line props across 5 packages.",
+      "parameter_overrides": {
+        "E_SLIDER_Fan_Accel": 0,
+        "E_SLIDER_Fan_Blade_Angle": 90,
+        "E_SLIDER_Fan_Blade_Width": 100,
+        "E_SLIDER_Fan_CenterX": 50,
+        "E_SLIDER_Fan_CenterY": 50,
+        "E_SLIDER_Fan_Duration": 76,
+        "E_SLIDER_Fan_Element_Width": 100,
+        "E_SLIDER_Fan_Num_Blades": 3,
+        "E_SLIDER_Fan_Num_Elements": 1,
+        "E_SLIDER_Fan_Start_Angle": 0
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Fan 3-Blade B",
+      "base_effect": "Fan",
+      "description": "Fan variant from professional sequences. Used on Single Line, Tree 360 props across 2 packages.",
+      "parameter_overrides": {
+        "E_SLIDER_Fan_Accel": 0,
+        "E_SLIDER_Fan_Blade_Angle": 90,
+        "E_SLIDER_Fan_Blade_Width": 100,
+        "E_SLIDER_Fan_CenterY": 50,
+        "E_SLIDER_Fan_Duration": 100,
+        "E_SLIDER_Fan_Element_Width": 100,
+        "E_SLIDER_Fan_Num_Blades": 3,
+        "E_SLIDER_Fan_Num_Elements": 1,
+        "E_SLIDER_Fan_Start_Angle": 0
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    }
+  ]
+}

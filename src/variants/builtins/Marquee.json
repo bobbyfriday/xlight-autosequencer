@@ -1,0 +1,138 @@
+{
+  "effect": "Marquee",
+  "variants": [
+    {
+      "name": "Marquee Band3 Rev Slow",
+      "base_effect": "Marquee",
+      "description": "Marquee variant from professional sequences. Used on Arches, Horiz Matrix, Single Line props across 3 packages.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Marquee_Reverse": 1,
+        "E_SLIDER_MarqueeXC": 0,
+        "E_SLIDER_MarqueeYC": 0,
+        "E_SLIDER_Marquee_Band_Size": 3,
+        "E_SLIDER_Marquee_ScaleX": 100,
+        "E_SLIDER_Marquee_ScaleY": 100,
+        "E_SLIDER_Marquee_Skip_Size": 0,
+        "E_SLIDER_Marquee_Speed": 1,
+        "E_SLIDER_Marquee_Stagger": 0,
+        "E_SLIDER_Marquee_Start": 0,
+        "E_SLIDER_Marquee_Thickness": 1
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": "slow",
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Marquee Band3 Slow",
+      "base_effect": "Marquee",
+      "description": "Marquee variant from professional sequences. Used on Arches, Horiz Matrix, Single Line props across 3 packages.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Marquee_Reverse": 0,
+        "E_SLIDER_MarqueeXC": 0,
+        "E_SLIDER_MarqueeYC": 0,
+        "E_SLIDER_Marquee_Band_Size": 3,
+        "E_SLIDER_Marquee_ScaleX": 100,
+        "E_SLIDER_Marquee_ScaleY": 100,
+        "E_SLIDER_Marquee_Skip_Size": 0,
+        "E_SLIDER_Marquee_Speed": 1,
+        "E_SLIDER_Marquee_Stagger": 0,
+        "E_SLIDER_Marquee_Start": 0,
+        "E_SLIDER_Marquee_Thickness": 1
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": "slow",
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Marquee Band3 T10 Slow",
+      "base_effect": "Marquee",
+      "description": "Marquee variant from professional sequences. Used on Horiz Matrix, Tree 180, Tree 360 props across 2 packages.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Marquee_Reverse": 0,
+        "E_SLIDER_MarqueeXC": 0,
+        "E_SLIDER_MarqueeYC": 0,
+        "E_SLIDER_Marquee_Band_Size": 3,
+        "E_SLIDER_Marquee_ScaleX": 100,
+        "E_SLIDER_Marquee_ScaleY": 100,
+        "E_SLIDER_Marquee_Speed": 3,
+        "E_SLIDER_Marquee_Stagger": 0,
+        "E_SLIDER_Marquee_Start": 0,
+        "E_SLIDER_Marquee_Thickness": 10
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": "slow",
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Marquee Band3 T3 Slow",
+      "base_effect": "Marquee",
+      "description": "Marquee variant from professional sequences. Used on Horiz Matrix props across 2 packages.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Marquee_Reverse": 0,
+        "E_SLIDER_MarqueeXC": 0,
+        "E_SLIDER_MarqueeYC": 0,
+        "E_SLIDER_Marquee_Band_Size": 3,
+        "E_SLIDER_Marquee_ScaleX": 100,
+        "E_SLIDER_Marquee_ScaleY": 100,
+        "E_SLIDER_Marquee_Speed": 3,
+        "E_SLIDER_Marquee_Stagger": 0,
+        "E_SLIDER_Marquee_Start": 0,
+        "E_SLIDER_Marquee_Thickness": 3
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": "slow",
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Marquee Band5 T9 Slow",
+      "base_effect": "Marquee",
+      "description": "Marquee variant from professional sequences. Used on Tree 180 props across 2 packages.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Marquee_Reverse": 0,
+        "E_SLIDER_MarqueeXC": 0,
+        "E_SLIDER_MarqueeYC": 0,
+        "E_SLIDER_Marquee_Band_Size": 5,
+        "E_SLIDER_Marquee_ScaleX": 100,
+        "E_SLIDER_Marquee_ScaleY": 100,
+        "E_SLIDER_Marquee_Skip_Size": 16,
+        "E_SLIDER_Marquee_Speed": 3,
+        "E_SLIDER_Marquee_Stagger": 29,
+        "E_SLIDER_Marquee_Start": 0,
+        "E_SLIDER_Marquee_Thickness": 9
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": "slow",
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    }
+  ]
+}

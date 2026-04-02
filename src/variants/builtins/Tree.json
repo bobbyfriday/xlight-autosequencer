@@ -1,0 +1,41 @@
+{
+  "effect": "Tree",
+  "variants": [
+    {
+      "name": "Tree 10-Branch Slow",
+      "base_effect": "Tree",
+      "description": "Tree variant from professional sequences. Used on Single Line props across 2 packages.",
+      "parameter_overrides": {
+        "E_SLIDER_Tree_Branches": 10,
+        "E_SLIDER_Tree_Speed": 10
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": "slow",
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Tree 3-Branch Slow",
+      "base_effect": "Tree",
+      "description": "Tree variant from professional sequences. Used on Tree 180, Tree 360 props across 2 packages.",
+      "parameter_overrides": {
+        "E_SLIDER_Tree_Branches": 3,
+        "E_SLIDER_Tree_Speed": 10
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": "slow",
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    }
+  ]
+}

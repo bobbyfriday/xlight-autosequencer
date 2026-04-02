@@ -1,0 +1,151 @@
+{
+  "effect": "Shape",
+  "variants": [
+    {
+      "name": "Shape Star",
+      "base_effect": "Shape",
+      "description": "Shape variant from professional sequences. Used on Tree 180, Tree 360 props across 2 packages.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Shape_UseMusic": 0,
+        "E_CHOICE_Shape_ObjectToDraw": "Star",
+        "E_SLIDER_Shape_Growth": 100,
+        "E_SLIDER_Shape_Lifetime": 100,
+        "E_SLIDER_Shape_Rotation": 212,
+        "E_SLIDER_Shape_StartSize": 100,
+        "E_SLIDER_Shape_Thickness": 100
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Shape Star A",
+      "base_effect": "Shape",
+      "description": "Shape variant from professional sequences. Used on Tree 180, Tree 360 props across 2 packages.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Shape_UseMusic": 0,
+        "E_CHOICE_Shape_ObjectToDraw": "Star",
+        "E_SLIDER_Shape_Growth": 100,
+        "E_SLIDER_Shape_Lifetime": 100,
+        "E_SLIDER_Shape_Rotation": 138,
+        "E_SLIDER_Shape_StartSize": 100,
+        "E_SLIDER_Shape_Thickness": 100
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Shape Star B",
+      "base_effect": "Shape",
+      "description": "Shape variant from professional sequences. Used on Tree 180, Tree 360 props across 2 packages.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Shape_UseMusic": 0,
+        "E_CHOICE_Shape_ObjectToDraw": "Star",
+        "E_SLIDER_Shape_CentreX": 0,
+        "E_SLIDER_Shape_CentreY": 46,
+        "E_SLIDER_Shape_Growth": 100,
+        "E_SLIDER_Shape_Lifetime": 100,
+        "E_SLIDER_Shape_Rotation": 360,
+        "E_SLIDER_Shape_StartSize": 63,
+        "E_SLIDER_Shape_Thickness": 100
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Shape Star C",
+      "base_effect": "Shape",
+      "description": "Shape variant from professional sequences. Used on Horiz Matrix props across 2 packages.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Shape_UseMusic": 0,
+        "E_CHOICE_Shape_ObjectToDraw": "Star",
+        "E_SLIDER_Shape_CentreX": 0,
+        "E_SLIDER_Shape_CentreY": 46,
+        "E_SLIDER_Shape_Growth": 100,
+        "E_SLIDER_Shape_Lifetime": 100,
+        "E_SLIDER_Shape_Rotation": 360,
+        "E_SLIDER_Shape_StartSize": 10,
+        "E_SLIDER_Shape_Thickness": 30
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Shape Star D",
+      "base_effect": "Shape",
+      "description": "Shape variant from professional sequences. Used on Tree 180, Tree 360 props across 2 packages.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Shape_UseMusic": 0,
+        "E_CHOICE_Shape_ObjectToDraw": "Star",
+        "E_SLIDER_Shape_CentreX": 0,
+        "E_SLIDER_Shape_CentreY": 46,
+        "E_SLIDER_Shape_Growth": 100,
+        "E_SLIDER_Shape_Lifetime": 100,
+        "E_SLIDER_Shape_Rotation": 360,
+        "E_SLIDER_Shape_StartSize": 30,
+        "E_SLIDER_Shape_Thickness": 100
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Shape Star E",
+      "base_effect": "Shape",
+      "description": "Shape variant from professional sequences. Used on Tree 180 props across 2 packages.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Shape_UseMusic": 0,
+        "E_CHOICE_Shape_ObjectToDraw": "Star",
+        "E_SLIDER_Shape_CentreX": 0,
+        "E_SLIDER_Shape_CentreY": 46,
+        "E_SLIDER_Shape_Growth": 100,
+        "E_SLIDER_Shape_Lifetime": 100,
+        "E_SLIDER_Shape_Rotation": 0,
+        "E_SLIDER_Shape_StartSize": 63,
+        "E_SLIDER_Shape_Thickness": 100
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    }
+  ]
+}

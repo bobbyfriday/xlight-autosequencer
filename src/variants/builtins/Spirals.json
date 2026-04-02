@@ -1,0 +1,163 @@
+{
+  "effect": "Spirals",
+  "variants": [
+    {
+      "name": "Spirals 1-Count 3D",
+      "base_effect": "Spirals",
+      "description": "Spirals variant from professional sequences. Used on Custom, Horiz Matrix, Tree 180 props across 4 packages.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Spirals_3D": 1,
+        "E_CHECKBOX_Spirals_Blend": 1,
+        "E_CHECKBOX_Spirals_Grow": 0,
+        "E_CHECKBOX_Spirals_Shrink": 0,
+        "E_SLIDER_Spirals_Count": 1,
+        "E_SLIDER_Spirals_Thickness": 50
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Spirals 1-Count 3D A",
+      "base_effect": "Spirals",
+      "description": "Spirals variant from professional sequences. Used on Horiz Matrix, Tree 180, Tree 360 props across 2 packages.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Spirals_3D": 1,
+        "E_CHECKBOX_Spirals_Blend": 1,
+        "E_CHECKBOX_Spirals_Grow": 0,
+        "E_CHECKBOX_Spirals_Shrink": 0,
+        "E_SLIDER_Spirals_Count": 1,
+        "E_SLIDER_Spirals_Thickness": 32
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Spirals 1-Count 3D B",
+      "base_effect": "Spirals",
+      "description": "Spirals variant from professional sequences. Used on Custom props across 2 packages.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Spirals_3D": 1,
+        "E_CHECKBOX_Spirals_Blend": 0,
+        "E_CHECKBOX_Spirals_Grow": 0,
+        "E_CHECKBOX_Spirals_Shrink": 0,
+        "E_SLIDER_Spirals_Count": 1,
+        "E_SLIDER_Spirals_Rotation": 5,
+        "E_SLIDER_Spirals_Thickness": 50
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Spirals 1-Count 3D C",
+      "base_effect": "Spirals",
+      "description": "Spirals variant from professional sequences. Used on Circle, Custom, Horiz Matrix props across 3 packages.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Spirals_3D": 1,
+        "E_CHECKBOX_Spirals_Blend": 0,
+        "E_CHECKBOX_Spirals_Grow": 0,
+        "E_CHECKBOX_Spirals_Shrink": 0,
+        "E_SLIDER_Spirals_Count": 1,
+        "E_SLIDER_Spirals_Thickness": 50
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Spirals 1-Count 3D D",
+      "base_effect": "Spirals",
+      "description": "Spirals variant from professional sequences. Used on Custom, Horiz Matrix, Tree 180 props across 3 packages.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Spirals_3D": 1,
+        "E_CHECKBOX_Spirals_Blend": 1,
+        "E_CHECKBOX_Spirals_Grow": 0,
+        "E_CHECKBOX_Spirals_Shrink": 0,
+        "E_SLIDER_Spirals_Count": 1,
+        "E_SLIDER_Spirals_Rotation": 20,
+        "E_SLIDER_Spirals_Thickness": 50
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Spirals 1-Count 3D E",
+      "base_effect": "Spirals",
+      "description": "Spirals variant from professional sequences. Used on Custom, Tree 180, Tree 360 props across 4 packages.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Spirals_3D": 1,
+        "E_CHECKBOX_Spirals_Blend": 0,
+        "E_CHECKBOX_Spirals_Grow": 0,
+        "E_CHECKBOX_Spirals_Shrink": 0,
+        "E_SLIDER_Spirals_Count": 1,
+        "E_SLIDER_Spirals_Rotation": 20,
+        "E_SLIDER_Spirals_Thickness": 50
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Spirals 4-Count",
+      "base_effect": "Spirals",
+      "description": "Spirals variant from professional sequences. Used on Tree 360 props across 2 packages.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Spirals_3D": 0,
+        "E_CHECKBOX_Spirals_Blend": 0,
+        "E_CHECKBOX_Spirals_Grow": 0,
+        "E_CHECKBOX_Spirals_Shrink": 0,
+        "E_SLIDER_Spirals_Count": 4,
+        "E_SLIDER_Spirals_Rotation": -40,
+        "E_SLIDER_Spirals_Thickness": 98
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    }
+  ]
+}

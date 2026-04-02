@@ -1,7 +1,6 @@
 """Flask blueprint for the variant library browse API."""
 from __future__ import annotations
 
-import json
 import logging
 from pathlib import Path
 
@@ -21,10 +20,8 @@ _library: VariantLibrary | None = None
 _effect_library: EffectLibrary | None = None
 _custom_dir: str | Path | None = None
 _builtin_path: str | Path | None = None
-_builtin_names: set[str] | None = None
 
 _DEFAULT_CUSTOM_DIR = Path.home() / ".xlight" / "custom_variants"
-_DEFAULT_BUILTIN_PATH = Path(__file__).parent.parent / "variants" / "builtin_variants.json"
 
 
 def _get_custom_dir() -> Path:
@@ -51,16 +48,7 @@ def _get_library() -> VariantLibrary:
 
 
 def _get_builtin_names() -> set[str]:
-    global _builtin_names
-    if _builtin_names is not None:
-        return _builtin_names
-    path = Path(_builtin_path) if _builtin_path else _DEFAULT_BUILTIN_PATH
-    try:
-        raw = json.loads(path.read_text(encoding="utf-8"))
-        _builtin_names = {v["name"] for v in raw.get("variants", [])}
-    except (OSError, json.JSONDecodeError, KeyError):
-        _builtin_names = set()
-    return _builtin_names
+    return _get_library().builtin_names
 
 
 def _variant_to_dict(variant, is_builtin: bool, effect_library: EffectLibrary) -> dict:

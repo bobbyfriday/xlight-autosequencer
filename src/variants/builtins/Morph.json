@@ -1,0 +1,167 @@
+{
+  "effect": "Morph",
+  "variants": [
+    {
+      "name": "Morph",
+      "base_effect": "Morph",
+      "description": "Morph variant from professional sequences. Used on Arches, Custom, Horiz Matrix props across 7 packages.",
+      "parameter_overrides": {
+        "E_SLIDER_MorphAccel": 0,
+        "E_SLIDER_MorphDuration": 20,
+        "E_SLIDER_MorphEndLength": 1,
+        "E_SLIDER_MorphStartLength": 1,
+        "E_SLIDER_Morph_End_X2": 100,
+        "E_SLIDER_Morph_End_Y2": 100,
+        "E_SLIDER_Morph_Repeat_Count": 0,
+        "E_SLIDER_Morph_Repeat_Skip": 1,
+        "E_SLIDER_Morph_Stagger": 0,
+        "E_SLIDER_Morph_Start_X2": 100,
+        "E_SLIDER_Morph_Start_Y2": 0
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Morph A",
+      "base_effect": "Morph",
+      "description": "Morph variant from professional sequences. Used on Custom, Single Line, Tree 180 props across 2 packages.",
+      "parameter_overrides": {
+        "E_SLIDER_MorphAccel": 0,
+        "E_SLIDER_MorphDuration": 50,
+        "E_SLIDER_MorphEndLength": 41,
+        "E_SLIDER_MorphStartLength": 41,
+        "E_SLIDER_Morph_End_X2": 100,
+        "E_SLIDER_Morph_End_Y2": 100,
+        "E_SLIDER_Morph_Repeat_Count": 0,
+        "E_SLIDER_Morph_Repeat_Skip": 1,
+        "E_SLIDER_Morph_Stagger": 0,
+        "E_SLIDER_Morph_Start_X2": 100,
+        "E_SLIDER_Morph_Start_Y2": 0
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Morph B",
+      "base_effect": "Morph",
+      "description": "Morph variant from professional sequences. Used on Arches, Custom, Horiz Matrix props across 5 packages.",
+      "parameter_overrides": {
+        "E_SLIDER_MorphAccel": 0,
+        "E_SLIDER_MorphDuration": 50,
+        "E_SLIDER_MorphEndLength": 1,
+        "E_SLIDER_MorphStartLength": 1,
+        "E_SLIDER_Morph_End_X2": 100,
+        "E_SLIDER_Morph_End_Y2": 100,
+        "E_SLIDER_Morph_Repeat_Count": 0,
+        "E_SLIDER_Morph_Repeat_Skip": 1,
+        "E_SLIDER_Morph_Stagger": 0,
+        "E_SLIDER_Morph_Start_X2": 100,
+        "E_SLIDER_Morph_Start_Y2": 0
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Morph C",
+      "base_effect": "Morph",
+      "description": "Morph variant from professional sequences. Used on Custom, Single Line, Tree 180 props across 2 packages.",
+      "parameter_overrides": {
+        "E_SLIDER_MorphAccel": 0,
+        "E_SLIDER_MorphDuration": 30,
+        "E_SLIDER_MorphEndLength": 1,
+        "E_SLIDER_MorphStartLength": 1,
+        "E_SLIDER_Morph_End_X2": 100,
+        "E_SLIDER_Morph_End_Y2": 100,
+        "E_SLIDER_Morph_Repeat_Count": 0,
+        "E_SLIDER_Morph_Repeat_Skip": 1,
+        "E_SLIDER_Morph_Stagger": 0,
+        "E_SLIDER_Morph_Start_X2": 100,
+        "E_SLIDER_Morph_Start_Y2": 0
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Morph D",
+      "base_effect": "Morph",
+      "description": "Morph variant from professional sequences. Used on Single Line props across 2 packages.",
+      "parameter_overrides": {
+        "E_SLIDER_MorphAccel": 0,
+        "E_SLIDER_MorphDuration": 60,
+        "E_SLIDER_MorphEndLength": 1,
+        "E_SLIDER_MorphStartLength": 1,
+        "E_SLIDER_Morph_End_X2": 100,
+        "E_SLIDER_Morph_End_Y2": 100,
+        "E_SLIDER_Morph_Repeat_Count": 0,
+        "E_SLIDER_Morph_Repeat_Skip": 1,
+        "E_SLIDER_Morph_Stagger": 0,
+        "E_SLIDER_Morph_Start_X2": 100,
+        "E_SLIDER_Morph_Start_Y2": 0
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Morph E",
+      "base_effect": "Morph",
+      "description": "Morph variant from professional sequences. Used on Single Line props across 2 packages.",
+      "parameter_overrides": {
+        "E_SLIDER_MorphAccel": 0,
+        "E_SLIDER_MorphDuration": 40,
+        "E_SLIDER_MorphEndLength": 1,
+        "E_SLIDER_MorphStartLength": 1,
+        "E_SLIDER_Morph_End_X2": 100,
+        "E_SLIDER_Morph_End_Y2": 100,
+        "E_SLIDER_Morph_Repeat_Count": 0,
+        "E_SLIDER_Morph_Repeat_Skip": 1,
+        "E_SLIDER_Morph_Stagger": 0,
+        "E_SLIDER_Morph_Start_X2": 100,
+        "E_SLIDER_Morph_Start_Y2": 0
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "effect": "Fireworks",
+  "variants": [
+    {
+      "name": "Fireworks 50-Count",
+      "base_effect": "Fireworks",
+      "description": "Fireworks variant from professional sequences. Used on various props across 1 package.",
+      "parameter_overrides": {
+        "E_CHECKBOX_FIRETIMING": 0,
+        "E_CHECKBOX_Fireworks_UseMusic": 0,
+        "E_SLIDER_Fireworks_Count": 50,
+        "E_SLIDER_Fireworks_Fade": 50,
+        "E_SLIDER_Fireworks_Velocity": 2,
+        "E_SLIDER_Fireworks_XLocation": -1,
+        "E_SLIDER_Fireworks_XVelocity": 0,
+        "E_SLIDER_Fireworks_YLocation": -1,
+        "E_SLIDER_Fireworks_YVelocity": 0
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    }
+  ]
+}

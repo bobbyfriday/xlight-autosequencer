@@ -1,0 +1,138 @@
+{
+  "effect": "VU Meter",
+  "variants": [
+    {
+      "name": "VU Meter Beats",
+      "base_effect": "VU Meter",
+      "description": "VU Meter variant on Custom, Single Line, Tree 360 props (2 pkg, 10 uses)",
+      "parameter_overrides": {
+        "E_CHOICE_VUMeter_TimingTrack": "Beats",
+        "E_CHOICE_VUMeter_Type": "Timing Event Color",
+        "E_SLIDER_VUMeter_Sensitivity": 70
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "VU Meter Regex0",
+      "base_effect": "VU Meter",
+      "description": "VU Meter variant on Circle, Custom, Single Line props (2 pkg, 316 uses)",
+      "parameter_overrides": {
+        "E_CHOICE_VUMeter_TimingTrack": "Timings",
+        "E_CHOICE_VUMeter_Type": "Timing Event Color",
+        "E_SLIDER_VUMeter_Sensitivity": 70
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "VU Meter Regex0 B",
+      "base_effect": "VU Meter",
+      "description": "VU Meter variant on Arches, Circle, Custom props (2 pkg, 228 uses)",
+      "parameter_overrides": {
+        "E_CHOICE_VUMeter_TimingTrack": "Beats 128bpm",
+        "E_CHOICE_VUMeter_Type": "Timing Event Color",
+        "E_SLIDER_VUMeter_Sensitivity": 70
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "VU Meter Regex0 C",
+      "base_effect": "VU Meter",
+      "description": "VU Meter variant on Arches, Circle, Custom props (2 pkg, 154 uses)",
+      "parameter_overrides": {
+        "E_CHOICE_VUMeter_TimingTrack": "Beats 256bpm",
+        "E_CHOICE_VUMeter_Type": "Timing Event Color",
+        "E_SLIDER_VUMeter_Sensitivity": 70
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "VU Meter Regex0 D",
+      "base_effect": "VU Meter",
+      "description": "VU Meter variant on Circle, Cube, Custom props (2 pkg, 145 uses)",
+      "parameter_overrides": {
+        "E_CHOICE_VUMeter_TimingTrack": "Drums",
+        "E_CHOICE_VUMeter_Type": "Timing Event Color",
+        "E_SLIDER_VUMeter_Sensitivity": 70
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "VU Meter Regex0 E",
+      "base_effect": "VU Meter",
+      "description": "VU Meter variant on Circle, Cube, Custom props (2 pkg, 83 uses)",
+      "parameter_overrides": {
+        "E_CHOICE_VUMeter_TimingTrack": "Beats 256bpm",
+        "E_CHOICE_VUMeter_Type": "Timing Event Pulse Color",
+        "E_SLIDER_VUMeter_Bars": 6
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "VU Meter Regex0 F",
+      "base_effect": "VU Meter",
+      "description": "VU Meter variant on Circle, Cube, Custom props (2 pkg, 9 uses)",
+      "parameter_overrides": {
+        "E_CHOICE_VUMeter_TimingTrack": "Note Onsets pt2",
+        "E_CHOICE_VUMeter_Type": "Timing Event Pulse Color",
+        "E_SLIDER_VUMeter_Bars": 6
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    }
+  ]
+}
