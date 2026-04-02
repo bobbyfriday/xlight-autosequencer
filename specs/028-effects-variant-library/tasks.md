@@ -266,4 +266,4 @@ With multiple developers after Foundation:
 
 ## Deferred Work
 
-- [ ] T049 Implement direction_cycle consumption in effect_placer.py — when placing an effect with direction_cycle, alternate the direction parameter value based on beat/bar timing from the hierarchy. Currently direction_cycle is modeled and validated but not consumed by the generator.
+- [X] T049 Implement direction_cycle consumption in effect_placer.py — when placing an effect with direction_cycle, alternate the direction parameter value based on beat/bar timing from the hierarchy. Currently direction_cycle is modeled and validated but not consumed by the generator.

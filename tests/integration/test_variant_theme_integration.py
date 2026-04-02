@@ -298,3 +298,110 @@ class TestVariantResolutionInPlacer:
 
         assert height_ok, "Expected layer override Height=50"
         assert hue_ok, "Expected variant HueShift=10 to survive (layer doesn't override it)"
+
+    def test_direction_cycle_applied_to_placement(self):
+        """Variant with direction_cycle sets the direction param on placement."""
+        from src.variants.library import VariantLibrary
+
+        effect_lib = load_effect_library(builtin_path=EFFECTS_FIXTURE)
+
+        # Create a variant with direction_cycle (no direction in parameter_overrides)
+        variant = EffectVariant(
+            name="bars-cycle-test",
+            base_effect="Bars",
+            description="test",
+            parameter_overrides={"E_SLIDER_Bars_BarCount": 2},
+            tags=VariantTags(),
+            direction_cycle={
+                "param": "E_CHOICE_Bars_Direction",
+                "values": ["left", "right"],
+                "mode": "alternate",
+            },
+        )
+        variant_lib = VariantLibrary(
+            schema_version="1.0.0",
+            variants={"bars-cycle-test": variant},
+            builtin_names=set(),
+        )
+
+        layer = EffectLayer(
+            effect="Bars",
+            blend_mode="Normal",
+            parameter_overrides={},
+            variant_ref="bars-cycle-test",
+        )
+        theme = Theme(
+            name="Test Theme",
+            mood="ethereal",
+            occasion="general",
+            genre="any",
+            intent="Testing",
+            layers=[layer],
+            palette=["#FF0000", "#00FF00", "#0000FF"],
+        )
+        section = _make_section_energy()
+        assignment = _make_assignment(theme, section)
+        groups = _make_groups()
+        hierarchy = _make_hierarchy()
+
+        result = place_effects(
+            assignment, groups, effect_lib, hierarchy,
+            variant_library=variant_lib,
+        )
+
+        all_placements = [p for placements in result.values() for p in placements]
+        assert len(all_placements) >= 1
+
+        # Direction cycle should inject the param (instance_index=0 → "left")
+        directions = [
+            p.parameters.get("E_CHOICE_Bars_Direction")
+            for p in all_placements
+            if "E_CHOICE_Bars_Direction" in p.parameters
+        ]
+        assert len(directions) >= 1, (
+            f"Expected direction_cycle to inject E_CHOICE_Bars_Direction, "
+            f"got params: {[p.parameters for p in all_placements]}"
+        )
+        assert directions[0] == "left", (
+            f"Expected 'left' for instance_index=0, got: {directions[0]}"
+        )
+
+    def test_direction_cycle_alternates_with_multiple_instances(self):
+        """direction_cycle alternates values across multiple placements (unit test of _make_placement)."""
+        from src.generator.effect_placer import _make_placement
+
+        effect_lib = load_effect_library(builtin_path=EFFECTS_FIXTURE)
+        bars_def = effect_lib.get("Bars")
+
+        dc = {"param": "E_CHOICE_Bars_Direction", "values": ["up", "down"], "mode": "alternate"}
+        params = {"E_SLIDER_Bars_BarCount": 3}
+
+        p0 = _make_placement(bars_def, "G1", 0, 2000, params, ["#FF0000"], "Normal", "bar",
+                             instance_index=0, direction_cycle=dc)
+        p1 = _make_placement(bars_def, "G1", 2000, 4000, params, ["#FF0000"], "Normal", "bar",
+                             instance_index=1, direction_cycle=dc)
+        p2 = _make_placement(bars_def, "G1", 4000, 6000, params, ["#FF0000"], "Normal", "bar",
+                             instance_index=2, direction_cycle=dc)
+
+        assert p0.parameters["E_CHOICE_Bars_Direction"] == "up"
+        assert p1.parameters["E_CHOICE_Bars_Direction"] == "down"
+        assert p2.parameters["E_CHOICE_Bars_Direction"] == "up"
+
+    def test_no_direction_cycle_uses_hardcoded_fallback(self):
+        """Without direction_cycle, hardcoded _ALTERNATING_DIRECTIONS still works."""
+        from src.generator.effect_placer import _make_placement
+
+        effect_lib = load_effect_library(builtin_path=EFFECTS_FIXTURE)
+        bars_def = effect_lib.get("Bars")
+
+        # Include a direction param in overrides — hardcoded alternation should cycle it
+        params = {"E_SLIDER_Bars_BarCount": 2, "E_CHOICE_Bars_Direction": "Left"}
+
+        p0 = _make_placement(bars_def, "G1", 0, 2000, params, ["#FF0000"], "Normal", "bar",
+                             instance_index=0)
+        p1 = _make_placement(bars_def, "G1", 2000, 4000, params, ["#FF0000"], "Normal", "bar",
+                             instance_index=1)
+
+        # Hardcoded _ALTERNATING_DIRECTIONS for Bars_Direction is ["Left", "Right", "expand", "compress"]
+        assert p0.parameters["E_CHOICE_Bars_Direction"] == "Left"
+        assert p1.parameters["E_CHOICE_Bars_Direction"] == "Right"
