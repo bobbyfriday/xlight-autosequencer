@@ -321,3 +321,84 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 }
 .validation-errors ul { margin: 4px 0 0; padding-left: 16px; }
 .field-error { border-color: var(--danger) !important; }
+
+/* ── Variant Picker (T011) ──────────────────────────────────────────────── */
+.variant-picker {
+  padding: 6px 0 0 8px;
+  border-top: 1px solid var(--border);
+}
+.variant-card {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-left: 3px solid transparent;
+  border-radius: 4px;
+  padding: 6px 8px;
+  cursor: pointer;
+  margin-bottom: 4px;
+}
+.variant-card:hover {
+  background: #333;
+}
+.variant-card.variant-selected {
+  border-left: 3px solid var(--accent);
+  background: #2a3a2a;
+}
+.variant-card-name {
+  font-size: 12px;
+  font-weight: 600;
+}
+.variant-card-desc {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+.variant-tag {
+  display: inline-block;
+  font-size: 9px;
+  padding: 1px 4px;
+  border-radius: 2px;
+  margin-right: 3px;
+  margin-top: 2px;
+}
+.variant-tag-energy { background: #3a3a2a; color: #cccc8e; }
+.variant-tag-tier { background: #2a3a3a; color: #8ecccc; }
+.variant-tag-section { background: #3a2a3a; color: #cc8ecc; }
+.param-row.variant-provided {
+  border-left: 2px solid var(--accent);
+  padding-left: 6px;
+  background: rgba(90, 158, 90, 0.05);
+}
+.variant-warning {
+  display: inline-block;
+  background: #5a4a2a;
+  color: #eebb66;
+  border: 1px solid #8a6a3a;
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+.variant-picker-empty {
+  color: var(--text-dim);
+  font-size: 11px;
+  padding: 4px;
+}
+.variant-clear-link {
+  font-size: 11px;
+  color: var(--text-dim);
+  cursor: pointer;
+  text-decoration: underline;
+  margin-bottom: 4px;
+  display: inline-block;
+}
+.variant-clear-link:hover {
+  color: var(--text);
+}
+.variant-score {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 400;
+  padding: 1px 4px;
+  border-radius: 2px;
+  margin-left: 6px;
+  background: #2a3a5a;
+  color: #8ebbee;
+}
