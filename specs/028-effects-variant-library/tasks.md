@@ -164,9 +164,9 @@
 
 **Purpose**: Populate the built-in catalog and validate coverage
 
-- [ ] T044 Populate src/variants/builtin_variants.json with ~30-40 curated core variants extracted from existing theme layers in builtin_themes.json and generator effect pool in effect_placer.py — each variant with complete tags per data-model.md
-- [ ] T045 Import variants from a single .xsq sequence file using variant import CLI to validate importer and expand catalog toward 100+ target
-- [ ] T046 Run variant coverage CLI to identify gaps by effect category and prop type, then hand-curate additional variants to fill the most critical gaps
+- [X] T044 Populate src/variants/builtin_variants.json with ~30-40 curated core variants extracted from existing theme layers in builtin_themes.json and generator effect pool in effect_placer.py — each variant with complete tags per data-model.md
+- [X] T045 Import variants from a single .xsq sequence file using variant import CLI to validate importer and expand catalog toward 100+ target
+- [X] T046 Run variant coverage CLI to identify gaps by effect category and prop type, then hand-curate additional variants to fill the most critical gaps
 - [ ] T047 Validate all built-in variants pass validate_variant() and have complete tags (tier_affinity, energy_level, speed_feel, direction, section_roles, scope, genre_affinity)
 - [ ] T048 Run quickstart.md validation — verify all documented CLI commands and API endpoints work as described
 
