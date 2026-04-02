@@ -2,18 +2,18 @@
   "effect": "Tendril",
   "variants": [
     {
-      "name": "Tendril Random",
+      "name": "Tendril Wander",
       "base_effect": "Tendril",
-      "description": "Tendril variant from professional sequences. Used on various props across 1 package.",
+      "description": "Organic tendril with random wandering movement. Unpredictable flowing line for ambient interest.",
       "parameter_overrides": {
         "E_CHOICE_Tendril_Movement": "Random"
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": null,
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "moderate",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["verse", "bridge"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }

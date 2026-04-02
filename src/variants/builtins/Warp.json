@@ -2,9 +2,9 @@
   "effect": "Warp",
   "variants": [
     {
-      "name": "Warp banded swirl",
+      "name": "Warp Banded Swirl",
       "base_effect": "Warp",
-      "description": "Warp variant from professional sequences. Used on Tree 180, Tree 360 props across 2 packages.",
+      "description": "Banded swirl distortion with centered focus. Twisted ribbon pattern on trees.",
       "parameter_overrides": {
         "E_CHOICE_Warp_Type": "banded swirl",
         "E_SLIDER_Warp_Frequency": 20,
@@ -13,19 +13,19 @@
         "E_TEXTCTRL_Warp_Cycle_Count": 1
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": null,
+        "tier_affinity": "foreground",
+        "energy_level": "medium",
+        "speed_feel": "moderate",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["chorus", "bridge"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
     },
     {
-      "name": "Warp circle reveal",
+      "name": "Warp Circle Reveal",
       "base_effect": "Warp",
-      "description": "Warp variant from professional sequences. Used on Custom, Single Line props across 2 packages.",
+      "description": "Circular reveal distortion expanding from center. Dramatic iris-open transition on single-line props.",
       "parameter_overrides": {
         "E_CHOICE_Warp_Type": "circle reveal",
         "E_SLIDER_Warp_X": 50,
@@ -33,19 +33,19 @@
         "E_TEXTCTRL_Warp_Cycle_Count": 1
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": null,
+        "tier_affinity": "foreground",
+        "energy_level": "medium",
+        "speed_feel": "moderate",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["intro", "build"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
     },
     {
-      "name": "Warp circular swirl Moderate",
+      "name": "Warp Circular Swirl",
       "base_effect": "Warp",
-      "description": "Warp variant from professional sequences. Used on Horiz Matrix props across 2 packages.",
+      "description": "Circular swirl distortion at moderate speed. Spinning vortex pattern on horizontal matrices.",
       "parameter_overrides": {
         "E_CHOICE_Warp_Type": "circular swirl",
         "E_SLIDER_Warp_Speed": 20,
@@ -54,19 +54,19 @@
         "E_TEXTCTRL_Warp_Cycle_Count": 1
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
+        "tier_affinity": "foreground",
+        "energy_level": "medium",
         "speed_feel": "moderate",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["chorus", "bridge"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
     },
     {
-      "name": "Warp copy",
+      "name": "Warp Copy",
       "base_effect": "Warp",
-      "description": "Warp variant from professional sequences. Used on Tree 180, Tree 360 props across 2 packages.",
+      "description": "Copy distortion duplicating the buffer. Mirrored doubling effect on trees.",
       "parameter_overrides": {
         "E_CHOICE_Warp_Type": "copy",
         "E_SLIDER_Warp_X": 50,
@@ -74,47 +74,47 @@
         "E_TEXTCTRL_Warp_Cycle_Count": 1
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": null,
+        "tier_affinity": "foreground",
+        "energy_level": "medium",
+        "speed_feel": "moderate",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["chorus", "bridge"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
     },
     {
-      "name": "Warp mirror",
+      "name": "Warp Mirror Centered",
       "base_effect": "Warp",
-      "description": "Warp variant from professional sequences. Used on Horiz Matrix, Tree 180, Tree 360 props across 5 packages.",
+      "description": "Mirror distortion centered on the display. Symmetrical reflection on matrices and trees.",
       "parameter_overrides": {
         "E_CHOICE_Warp_Type": "mirror",
         "E_SLIDER_Warp_X": 50,
         "E_SLIDER_Warp_Y": 50
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": null,
+        "tier_affinity": "foreground",
+        "energy_level": "medium",
+        "speed_feel": "moderate",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["chorus", "bridge"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
     },
     {
-      "name": "Warp mirror A",
+      "name": "Warp Mirror Default",
       "base_effect": "Warp",
-      "description": "Warp variant from professional sequences. Used on Tree 180, Tree 360 props across 3 packages.",
+      "description": "Mirror distortion with default positioning. Simple bilateral symmetry on trees.",
       "parameter_overrides": {
         "E_CHOICE_Warp_Type": "mirror"
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": null,
+        "tier_affinity": "foreground",
+        "energy_level": "medium",
+        "speed_feel": "moderate",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["verse", "chorus"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }

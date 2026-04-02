@@ -2,9 +2,9 @@
   "effect": "Spirals",
   "variants": [
     {
-      "name": "Spirals 1-Count 3D",
+      "name": "Spirals 3D Blend",
       "base_effect": "Spirals",
-      "description": "Spirals variant from professional sequences. Used on Custom, Horiz Matrix, Tree 180 props across 4 packages.",
+      "description": "One thick blended spiral with 3D depth. Smooth color transitions on trees and single-line props.",
       "parameter_overrides": {
         "E_CHECKBOX_Spirals_3D": 1,
         "E_CHECKBOX_Spirals_Blend": 1,
@@ -14,19 +14,19 @@
         "E_SLIDER_Spirals_Thickness": 50
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": null,
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "moderate",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["verse", "chorus", "bridge"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
     },
     {
-      "name": "Spirals 1-Count 3D A",
+      "name": "Spirals 3D Blend Thin",
       "base_effect": "Spirals",
-      "description": "Spirals variant from professional sequences. Used on Horiz Matrix, Tree 180, Tree 360 props across 2 packages.",
+      "description": "One thin blended spiral with 3D depth. Delicate wrapping line on trees and matrices.",
       "parameter_overrides": {
         "E_CHECKBOX_Spirals_3D": 1,
         "E_CHECKBOX_Spirals_Blend": 1,
@@ -36,19 +36,19 @@
         "E_SLIDER_Spirals_Thickness": 32
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": null,
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "moderate",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["verse", "bridge"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
     },
     {
-      "name": "Spirals 1-Count 3D B",
+      "name": "Spirals 3D Slow Spin",
       "base_effect": "Spirals",
-      "description": "Spirals variant from professional sequences. Used on Custom props across 2 packages.",
+      "description": "Sharp-edged spiral with slow rotation and 3D depth. Gentle twisting motion on custom props.",
       "parameter_overrides": {
         "E_CHECKBOX_Spirals_3D": 1,
         "E_CHECKBOX_Spirals_Blend": 0,
@@ -59,19 +59,19 @@
         "E_SLIDER_Spirals_Thickness": 50
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": null,
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "slow",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["verse", "intro"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
     },
     {
-      "name": "Spirals 1-Count 3D C",
+      "name": "Spirals 3D Sharp",
       "base_effect": "Spirals",
-      "description": "Spirals variant from professional sequences. Used on Circle, Custom, Horiz Matrix props across 3 packages.",
+      "description": "Sharp-edged spiral with 3D depth and no rotation. Static candy-cane stripe pattern on custom props.",
       "parameter_overrides": {
         "E_CHECKBOX_Spirals_3D": 1,
         "E_CHECKBOX_Spirals_Blend": 0,
@@ -81,19 +81,19 @@
         "E_SLIDER_Spirals_Thickness": 50
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": null,
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "slow",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["verse", "bridge"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
     },
     {
-      "name": "Spirals 1-Count 3D D",
+      "name": "Spirals 3D Blend Fast Spin",
       "base_effect": "Spirals",
-      "description": "Spirals variant from professional sequences. Used on Custom, Horiz Matrix, Tree 180 props across 3 packages.",
+      "description": "Blended spiral with fast rotation and 3D depth. Energetic twisting color bands on matrices and trees.",
       "parameter_overrides": {
         "E_CHECKBOX_Spirals_3D": 1,
         "E_CHECKBOX_Spirals_Blend": 1,
@@ -104,19 +104,19 @@
         "E_SLIDER_Spirals_Thickness": 50
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": null,
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "moderate",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["chorus", "build"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
     },
     {
-      "name": "Spirals 1-Count 3D E",
+      "name": "Spirals 3D Sharp Fast Spin",
       "base_effect": "Spirals",
-      "description": "Spirals variant from professional sequences. Used on Custom, Tree 180, Tree 360 props across 4 packages.",
+      "description": "Sharp-edged spiral with fast rotation and 3D depth. Bold spinning stripes on custom props and trees.",
       "parameter_overrides": {
         "E_CHECKBOX_Spirals_3D": 1,
         "E_CHECKBOX_Spirals_Blend": 0,
@@ -127,19 +127,19 @@
         "E_SLIDER_Spirals_Thickness": 50
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": null,
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "moderate",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["chorus", "build"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
     },
     {
-      "name": "Spirals 4-Count",
+      "name": "Spirals Quad Reverse",
       "base_effect": "Spirals",
-      "description": "Spirals variant from professional sequences. Used on Tree 360 props across 2 packages.",
+      "description": "Four thick spirals rotating in reverse. Dense multi-helix pattern wrapping around trees.",
       "parameter_overrides": {
         "E_CHECKBOX_Spirals_3D": 0,
         "E_CHECKBOX_Spirals_Blend": 0,
@@ -150,11 +150,11 @@
         "E_SLIDER_Spirals_Thickness": 98
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": null,
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "moderate",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["chorus", "bridge"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }

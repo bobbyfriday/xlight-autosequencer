@@ -2,88 +2,88 @@
   "effect": "Color Wash",
   "variants": [
     {
-      "name": "Color Wash CircularPalette1",
+      "name": "Color Wash Circular",
       "base_effect": "Color Wash",
-      "description": "Color Wash variant on Custom, Single Line, Star props (2 pkg, 24 uses)",
+      "description": "Smooth circular palette rotation across all pixels. Even color cycling for background ambiance.",
       "parameter_overrides": {
         "E_CHECKBOX_ColorWash_CircularPalette": 1
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": null,
+        "tier_affinity": "background",
+        "energy_level": "low",
+        "speed_feel": "slow",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["verse", "intro", "outro"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
     },
     {
-      "name": "Color Wash HFade0",
+      "name": "Color Wash Flat",
       "base_effect": "Color Wash",
-      "description": "Color Wash variant on Star props (1 pkg, 6 uses)",
+      "description": "Solid color wash with no fading in any direction. Uniform fill that lights every pixel equally.",
       "parameter_overrides": {
         "E_CHECKBOX_ColorWash_HFade": 0,
         "E_CHECKBOX_ColorWash_VFade": 0
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": null,
+        "tier_affinity": "background",
+        "energy_level": "low",
+        "speed_feel": "slow",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["verse", "intro", "outro"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
     },
     {
-      "name": "Color Wash HFade1",
+      "name": "Color Wash Full Fade",
       "base_effect": "Color Wash",
-      "description": "Color Wash variant on Arches, Cube, Custom props (3 pkg, 147 uses)",
+      "description": "Color wash fading in both horizontal and vertical directions. Creates a soft vignette effect from center.",
       "parameter_overrides": {
         "E_CHECKBOX_ColorWash_HFade": 1,
         "E_CHECKBOX_ColorWash_VFade": 1
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": null,
+        "tier_affinity": "background",
+        "energy_level": "low",
+        "speed_feel": "slow",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["verse", "intro", "outro", "bridge"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
     },
     {
-      "name": "Color Wash HFade1 B",
+      "name": "Color Wash Horizontal Fade",
       "base_effect": "Color Wash",
-      "description": "Color Wash variant on Custom, Single Line, Star props (3 pkg, 32 uses)",
+      "description": "Color wash fading from left to right edges. Adds directional depth to single-line and star props.",
       "parameter_overrides": {
         "E_CHECKBOX_ColorWash_HFade": 1
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": null,
-        "direction": null,
-        "section_roles": [],
+        "tier_affinity": "background",
+        "energy_level": "low",
+        "speed_feel": "slow",
+        "direction": "horizontal",
+        "section_roles": ["verse", "intro", "outro"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
     },
     {
-      "name": "Color Wash VFade1",
+      "name": "Color Wash Vertical Fade",
       "base_effect": "Color Wash",
-      "description": "Color Wash variant on Single Line, Tree 180, Tree 360 props (2 pkg, 9 uses)",
+      "description": "Color wash fading from top to bottom. Natural gravity-like gradient on trees and vertical layouts.",
       "parameter_overrides": {
         "E_CHECKBOX_ColorWash_VFade": 1
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": null,
-        "direction": null,
-        "section_roles": [],
+        "tier_affinity": "background",
+        "energy_level": "low",
+        "speed_feel": "slow",
+        "direction": "vertical",
+        "section_roles": ["verse", "intro", "outro"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }

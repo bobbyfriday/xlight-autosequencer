@@ -2,9 +2,9 @@
   "effect": "Circles",
   "variants": [
     {
-      "name": "Circles 1-Count Radial Slow",
+      "name": "Circles Single Radial",
       "base_effect": "Circles",
-      "description": "Circles variant from professional sequences. Used on Star props across 2 packages.",
+      "description": "One slow radial circle expanding outward. Gentle pulsing effect ideal for star props.",
       "parameter_overrides": {
         "E_CHECKBOX_Circles_Bounce": 0,
         "E_CHECKBOX_Circles_Collide": 0,
@@ -15,19 +15,19 @@
         "E_SLIDER_Circles_Speed": 5
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
+        "tier_affinity": "mid",
+        "energy_level": "low",
         "speed_feel": "slow",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["verse", "intro", "outro"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
     },
     {
-      "name": "Circles 5-Count Slow",
+      "name": "Circles Multi",
       "base_effect": "Circles",
-      "description": "Circles variant from professional sequences. Used on Single Line props across 2 packages.",
+      "description": "Five circles drifting across the display. Ambient floating motion for single-line props.",
       "parameter_overrides": {
         "E_CHECKBOX_Circles_Bounce": 0,
         "E_CHECKBOX_Circles_Collide": 0,
@@ -38,11 +38,11 @@
         "E_SLIDER_Circles_Speed": 10
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
+        "tier_affinity": "mid",
+        "energy_level": "medium",
         "speed_feel": "slow",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["verse", "bridge"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }

@@ -2,9 +2,9 @@
   "effect": "Plasma",
   "variants": [
     {
-      "name": "Plasma Style1 Fast",
+      "name": "Plasma Classic Fast",
       "base_effect": "Plasma",
-      "description": "Plasma variant from professional sequences. Used on Custom, Tree 180, Tree 360 props across 3 packages.",
+      "description": "Classic plasma pattern at high speed. Vivid swirling color gradients on custom props and trees.",
       "parameter_overrides": {
         "E_CHOICE_Plasma_Color": "Normal",
         "E_SLIDER_Plasma_Line_Density": 1,
@@ -12,19 +12,19 @@
         "E_SLIDER_Plasma_Style": 1
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
+        "tier_affinity": "background",
+        "energy_level": "high",
         "speed_feel": "fast",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["chorus", "build", "drop"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
     },
     {
-      "name": "Plasma Style6 Fast",
+      "name": "Plasma Pattern6 Fast",
       "base_effect": "Plasma",
-      "description": "Plasma variant from professional sequences. Used on Cube, Single Line, Tree 180 props across 2 packages.",
+      "description": "Alternate plasma pattern with fast organic movement. Dynamic shifting colors on cubes and trees.",
       "parameter_overrides": {
         "E_CHOICE_Plasma_Color": "Normal",
         "E_SLIDER_Plasma_Line_Density": 1,
@@ -32,19 +32,19 @@
         "E_SLIDER_Plasma_Style": 6
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
+        "tier_affinity": "background",
+        "energy_level": "high",
         "speed_feel": "fast",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["chorus", "build"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
     },
     {
-      "name": "Plasma Style7 Fast",
+      "name": "Plasma Pattern7 Fast",
       "base_effect": "Plasma",
-      "description": "Plasma variant from professional sequences. Used on Tree 180, Tree 360 props across 2 packages.",
+      "description": "Third plasma pattern variant at high speed. Unique organic color flow on trees.",
       "parameter_overrides": {
         "E_CHOICE_Plasma_Color": "Normal",
         "E_SLIDER_Plasma_Line_Density": 1,
@@ -52,11 +52,11 @@
         "E_SLIDER_Plasma_Style": 7
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
+        "tier_affinity": "background",
+        "energy_level": "high",
         "speed_feel": "fast",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["chorus", "build"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }

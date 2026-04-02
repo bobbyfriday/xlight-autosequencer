@@ -2,9 +2,9 @@
   "effect": "Meteors",
   "variants": [
     {
-      "name": "Meteors 10-Count Explode Slow",
+      "name": "Meteors Sparse Explode",
       "base_effect": "Meteors",
-      "description": "Meteors variant from professional sequences. Used on Horiz Matrix props across 2 packages.",
+      "description": "Ten meteors exploding outward slowly. Light scattering burst on horizontal matrices.",
       "parameter_overrides": {
         "E_CHECKBOX_FadeWithDistance": 0,
         "E_CHECKBOX_Meteors_UseMusic": 0,
@@ -16,19 +16,19 @@
         "E_SLIDER_Meteors_Swirl_Intensity": 0
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
+        "tier_affinity": "foreground",
+        "energy_level": "medium",
         "speed_feel": "slow",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["chorus", "bridge"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
     },
     {
-      "name": "Meteors 10-Count Up Slow",
+      "name": "Meteors Sparse Rise",
       "base_effect": "Meteors",
-      "description": "Meteors variant from professional sequences. Used on Horiz Matrix, Tree 180, Tree 360 props across 2 packages.",
+      "description": "Ten music-reactive meteors rising upward. Ascending sparks on matrices and trees.",
       "parameter_overrides": {
         "E_CHECKBOX_Meteors_UseMusic": 1,
         "E_CHOICE_Meteors_Effect": "Up",
@@ -38,19 +38,19 @@
         "E_SLIDER_Meteors_Swirl_Intensity": 0
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
+        "tier_affinity": "foreground",
+        "energy_level": "medium",
         "speed_feel": "slow",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["build", "chorus"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
     },
     {
-      "name": "Meteors 15-Count Down Slow",
+      "name": "Meteors Medium Rain",
       "base_effect": "Meteors",
-      "description": "Meteors variant from professional sequences. Used on Tree 180 props across 2 packages.",
+      "description": "Fifteen meteors falling downward like rain. Gentle cascade effect on trees.",
       "parameter_overrides": {
         "E_CHECKBOX_Meteors_UseMusic": 0,
         "E_CHOICE_Meteors_Effect": "Down",
@@ -61,19 +61,19 @@
         "E_SLIDER_Meteors_Swirl_Intensity": 0
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
+        "tier_affinity": "foreground",
+        "energy_level": "medium",
         "speed_feel": "slow",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["verse", "bridge", "outro"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
     },
     {
-      "name": "Meteors 28-Count Explode Slow",
+      "name": "Meteors Dense Explode",
       "base_effect": "Meteors",
-      "description": "Meteors variant from professional sequences. Used on Horiz Matrix props across 2 packages.",
+      "description": "Twenty-eight meteors exploding with swirl intensity. Thick particle burst on horizontal matrices.",
       "parameter_overrides": {
         "E_CHECKBOX_FadeWithDistance": 0,
         "E_CHECKBOX_Meteors_UseMusic": 0,
@@ -85,19 +85,19 @@
         "E_SLIDER_Meteors_Swirl_Intensity": 20
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
+        "tier_affinity": "foreground",
+        "energy_level": "high",
         "speed_feel": "slow",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["chorus", "drop"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
     },
     {
-      "name": "Meteors 79-Count Explode Moderate",
+      "name": "Meteors Intense Explode",
       "base_effect": "Meteors",
-      "description": "Meteors variant from professional sequences. Used on Custom props across 2 packages.",
+      "description": "Seventy-nine fast meteors in a dense explosion. Maximum impact burst for high-energy moments.",
       "parameter_overrides": {
         "E_CHECKBOX_FadeWithDistance": 0,
         "E_CHECKBOX_Meteors_UseMusic": 0,
@@ -109,11 +109,11 @@
         "E_SLIDER_Meteors_Swirl_Intensity": 0
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": "moderate",
+        "tier_affinity": "foreground",
+        "energy_level": "high",
+        "speed_feel": "fast",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["drop", "chorus", "build"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }

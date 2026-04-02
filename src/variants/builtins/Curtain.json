@@ -2,9 +2,9 @@
   "effect": "Curtain",
   "variants": [
     {
-      "name": "Curtain center close Slow",
+      "name": "Curtain Center Close",
       "base_effect": "Curtain",
-      "description": "Curtain variant from professional sequences. Used on Single Line props across 2 packages.",
+      "description": "Curtain closing from edges toward center. Clean reveal-in-reverse for endings and transitions.",
       "parameter_overrides": {
         "E_CHECKBOX_Curtain_Repeat": 0,
         "E_CHOICE_Curtain_Edge": "center",
@@ -13,19 +13,19 @@
         "E_TEXTCTRL_Curtain_Speed": 1.0
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
+        "tier_affinity": "mid",
+        "energy_level": "medium",
         "speed_feel": "slow",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["outro", "bridge"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
     },
     {
-      "name": "Curtain center open Slow",
+      "name": "Curtain Center Open Repeat",
       "base_effect": "Curtain",
-      "description": "Curtain variant from professional sequences. Used on Horiz Matrix, Tree 180, Tree 360 props across 2 packages.",
+      "description": "Curtain opening from center outward on repeat. Continuous pulsing reveal effect for matrices and trees.",
       "parameter_overrides": {
         "E_CHECKBOX_Curtain_Repeat": 1,
         "E_CHOICE_Curtain_Edge": "center",
@@ -34,19 +34,19 @@
         "E_TEXTCTRL_Curtain_Speed": 8.0
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": "slow",
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "moderate",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["chorus", "build"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
     },
     {
-      "name": "Curtain center open Slow A",
+      "name": "Curtain Center Open",
       "base_effect": "Curtain",
-      "description": "Curtain variant from professional sequences. Used on Single Line props across 2 packages.",
+      "description": "Curtain opening from center outward once. Dramatic single reveal for intros and section starts.",
       "parameter_overrides": {
         "E_CHECKBOX_Curtain_Repeat": 0,
         "E_CHOICE_Curtain_Edge": "center",
@@ -55,19 +55,19 @@
         "E_TEXTCTRL_Curtain_Speed": 1.0
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
+        "tier_affinity": "mid",
+        "energy_level": "medium",
         "speed_feel": "slow",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["intro", "build"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
     },
     {
-      "name": "Curtain middle open then close",
+      "name": "Curtain Middle Pulse",
       "base_effect": "Curtain",
-      "description": "Curtain variant from professional sequences. Used on Horiz Matrix, Tree 180, Tree 360 props across 2 packages.",
+      "description": "Middle-edge curtain that opens then closes in one motion. Quick breath-like pulse on matrices.",
       "parameter_overrides": {
         "E_CHECKBOX_Curtain_Repeat": 0,
         "E_CHOICE_Curtain_Edge": "middle",
@@ -76,19 +76,19 @@
         "E_TEXTCTRL_Curtain_Speed": 0.2
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": null,
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "fast",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["chorus", "drop"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
     },
     {
-      "name": "Curtain middle open then close Slow",
+      "name": "Curtain Middle Pulse Slow",
       "base_effect": "Curtain",
-      "description": "Curtain variant from professional sequences. Used on Horiz Matrix, Tree 180, Tree 360 props across 2 packages.",
+      "description": "Middle-edge curtain opening and closing slowly. Gentle breathing motion for verses and bridges.",
       "parameter_overrides": {
         "E_CHECKBOX_Curtain_Repeat": 0,
         "E_CHOICE_Curtain_Edge": "middle",
@@ -97,19 +97,19 @@
         "E_TEXTCTRL_Curtain_Speed": 1.0
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
+        "tier_affinity": "mid",
+        "energy_level": "medium",
         "speed_feel": "slow",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["verse", "bridge"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
     },
     {
-      "name": "Curtain top close Slow",
+      "name": "Curtain Top Close Swag",
       "base_effect": "Curtain",
-      "description": "Curtain variant from professional sequences. Used on Custom, Tree 180 props across 2 packages.",
+      "description": "Curtain closing from top edge with decorative swag curve. Elegant draping motion for trees.",
       "parameter_overrides": {
         "E_CHECKBOX_Curtain_Repeat": 0,
         "E_CHOICE_Curtain_Edge": "top",
@@ -118,11 +118,11 @@
         "E_TEXTCTRL_Curtain_Speed": 1.0
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
+        "tier_affinity": "mid",
+        "energy_level": "medium",
         "speed_feel": "slow",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["outro", "bridge", "intro"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }

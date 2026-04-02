@@ -2,36 +2,33 @@
   "effect": "Wave",
   "variants": [
     {
-      "name": "Wave Sine Horizontal",
+      "name": "Wave Sine",
       "base_effect": "Wave",
-      "description": "Wave variant from professional sequences. Used on Cube, Horiz Matrix props across 2 packages.",
+      "description": "Standard sine wave sweeping horizontally. Smooth undulating motion on cubes and matrices.",
       "parameter_overrides": {
         "E_CHECKBOX_Mirror_Wave": 0,
         "E_CHOICE_Wave_Type": "Sine",
         "E_SLIDER_Wave_YOffset": 0
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": null,
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "moderate",
         "direction": "horizontal",
-        "section_roles": [],
+        "section_roles": ["verse", "chorus", "bridge"],
         "scope": "single-prop",
         "genre_affinity": "any"
       },
       "direction_cycle": {
         "param": "E_CHOICE_Wave_Direction",
-        "values": [
-          "Left to Right",
-          "Right to Left"
-        ],
+        "values": ["Left to Right", "Right to Left"],
         "mode": "alternate"
       }
     },
     {
-      "name": "Wave Sine Mirror Horizontal",
+      "name": "Wave Sine Mirror",
       "base_effect": "Wave",
-      "description": "Wave variant from professional sequences. Used on Horiz Matrix props across 2 packages.",
+      "description": "Mirrored sine wave creating symmetrical ripples. Balanced bilateral motion on horizontal matrices.",
       "parameter_overrides": {
         "E_CHECKBOX_Mirror_Wave": 1,
         "E_CHOICE_Wave_Type": "Sine",
@@ -39,27 +36,24 @@
         "E_SLIDER_Wave_YOffset": 0
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": null,
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "moderate",
         "direction": "horizontal",
-        "section_roles": [],
+        "section_roles": ["verse", "bridge"],
         "scope": "single-prop",
         "genre_affinity": "any"
       },
       "direction_cycle": {
         "param": "E_CHOICE_Wave_Direction",
-        "values": [
-          "Left to Right",
-          "Right to Left"
-        ],
+        "values": ["Left to Right", "Right to Left"],
         "mode": "alternate"
       }
     },
     {
-      "name": "Wave Sine Horizontal A",
+      "name": "Wave Sine Tall",
       "base_effect": "Wave",
-      "description": "Wave variant from professional sequences. Used on Circle, Custom, Horiz Matrix props across 3 packages.",
+      "description": "Tall sine wave with increased height for dramatic sweeps. Bold rolling motion on matrices and circles.",
       "parameter_overrides": {
         "E_CHECKBOX_Mirror_Wave": 0,
         "E_CHOICE_Wave_Type": "Sine",
@@ -67,27 +61,24 @@
         "E_SLIDER_Wave_YOffset": 0
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": null,
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "moderate",
         "direction": "horizontal",
-        "section_roles": [],
+        "section_roles": ["chorus", "bridge"],
         "scope": "single-prop",
         "genre_affinity": "any"
       },
       "direction_cycle": {
         "param": "E_CHOICE_Wave_Direction",
-        "values": [
-          "Left to Right",
-          "Right to Left"
-        ],
+        "values": ["Left to Right", "Right to Left"],
         "mode": "alternate"
       }
     },
     {
-      "name": "Wave Square Mirror Horizontal",
+      "name": "Wave Square Mirror",
       "base_effect": "Wave",
-      "description": "Wave variant from professional sequences. Used on Tree 180, Tree 360 props across 2 packages.",
+      "description": "Mirrored square wave creating stepped symmetrical pattern. Blocky geometric motion on trees.",
       "parameter_overrides": {
         "E_CHECKBOX_Mirror_Wave": 1,
         "E_CHOICE_Wave_Type": "Square",
@@ -95,20 +86,17 @@
         "E_SLIDER_Wave_YOffset": 0
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": null,
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "moderate",
         "direction": "horizontal",
-        "section_roles": [],
+        "section_roles": ["chorus", "build"],
         "scope": "single-prop",
         "genre_affinity": "any"
       },
       "direction_cycle": {
         "param": "E_CHOICE_Wave_Direction",
-        "values": [
-          "Left to Right",
-          "Right to Left"
-        ],
+        "values": ["Left to Right", "Right to Left"],
         "mode": "alternate"
       }
     }

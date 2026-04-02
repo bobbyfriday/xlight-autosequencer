@@ -2,9 +2,9 @@
   "effect": "Morph",
   "variants": [
     {
-      "name": "Morph",
+      "name": "Morph Quick",
       "base_effect": "Morph",
-      "description": "Morph variant from professional sequences. Used on Arches, Custom, Horiz Matrix props across 7 packages.",
+      "description": "Fast narrow morph transition completing in 20% duration. Quick color wipe for beat-synced accents.",
       "parameter_overrides": {
         "E_SLIDER_MorphAccel": 0,
         "E_SLIDER_MorphDuration": 20,
@@ -19,19 +19,19 @@
         "E_SLIDER_Morph_Start_Y2": 0
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": null,
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "fast",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["chorus", "drop", "build"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
     },
     {
-      "name": "Morph A",
+      "name": "Morph Wide",
       "base_effect": "Morph",
-      "description": "Morph variant from professional sequences. Used on Custom, Single Line, Tree 180 props across 2 packages.",
+      "description": "Wide morph band sweeping across the display. Thick color transition that fills more of the prop.",
       "parameter_overrides": {
         "E_SLIDER_MorphAccel": 0,
         "E_SLIDER_MorphDuration": 50,
@@ -46,19 +46,19 @@
         "E_SLIDER_Morph_Start_Y2": 0
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": null,
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "moderate",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["verse", "bridge"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
     },
     {
-      "name": "Morph B",
+      "name": "Morph Medium",
       "base_effect": "Morph",
-      "description": "Morph variant from professional sequences. Used on Arches, Custom, Horiz Matrix props across 5 packages.",
+      "description": "Medium-speed thin morph transition at 50% duration. Balanced color wipe for general use.",
       "parameter_overrides": {
         "E_SLIDER_MorphAccel": 0,
         "E_SLIDER_MorphDuration": 50,
@@ -73,19 +73,19 @@
         "E_SLIDER_Morph_Start_Y2": 0
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": null,
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "moderate",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["chorus", "bridge"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
     },
     {
-      "name": "Morph C",
+      "name": "Morph Fast",
       "base_effect": "Morph",
-      "description": "Morph variant from professional sequences. Used on Custom, Single Line, Tree 180 props across 2 packages.",
+      "description": "Snappy morph completing in 30% duration. Quick reveal transition for energetic sections.",
       "parameter_overrides": {
         "E_SLIDER_MorphAccel": 0,
         "E_SLIDER_MorphDuration": 30,
@@ -100,19 +100,19 @@
         "E_SLIDER_Morph_Start_Y2": 0
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": null,
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "fast",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["chorus", "build"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
     },
     {
-      "name": "Morph D",
+      "name": "Morph Slow",
       "base_effect": "Morph",
-      "description": "Morph variant from professional sequences. Used on Single Line props across 2 packages.",
+      "description": "Gradual morph taking 60% of the duration. Leisurely color sweep for calm passages.",
       "parameter_overrides": {
         "E_SLIDER_MorphAccel": 0,
         "E_SLIDER_MorphDuration": 60,
@@ -127,19 +127,19 @@
         "E_SLIDER_Morph_Start_Y2": 0
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": null,
+        "tier_affinity": "mid",
+        "energy_level": "low",
+        "speed_feel": "slow",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["verse", "intro", "outro"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
     },
     {
-      "name": "Morph E",
+      "name": "Morph Standard",
       "base_effect": "Morph",
-      "description": "Morph variant from professional sequences. Used on Single Line props across 2 packages.",
+      "description": "Standard morph at 40% duration. Versatile color transition at a comfortable pace.",
       "parameter_overrides": {
         "E_SLIDER_MorphAccel": 0,
         "E_SLIDER_MorphDuration": 40,
@@ -154,11 +154,11 @@
         "E_SLIDER_Morph_Start_Y2": 0
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": null,
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "moderate",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["verse", "chorus", "bridge"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }

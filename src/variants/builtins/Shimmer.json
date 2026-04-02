@@ -2,39 +2,39 @@
   "effect": "Shimmer",
   "variants": [
     {
-      "name": "Shimmer Duty21 AllClr",
+      "name": "Shimmer Subtle",
       "base_effect": "Shimmer",
-      "description": "Shimmer variant from professional sequences. Used on Custom, Star props across 2 packages.",
+      "description": "Gentle shimmer with low duty factor and fast cycling. Soft sparkle background for stars and custom props.",
       "parameter_overrides": {
         "E_CHECKBOX_Shimmer_Use_All_Colors": 1,
         "E_SLIDER_Shimmer_Duty_Factor": 21,
         "E_TEXTCTRL_Shimmer_Cycles": 100.0
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": null,
+        "tier_affinity": "background",
+        "energy_level": "low",
+        "speed_feel": "fast",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["verse", "intro", "outro"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
     },
     {
-      "name": "Shimmer Duty50 AllClr",
+      "name": "Shimmer Bold",
       "base_effect": "Shimmer",
-      "description": "Shimmer variant from professional sequences. Used on Icicles, Single Line, Star props across 2 packages.",
+      "description": "Strong shimmer with half duty factor and slow cycling. Pronounced flicker accent on icicles and single-line props.",
       "parameter_overrides": {
         "E_CHECKBOX_Shimmer_Use_All_Colors": 1,
         "E_SLIDER_Shimmer_Duty_Factor": 50,
         "E_TEXTCTRL_Shimmer_Cycles": 4
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": null,
+        "tier_affinity": "background",
+        "energy_level": "medium",
+        "speed_feel": "slow",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["chorus", "verse", "bridge"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }

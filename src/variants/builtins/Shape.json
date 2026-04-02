@@ -2,9 +2,9 @@
   "effect": "Shape",
   "variants": [
     {
-      "name": "Shape Star",
+      "name": "Shape Star Slow Spin",
       "base_effect": "Shape",
-      "description": "Shape variant from professional sequences. Used on Tree 180, Tree 360 props across 2 packages.",
+      "description": "Large star rotating slowly at 212 degrees. Dramatic spinning star impact on trees.",
       "parameter_overrides": {
         "E_CHECKBOX_Shape_UseMusic": 0,
         "E_CHOICE_Shape_ObjectToDraw": "Star",
@@ -15,19 +15,19 @@
         "E_SLIDER_Shape_Thickness": 100
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": null,
+        "tier_affinity": "hero",
+        "energy_level": "high",
+        "speed_feel": "moderate",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["drop", "chorus"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
     },
     {
-      "name": "Shape Star A",
+      "name": "Shape Star Medium Spin",
       "base_effect": "Shape",
-      "description": "Shape variant from professional sequences. Used on Tree 180, Tree 360 props across 2 packages.",
+      "description": "Large star rotating at medium speed. Bold spinning accent for trees.",
       "parameter_overrides": {
         "E_CHECKBOX_Shape_UseMusic": 0,
         "E_CHOICE_Shape_ObjectToDraw": "Star",
@@ -38,19 +38,19 @@
         "E_SLIDER_Shape_Thickness": 100
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": null,
+        "tier_affinity": "hero",
+        "energy_level": "high",
+        "speed_feel": "moderate",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["drop", "chorus"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
     },
     {
-      "name": "Shape Star B",
+      "name": "Shape Star Full Spin Large",
       "base_effect": "Shape",
-      "description": "Shape variant from professional sequences. Used on Tree 180, Tree 360 props across 2 packages.",
+      "description": "Large star making a full 360-degree rotation. Complete spinning star reveal on trees.",
       "parameter_overrides": {
         "E_CHECKBOX_Shape_UseMusic": 0,
         "E_CHOICE_Shape_ObjectToDraw": "Star",
@@ -63,19 +63,19 @@
         "E_SLIDER_Shape_Thickness": 100
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": null,
+        "tier_affinity": "hero",
+        "energy_level": "high",
+        "speed_feel": "fast",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["drop", "chorus", "build"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
     },
     {
-      "name": "Shape Star C",
+      "name": "Shape Star Full Spin Small",
       "base_effect": "Shape",
-      "description": "Shape variant from professional sequences. Used on Horiz Matrix props across 2 packages.",
+      "description": "Small thin star making a full rotation. Compact spinning accent on matrices.",
       "parameter_overrides": {
         "E_CHECKBOX_Shape_UseMusic": 0,
         "E_CHOICE_Shape_ObjectToDraw": "Star",
@@ -88,19 +88,19 @@
         "E_SLIDER_Shape_Thickness": 30
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": null,
+        "tier_affinity": "hero",
+        "energy_level": "high",
+        "speed_feel": "fast",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["drop", "chorus"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
     },
     {
-      "name": "Shape Star D",
+      "name": "Shape Star Full Spin Medium",
       "base_effect": "Shape",
-      "description": "Shape variant from professional sequences. Used on Tree 180, Tree 360 props across 2 packages.",
+      "description": "Medium star making a full rotation with thick outline. Versatile spinning star on trees.",
       "parameter_overrides": {
         "E_CHECKBOX_Shape_UseMusic": 0,
         "E_CHOICE_Shape_ObjectToDraw": "Star",
@@ -113,19 +113,19 @@
         "E_SLIDER_Shape_Thickness": 100
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": null,
+        "tier_affinity": "hero",
+        "energy_level": "high",
+        "speed_feel": "fast",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["drop", "chorus", "build"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
     },
     {
-      "name": "Shape Star E",
+      "name": "Shape Star Static",
       "base_effect": "Shape",
-      "description": "Shape variant from professional sequences. Used on Tree 180 props across 2 packages.",
+      "description": "Static star with no rotation. Steady star overlay that holds position on trees.",
       "parameter_overrides": {
         "E_CHECKBOX_Shape_UseMusic": 0,
         "E_CHOICE_Shape_ObjectToDraw": "Star",
@@ -138,11 +138,11 @@
         "E_SLIDER_Shape_Thickness": 100
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": null,
+        "tier_affinity": "hero",
+        "energy_level": "medium",
+        "speed_feel": "slow",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["verse", "bridge", "intro"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }

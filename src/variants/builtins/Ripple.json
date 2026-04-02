@@ -2,9 +2,9 @@
   "effect": "Ripple",
   "variants": [
     {
-      "name": "Ripple Circle Explode",
+      "name": "Ripple Circle",
       "base_effect": "Ripple",
-      "description": "Ripple variant from professional sequences. Used on Custom, Star, Tree 180 props across 4 packages.",
+      "description": "Standard circle ripple expanding outward from center. Clean concentric rings on stars and trees.",
       "parameter_overrides": {
         "E_CHECKBOX_Ripple3D": 0,
         "E_CHOICE_Ripple_Movement": "Explode",
@@ -14,19 +14,19 @@
         "E_SLIDER_Ripple_YC": 0
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": null,
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "moderate",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["chorus", "bridge"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
     },
     {
-      "name": "Ripple Circle Explode A",
+      "name": "Ripple Circle 3D Offset",
       "base_effect": "Ripple",
-      "description": "Ripple variant from professional sequences. Used on Custom props across 2 packages.",
+      "description": "3D circle ripple expanding from an off-center point. Asymmetric depth rings on custom props.",
       "parameter_overrides": {
         "E_CHECKBOX_Ripple3D": 1,
         "E_CHOICE_Ripple_Movement": "Explode",
@@ -36,19 +36,19 @@
         "E_SLIDER_Ripple_YC": 0
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": null,
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "moderate",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["chorus", "bridge"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
     },
     {
-      "name": "Ripple Circle Explode B",
+      "name": "Ripple Circle Thick",
       "base_effect": "Ripple",
-      "description": "Ripple variant from professional sequences. Used on Custom props across 4 packages.",
+      "description": "Thick circle ripple with wider bands expanding outward. Bold concentric rings filling more space.",
       "parameter_overrides": {
         "E_CHECKBOX_Ripple3D": 0,
         "E_CHOICE_Ripple_Movement": "Explode",
@@ -58,19 +58,19 @@
         "E_SLIDER_Ripple_YC": 0
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": null,
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "moderate",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["chorus", "build"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
     },
     {
-      "name": "Ripple Circle Explode C",
+      "name": "Ripple Circle 3D",
       "base_effect": "Ripple",
-      "description": "Ripple variant from professional sequences. Used on Custom, Horiz Matrix, Tree 360 props across 3 packages.",
+      "description": "3D circle ripple expanding from center with depth shading. Dimensional ring pulse on matrices and trees.",
       "parameter_overrides": {
         "E_CHECKBOX_Ripple3D": 1,
         "E_CHOICE_Ripple_Movement": "Explode",
@@ -80,11 +80,11 @@
         "E_SLIDER_Ripple_YC": 0
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": null,
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "moderate",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["chorus", "bridge"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
@@ -92,7 +92,7 @@
     {
       "name": "Ripple Circle Implode",
       "base_effect": "Ripple",
-      "description": "Ripple variant from professional sequences. Used on Custom props across 2 packages.",
+      "description": "Thick circle ripple collapsing inward toward center. Reverse pulse that draws focus to the center point.",
       "parameter_overrides": {
         "E_CHECKBOX_Ripple3D": 0,
         "E_CHOICE_Ripple_Movement": "Implode",
@@ -102,19 +102,19 @@
         "E_SLIDER_Ripple_YC": 0
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": null,
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "moderate",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["outro", "bridge"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
     },
     {
-      "name": "Ripple Star Explode",
+      "name": "Ripple Star",
       "base_effect": "Ripple",
-      "description": "Ripple variant from professional sequences. Used on Horiz Matrix props across 2 packages.",
+      "description": "Star-shaped ripple expanding outward with full thickness. Eye-catching burst shape on matrices.",
       "parameter_overrides": {
         "E_CHECKBOX_Ripple3D": 0,
         "E_CHOICE_Ripple_Movement": "Explode",
@@ -126,11 +126,11 @@
         "E_SLIDER_Ripple_YC": 0
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": null,
+        "tier_affinity": "mid",
+        "energy_level": "high",
+        "speed_feel": "moderate",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["chorus", "drop"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }

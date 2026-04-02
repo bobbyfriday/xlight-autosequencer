@@ -2,9 +2,9 @@
   "effect": "Fireworks",
   "variants": [
     {
-      "name": "Fireworks 50-Count",
+      "name": "Fireworks Burst",
       "base_effect": "Fireworks",
-      "description": "Fireworks variant from professional sequences. Used on various props across 1 package.",
+      "description": "Dense burst of 50 fireworks with medium fade. High-impact explosion effect for dramatic moments.",
       "parameter_overrides": {
         "E_CHECKBOX_FIRETIMING": 0,
         "E_CHECKBOX_Fireworks_UseMusic": 0,
@@ -17,11 +17,11 @@
         "E_SLIDER_Fireworks_YVelocity": 0
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": null,
+        "tier_affinity": "hero",
+        "energy_level": "high",
+        "speed_feel": "fast",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["drop", "chorus", "build"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }

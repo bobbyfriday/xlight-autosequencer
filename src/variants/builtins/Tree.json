@@ -2,37 +2,37 @@
   "effect": "Tree",
   "variants": [
     {
-      "name": "Tree 10-Branch Slow",
+      "name": "Tree Dense",
       "base_effect": "Tree",
-      "description": "Tree variant from professional sequences. Used on Single Line props across 2 packages.",
+      "description": "Ten-branch tree pattern filling the display. Dense layered branches on single-line props.",
       "parameter_overrides": {
         "E_SLIDER_Tree_Branches": 10,
         "E_SLIDER_Tree_Speed": 10
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
+        "tier_affinity": "mid",
+        "energy_level": "medium",
         "speed_feel": "slow",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["verse", "chorus"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
     },
     {
-      "name": "Tree 3-Branch Slow",
+      "name": "Tree Sparse",
       "base_effect": "Tree",
-      "description": "Tree variant from professional sequences. Used on Tree 180, Tree 360 props across 2 packages.",
+      "description": "Three-branch tree pattern with open spacing. Simple tree silhouette on tree props.",
       "parameter_overrides": {
         "E_SLIDER_Tree_Branches": 3,
         "E_SLIDER_Tree_Speed": 10
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
+        "tier_affinity": "mid",
+        "energy_level": "low",
         "speed_feel": "slow",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["verse", "intro", "outro"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }

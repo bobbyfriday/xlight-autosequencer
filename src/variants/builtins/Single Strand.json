@@ -2,9 +2,9 @@
   "effect": "Single Strand",
   "variants": [
     {
-      "name": "Single Strand 3dFade10 Fast Horizontal",
+      "name": "Chase Right-Left Subtle",
       "base_effect": "Single Strand",
-      "description": "Single Strand variant on Horiz Matrix, Single Line props (2 pkg, 92 uses)",
+      "description": "Right-to-left fireworks chase with subtle color mix. Light sparkle trail on matrices and single-line props.",
       "parameter_overrides": {
         "E_CHECKBOX_Chase_Group_All": 0,
         "E_CHOICE_Chase_Type1": "Right-Left",
@@ -21,64 +21,24 @@
         "E_SLIDER_Skips_StartPos": 1
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
+        "tier_affinity": "foreground",
+        "energy_level": "medium",
         "speed_feel": "fast",
         "direction": "horizontal",
-        "section_roles": [],
+        "section_roles": ["chorus", "verse"],
         "scope": "single-prop",
         "genre_affinity": "any"
       },
       "direction_cycle": {
         "param": "E_CHOICE_Skips_Direction",
-        "values": [
-          "Left",
-          "Right"
-        ],
+        "values": ["Left", "Right"],
         "mode": "alternate"
       }
     },
     {
-      "name": "Single Strand 3dFade10 Fast Horizontal A",
+      "name": "Chase Left-Right Subtle",
       "base_effect": "Single Strand",
-      "description": "Single Strand variant on Single Line, Star props (1 pkg, 92 uses)",
-      "parameter_overrides": {
-        "E_CHECKBOX_Chase_Group_All": 0,
-        "E_CHOICE_Chase_Type1": "From Middle",
-        "E_CHOICE_SingleStrand_Colors": "Palette",
-        "E_CHOICE_SingleStrand_FX": "Fireworks 1D",
-        "E_CHOICE_SingleStrand_FX_Palette": "* Colors Only",
-        "E_SLIDER_Color_Mix1": 100,
-        "E_SLIDER_FX_Intensity": 128,
-        "E_SLIDER_FX_Speed": 128,
-        "E_SLIDER_Number_Chases": 1,
-        "E_SLIDER_Skips_Advance": 0,
-        "E_SLIDER_Skips_BandSize": 1,
-        "E_SLIDER_Skips_SkipSize": 1,
-        "E_SLIDER_Skips_StartPos": 1
-      },
-      "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": "fast",
-        "direction": "horizontal",
-        "section_roles": [],
-        "scope": "single-prop",
-        "genre_affinity": "any"
-      },
-      "direction_cycle": {
-        "param": "E_CHOICE_Skips_Direction",
-        "values": [
-          "Left",
-          "Right"
-        ],
-        "mode": "alternate"
-      }
-    },
-    {
-      "name": "Single Strand 3dFade10 Fast Horizontal B",
-      "base_effect": "Single Strand",
-      "description": "Single Strand variant on Arches, Custom, Horiz Matrix props (3 pkg, 75 uses)",
+      "description": "Left-to-right fireworks chase with subtle color mix. Light sparkle trail on arches and matrices.",
       "parameter_overrides": {
         "E_CHECKBOX_Chase_Group_All": 0,
         "E_CHOICE_Chase_Type1": "Left-Right",
@@ -95,27 +55,58 @@
         "E_SLIDER_Skips_StartPos": 1
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
+        "tier_affinity": "foreground",
+        "energy_level": "medium",
         "speed_feel": "fast",
         "direction": "horizontal",
-        "section_roles": [],
+        "section_roles": ["chorus", "verse"],
         "scope": "single-prop",
         "genre_affinity": "any"
       },
       "direction_cycle": {
         "param": "E_CHOICE_Skips_Direction",
-        "values": [
-          "Left",
-          "Right"
-        ],
+        "values": ["Left", "Right"],
         "mode": "alternate"
       }
     },
     {
-      "name": "Single Strand 3dFade10 Fast Horizontal C",
+      "name": "Chase From Middle Full",
       "base_effect": "Single Strand",
-      "description": "Single Strand variant on Horiz Matrix, Single Line, Star props (2 pkg, 62 uses)",
+      "description": "Fireworks chase expanding from center with full color mix. Bright outward burst on stars and single-line props.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Chase_Group_All": 0,
+        "E_CHOICE_Chase_Type1": "From Middle",
+        "E_CHOICE_SingleStrand_Colors": "Palette",
+        "E_CHOICE_SingleStrand_FX": "Fireworks 1D",
+        "E_CHOICE_SingleStrand_FX_Palette": "* Colors Only",
+        "E_SLIDER_Color_Mix1": 100,
+        "E_SLIDER_FX_Intensity": 128,
+        "E_SLIDER_FX_Speed": 128,
+        "E_SLIDER_Number_Chases": 1,
+        "E_SLIDER_Skips_Advance": 0,
+        "E_SLIDER_Skips_BandSize": 1,
+        "E_SLIDER_Skips_SkipSize": 1,
+        "E_SLIDER_Skips_StartPos": 1
+      },
+      "tags": {
+        "tier_affinity": "foreground",
+        "energy_level": "high",
+        "speed_feel": "fast",
+        "direction": "horizontal",
+        "section_roles": ["chorus", "drop"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      },
+      "direction_cycle": {
+        "param": "E_CHOICE_Skips_Direction",
+        "values": ["Left", "Right"],
+        "mode": "alternate"
+      }
+    },
+    {
+      "name": "Chase To Middle Full",
+      "base_effect": "Single Strand",
+      "description": "Fireworks chase converging to center with full color mix. Inward pull effect on matrices and stars.",
       "parameter_overrides": {
         "E_CHECKBOX_Chase_Group_All": 0,
         "E_CHOICE_Chase_Type1": "To Middle",
@@ -132,101 +123,24 @@
         "E_SLIDER_Skips_StartPos": 1
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
+        "tier_affinity": "foreground",
+        "energy_level": "high",
         "speed_feel": "fast",
         "direction": "horizontal",
-        "section_roles": [],
+        "section_roles": ["chorus", "drop"],
         "scope": "single-prop",
         "genre_affinity": "any"
       },
       "direction_cycle": {
         "param": "E_CHOICE_Skips_Direction",
-        "values": [
-          "Left",
-          "Right"
-        ],
+        "values": ["Left", "Right"],
         "mode": "alternate"
       }
     },
     {
-      "name": "Single Strand 3dFade10 Fast Horizontal D",
+      "name": "Chase Left-Right Medium",
       "base_effect": "Single Strand",
-      "description": "Single Strand variant on Custom props (1 pkg, 2 uses)",
-      "parameter_overrides": {
-        "E_CHECKBOX_Chase_Group_All": 1,
-        "E_CHOICE_Chase_Type1": "Left-Right",
-        "E_CHOICE_SingleStrand_Colors": "Palette",
-        "E_CHOICE_SingleStrand_FX": "Fireworks 1D",
-        "E_CHOICE_SingleStrand_FX_Palette": "* Colors Only",
-        "E_SLIDER_Color_Mix1": 25,
-        "E_SLIDER_FX_Intensity": 128,
-        "E_SLIDER_FX_Speed": 128,
-        "E_SLIDER_Number_Chases": 1,
-        "E_SLIDER_Skips_Advance": 0,
-        "E_SLIDER_Skips_BandSize": 1,
-        "E_SLIDER_Skips_SkipSize": 1,
-        "E_SLIDER_Skips_StartPos": 1
-      },
-      "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": "fast",
-        "direction": "horizontal",
-        "section_roles": [],
-        "scope": "single-prop",
-        "genre_affinity": "any"
-      },
-      "direction_cycle": {
-        "param": "E_CHOICE_Skips_Direction",
-        "values": [
-          "Left",
-          "Right"
-        ],
-        "mode": "alternate"
-      }
-    },
-    {
-      "name": "Single Strand 3dFade10 Fast Horizontal E",
-      "base_effect": "Single Strand",
-      "description": "Single Strand variant on Horiz Matrix props (1 pkg, 1 uses)",
-      "parameter_overrides": {
-        "E_CHECKBOX_Chase_Group_All": 0,
-        "E_CHOICE_Chase_Type1": "Left-Right",
-        "E_CHOICE_SingleStrand_Colors": "Palette",
-        "E_CHOICE_SingleStrand_FX": "Fireworks 1D",
-        "E_CHOICE_SingleStrand_FX_Palette": "* Colors Only",
-        "E_SLIDER_Color_Mix1": 30,
-        "E_SLIDER_FX_Intensity": 128,
-        "E_SLIDER_FX_Speed": 128,
-        "E_SLIDER_Number_Chases": 1,
-        "E_SLIDER_Skips_Advance": 0,
-        "E_SLIDER_Skips_BandSize": 1,
-        "E_SLIDER_Skips_SkipSize": 1,
-        "E_SLIDER_Skips_StartPos": 1
-      },
-      "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": "fast",
-        "direction": "horizontal",
-        "section_roles": [],
-        "scope": "single-prop",
-        "genre_affinity": "any"
-      },
-      "direction_cycle": {
-        "param": "E_CHOICE_Skips_Direction",
-        "values": [
-          "Left",
-          "Right"
-        ],
-        "mode": "alternate"
-      }
-    },
-    {
-      "name": "Single Strand 3dFade11 Fast Horizontal",
-      "base_effect": "Single Strand",
-      "description": "Single Strand variant on Arches, Horiz Matrix, Tree 180 props (2 pkg, 157 uses)",
+      "description": "Left-to-right fireworks chase with medium color mix. Balanced sparkle trail on arches and matrices.",
       "parameter_overrides": {
         "E_CHECKBOX_Chase_Group_All": 0,
         "E_CHOICE_Chase_Type1": "Left-Right",
@@ -243,27 +157,24 @@
         "E_SLIDER_Skips_StartPos": 1
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
+        "tier_affinity": "foreground",
+        "energy_level": "medium",
         "speed_feel": "fast",
         "direction": "horizontal",
-        "section_roles": [],
+        "section_roles": ["chorus", "verse", "bridge"],
         "scope": "single-prop",
         "genre_affinity": "any"
       },
       "direction_cycle": {
         "param": "E_CHOICE_Skips_Direction",
-        "values": [
-          "Left",
-          "Right"
-        ],
+        "values": ["Left", "Right"],
         "mode": "alternate"
       }
     },
     {
-      "name": "Single Strand 3dFade11 Fast Horizontal A",
+      "name": "Chase Right-Left Strong",
       "base_effect": "Single Strand",
-      "description": "Single Strand variant on Arches, Custom, Horiz Matrix props (4 pkg, 79 uses)",
+      "description": "Right-to-left fireworks chase with strong color blending. Vivid sparkle sweep on arches and matrices.",
       "parameter_overrides": {
         "E_CHECKBOX_Chase_Group_All": 0,
         "E_CHOICE_Chase_Type1": "Right-Left",
@@ -280,138 +191,24 @@
         "E_SLIDER_Skips_StartPos": 1
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
+        "tier_affinity": "foreground",
+        "energy_level": "medium",
         "speed_feel": "fast",
         "direction": "horizontal",
-        "section_roles": [],
+        "section_roles": ["chorus", "build"],
         "scope": "single-prop",
         "genre_affinity": "any"
       },
       "direction_cycle": {
         "param": "E_CHOICE_Skips_Direction",
-        "values": [
-          "Left",
-          "Right"
-        ],
+        "values": ["Left", "Right"],
         "mode": "alternate"
       }
     },
     {
-      "name": "Single Strand 3dFade11 Fast Horizontal B",
+      "name": "Chase To Middle Heavy",
       "base_effect": "Single Strand",
-      "description": "Single Strand variant on Arches, Custom, Horiz Matrix props (4 pkg, 71 uses)",
-      "parameter_overrides": {
-        "E_CHECKBOX_Chase_Group_All": 0,
-        "E_CHOICE_Chase_Type1": "Left-Right",
-        "E_CHOICE_SingleStrand_Colors": "Palette",
-        "E_CHOICE_SingleStrand_FX": "Fireworks 1D",
-        "E_CHOICE_SingleStrand_FX_Palette": "* Colors Only",
-        "E_SLIDER_Color_Mix1": 55,
-        "E_SLIDER_FX_Intensity": 128,
-        "E_SLIDER_FX_Speed": 128,
-        "E_SLIDER_Number_Chases": 1,
-        "E_SLIDER_Skips_Advance": 0,
-        "E_SLIDER_Skips_BandSize": 1,
-        "E_SLIDER_Skips_SkipSize": 1,
-        "E_SLIDER_Skips_StartPos": 1
-      },
-      "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": "fast",
-        "direction": "horizontal",
-        "section_roles": [],
-        "scope": "single-prop",
-        "genre_affinity": "any"
-      },
-      "direction_cycle": {
-        "param": "E_CHOICE_Skips_Direction",
-        "values": [
-          "Left",
-          "Right"
-        ],
-        "mode": "alternate"
-      }
-    },
-    {
-      "name": "Single Strand 3dFade11 Fast Horizontal C",
-      "base_effect": "Single Strand",
-      "description": "Single Strand variant on Arches, Custom, Icicles props (2 pkg, 55 uses)",
-      "parameter_overrides": {
-        "E_CHECKBOX_Chase_Group_All": 0,
-        "E_CHOICE_Chase_Type1": "Left-Right",
-        "E_CHOICE_SingleStrand_Colors": "Palette",
-        "E_CHOICE_SingleStrand_FX": "Fireworks 1D",
-        "E_CHOICE_SingleStrand_FX_Palette": "* Colors Only",
-        "E_SLIDER_Color_Mix1": 25,
-        "E_SLIDER_FX_Intensity": 128,
-        "E_SLIDER_FX_Speed": 128,
-        "E_SLIDER_Number_Chases": 1,
-        "E_SLIDER_Skips_Advance": 0,
-        "E_SLIDER_Skips_BandSize": 1,
-        "E_SLIDER_Skips_SkipSize": 1,
-        "E_SLIDER_Skips_StartPos": 1
-      },
-      "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": "fast",
-        "direction": "horizontal",
-        "section_roles": [],
-        "scope": "single-prop",
-        "genre_affinity": "any"
-      },
-      "direction_cycle": {
-        "param": "E_CHOICE_Skips_Direction",
-        "values": [
-          "Left",
-          "Right"
-        ],
-        "mode": "alternate"
-      }
-    },
-    {
-      "name": "Single Strand 3dFade11 Fast Horizontal D",
-      "base_effect": "Single Strand",
-      "description": "Single Strand variant on Arches, Horiz Matrix, Tree 180 props (2 pkg, 55 uses)",
-      "parameter_overrides": {
-        "E_CHECKBOX_Chase_Group_All": 0,
-        "E_CHOICE_Chase_Type1": "Right-Left",
-        "E_CHOICE_SingleStrand_Colors": "Palette",
-        "E_CHOICE_SingleStrand_FX": "Fireworks 1D",
-        "E_CHOICE_SingleStrand_FX_Palette": "* Colors Only",
-        "E_SLIDER_Color_Mix1": 36,
-        "E_SLIDER_FX_Intensity": 128,
-        "E_SLIDER_FX_Speed": 128,
-        "E_SLIDER_Number_Chases": 1,
-        "E_SLIDER_Skips_Advance": 0,
-        "E_SLIDER_Skips_BandSize": 1,
-        "E_SLIDER_Skips_SkipSize": 1,
-        "E_SLIDER_Skips_StartPos": 1
-      },
-      "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": "fast",
-        "direction": "horizontal",
-        "section_roles": [],
-        "scope": "single-prop",
-        "genre_affinity": "any"
-      },
-      "direction_cycle": {
-        "param": "E_CHOICE_Skips_Direction",
-        "values": [
-          "Left",
-          "Right"
-        ],
-        "mode": "alternate"
-      }
-    },
-    {
-      "name": "Single Strand 3dFade11 Fast Horizontal E",
-      "base_effect": "Single Strand",
-      "description": "Single Strand variant on Arches, Custom, Tree 360 props (2 pkg, 55 uses)",
+      "description": "Fireworks chase converging to center with heavy color mix. Bold inward pull on arches and trees.",
       "parameter_overrides": {
         "E_CHECKBOX_Chase_Group_All": 0,
         "E_CHOICE_Chase_Type1": "To Middle",
@@ -428,101 +225,24 @@
         "E_SLIDER_Skips_StartPos": 1
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
+        "tier_affinity": "foreground",
+        "energy_level": "high",
         "speed_feel": "fast",
         "direction": "horizontal",
-        "section_roles": [],
+        "section_roles": ["chorus", "drop", "build"],
         "scope": "single-prop",
         "genre_affinity": "any"
       },
       "direction_cycle": {
         "param": "E_CHOICE_Skips_Direction",
-        "values": [
-          "Left",
-          "Right"
-        ],
+        "values": ["Left", "Right"],
         "mode": "alternate"
       }
     },
     {
-      "name": "Single Strand 3dFade11 Fast Horizontal F",
+      "name": "Chase Bounce Medium",
       "base_effect": "Single Strand",
-      "description": "Single Strand variant on Arches, Custom, Tree 360 props (2 pkg, 52 uses)",
-      "parameter_overrides": {
-        "E_CHECKBOX_Chase_Group_All": 0,
-        "E_CHOICE_Chase_Type1": "From Middle",
-        "E_CHOICE_SingleStrand_Colors": "Palette",
-        "E_CHOICE_SingleStrand_FX": "Fireworks 1D",
-        "E_CHOICE_SingleStrand_FX_Palette": "* Colors Only",
-        "E_SLIDER_Color_Mix1": 75,
-        "E_SLIDER_FX_Intensity": 128,
-        "E_SLIDER_FX_Speed": 128,
-        "E_SLIDER_Number_Chases": 1,
-        "E_SLIDER_Skips_Advance": 0,
-        "E_SLIDER_Skips_BandSize": 1,
-        "E_SLIDER_Skips_SkipSize": 1,
-        "E_SLIDER_Skips_StartPos": 1
-      },
-      "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": "fast",
-        "direction": "horizontal",
-        "section_roles": [],
-        "scope": "single-prop",
-        "genre_affinity": "any"
-      },
-      "direction_cycle": {
-        "param": "E_CHOICE_Skips_Direction",
-        "values": [
-          "Left",
-          "Right"
-        ],
-        "mode": "alternate"
-      }
-    },
-    {
-      "name": "Single Strand 3dFade11 Fast Horizontal G",
-      "base_effect": "Single Strand",
-      "description": "Single Strand variant on Arches, Custom, Icicles props (2 pkg, 28 uses)",
-      "parameter_overrides": {
-        "E_CHECKBOX_Chase_Group_All": 0,
-        "E_CHOICE_Chase_Type1": "Right-Left",
-        "E_CHOICE_SingleStrand_Colors": "Palette",
-        "E_CHOICE_SingleStrand_FX": "Fireworks 1D",
-        "E_CHOICE_SingleStrand_FX_Palette": "* Colors Only",
-        "E_SLIDER_Color_Mix1": 25,
-        "E_SLIDER_FX_Intensity": 128,
-        "E_SLIDER_FX_Speed": 128,
-        "E_SLIDER_Number_Chases": 1,
-        "E_SLIDER_Skips_Advance": 0,
-        "E_SLIDER_Skips_BandSize": 1,
-        "E_SLIDER_Skips_SkipSize": 1,
-        "E_SLIDER_Skips_StartPos": 1
-      },
-      "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": "fast",
-        "direction": "horizontal",
-        "section_roles": [],
-        "scope": "single-prop",
-        "genre_affinity": "any"
-      },
-      "direction_cycle": {
-        "param": "E_CHOICE_Skips_Direction",
-        "values": [
-          "Left",
-          "Right"
-        ],
-        "mode": "alternate"
-      }
-    },
-    {
-      "name": "Single Strand 3dFade11 Fast Horizontal H",
-      "base_effect": "Single Strand",
-      "description": "Single Strand variant on Arches, Custom, Single Line props (2 pkg, 26 uses)",
+      "description": "Bouncing fireworks chase with medium color mix. Playful back-and-forth motion on arches and single-line props.",
       "parameter_overrides": {
         "E_CHECKBOX_Chase_Group_All": 0,
         "E_CHOICE_Chase_Type1": "Bounce from Left",
@@ -539,27 +259,24 @@
         "E_SLIDER_Skips_StartPos": 1
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
+        "tier_affinity": "foreground",
+        "energy_level": "medium",
         "speed_feel": "fast",
         "direction": "horizontal",
-        "section_roles": [],
+        "section_roles": ["chorus", "bridge"],
         "scope": "single-prop",
         "genre_affinity": "any"
       },
       "direction_cycle": {
         "param": "E_CHOICE_Skips_Direction",
-        "values": [
-          "Left",
-          "Right"
-        ],
+        "values": ["Left", "Right"],
         "mode": "alternate"
       }
     },
     {
-      "name": "Single Strand 3dFade11 Fast Horizontal I",
+      "name": "Chase All To Middle Full",
       "base_effect": "Single Strand",
-      "description": "Single Strand variant on Circle, Custom, Single Line props (2 pkg, 19 uses)",
+      "description": "All-group fireworks chase converging to center with full mix. Synchronized inward pull across all groups.",
       "parameter_overrides": {
         "E_CHECKBOX_Chase_Group_All": 1,
         "E_CHOICE_Chase_Type1": "To Middle",
@@ -576,27 +293,24 @@
         "E_SLIDER_Skips_StartPos": 1
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
+        "tier_affinity": "foreground",
+        "energy_level": "high",
         "speed_feel": "fast",
         "direction": "horizontal",
-        "section_roles": [],
-        "scope": "single-prop",
+        "section_roles": ["drop", "chorus"],
+        "scope": "group",
         "genre_affinity": "any"
       },
       "direction_cycle": {
         "param": "E_CHOICE_Skips_Direction",
-        "values": [
-          "Left",
-          "Right"
-        ],
+        "values": ["Left", "Right"],
         "mode": "alternate"
       }
     },
     {
-      "name": "Single Strand 3dFade11 Fast Horizontal J",
+      "name": "Chase All Left-Right Full",
       "base_effect": "Single Strand",
-      "description": "Single Strand variant on Circle, Custom, Single Line props (2 pkg, 18 uses)",
+      "description": "All-group left-to-right fireworks chase with full color mix. Synchronized sweep across all groups.",
       "parameter_overrides": {
         "E_CHECKBOX_Chase_Group_All": 1,
         "E_CHOICE_Chase_Type1": "Left-Right",
@@ -613,131 +327,17 @@
         "E_SLIDER_Skips_StartPos": 1
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
+        "tier_affinity": "foreground",
+        "energy_level": "high",
         "speed_feel": "fast",
         "direction": "horizontal",
-        "section_roles": [],
-        "scope": "single-prop",
+        "section_roles": ["drop", "chorus"],
+        "scope": "group",
         "genre_affinity": "any"
       },
       "direction_cycle": {
         "param": "E_CHOICE_Skips_Direction",
-        "values": [
-          "Left",
-          "Right"
-        ],
-        "mode": "alternate"
-      }
-    },
-    {
-      "name": "Single Strand 3dFade11 Fast Horizontal K",
-      "base_effect": "Single Strand",
-      "description": "Single Strand variant on Custom props (1 pkg, 16 uses)",
-      "parameter_overrides": {
-        "E_CHECKBOX_Chase_Group_All": 1,
-        "E_CHOICE_Chase_Type1": "From Middle",
-        "E_CHOICE_SingleStrand_Colors": "Palette",
-        "E_CHOICE_SingleStrand_FX": "Fireworks 1D",
-        "E_CHOICE_SingleStrand_FX_Palette": "* Colors Only",
-        "E_SLIDER_Color_Mix1": 100,
-        "E_SLIDER_FX_Intensity": 128,
-        "E_SLIDER_FX_Speed": 128,
-        "E_SLIDER_Number_Chases": 1,
-        "E_SLIDER_Skips_Advance": 0,
-        "E_SLIDER_Skips_BandSize": 1,
-        "E_SLIDER_Skips_SkipSize": 1,
-        "E_SLIDER_Skips_StartPos": 1
-      },
-      "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": "fast",
-        "direction": "horizontal",
-        "section_roles": [],
-        "scope": "single-prop",
-        "genre_affinity": "any"
-      },
-      "direction_cycle": {
-        "param": "E_CHOICE_Skips_Direction",
-        "values": [
-          "Left",
-          "Right"
-        ],
-        "mode": "alternate"
-      }
-    },
-    {
-      "name": "Single Strand 3dFade11 Fast Horizontal L",
-      "base_effect": "Single Strand",
-      "description": "Single Strand variant on Arches, Custom props (2 pkg, 15 uses)",
-      "parameter_overrides": {
-        "E_CHECKBOX_Chase_Group_All": 0,
-        "E_CHOICE_Chase_Type1": "From Middle",
-        "E_CHOICE_SingleStrand_Colors": "Palette",
-        "E_CHOICE_SingleStrand_FX": "Fireworks 1D",
-        "E_CHOICE_SingleStrand_FX_Palette": "* Colors Only",
-        "E_SLIDER_Color_Mix1": 30,
-        "E_SLIDER_FX_Intensity": 128,
-        "E_SLIDER_FX_Speed": 128,
-        "E_SLIDER_Number_Chases": 1,
-        "E_SLIDER_Skips_Advance": 0,
-        "E_SLIDER_Skips_BandSize": 1,
-        "E_SLIDER_Skips_SkipSize": 1,
-        "E_SLIDER_Skips_StartPos": 1
-      },
-      "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": "fast",
-        "direction": "horizontal",
-        "section_roles": [],
-        "scope": "single-prop",
-        "genre_affinity": "any"
-      },
-      "direction_cycle": {
-        "param": "E_CHOICE_Skips_Direction",
-        "values": [
-          "Left",
-          "Right"
-        ],
-        "mode": "alternate"
-      }
-    },
-    {
-      "name": "Single Strand 3dFade11 Fast Horizontal M",
-      "base_effect": "Single Strand",
-      "description": "Single Strand variant on Custom, Single Line, Tree 180 props (1 pkg, 6 uses)",
-      "parameter_overrides": {
-        "E_CHECKBOX_Chase_Group_All": 1,
-        "E_CHOICE_Chase_Type1": "Right-Left",
-        "E_CHOICE_SingleStrand_Colors": "Palette",
-        "E_CHOICE_SingleStrand_FX": "Fireworks 1D",
-        "E_CHOICE_SingleStrand_FX_Palette": "* Colors Only",
-        "E_SLIDER_Color_Mix1": 25,
-        "E_SLIDER_FX_Intensity": 128,
-        "E_SLIDER_FX_Speed": 128,
-        "E_SLIDER_Number_Chases": 1,
-        "E_SLIDER_Skips_Advance": 0,
-        "E_SLIDER_Skips_BandSize": 1,
-        "E_SLIDER_Skips_SkipSize": 1,
-        "E_SLIDER_Skips_StartPos": 1
-      },
-      "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": "fast",
-        "direction": "horizontal",
-        "section_roles": [],
-        "scope": "single-prop",
-        "genre_affinity": "any"
-      },
-      "direction_cycle": {
-        "param": "E_CHOICE_Skips_Direction",
-        "values": [
-          "Left",
-          "Right"
-        ],
+        "values": ["Left", "Right"],
         "mode": "alternate"
       }
     }

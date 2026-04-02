@@ -2,9 +2,9 @@
   "effect": "Butterfly",
   "variants": [
     {
-      "name": "Butterfly Style1 2-Chunk Slow",
+      "name": "Butterfly Classic 2-Chunk",
       "base_effect": "Butterfly",
-      "description": "Butterfly variant from professional sequences. Used on Custom, Single Line, Star props across 2 packages.",
+      "description": "Classic bilateral symmetry pattern split into two chunks. Slow organic movement on stars and single-line props.",
       "parameter_overrides": {
         "E_CHOICE_Butterfly_Colors": "Palette",
         "E_CHOICE_Butterfly_Direction": "Normal",
@@ -14,19 +14,19 @@
         "E_SLIDER_Butterfly_Style": 1
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
+        "tier_affinity": "mid",
+        "energy_level": "medium",
         "speed_feel": "slow",
         "direction": "fixed",
-        "section_roles": [],
+        "section_roles": ["verse", "bridge"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
     },
     {
-      "name": "Butterfly Style1 Slow",
+      "name": "Butterfly Classic",
       "base_effect": "Butterfly",
-      "description": "Butterfly variant from professional sequences. Used on Custom, Horiz Matrix, Single Line props across 5 packages.",
+      "description": "Classic bilateral symmetry pattern with slow flowing movement. Works well on matrices and horizontal layouts.",
       "parameter_overrides": {
         "E_CHOICE_Butterfly_Colors": "Palette",
         "E_CHOICE_Butterfly_Direction": "Normal",
@@ -36,19 +36,19 @@
         "E_SLIDER_Butterfly_Style": 1
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
+        "tier_affinity": "mid",
+        "energy_level": "medium",
         "speed_feel": "slow",
         "direction": "fixed",
-        "section_roles": [],
+        "section_roles": ["verse", "bridge", "intro"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
     },
     {
-      "name": "Butterfly Style2 Slow",
+      "name": "Butterfly Pattern",
       "base_effect": "Butterfly",
-      "description": "Butterfly variant from professional sequences. Used on Custom props across 2 packages.",
+      "description": "Alternate butterfly pattern with gentle undulating motion. Calm organic feel for custom props.",
       "parameter_overrides": {
         "E_CHOICE_Butterfly_Colors": "Palette",
         "E_CHOICE_Butterfly_Direction": "Normal",
@@ -58,19 +58,19 @@
         "E_SLIDER_Butterfly_Style": 2
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
+        "tier_affinity": "mid",
+        "energy_level": "low",
         "speed_feel": "slow",
         "direction": "fixed",
-        "section_roles": [],
+        "section_roles": ["verse", "intro", "outro"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
     },
     {
-      "name": "Butterfly Style4 10-Chunk Moderate",
+      "name": "Butterfly Geometric 10-Chunk",
       "base_effect": "Butterfly",
-      "description": "Butterfly variant from professional sequences. Used on Tree 180, Tree 360 props across 2 packages.",
+      "description": "Geometric pattern fragmented into 10 repeating chunks. Dense tessellation effect best on trees.",
       "parameter_overrides": {
         "E_CHOICE_Butterfly_Colors": "Palette",
         "E_CHOICE_Butterfly_Direction": "Normal",
@@ -80,19 +80,19 @@
         "E_SLIDER_Butterfly_Style": 4
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
+        "tier_affinity": "mid",
+        "energy_level": "medium",
         "speed_feel": "moderate",
         "direction": "fixed",
-        "section_roles": [],
+        "section_roles": ["chorus", "bridge"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
     },
     {
-      "name": "Butterfly Style4 2-Chunk Moderate",
+      "name": "Butterfly Geometric 2-Chunk",
       "base_effect": "Butterfly",
-      "description": "Butterfly variant from professional sequences. Used on Horiz Matrix props across 2 packages.",
+      "description": "Geometric pattern split into two mirrored sections. Clean angular movement for matrices.",
       "parameter_overrides": {
         "E_CHOICE_Butterfly_Colors": "Palette",
         "E_CHOICE_Butterfly_Direction": "Normal",
@@ -102,19 +102,19 @@
         "E_SLIDER_Butterfly_Style": 4
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
+        "tier_affinity": "mid",
+        "energy_level": "medium",
         "speed_feel": "moderate",
         "direction": "fixed",
-        "section_roles": [],
+        "section_roles": ["chorus", "bridge"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
     },
     {
-      "name": "Butterfly Style4 Moderate",
+      "name": "Butterfly Geometric",
       "base_effect": "Butterfly",
-      "description": "Butterfly variant from professional sequences. Used on Arches, Custom, Horiz Matrix props across 2 packages.",
+      "description": "Bold geometric pattern with moderate speed. Striking angular shapes on arches and matrices.",
       "parameter_overrides": {
         "E_CHOICE_Butterfly_Colors": "Palette",
         "E_CHOICE_Butterfly_Direction": "Normal",
@@ -124,11 +124,11 @@
         "E_SLIDER_Butterfly_Style": 4
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
+        "tier_affinity": "mid",
+        "energy_level": "medium",
         "speed_feel": "moderate",
         "direction": "fixed",
-        "section_roles": [],
+        "section_roles": ["chorus", "build"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }

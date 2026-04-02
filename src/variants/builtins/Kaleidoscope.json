@@ -2,9 +2,9 @@
   "effect": "Kaleidoscope",
   "variants": [
     {
-      "name": "Kaleidoscope Square Size47",
+      "name": "Kaleidoscope Square",
       "base_effect": "Kaleidoscope",
-      "description": "Kaleidoscope variant from professional sequences. Used on Horiz Matrix, Tree 180, Tree 360 props across 2 packages.",
+      "description": "Square-pattern kaleidoscope mirroring from center. Symmetrical reflections on matrices and trees.",
       "parameter_overrides": {
         "E_CHOICE_Kaleidoscope_Type": "Square",
         "E_SLIDER_Kaleidoscope_Rotation": 0,
@@ -13,19 +13,19 @@
         "E_SLIDER_Kaleidoscope_Y": 50
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": null,
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "moderate",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["chorus", "bridge"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
     },
     {
-      "name": "Kaleidoscope Triangle Size25",
+      "name": "Kaleidoscope Triangle",
       "base_effect": "Kaleidoscope",
-      "description": "Kaleidoscope variant from professional sequences. Used on Horiz Matrix props across 2 packages.",
+      "description": "Triangle-pattern kaleidoscope with smaller mirrored segments. Intricate reflections on matrices.",
       "parameter_overrides": {
         "E_CHOICE_Kaleidoscope_Type": "Triangle",
         "E_SLIDER_Kaleidoscope_Rotation": 0,
@@ -34,11 +34,11 @@
         "E_SLIDER_Kaleidoscope_Y": 50
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": null,
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "moderate",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["chorus", "bridge"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }

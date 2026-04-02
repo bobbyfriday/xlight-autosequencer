@@ -2,9 +2,9 @@
   "effect": "Shockwave",
   "variants": [
     {
-      "name": "Shockwave Blend",
+      "name": "Shockwave Center",
       "base_effect": "Shockwave",
-      "description": "Shockwave variant from professional sequences. Used on Custom, Horiz Matrix, Single Line props across 2 packages.",
+      "description": "Standard shockwave expanding from center with blended edges. Classic impact burst on matrices and single-line props.",
       "parameter_overrides": {
         "E_CHECKBOX_Shockwave_Blend_Edges": 1,
         "E_SLIDER_Shockwave_Accel": 0,
@@ -16,19 +16,19 @@
         "E_SLIDER_Shockwave_Start_Width": 15
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": null,
+        "tier_affinity": "hero",
+        "energy_level": "high",
+        "speed_feel": "fast",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["drop", "chorus", "build"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
     },
     {
-      "name": "Shockwave Blend A",
+      "name": "Shockwave Off-Center",
       "base_effect": "Shockwave",
-      "description": "Shockwave variant from professional sequences. Used on Custom props across 2 packages.",
+      "description": "Shockwave expanding from an off-center point. Asymmetric impact burst on custom props.",
       "parameter_overrides": {
         "E_CHECKBOX_Shockwave_Blend_Edges": 1,
         "E_SLIDER_Shockwave_Accel": 0,
@@ -40,19 +40,19 @@
         "E_SLIDER_Shockwave_Start_Width": 5
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": null,
+        "tier_affinity": "hero",
+        "energy_level": "high",
+        "speed_feel": "fast",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["drop", "chorus"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
     },
     {
-      "name": "Shockwave Blend B",
+      "name": "Shockwave Bottom Wide",
       "base_effect": "Shockwave",
-      "description": "Shockwave variant from professional sequences. Used on Single Line props across 2 packages.",
+      "description": "Wide shockwave expanding from bottom edge. Dramatic upward blast effect on single-line props.",
       "parameter_overrides": {
         "E_CHECKBOX_Shockwave_Blend_Edges": 1,
         "E_SLIDER_Shockwave_Accel": 0,
@@ -64,19 +64,19 @@
         "E_SLIDER_Shockwave_Start_Width": 75
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": null,
+        "tier_affinity": "hero",
+        "energy_level": "high",
+        "speed_feel": "fast",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["drop", "build"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
     },
     {
-      "name": "Shockwave Blend C",
+      "name": "Shockwave Center Thin",
       "base_effect": "Shockwave",
-      "description": "Shockwave variant from professional sequences. Used on Tree 360 props across 2 packages.",
+      "description": "Tight thin shockwave pulse from center. Subtle ring flash for accent hits on trees.",
       "parameter_overrides": {
         "E_CHECKBOX_Shockwave_Blend_Edges": 1,
         "E_SLIDER_Shockwave_Accel": 0,
@@ -88,43 +88,19 @@
         "E_SLIDER_Shockwave_Start_Width": 5
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": null,
+        "tier_affinity": "hero",
+        "energy_level": "high",
+        "speed_feel": "fast",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["drop", "chorus"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
     },
     {
-      "name": "Shockwave Blend D",
+      "name": "Shockwave Decel",
       "base_effect": "Shockwave",
-      "description": "Shockwave variant from professional sequences. Used on Star props across 2 packages.",
-      "parameter_overrides": {
-        "E_CHECKBOX_Shockwave_Blend_Edges": 1,
-        "E_SLIDER_Shockwave_Accel": 0,
-        "E_SLIDER_Shockwave_CenterX": 50,
-        "E_SLIDER_Shockwave_CenterY": 50,
-        "E_SLIDER_Shockwave_End_Radius": 10,
-        "E_SLIDER_Shockwave_End_Width": 39,
-        "E_SLIDER_Shockwave_Start_Radius": 1,
-        "E_SLIDER_Shockwave_Start_Width": 5
-      },
-      "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": null,
-        "direction": null,
-        "section_roles": [],
-        "scope": "single-prop",
-        "genre_affinity": "any"
-      }
-    },
-    {
-      "name": "Shockwave Blend E",
-      "base_effect": "Shockwave",
-      "description": "Shockwave variant from professional sequences. Used on Icicles, Single Line props across 2 packages.",
+      "description": "Decelerating shockwave that slows as it expands. Dramatic impact that lingers on icicles and single-line props.",
       "parameter_overrides": {
         "E_CHECKBOX_Shockwave_Blend_Edges": 1,
         "E_SLIDER_Shockwave_Accel": -7,
@@ -134,11 +110,11 @@
         "E_SLIDER_Shockwave_Start_Width": 0
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": null,
+        "tier_affinity": "hero",
+        "energy_level": "high",
+        "speed_feel": "moderate",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["drop", "build"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }

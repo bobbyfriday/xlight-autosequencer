@@ -2,9 +2,9 @@
   "effect": "Marquee",
   "variants": [
     {
-      "name": "Marquee Band3 Rev Slow",
+      "name": "Marquee Thin Reverse",
       "base_effect": "Marquee",
-      "description": "Marquee variant from professional sequences. Used on Arches, Horiz Matrix, Single Line props across 3 packages.",
+      "description": "Thin single-pixel marquee scrolling in reverse. Subtle chasing light on arches and single-line props.",
       "parameter_overrides": {
         "E_CHECKBOX_Marquee_Reverse": 1,
         "E_SLIDER_MarqueeXC": 0,
@@ -19,19 +19,19 @@
         "E_SLIDER_Marquee_Thickness": 1
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
+        "tier_affinity": "mid",
+        "energy_level": "medium",
         "speed_feel": "slow",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["verse", "bridge"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
     },
     {
-      "name": "Marquee Band3 Slow",
+      "name": "Marquee Thin",
       "base_effect": "Marquee",
-      "description": "Marquee variant from professional sequences. Used on Arches, Horiz Matrix, Single Line props across 3 packages.",
+      "description": "Thin single-pixel marquee scrolling forward. Classic chasing light effect on arches and matrices.",
       "parameter_overrides": {
         "E_CHECKBOX_Marquee_Reverse": 0,
         "E_SLIDER_MarqueeXC": 0,
@@ -46,19 +46,19 @@
         "E_SLIDER_Marquee_Thickness": 1
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
+        "tier_affinity": "mid",
+        "energy_level": "medium",
         "speed_feel": "slow",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["verse", "chorus"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
     },
     {
-      "name": "Marquee Band3 T10 Slow",
+      "name": "Marquee Thick",
       "base_effect": "Marquee",
-      "description": "Marquee variant from professional sequences. Used on Horiz Matrix, Tree 180, Tree 360 props across 2 packages.",
+      "description": "Thick 10-pixel marquee band scrolling at moderate speed. Bold moving stripe on matrices and trees.",
       "parameter_overrides": {
         "E_CHECKBOX_Marquee_Reverse": 0,
         "E_SLIDER_MarqueeXC": 0,
@@ -72,19 +72,19 @@
         "E_SLIDER_Marquee_Thickness": 10
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
+        "tier_affinity": "mid",
+        "energy_level": "medium",
         "speed_feel": "slow",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["chorus", "bridge"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
     },
     {
-      "name": "Marquee Band3 T3 Slow",
+      "name": "Marquee Medium",
       "base_effect": "Marquee",
-      "description": "Marquee variant from professional sequences. Used on Horiz Matrix props across 2 packages.",
+      "description": "Medium 3-pixel marquee band at moderate speed. Balanced chasing light for horizontal matrices.",
       "parameter_overrides": {
         "E_CHECKBOX_Marquee_Reverse": 0,
         "E_SLIDER_MarqueeXC": 0,
@@ -98,19 +98,19 @@
         "E_SLIDER_Marquee_Thickness": 3
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
+        "tier_affinity": "mid",
+        "energy_level": "medium",
         "speed_feel": "slow",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["verse", "chorus"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
     },
     {
-      "name": "Marquee Band5 T9 Slow",
+      "name": "Marquee Wide Stagger",
       "base_effect": "Marquee",
-      "description": "Marquee variant from professional sequences. Used on Tree 180 props across 2 packages.",
+      "description": "Wide 5-band marquee with staggered offset and skip gaps. Complex layered chase pattern on trees.",
       "parameter_overrides": {
         "E_CHECKBOX_Marquee_Reverse": 0,
         "E_SLIDER_MarqueeXC": 0,
@@ -125,11 +125,11 @@
         "E_SLIDER_Marquee_Thickness": 9
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
+        "tier_affinity": "mid",
+        "energy_level": "medium",
         "speed_feel": "slow",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["chorus", "build"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }

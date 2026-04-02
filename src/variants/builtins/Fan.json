@@ -4,7 +4,7 @@
     {
       "name": "Fan 2-Blade",
       "base_effect": "Fan",
-      "description": "Fan variant from professional sequences. Used on Custom props across 3 packages.",
+      "description": "Two-blade fan sweeping a full rotation. Wide coverage pattern for custom props.",
       "parameter_overrides": {
         "E_SLIDER_Fan_Accel": 0,
         "E_SLIDER_Fan_Blade_Angle": 90,
@@ -18,11 +18,11 @@
         "E_SLIDER_Fan_Start_Angle": 0
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": null,
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "moderate",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["chorus", "bridge"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
@@ -30,7 +30,7 @@
     {
       "name": "Fan 3-Blade",
       "base_effect": "Fan",
-      "description": "Fan variant from professional sequences. Used on Custom, Horiz Matrix, Single Line props across 4 packages.",
+      "description": "Three-blade fan with full rotation sweep. Balanced radial motion on matrices and single-line props.",
       "parameter_overrides": {
         "E_SLIDER_Fan_Accel": 0,
         "E_SLIDER_Fan_Blade_Angle": 90,
@@ -44,19 +44,19 @@
         "E_SLIDER_Fan_Start_Angle": 0
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": null,
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "moderate",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["chorus", "bridge"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
     },
     {
-      "name": "Fan 3-Blade A",
+      "name": "Fan 3-Blade Short",
       "base_effect": "Fan",
-      "description": "Fan variant from professional sequences. Used on Custom, Horiz Matrix, Single Line props across 5 packages.",
+      "description": "Three-blade fan with shortened sweep duration. Quicker partial rotation for accent moments.",
       "parameter_overrides": {
         "E_SLIDER_Fan_Accel": 0,
         "E_SLIDER_Fan_Blade_Angle": 90,
@@ -70,19 +70,19 @@
         "E_SLIDER_Fan_Start_Angle": 0
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": null,
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "moderate",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["chorus", "build"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
     },
     {
-      "name": "Fan 3-Blade B",
+      "name": "Fan 3-Blade Off-Center",
       "base_effect": "Fan",
-      "description": "Fan variant from professional sequences. Used on Single Line, Tree 360 props across 2 packages.",
+      "description": "Three-blade fan with off-center pivot point. Asymmetric rotation for trees and single-line props.",
       "parameter_overrides": {
         "E_SLIDER_Fan_Accel": 0,
         "E_SLIDER_Fan_Blade_Angle": 90,
@@ -95,11 +95,11 @@
         "E_SLIDER_Fan_Start_Angle": 0
       },
       "tags": {
-        "tier_affinity": null,
-        "energy_level": null,
-        "speed_feel": null,
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "moderate",
         "direction": null,
-        "section_roles": [],
+        "section_roles": ["chorus", "bridge"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
