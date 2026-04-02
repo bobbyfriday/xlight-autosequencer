@@ -84,7 +84,7 @@ async function init() {
   if (syncEl) syncEl.textContent = `${syncOffsetMs >= 0 ? '+' : ''}${syncOffsetMs}ms`;
 
   document.getElementById('song-name').textContent = phonemeData.filename || '';
-  document.title = `Phonemes — ${phonemeData.filename || 'xlight-analyze'}`;
+  document.title = `Phonemes — ${phonemeData.filename || 'x-onset'}`;
   player.src = '/audio';
 
   if (!hasVocals) {

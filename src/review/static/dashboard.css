@@ -1,11 +1,11 @@
-/* Dashboard styles for xlight-analyze */
+/* Dashboard styles for x-onset */
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  background: #1a1a1a;
-  color: #ccc;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: var(--xo-bg);
+  color: var(--xo-fg);
+  font-family: var(--xo-font-main);
   font-size: 14px;
   min-height: 100vh;
 }
@@ -21,8 +21,8 @@ body {
   font-family: inherit;
   transition: background 0.15s;
 }
-.btn-primary { background: #4a9eff; color: #fff; }
-.btn-primary:hover { background: #3a8eef; }
+.btn-primary { background: var(--xo-accent); color: #fff; }
+.btn-primary:hover { background: #81EBFF; }
 .btn-primary:disabled { background: #333; color: #666; cursor: default; }
 .btn-secondary { background: #333; color: #aaa; }
 .btn-secondary:hover { background: #444; }
@@ -50,7 +50,7 @@ body {
   padding: 12px 16px;
   background: none;
   border: none;
-  color: #4a9eff;
+  color: var(--xo-accent);
   font-size: 14px;
   font-family: inherit;
   cursor: pointer;
@@ -83,12 +83,12 @@ body {
   margin-bottom: 12px;
 }
 .drop-zone.drag-over {
-  border-color: #4a9eff;
+  border-color: var(--xo-accent);
   background: #1a2a3a;
 }
 .drop-sub { font-size: 12px; margin-top: 4px; }
-.file-label { color: #4a9eff; cursor: pointer; text-decoration: underline; }
-.file-name { color: #4a9eff; margin-top: 8px; font-size: 13px; }
+.file-label { color: var(--xo-accent); cursor: pointer; text-decoration: underline; }
+.file-name { color: var(--xo-accent); margin-top: 8px; font-size: 13px; }
 
 .upload-options {
   display: flex;
@@ -99,7 +99,7 @@ body {
   color: #888;
 }
 .upload-options label { cursor: pointer; display: flex; align-items: center; gap: 4px; }
-.upload-options input[type="checkbox"] { accent-color: #4a9eff; }
+.upload-options input[type="checkbox"] { accent-color: var(--xo-accent); }
 
 .duplicate-warning {
   margin-top: 12px;
@@ -138,7 +138,7 @@ body {
 }
 .progress-bar {
   height: 100%;
-  background: #4a9eff;
+  background: var(--xo-accent);
   width: 0;
   transition: width 0.3s;
   border-radius: 3px;
@@ -150,7 +150,7 @@ body {
   overflow-y: auto;
 }
 .progress-steps .step { padding: 2px 0; }
-.progress-steps .step.active { color: #4a9eff; }
+.progress-steps .step.active { color: var(--xo-accent); }
 .progress-steps .step.done { color: #4a4; }
 
 .genius-prompt {
@@ -209,7 +209,7 @@ body {
   font-family: inherit;
 }
 .search-input::placeholder { color: #555; }
-.search-input:focus { outline: none; border-color: #4a9eff; }
+.search-input:focus { outline: none; border-color: var(--xo-accent); }
 .song-count { font-size: 12px; color: #555; }
 
 /* ── Library table ──────────────────────────────────────────────────────── */
@@ -235,7 +235,7 @@ body {
 }
 .library-table th.sortable { cursor: pointer; }
 .library-table th.sortable:hover { color: #ccc; }
-.library-table th.sorted { color: #4a9eff; }
+.library-table th.sorted { color: var(--xo-accent); }
 
 .sort-arrow { font-size: 10px; margin-left: 4px; }
 .sort-asc .sort-arrow::after { content: "\25B2"; }
@@ -309,7 +309,7 @@ body {
   margin: 1px;
 }
 .badge-stems { background: #1a3a2a; color: #4a8; }
-.badge-phonemes { background: #1a2a3a; color: #4a9eff; }
+.badge-phonemes { background: #1a2a3a; color: var(--xo-accent); }
 .badge-story { background: #2a1a3a; color: #a78bfa; }
 .badge-missing { background: #3a1a1a; color: #c44; }
 
@@ -323,7 +323,7 @@ body {
   cursor: pointer;
   font-size: 11px;
 }
-.btn-expand:hover { border-color: #4a9eff; color: #4a9eff; }
+.btn-expand:hover { border-color: var(--xo-accent); color: var(--xo-accent); }
 
 /* ── Detail panel (expanded row) ────────────────────────────────────────── */
 

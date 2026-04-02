@@ -7,10 +7,10 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--xo-font-main);
   font-size: 14px;
-  background: #1a1a2e;
-  color: #e0e0e0;
+  background: var(--xo-bg);
+  color: var(--xo-fg);
   min-height: 100vh;
 }
 
@@ -21,14 +21,14 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 12px 20px;
-  background: #16213e;
-  border-bottom: 1px solid #0f3460;
+  background: #111;
+  border-bottom: 1px solid var(--xo-border);
 }
 
 .app-header h1 {
   font-size: 18px;
   font-weight: 600;
-  color: #e94560;
+  color: var(--xo-accent);
 }
 
 .header-actions {
@@ -55,7 +55,7 @@ body {
 }
 
 .btn-primary {
-  background: #0f3460;
+  background: var(--xo-border);
   color: #fff;
 }
 
@@ -73,7 +73,7 @@ body {
 }
 
 .btn-export {
-  background: #e94560;
+  background: var(--xo-accent);
   color: #fff;
 }
 
@@ -142,15 +142,15 @@ body {
   display: flex;
   gap: 2px;
   padding: 12px 20px 0;
-  border-bottom: 2px solid #0f3460;
+  border-bottom: 2px solid var(--xo-border);
   flex-wrap: wrap;
 }
 
 .tier-tab {
   padding: 8px 16px;
-  background: #16213e;
+  background: #1e1e1e;
   color: #999;
-  border: 1px solid #0f3460;
+  border: 1px solid var(--xo-border);
   border-bottom: none;
   border-radius: 4px 4px 0 0;
   cursor: pointer;
@@ -164,7 +164,7 @@ body {
 }
 
 .tier-tab.active {
-  background: #0f3460;
+  background: var(--xo-border);
   color: #e0e0e0;
   font-weight: 600;
 }
@@ -186,7 +186,7 @@ body {
 .tier-label {
   font-size: 15px;
   font-weight: 600;
-  color: #a0c4ff;
+  color: var(--xo-accent);
 }
 
 .new-group-form {
@@ -207,7 +207,7 @@ body {
 
 .new-group-input:focus {
   outline: none;
-  border-color: #4a7aff;
+  border-color: var(--xo-accent);
 }
 
 /* ── Groups container ───────────────────────────────────────────────────────── */
@@ -222,8 +222,8 @@ body {
 /* ── Group card ─────────────────────────────────────────────────────────────── */
 
 .group-card {
-  background: #16213e;
-  border: 1px solid #0f3460;
+  background: #1e1e1e;
+  border: 1px solid var(--xo-border);
   border-radius: 6px;
   min-width: 200px;
   max-width: 300px;
@@ -233,9 +233,9 @@ body {
 }
 
 .group-card.drag-over {
-  border-color: #4a7aff;
+  border-color: var(--xo-accent);
   background: #1a2a50;
-  box-shadow: 0 0 0 2px #4a7aff44;
+  box-shadow: 0 0 0 2px var(--xo-accent)44;
 }
 
 .group-card-header {
@@ -243,14 +243,14 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 8px 10px;
-  border-bottom: 1px solid #0f3460;
+  border-bottom: 1px solid var(--xo-border);
   gap: 6px;
 }
 
 .group-name {
   font-size: 12px;
   font-weight: 600;
-  color: #a0c4ff;
+  color: var(--xo-accent);
   word-break: break-all;
   flex: 1;
 }
@@ -258,7 +258,7 @@ body {
 .group-name-input {
   font-size: 12px;
   background: #2a2a4a;
-  border: 1px solid #4a7aff;
+  border: 1px solid var(--xo-accent);
   border-radius: 3px;
   color: #e0e0e0;
   padding: 2px 6px;
@@ -313,7 +313,7 @@ body {
   gap: 6px;
   padding: 5px 8px;
   margin-bottom: 3px;
-  background: #1a1a2e;
+  background: var(--xo-bg);
   border: 1px solid #2a2a4e;
   border-radius: 4px;
   cursor: grab;
@@ -328,7 +328,7 @@ body {
 
 .prop-item.selected {
   background: #1a2a50;
-  border-color: #4a7aff;
+  border-color: var(--xo-accent);
 }
 
 .prop-item.dragging {
@@ -386,7 +386,7 @@ body {
 }
 
 #ungrouped-list.drag-over {
-  border-color: #4a7aff;
+  border-color: var(--xo-accent);
   background: #1a2a50;
 }
 

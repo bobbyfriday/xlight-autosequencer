@@ -1,0 +1,128 @@
+/*
+ * x-onset - The Pulse Theme
+ * Brand Identity by Bobby Friday
+ */
+
+:root {
+  /* Core Color Palette */
+  --xo-bg: #1A1A1A;          /* Graphite Black - Deep contrast background */
+  --xo-fg: #F5F5F5;          /* Phosphor White - Primary text, information */
+  --xo-accent: #00E5FF;      /* Voltaic Blue   - Action, precision, glow */
+  --xo-accent-dim: rgba(0, 229, 255, 0.1); /* Subtle backgrounds/overlays */
+  --xo-border: #333333;      /* Darker grey for borders and definition */
+
+  /* Typography */
+  --xo-font-main: 'Inter', system-ui, -apple-system, sans-serif;
+  --xo-font-mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+
+  /* UI Spacing & Elements */
+  --xo-border-radius: 4px;   /* Precise, not rounded */
+}
+
+/* Global Reset & Basic Application */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--xo-bg);
+  color: var(--xo-fg);
+  font-family: var(--xo-font-main);
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* Headers & Branding */
+h1, h2, h3 {
+  color: var(--xo-fg);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+}
+
+h1.brand-header {
+  font-size: 1.5rem;
+  color: var(--xo-accent);
+}
+
+/* Links & Standard Interactions */
+a {
+  color: var(--xo-accent);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  text-decoration: underline;
+  color: #81EBFF; /* A slightly lighter blue on hover */
+}
+
+/* Precision Buttons - Minimalist, Glow-on-Hover */
+button, .btn {
+  background-color: transparent;
+  border: 1px solid var(--xo-accent);
+  color: var(--xo-accent);
+  font-family: var(--xo-font-main);
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  padding: 8px 20px;
+  cursor: pointer;
+  border-radius: var(--xo-border-radius);
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Inner shadow and subtle inner glow effect on hover */
+button:hover, .btn:hover {
+  background-color: var(--xo-accent);
+  color: var(--xo-bg);
+  box-shadow: 0 0 15px var(--xo-accent);
+}
+
+/* Inputs & Forms (Search/Export UI) */
+input[type="text"], input[type="number"], select {
+  background-color: #222;
+  border: 1px solid var(--xo-border);
+  color: var(--xo-fg);
+  padding: 8px 12px;
+  font-family: var(--xo-font-mono);
+  border-radius: var(--xo-border-radius);
+}
+
+input:focus, select:focus {
+  outline: none;
+  border-color: var(--xo-accent);
+  box-shadow: 0 0 5px var(--xo-accent);
+}
+
+/* Key Component: The Timeline Visualizer / Canvas */
+#timeline-container {
+  border: 1px solid var(--xo-border);
+  margin: 20px;
+  border-radius: var(--xo-border-radius);
+  overflow: hidden;
+}
+
+/* Style the canvas element itself if possible */
+canvas.onset-visualization {
+  background-color: #111; /* Even deeper black for canvas */
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5); /* Inner shadow for depth */
+}
+
+/* Example CSS-based Logo (If you can't use an SVG/PNG) */
+.xo-css-logo {
+  display: inline-block;
+  color: var(--xo-fg);
+  font-family: var(--xo-font-main);
+  text-transform: lowercase;
+  font-weight: 700;
+}
+
+.xo-css-logo span.onset-pulse {
+  color: var(--xo-accent);
+  text-shadow: 0 0 10px var(--xo-accent);
+}

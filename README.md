@@ -1,6 +1,14 @@
-# xlight-autosequencer
+<p align="center">
+  <img src="assets/logo.svg" alt="x-onset logo" width="200">
+</p>
 
-Automatically generate xLights sequences from audio files. Analyzes your music, detects beats/onsets/chords/sections, groups your layout props, and applies themed effects — all driven by the audio.
+<h1 align="center">x-onset</h1>
+<p align="center"><strong>MP3 to xLights Sequencer</strong></p>
+<p align="center">
+  Analyzes your music, detects beats/onsets/chords/sections, groups your layout props, and applies themed effects — all driven by the audio.
+</p>
+
+---
 
 ## What It Does
 

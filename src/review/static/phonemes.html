@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Phoneme Review — xlight-analyze</title>
+  <title>Phoneme Review — x-onset</title>
+  <link rel="stylesheet" href="/theme.css">
   <link rel="stylesheet" href="/style.css">
   <link rel="stylesheet" href="/navbar.css">
   <style>
@@ -59,7 +60,7 @@
       transition: background 0.05s, color 0.05s;
     }
     .word:hover { color: #aaa; }
-    .word.active { background: #4a9eff; color: #fff; }
+    .word.active { background: var(--xo-accent); color: var(--xo-bg); }
     .word.past { color: #444; }
 
     /* bg-canvas handles word dragging, fg-canvas handles seeking */

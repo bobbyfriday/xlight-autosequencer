@@ -1,4 +1,4 @@
-/* Theme Editor — xLight AutoSequencer */
+/* Theme Editor — x-onset */
 'use strict';
 
 // ── State ───────────────────────────────────────────────────────────────────

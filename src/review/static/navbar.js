@@ -1,5 +1,5 @@
 /**
- * Shared navigation bar for xlight-analyze.
+ * Shared navigation bar for x-onset.
  * Auto-injects a <nav> at the top of <body> on DOMContentLoaded.
  */
 (function () {
@@ -36,7 +36,7 @@
     const brand = document.createElement('a');
     brand.href = '/';
     brand.className = 'navbar-brand';
-    brand.textContent = 'xLight';
+    brand.innerHTML = 'x-<span class="onset-pulse" style="color:var(--xo-accent);text-shadow:0 0 10px var(--xo-accent)">onset</span>';
     nav.appendChild(brand);
 
     // Nav links

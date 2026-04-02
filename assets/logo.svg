@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur1"/>
+      <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur2"/>
+      <feMerge>
+        <feMergeNode in="blur1"/>
+        <feMergeNode in="blur2"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <radialGradient id="radiance" cx="50%" cy="50%" r="30%">
+      <stop offset="0%" stop-color="#00E5FF" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#00E5FF" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="ring-grad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#555"/>
+      <stop offset="100%" stop-color="#222"/>
+    </linearGradient>
+    <linearGradient id="glass" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fff" stop-opacity="0.07"/>
+      <stop offset="45%" stop-color="#fff" stop-opacity="0.01"/>
+      <stop offset="100%" stop-color="#000" stop-opacity="0.08"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="512" height="512" rx="64" fill="#1A1A1A"/>
+
+  <!-- Circular badge -->
+  <circle cx="256" cy="232" r="185" fill="url(#ring-grad)" opacity="0.5"/>
+  <circle cx="256" cy="232" r="181" fill="#111"/>
+  <circle cx="256" cy="232" r="181" fill="url(#radiance)"/>
+  <circle cx="256" cy="232" r="181" fill="url(#glass)"/>
+
+  <!-- The X — four clean strokes from center -->
+  <g filter="url(#glow)" stroke="#00E5FF" stroke-width="28" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <!-- Upper-left arm -->
+    <line x1="256" y1="232" x2="152" y2="108"/>
+    <!-- Upper-right arm -->
+    <line x1="256" y1="232" x2="360" y2="108"/>
+    <!-- Lower-left arm -->
+    <line x1="256" y1="232" x2="152" y2="356"/>
+    <!-- Lower-right arm: single lightning kink -->
+    <polyline points="256,232 310,296 280,310 360,356"/>
+  </g>
+
+  <!-- Center flare -->
+  <circle cx="256" cy="232" r="5" fill="#fff" opacity="0.95"/>
+  <circle cx="256" cy="232" r="14" fill="#00E5FF" opacity="0.12"/>
+
+  <!-- "onset" text -->
+  <text x="256" y="442" text-anchor="middle"
+        font-family="Inter, system-ui, -apple-system, sans-serif"
+        font-weight="700" font-size="68" letter-spacing="0.02em"
+        fill="#F5F5F5">onset</text>
+
+  <!-- Tagline -->
+  <text x="256" y="478" text-anchor="middle"
+        font-family="Inter, system-ui, -apple-system, sans-serif"
+        font-weight="400" font-size="21" letter-spacing="0.1em"
+        fill="#777">MP3 to xLights Sequencer</text>
+</svg>
