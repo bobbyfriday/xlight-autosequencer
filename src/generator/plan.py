@@ -12,6 +12,7 @@ from src.effects.library import EffectLibrary, load_effect_library
 from src.generator.effect_placer import place_effects
 from src.generator.energy import derive_section_energies
 from src.generator.rotation import RotationEngine
+from src.generator.transitions import TransitionConfig, apply_transitions
 from src.story.builder import load_song_story
 from src.generator.models import (
     GenerationConfig,
@@ -182,7 +183,11 @@ def build_plan(
                             placement, effect_def, hierarchy, config.curves_mode
                         )
 
-    # 6. Assemble plan
+    # 6. Apply transitions (crossfades at section boundaries + end-of-song fade-out)
+    transition_config = TransitionConfig(mode=config.transition_mode)
+    apply_transitions(assignments, transition_config, bpm=profile.estimated_bpm)
+
+    # 7. Assemble plan
     return SequencePlan(
         song_profile=profile,
         sections=assignments,
