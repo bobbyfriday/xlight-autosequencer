@@ -2641,16 +2641,7 @@ def variant_edit(name: str, from_file: str) -> None:
         click.echo(f"ERROR: Variant '{name}' not found", err=True)
         sys.exit(1)
 
-    # Reject builtin edits
-    builtin_path = Path(__file__).parent / "variants" / "builtin_variants.json"
-    try:
-        import json as _j
-        raw = _j.loads(builtin_path.read_text(encoding="utf-8"))
-        builtin_names = {v["name"] for v in raw.get("variants", [])}
-    except (OSError, _j.JSONDecodeError, KeyError):
-        builtin_names: set[str] = set()
-
-    if existing.name in builtin_names:
+    if existing.name in lib.builtin_names:
         click.echo(f"ERROR: Cannot edit built-in variant '{name}'", err=True)
         sys.exit(1)
 
@@ -2681,16 +2672,7 @@ def variant_delete(name: str, yes: bool) -> None:
         click.echo(f"ERROR: Variant '{name}' not found", err=True)
         sys.exit(1)
 
-    # Reject builtin deletes
-    builtin_path = Path(__file__).parent / "variants" / "builtin_variants.json"
-    try:
-        import json as _j
-        raw = _j.loads(builtin_path.read_text(encoding="utf-8"))
-        builtin_names = {v["name"] for v in raw.get("variants", [])}
-    except (OSError, _j.JSONDecodeError, KeyError):
-        builtin_names: set[str] = set()
-
-    if existing.name in builtin_names:
+    if existing.name in lib.builtin_names:
         click.echo(f"ERROR: Cannot delete built-in variant '{name}'", err=True)
         sys.exit(1)
 

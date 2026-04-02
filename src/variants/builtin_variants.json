@@ -2648,6 +2648,1246 @@
         "scope": "single-prop",
         "genre_affinity": "any"
       }
+    },
+    {
+      "name": "Color Wash HFade1",
+      "base_effect": "Color Wash",
+      "description": "Color Wash variant on Arches, Cube, Custom props (3 pkg, 147 uses)",
+      "parameter_overrides": {
+        "E_CHECKBOX_ColorWash_HFade": 1,
+        "E_CHECKBOX_ColorWash_VFade": 1
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Color Wash HFade1 B",
+      "base_effect": "Color Wash",
+      "description": "Color Wash variant on Custom, Single Line, Star props (3 pkg, 32 uses)",
+      "parameter_overrides": {
+        "E_CHECKBOX_ColorWash_HFade": 1
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Color Wash CircularPalette1",
+      "base_effect": "Color Wash",
+      "description": "Color Wash variant on Custom, Single Line, Star props (2 pkg, 24 uses)",
+      "parameter_overrides": {
+        "E_CHECKBOX_ColorWash_CircularPalette": 1
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Color Wash VFade1",
+      "base_effect": "Color Wash",
+      "description": "Color Wash variant on Single Line, Tree 180, Tree 360 props (2 pkg, 9 uses)",
+      "parameter_overrides": {
+        "E_CHECKBOX_ColorWash_VFade": 1
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Color Wash HFade0",
+      "base_effect": "Color Wash",
+      "description": "Color Wash variant on Star props (1 pkg, 6 uses)",
+      "parameter_overrides": {
+        "E_CHECKBOX_ColorWash_HFade": 0,
+        "E_CHECKBOX_ColorWash_VFade": 0
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Single Strand 3dFade11 Left Fast",
+      "base_effect": "Single Strand",
+      "description": "Single Strand variant on Arches, Horiz Matrix, Tree 180 props (2 pkg, 157 uses)",
+      "parameter_overrides": {
+        "E_CHECKBOX_Chase_Group_All": 0,
+        "E_CHOICE_Chase_Type1": "Left-Right",
+        "E_CHOICE_SingleStrand_Colors": "Palette",
+        "E_CHOICE_SingleStrand_FX": "Fireworks 1D",
+        "E_CHOICE_SingleStrand_FX_Palette": "* Colors Only",
+        "E_CHOICE_Skips_Direction": "Left",
+        "E_SLIDER_Color_Mix1": 36,
+        "E_SLIDER_FX_Intensity": 128,
+        "E_SLIDER_FX_Speed": 128,
+        "E_SLIDER_Number_Chases": 1,
+        "E_SLIDER_Skips_Advance": 0,
+        "E_SLIDER_Skips_BandSize": 1,
+        "E_SLIDER_Skips_SkipSize": 1,
+        "E_SLIDER_Skips_StartPos": 1
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": "fast",
+        "direction": "left",
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Single Strand 3dFade10 Left Fast",
+      "base_effect": "Single Strand",
+      "description": "Single Strand variant on Horiz Matrix, Single Line props (2 pkg, 92 uses)",
+      "parameter_overrides": {
+        "E_CHECKBOX_Chase_Group_All": 0,
+        "E_CHOICE_Chase_Type1": "Right-Left",
+        "E_CHOICE_SingleStrand_Colors": "Palette",
+        "E_CHOICE_SingleStrand_FX": "Fireworks 1D",
+        "E_CHOICE_SingleStrand_FX_Palette": "* Colors Only",
+        "E_CHOICE_Skips_Direction": "Left",
+        "E_SLIDER_Color_Mix1": 10,
+        "E_SLIDER_FX_Intensity": 128,
+        "E_SLIDER_FX_Speed": 128,
+        "E_SLIDER_Number_Chases": 1,
+        "E_SLIDER_Skips_Advance": 0,
+        "E_SLIDER_Skips_BandSize": 1,
+        "E_SLIDER_Skips_SkipSize": 1,
+        "E_SLIDER_Skips_StartPos": 1
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": "fast",
+        "direction": "left",
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Single Strand 3dFade10 Left Fast B",
+      "base_effect": "Single Strand",
+      "description": "Single Strand variant on Single Line, Star props (1 pkg, 92 uses)",
+      "parameter_overrides": {
+        "E_CHECKBOX_Chase_Group_All": 0,
+        "E_CHOICE_Chase_Type1": "From Middle",
+        "E_CHOICE_SingleStrand_Colors": "Palette",
+        "E_CHOICE_SingleStrand_FX": "Fireworks 1D",
+        "E_CHOICE_SingleStrand_FX_Palette": "* Colors Only",
+        "E_CHOICE_Skips_Direction": "Left",
+        "E_SLIDER_Color_Mix1": 100,
+        "E_SLIDER_FX_Intensity": 128,
+        "E_SLIDER_FX_Speed": 128,
+        "E_SLIDER_Number_Chases": 1,
+        "E_SLIDER_Skips_Advance": 0,
+        "E_SLIDER_Skips_BandSize": 1,
+        "E_SLIDER_Skips_SkipSize": 1,
+        "E_SLIDER_Skips_StartPos": 1
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": "fast",
+        "direction": "left",
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Single Strand 3dFade11 Left Fast B",
+      "base_effect": "Single Strand",
+      "description": "Single Strand variant on Arches, Custom, Horiz Matrix props (4 pkg, 79 uses)",
+      "parameter_overrides": {
+        "E_CHECKBOX_Chase_Group_All": 0,
+        "E_CHOICE_Chase_Type1": "Right-Left",
+        "E_CHOICE_SingleStrand_Colors": "Palette",
+        "E_CHOICE_SingleStrand_FX": "Fireworks 1D",
+        "E_CHOICE_SingleStrand_FX_Palette": "* Colors Only",
+        "E_CHOICE_Skips_Direction": "Left",
+        "E_SLIDER_Color_Mix1": 55,
+        "E_SLIDER_FX_Intensity": 128,
+        "E_SLIDER_FX_Speed": 128,
+        "E_SLIDER_Number_Chases": 1,
+        "E_SLIDER_Skips_Advance": 0,
+        "E_SLIDER_Skips_BandSize": 1,
+        "E_SLIDER_Skips_SkipSize": 1,
+        "E_SLIDER_Skips_StartPos": 1
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": "fast",
+        "direction": "left",
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Single Strand 3dFade10 Left Fast C",
+      "base_effect": "Single Strand",
+      "description": "Single Strand variant on Arches, Custom, Horiz Matrix props (3 pkg, 75 uses)",
+      "parameter_overrides": {
+        "E_CHECKBOX_Chase_Group_All": 0,
+        "E_CHOICE_Chase_Type1": "Left-Right",
+        "E_CHOICE_SingleStrand_Colors": "Palette",
+        "E_CHOICE_SingleStrand_FX": "Fireworks 1D",
+        "E_CHOICE_SingleStrand_FX_Palette": "* Colors Only",
+        "E_CHOICE_Skips_Direction": "Left",
+        "E_SLIDER_Color_Mix1": 10,
+        "E_SLIDER_FX_Intensity": 128,
+        "E_SLIDER_FX_Speed": 128,
+        "E_SLIDER_Number_Chases": 1,
+        "E_SLIDER_Skips_Advance": 0,
+        "E_SLIDER_Skips_BandSize": 1,
+        "E_SLIDER_Skips_SkipSize": 1,
+        "E_SLIDER_Skips_StartPos": 1
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": "fast",
+        "direction": "left",
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Single Strand 3dFade11 Left Fast C",
+      "base_effect": "Single Strand",
+      "description": "Single Strand variant on Arches, Custom, Horiz Matrix props (4 pkg, 71 uses)",
+      "parameter_overrides": {
+        "E_CHECKBOX_Chase_Group_All": 0,
+        "E_CHOICE_Chase_Type1": "Left-Right",
+        "E_CHOICE_SingleStrand_Colors": "Palette",
+        "E_CHOICE_SingleStrand_FX": "Fireworks 1D",
+        "E_CHOICE_SingleStrand_FX_Palette": "* Colors Only",
+        "E_CHOICE_Skips_Direction": "Left",
+        "E_SLIDER_Color_Mix1": 55,
+        "E_SLIDER_FX_Intensity": 128,
+        "E_SLIDER_FX_Speed": 128,
+        "E_SLIDER_Number_Chases": 1,
+        "E_SLIDER_Skips_Advance": 0,
+        "E_SLIDER_Skips_BandSize": 1,
+        "E_SLIDER_Skips_SkipSize": 1,
+        "E_SLIDER_Skips_StartPos": 1
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": "fast",
+        "direction": "left",
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Single Strand 3dFade10 Left Fast D",
+      "base_effect": "Single Strand",
+      "description": "Single Strand variant on Horiz Matrix, Single Line, Star props (2 pkg, 62 uses)",
+      "parameter_overrides": {
+        "E_CHECKBOX_Chase_Group_All": 0,
+        "E_CHOICE_Chase_Type1": "To Middle",
+        "E_CHOICE_SingleStrand_Colors": "Palette",
+        "E_CHOICE_SingleStrand_FX": "Fireworks 1D",
+        "E_CHOICE_SingleStrand_FX_Palette": "* Colors Only",
+        "E_CHOICE_Skips_Direction": "Left",
+        "E_SLIDER_Color_Mix1": 100,
+        "E_SLIDER_FX_Intensity": 128,
+        "E_SLIDER_FX_Speed": 128,
+        "E_SLIDER_Number_Chases": 1,
+        "E_SLIDER_Skips_Advance": 0,
+        "E_SLIDER_Skips_BandSize": 1,
+        "E_SLIDER_Skips_SkipSize": 1,
+        "E_SLIDER_Skips_StartPos": 1
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": "fast",
+        "direction": "left",
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Single Strand 3dFade11 Left Fast D",
+      "base_effect": "Single Strand",
+      "description": "Single Strand variant on Arches, Horiz Matrix props (3 pkg, 55 uses)",
+      "parameter_overrides": {
+        "E_CHECKBOX_Chase_Group_All": 0,
+        "E_CHOICE_Chase_Type1": "Left-Right",
+        "E_CHOICE_SingleStrand_Colors": "Palette",
+        "E_CHOICE_SingleStrand_FX": "Fireworks 1D",
+        "E_CHOICE_SingleStrand_FX_Palette": "* Colors Only",
+        "E_CHOICE_Skips_Direction": "Left",
+        "E_SLIDER_Color_Mix1": 30,
+        "E_SLIDER_FX_Intensity": 128,
+        "E_SLIDER_FX_Speed": 128,
+        "E_SLIDER_Number_Chases": 1,
+        "E_SLIDER_Skips_Advance": 0,
+        "E_SLIDER_Skips_BandSize": 1,
+        "E_SLIDER_Skips_SkipSize": 1,
+        "E_SLIDER_Skips_StartPos": 1
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": "fast",
+        "direction": "left",
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Single Strand 3dFade11 Left Fast E",
+      "base_effect": "Single Strand",
+      "description": "Single Strand variant on Arches, Custom, Icicles props (2 pkg, 55 uses)",
+      "parameter_overrides": {
+        "E_CHECKBOX_Chase_Group_All": 0,
+        "E_CHOICE_Chase_Type1": "Left-Right",
+        "E_CHOICE_SingleStrand_Colors": "Palette",
+        "E_CHOICE_SingleStrand_FX": "Fireworks 1D",
+        "E_CHOICE_SingleStrand_FX_Palette": "* Colors Only",
+        "E_CHOICE_Skips_Direction": "Left",
+        "E_SLIDER_Color_Mix1": 25,
+        "E_SLIDER_FX_Intensity": 128,
+        "E_SLIDER_FX_Speed": 128,
+        "E_SLIDER_Number_Chases": 1,
+        "E_SLIDER_Skips_Advance": 0,
+        "E_SLIDER_Skips_BandSize": 1,
+        "E_SLIDER_Skips_SkipSize": 1,
+        "E_SLIDER_Skips_StartPos": 1
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": "fast",
+        "direction": "left",
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Single Strand 3dFade11 Left Fast F",
+      "base_effect": "Single Strand",
+      "description": "Single Strand variant on Arches, Horiz Matrix, Tree 180 props (2 pkg, 55 uses)",
+      "parameter_overrides": {
+        "E_CHECKBOX_Chase_Group_All": 0,
+        "E_CHOICE_Chase_Type1": "Right-Left",
+        "E_CHOICE_SingleStrand_Colors": "Palette",
+        "E_CHOICE_SingleStrand_FX": "Fireworks 1D",
+        "E_CHOICE_SingleStrand_FX_Palette": "* Colors Only",
+        "E_CHOICE_Skips_Direction": "Left",
+        "E_SLIDER_Color_Mix1": 36,
+        "E_SLIDER_FX_Intensity": 128,
+        "E_SLIDER_FX_Speed": 128,
+        "E_SLIDER_Number_Chases": 1,
+        "E_SLIDER_Skips_Advance": 0,
+        "E_SLIDER_Skips_BandSize": 1,
+        "E_SLIDER_Skips_SkipSize": 1,
+        "E_SLIDER_Skips_StartPos": 1
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": "fast",
+        "direction": "left",
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Single Strand 3dFade11 Left Fast G",
+      "base_effect": "Single Strand",
+      "description": "Single Strand variant on Arches, Custom, Tree 360 props (2 pkg, 55 uses)",
+      "parameter_overrides": {
+        "E_CHECKBOX_Chase_Group_All": 0,
+        "E_CHOICE_Chase_Type1": "To Middle",
+        "E_CHOICE_SingleStrand_Colors": "Palette",
+        "E_CHOICE_SingleStrand_FX": "Fireworks 1D",
+        "E_CHOICE_SingleStrand_FX_Palette": "* Colors Only",
+        "E_CHOICE_Skips_Direction": "Left",
+        "E_SLIDER_Color_Mix1": 75,
+        "E_SLIDER_FX_Intensity": 128,
+        "E_SLIDER_FX_Speed": 128,
+        "E_SLIDER_Number_Chases": 1,
+        "E_SLIDER_Skips_Advance": 0,
+        "E_SLIDER_Skips_BandSize": 1,
+        "E_SLIDER_Skips_SkipSize": 1,
+        "E_SLIDER_Skips_StartPos": 1
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": "fast",
+        "direction": "left",
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Single Strand 3dFade11 Left Fast H",
+      "base_effect": "Single Strand",
+      "description": "Single Strand variant on Arches, Custom, Tree 360 props (2 pkg, 52 uses)",
+      "parameter_overrides": {
+        "E_CHECKBOX_Chase_Group_All": 0,
+        "E_CHOICE_Chase_Type1": "From Middle",
+        "E_CHOICE_SingleStrand_Colors": "Palette",
+        "E_CHOICE_SingleStrand_FX": "Fireworks 1D",
+        "E_CHOICE_SingleStrand_FX_Palette": "* Colors Only",
+        "E_CHOICE_Skips_Direction": "Left",
+        "E_SLIDER_Color_Mix1": 75,
+        "E_SLIDER_FX_Intensity": 128,
+        "E_SLIDER_FX_Speed": 128,
+        "E_SLIDER_Number_Chases": 1,
+        "E_SLIDER_Skips_Advance": 0,
+        "E_SLIDER_Skips_BandSize": 1,
+        "E_SLIDER_Skips_SkipSize": 1,
+        "E_SLIDER_Skips_StartPos": 1
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": "fast",
+        "direction": "left",
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Single Strand 3dFade11 Left Fast I",
+      "base_effect": "Single Strand",
+      "description": "Single Strand variant on Arches, Horiz Matrix props (2 pkg, 34 uses)",
+      "parameter_overrides": {
+        "E_CHECKBOX_Chase_Group_All": 0,
+        "E_CHOICE_Chase_Type1": "From Middle",
+        "E_CHOICE_SingleStrand_Colors": "Palette",
+        "E_CHOICE_SingleStrand_FX": "Fireworks 1D",
+        "E_CHOICE_SingleStrand_FX_Palette": "* Colors Only",
+        "E_CHOICE_Skips_Direction": "Left",
+        "E_SLIDER_Color_Mix1": 100,
+        "E_SLIDER_FX_Intensity": 128,
+        "E_SLIDER_FX_Speed": 128,
+        "E_SLIDER_Number_Chases": 1,
+        "E_SLIDER_Skips_Advance": 0,
+        "E_SLIDER_Skips_BandSize": 1,
+        "E_SLIDER_Skips_SkipSize": 1,
+        "E_SLIDER_Skips_StartPos": 1
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": "fast",
+        "direction": "left",
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Single Strand 3dFade11 Left Fast J",
+      "base_effect": "Single Strand",
+      "description": "Single Strand variant on Arches, Horiz Matrix props (2 pkg, 33 uses)",
+      "parameter_overrides": {
+        "E_CHECKBOX_Chase_Group_All": 0,
+        "E_CHOICE_Chase_Type1": "To Middle",
+        "E_CHOICE_SingleStrand_Colors": "Palette",
+        "E_CHOICE_SingleStrand_FX": "Fireworks 1D",
+        "E_CHOICE_SingleStrand_FX_Palette": "* Colors Only",
+        "E_CHOICE_Skips_Direction": "Left",
+        "E_SLIDER_Color_Mix1": 100,
+        "E_SLIDER_FX_Intensity": 128,
+        "E_SLIDER_FX_Speed": 128,
+        "E_SLIDER_Number_Chases": 1,
+        "E_SLIDER_Skips_Advance": 0,
+        "E_SLIDER_Skips_BandSize": 1,
+        "E_SLIDER_Skips_SkipSize": 1,
+        "E_SLIDER_Skips_StartPos": 1
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": "fast",
+        "direction": "left",
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Single Strand 3dFade11 Left Fast K",
+      "base_effect": "Single Strand",
+      "description": "Single Strand variant on Arches, Custom, Icicles props (2 pkg, 28 uses)",
+      "parameter_overrides": {
+        "E_CHECKBOX_Chase_Group_All": 0,
+        "E_CHOICE_Chase_Type1": "Right-Left",
+        "E_CHOICE_SingleStrand_Colors": "Palette",
+        "E_CHOICE_SingleStrand_FX": "Fireworks 1D",
+        "E_CHOICE_SingleStrand_FX_Palette": "* Colors Only",
+        "E_CHOICE_Skips_Direction": "Left",
+        "E_SLIDER_Color_Mix1": 25,
+        "E_SLIDER_FX_Intensity": 128,
+        "E_SLIDER_FX_Speed": 128,
+        "E_SLIDER_Number_Chases": 1,
+        "E_SLIDER_Skips_Advance": 0,
+        "E_SLIDER_Skips_BandSize": 1,
+        "E_SLIDER_Skips_SkipSize": 1,
+        "E_SLIDER_Skips_StartPos": 1
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": "fast",
+        "direction": "left",
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Single Strand 3dFade11 Left Fast L",
+      "base_effect": "Single Strand",
+      "description": "Single Strand variant on Custom props (2 pkg, 26 uses)",
+      "parameter_overrides": {
+        "E_CHECKBOX_Chase_Group_All": 0,
+        "E_CHOICE_Chase_Type1": "From Middle",
+        "E_CHOICE_SingleStrand_Colors": "Palette",
+        "E_CHOICE_SingleStrand_FX": "Fireworks 1D",
+        "E_CHOICE_SingleStrand_FX_Palette": "* Colors Only",
+        "E_CHOICE_Skips_Direction": "Left",
+        "E_SLIDER_Color_Mix1": 100,
+        "E_SLIDER_FX_Intensity": 128,
+        "E_SLIDER_FX_Speed": 128,
+        "E_SLIDER_Number_Chases": 1,
+        "E_SLIDER_Skips_Advance": 0,
+        "E_SLIDER_Skips_BandSize": 1,
+        "E_SLIDER_Skips_SkipSize": 1,
+        "E_SLIDER_Skips_StartPos": 1
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": "fast",
+        "direction": "left",
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Single Strand 3dFade11 Left Fast M",
+      "base_effect": "Single Strand",
+      "description": "Single Strand variant on Arches, Custom, Single Line props (2 pkg, 26 uses)",
+      "parameter_overrides": {
+        "E_CHECKBOX_Chase_Group_All": 0,
+        "E_CHOICE_Chase_Type1": "Bounce from Left",
+        "E_CHOICE_SingleStrand_Colors": "Palette",
+        "E_CHOICE_SingleStrand_FX": "Fireworks 1D",
+        "E_CHOICE_SingleStrand_FX_Palette": "* Colors Only",
+        "E_CHOICE_Skips_Direction": "Left",
+        "E_SLIDER_Color_Mix1": 50,
+        "E_SLIDER_FX_Intensity": 128,
+        "E_SLIDER_FX_Speed": 128,
+        "E_SLIDER_Number_Chases": 1,
+        "E_SLIDER_Skips_Advance": 0,
+        "E_SLIDER_Skips_BandSize": 1,
+        "E_SLIDER_Skips_SkipSize": 1,
+        "E_SLIDER_Skips_StartPos": 1
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": "fast",
+        "direction": "left",
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Single Strand 3dFade11 Left Fast N",
+      "base_effect": "Single Strand",
+      "description": "Single Strand variant on Horiz Matrix, Tree 180, Tree 360 props (3 pkg, 21 uses)",
+      "parameter_overrides": {
+        "E_CHECKBOX_Chase_Group_All": 0,
+        "E_CHOICE_Chase_Type1": "Left-Right",
+        "E_CHOICE_SingleStrand_Colors": "Palette",
+        "E_CHOICE_SingleStrand_FX": "Fireworks 1D",
+        "E_CHOICE_SingleStrand_FX_Palette": "* Colors Only",
+        "E_CHOICE_Skips_Direction": "Left",
+        "E_SLIDER_Color_Mix1": 10,
+        "E_SLIDER_FX_Intensity": 128,
+        "E_SLIDER_FX_Speed": 128,
+        "E_SLIDER_Number_Chases": 1,
+        "E_SLIDER_Skips_Advance": 0,
+        "E_SLIDER_Skips_BandSize": 1,
+        "E_SLIDER_Skips_SkipSize": 1,
+        "E_SLIDER_Skips_StartPos": 1
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": "fast",
+        "direction": "left",
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Single Strand 3dFade11 Left Fast O",
+      "base_effect": "Single Strand",
+      "description": "Single Strand variant on Circle, Custom, Single Line props (2 pkg, 19 uses)",
+      "parameter_overrides": {
+        "E_CHECKBOX_Chase_Group_All": 1,
+        "E_CHOICE_Chase_Type1": "To Middle",
+        "E_CHOICE_SingleStrand_Colors": "Palette",
+        "E_CHOICE_SingleStrand_FX": "Fireworks 1D",
+        "E_CHOICE_SingleStrand_FX_Palette": "* Colors Only",
+        "E_CHOICE_Skips_Direction": "Left",
+        "E_SLIDER_Color_Mix1": 100,
+        "E_SLIDER_FX_Intensity": 128,
+        "E_SLIDER_FX_Speed": 128,
+        "E_SLIDER_Number_Chases": 1,
+        "E_SLIDER_Skips_Advance": 0,
+        "E_SLIDER_Skips_BandSize": 1,
+        "E_SLIDER_Skips_SkipSize": 1,
+        "E_SLIDER_Skips_StartPos": 1
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": "fast",
+        "direction": "left",
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Single Strand 3dFade11 Left Fast P",
+      "base_effect": "Single Strand",
+      "description": "Single Strand variant on Circle, Custom, Single Line props (2 pkg, 18 uses)",
+      "parameter_overrides": {
+        "E_CHECKBOX_Chase_Group_All": 1,
+        "E_CHOICE_Chase_Type1": "Left-Right",
+        "E_CHOICE_SingleStrand_Colors": "Palette",
+        "E_CHOICE_SingleStrand_FX": "Fireworks 1D",
+        "E_CHOICE_SingleStrand_FX_Palette": "* Colors Only",
+        "E_CHOICE_Skips_Direction": "Left",
+        "E_SLIDER_Color_Mix1": 100,
+        "E_SLIDER_FX_Intensity": 128,
+        "E_SLIDER_FX_Speed": 128,
+        "E_SLIDER_Number_Chases": 1,
+        "E_SLIDER_Skips_Advance": 0,
+        "E_SLIDER_Skips_BandSize": 1,
+        "E_SLIDER_Skips_SkipSize": 1,
+        "E_SLIDER_Skips_StartPos": 1
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": "fast",
+        "direction": "left",
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Single Strand 3dFade11 Left Fast Q",
+      "base_effect": "Single Strand",
+      "description": "Single Strand variant on Custom props (1 pkg, 16 uses)",
+      "parameter_overrides": {
+        "E_CHECKBOX_Chase_Group_All": 1,
+        "E_CHOICE_Chase_Type1": "From Middle",
+        "E_CHOICE_SingleStrand_Colors": "Palette",
+        "E_CHOICE_SingleStrand_FX": "Fireworks 1D",
+        "E_CHOICE_SingleStrand_FX_Palette": "* Colors Only",
+        "E_CHOICE_Skips_Direction": "Left",
+        "E_SLIDER_Color_Mix1": 100,
+        "E_SLIDER_FX_Intensity": 128,
+        "E_SLIDER_FX_Speed": 128,
+        "E_SLIDER_Number_Chases": 1,
+        "E_SLIDER_Skips_Advance": 0,
+        "E_SLIDER_Skips_BandSize": 1,
+        "E_SLIDER_Skips_SkipSize": 1,
+        "E_SLIDER_Skips_StartPos": 1
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": "fast",
+        "direction": "left",
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Single Strand 3dFade10 Left Fast E",
+      "base_effect": "Single Strand",
+      "description": "Single Strand variant on Custom props (1 pkg, 16 uses)",
+      "parameter_overrides": {
+        "E_CHECKBOX_Chase_Group_All": 0,
+        "E_CHOICE_Chase_Type1": "To Middle",
+        "E_CHOICE_SingleStrand_Colors": "Palette",
+        "E_CHOICE_SingleStrand_FX": "Fireworks 1D",
+        "E_CHOICE_SingleStrand_FX_Palette": "* Colors Only",
+        "E_CHOICE_Skips_Direction": "Left",
+        "E_SLIDER_Color_Mix1": 100,
+        "E_SLIDER_FX_Intensity": 128,
+        "E_SLIDER_FX_Speed": 128,
+        "E_SLIDER_Number_Chases": 1,
+        "E_SLIDER_Skips_Advance": 0,
+        "E_SLIDER_Skips_BandSize": 1,
+        "E_SLIDER_Skips_SkipSize": 1,
+        "E_SLIDER_Skips_StartPos": 1
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": "fast",
+        "direction": "left",
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Single Strand 3dFade11 Left Fast R",
+      "base_effect": "Single Strand",
+      "description": "Single Strand variant on Arches, Custom props (2 pkg, 15 uses)",
+      "parameter_overrides": {
+        "E_CHECKBOX_Chase_Group_All": 0,
+        "E_CHOICE_Chase_Type1": "From Middle",
+        "E_CHOICE_SingleStrand_Colors": "Palette",
+        "E_CHOICE_SingleStrand_FX": "Fireworks 1D",
+        "E_CHOICE_SingleStrand_FX_Palette": "* Colors Only",
+        "E_CHOICE_Skips_Direction": "Left",
+        "E_SLIDER_Color_Mix1": 30,
+        "E_SLIDER_FX_Intensity": 128,
+        "E_SLIDER_FX_Speed": 128,
+        "E_SLIDER_Number_Chases": 1,
+        "E_SLIDER_Skips_Advance": 0,
+        "E_SLIDER_Skips_BandSize": 1,
+        "E_SLIDER_Skips_SkipSize": 1,
+        "E_SLIDER_Skips_StartPos": 1
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": "fast",
+        "direction": "left",
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Single Strand 3dFade10 Left Fast F",
+      "base_effect": "Single Strand",
+      "description": "Single Strand variant on Custom props (1 pkg, 10 uses)",
+      "parameter_overrides": {
+        "E_CHECKBOX_Chase_Group_All": 0,
+        "E_CHOICE_Chase_Type1": "From Middle",
+        "E_CHOICE_SingleStrand_Colors": "Palette",
+        "E_CHOICE_SingleStrand_FX": "Fireworks 1D",
+        "E_CHOICE_SingleStrand_FX_Palette": "* Colors Only",
+        "E_CHOICE_Skips_Direction": "Left",
+        "E_SLIDER_Color_Mix1": 100,
+        "E_SLIDER_FX_Intensity": 128,
+        "E_SLIDER_FX_Speed": 128,
+        "E_SLIDER_Number_Chases": 1,
+        "E_SLIDER_Skips_Advance": 0,
+        "E_SLIDER_Skips_BandSize": 1,
+        "E_SLIDER_Skips_SkipSize": 1,
+        "E_SLIDER_Skips_StartPos": 1
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": "fast",
+        "direction": "left",
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Single Strand 3dFade11 Left Fast S",
+      "base_effect": "Single Strand",
+      "description": "Single Strand variant on Circle, Custom, Single Line props (2 pkg, 9 uses)",
+      "parameter_overrides": {
+        "E_CHECKBOX_Chase_Group_All": 1,
+        "E_CHOICE_Chase_Type1": "From Middle",
+        "E_CHOICE_SingleStrand_Colors": "Palette",
+        "E_CHOICE_SingleStrand_FX": "Fireworks 1D",
+        "E_CHOICE_SingleStrand_FX_Palette": "* Colors Only",
+        "E_CHOICE_Skips_Direction": "Left",
+        "E_SLIDER_Color_Mix1": 100,
+        "E_SLIDER_FX_Intensity": 128,
+        "E_SLIDER_FX_Speed": 128,
+        "E_SLIDER_Number_Chases": 1,
+        "E_SLIDER_Skips_Advance": 0,
+        "E_SLIDER_Skips_BandSize": 1,
+        "E_SLIDER_Skips_SkipSize": 1,
+        "E_SLIDER_Skips_StartPos": 1
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": "fast",
+        "direction": "left",
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Single Strand 3dFade11 Left Fast T",
+      "base_effect": "Single Strand",
+      "description": "Single Strand variant on Custom props (2 pkg, 7 uses)",
+      "parameter_overrides": {
+        "E_CHECKBOX_Chase_Group_All": 0,
+        "E_CHOICE_Chase_Type1": "To Middle",
+        "E_CHOICE_SingleStrand_Colors": "Palette",
+        "E_CHOICE_SingleStrand_FX": "Fireworks 1D",
+        "E_CHOICE_SingleStrand_FX_Palette": "* Colors Only",
+        "E_CHOICE_Skips_Direction": "Left",
+        "E_SLIDER_Color_Mix1": 100,
+        "E_SLIDER_FX_Intensity": 128,
+        "E_SLIDER_FX_Speed": 128,
+        "E_SLIDER_Number_Chases": 1,
+        "E_SLIDER_Skips_Advance": 0,
+        "E_SLIDER_Skips_BandSize": 1,
+        "E_SLIDER_Skips_SkipSize": 1,
+        "E_SLIDER_Skips_StartPos": 1
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": "fast",
+        "direction": "left",
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Single Strand 3dFade11 Left Fast U",
+      "base_effect": "Single Strand",
+      "description": "Single Strand variant on Custom, Single Line, Tree 180 props (1 pkg, 6 uses)",
+      "parameter_overrides": {
+        "E_CHECKBOX_Chase_Group_All": 1,
+        "E_CHOICE_Chase_Type1": "Left-Right",
+        "E_CHOICE_SingleStrand_Colors": "Palette",
+        "E_CHOICE_SingleStrand_FX": "Fireworks 1D",
+        "E_CHOICE_SingleStrand_FX_Palette": "* Colors Only",
+        "E_CHOICE_Skips_Direction": "Left",
+        "E_SLIDER_Color_Mix1": 25,
+        "E_SLIDER_FX_Intensity": 128,
+        "E_SLIDER_FX_Speed": 128,
+        "E_SLIDER_Number_Chases": 1,
+        "E_SLIDER_Skips_Advance": 0,
+        "E_SLIDER_Skips_BandSize": 1,
+        "E_SLIDER_Skips_SkipSize": 1,
+        "E_SLIDER_Skips_StartPos": 1
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": "fast",
+        "direction": "left",
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Single Strand 3dFade11 Left Fast V",
+      "base_effect": "Single Strand",
+      "description": "Single Strand variant on Custom, Single Line, Tree 180 props (1 pkg, 6 uses)",
+      "parameter_overrides": {
+        "E_CHECKBOX_Chase_Group_All": 1,
+        "E_CHOICE_Chase_Type1": "Right-Left",
+        "E_CHOICE_SingleStrand_Colors": "Palette",
+        "E_CHOICE_SingleStrand_FX": "Fireworks 1D",
+        "E_CHOICE_SingleStrand_FX_Palette": "* Colors Only",
+        "E_CHOICE_Skips_Direction": "Left",
+        "E_SLIDER_Color_Mix1": 25,
+        "E_SLIDER_FX_Intensity": 128,
+        "E_SLIDER_FX_Speed": 128,
+        "E_SLIDER_Number_Chases": 1,
+        "E_SLIDER_Skips_Advance": 0,
+        "E_SLIDER_Skips_BandSize": 1,
+        "E_SLIDER_Skips_SkipSize": 1,
+        "E_SLIDER_Skips_StartPos": 1
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": "fast",
+        "direction": "left",
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Single Strand 3dFade11 Left Fast W",
+      "base_effect": "Single Strand",
+      "description": "Single Strand variant on Arches props (1 pkg, 3 uses)",
+      "parameter_overrides": {
+        "E_CHECKBOX_Chase_Group_All": 1,
+        "E_CHOICE_Chase_Type1": "Left-Right",
+        "E_CHOICE_SingleStrand_Colors": "Palette",
+        "E_CHOICE_SingleStrand_FX": "Fireworks 1D",
+        "E_CHOICE_SingleStrand_FX_Palette": "* Colors Only",
+        "E_CHOICE_Skips_Direction": "Left",
+        "E_SLIDER_Color_Mix1": 25,
+        "E_SLIDER_FX_Intensity": 128,
+        "E_SLIDER_FX_Speed": 128,
+        "E_SLIDER_Number_Chases": 1,
+        "E_SLIDER_Skips_Advance": 0,
+        "E_SLIDER_Skips_BandSize": 1,
+        "E_SLIDER_Skips_SkipSize": 1,
+        "E_SLIDER_Skips_StartPos": 1
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": "fast",
+        "direction": "left",
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Single Strand 3dFade11 Left Fast X",
+      "base_effect": "Single Strand",
+      "description": "Single Strand variant on Arches props (1 pkg, 3 uses)",
+      "parameter_overrides": {
+        "E_CHECKBOX_Chase_Group_All": 1,
+        "E_CHOICE_Chase_Type1": "Right-Left",
+        "E_CHOICE_SingleStrand_Colors": "Palette",
+        "E_CHOICE_SingleStrand_FX": "Fireworks 1D",
+        "E_CHOICE_SingleStrand_FX_Palette": "* Colors Only",
+        "E_CHOICE_Skips_Direction": "Left",
+        "E_SLIDER_Color_Mix1": 25,
+        "E_SLIDER_FX_Intensity": 128,
+        "E_SLIDER_FX_Speed": 128,
+        "E_SLIDER_Number_Chases": 1,
+        "E_SLIDER_Skips_Advance": 0,
+        "E_SLIDER_Skips_BandSize": 1,
+        "E_SLIDER_Skips_SkipSize": 1,
+        "E_SLIDER_Skips_StartPos": 1
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": "fast",
+        "direction": "left",
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Single Strand 3dFade11 Left Fast Y",
+      "base_effect": "Single Strand",
+      "description": "Single Strand variant on Tree 180, Tree 360 props (1 pkg, 2 uses)",
+      "parameter_overrides": {
+        "E_CHECKBOX_Chase_Group_All": 0,
+        "E_CHOICE_Chase_Type1": "Right-Left",
+        "E_CHOICE_SingleStrand_Colors": "Palette",
+        "E_CHOICE_SingleStrand_FX": "Fireworks 1D",
+        "E_CHOICE_SingleStrand_FX_Palette": "* Colors Only",
+        "E_CHOICE_Skips_Direction": "Left",
+        "E_SLIDER_Color_Mix1": 10,
+        "E_SLIDER_FX_Intensity": 128,
+        "E_SLIDER_FX_Speed": 128,
+        "E_SLIDER_Number_Chases": 1,
+        "E_SLIDER_Skips_Advance": 0,
+        "E_SLIDER_Skips_BandSize": 1,
+        "E_SLIDER_Skips_SkipSize": 1,
+        "E_SLIDER_Skips_StartPos": 1
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": "fast",
+        "direction": "left",
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Single Strand 3dFade10 Left Fast G",
+      "base_effect": "Single Strand",
+      "description": "Single Strand variant on Custom props (1 pkg, 2 uses)",
+      "parameter_overrides": {
+        "E_CHECKBOX_Chase_Group_All": 1,
+        "E_CHOICE_Chase_Type1": "Left-Right",
+        "E_CHOICE_SingleStrand_Colors": "Palette",
+        "E_CHOICE_SingleStrand_FX": "Fireworks 1D",
+        "E_CHOICE_SingleStrand_FX_Palette": "* Colors Only",
+        "E_CHOICE_Skips_Direction": "Left",
+        "E_SLIDER_Color_Mix1": 25,
+        "E_SLIDER_FX_Intensity": 128,
+        "E_SLIDER_FX_Speed": 128,
+        "E_SLIDER_Number_Chases": 1,
+        "E_SLIDER_Skips_Advance": 0,
+        "E_SLIDER_Skips_BandSize": 1,
+        "E_SLIDER_Skips_SkipSize": 1,
+        "E_SLIDER_Skips_StartPos": 1
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": "fast",
+        "direction": "left",
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Single Strand 3dFade10 Left Fast H",
+      "base_effect": "Single Strand",
+      "description": "Single Strand variant on Horiz Matrix props (1 pkg, 1 uses)",
+      "parameter_overrides": {
+        "E_CHECKBOX_Chase_Group_All": 0,
+        "E_CHOICE_Chase_Type1": "Left-Right",
+        "E_CHOICE_SingleStrand_Colors": "Palette",
+        "E_CHOICE_SingleStrand_FX": "Fireworks 1D",
+        "E_CHOICE_SingleStrand_FX_Palette": "* Colors Only",
+        "E_CHOICE_Skips_Direction": "Left",
+        "E_SLIDER_Color_Mix1": 30,
+        "E_SLIDER_FX_Intensity": 128,
+        "E_SLIDER_FX_Speed": 128,
+        "E_SLIDER_Number_Chases": 1,
+        "E_SLIDER_Skips_Advance": 0,
+        "E_SLIDER_Skips_BandSize": 1,
+        "E_SLIDER_Skips_SkipSize": 1,
+        "E_SLIDER_Skips_StartPos": 1
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": "fast",
+        "direction": "left",
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Single Strand 3dFade11 Left Fast Z",
+      "base_effect": "Single Strand",
+      "description": "Single Strand variant on Arches props (1 pkg, 1 uses)",
+      "parameter_overrides": {
+        "E_CHECKBOX_Chase_Group_All": 0,
+        "E_CHOICE_Chase_Type1": "To Middle",
+        "E_CHOICE_SingleStrand_Colors": "Palette",
+        "E_CHOICE_SingleStrand_FX": "Fireworks 1D",
+        "E_CHOICE_SingleStrand_FX_Palette": "* Colors Only",
+        "E_CHOICE_Skips_Direction": "Left",
+        "E_SLIDER_Color_Mix1": 100,
+        "E_SLIDER_FX_Intensity": 128,
+        "E_SLIDER_FX_Speed": 128,
+        "E_SLIDER_Number_Chases": 1,
+        "E_SLIDER_Skips_Advance": 0,
+        "E_SLIDER_Skips_BandSize": 1,
+        "E_SLIDER_Skips_SkipSize": 1,
+        "E_SLIDER_Skips_StartPos": 1
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": "fast",
+        "direction": "left",
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "VU Meter Regex0",
+      "base_effect": "VU Meter",
+      "description": "VU Meter variant on Circle, Custom, Single Line props (2 pkg, 316 uses)",
+      "parameter_overrides": {
+        "E_CHOICE_VUMeter_TimingTrack": "Timings",
+        "E_CHOICE_VUMeter_Type": "Timing Event Color",
+        "E_SLIDER_VUMeter_Sensitivity": 70
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "VU Meter Regex0 B",
+      "base_effect": "VU Meter",
+      "description": "VU Meter variant on Arches, Circle, Custom props (2 pkg, 228 uses)",
+      "parameter_overrides": {
+        "E_CHOICE_VUMeter_TimingTrack": "Beats 128bpm",
+        "E_CHOICE_VUMeter_Type": "Timing Event Color",
+        "E_SLIDER_VUMeter_Sensitivity": 70
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "VU Meter Regex0 C",
+      "base_effect": "VU Meter",
+      "description": "VU Meter variant on Arches, Circle, Custom props (2 pkg, 154 uses)",
+      "parameter_overrides": {
+        "E_CHOICE_VUMeter_TimingTrack": "Beats 256bpm",
+        "E_CHOICE_VUMeter_Type": "Timing Event Color",
+        "E_SLIDER_VUMeter_Sensitivity": 70
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "VU Meter Regex0 D",
+      "base_effect": "VU Meter",
+      "description": "VU Meter variant on Circle, Cube, Custom props (2 pkg, 145 uses)",
+      "parameter_overrides": {
+        "E_CHOICE_VUMeter_TimingTrack": "Drums",
+        "E_CHOICE_VUMeter_Type": "Timing Event Color",
+        "E_SLIDER_VUMeter_Sensitivity": 70
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "VU Meter Regex0 E",
+      "base_effect": "VU Meter",
+      "description": "VU Meter variant on Circle, Cube, Custom props (2 pkg, 83 uses)",
+      "parameter_overrides": {
+        "E_CHOICE_VUMeter_TimingTrack": "Beats 256bpm",
+        "E_CHOICE_VUMeter_Type": "Timing Event Pulse Color",
+        "E_SLIDER_VUMeter_Bars": 6
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "VU Meter Beats",
+      "base_effect": "VU Meter",
+      "description": "VU Meter variant on Custom, Single Line, Tree 360 props (2 pkg, 10 uses)",
+      "parameter_overrides": {
+        "E_CHOICE_VUMeter_TimingTrack": "Beats",
+        "E_CHOICE_VUMeter_Type": "Timing Event Color",
+        "E_SLIDER_VUMeter_Sensitivity": 70
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "VU Meter Regex0 F",
+      "base_effect": "VU Meter",
+      "description": "VU Meter variant on Circle, Cube, Custom props (2 pkg, 9 uses)",
+      "parameter_overrides": {
+        "E_CHOICE_VUMeter_TimingTrack": "Note Onsets pt2",
+        "E_CHOICE_VUMeter_Type": "Timing Event Pulse Color",
+        "E_SLIDER_VUMeter_Bars": 6
+      },
+      "tags": {
+        "tier_affinity": null,
+        "energy_level": null,
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": [],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
     }
   ]
 }

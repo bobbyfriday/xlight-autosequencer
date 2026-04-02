@@ -21,6 +21,11 @@ _DEFAULT_CUSTOM_DIR = Path.home() / ".xlight" / "custom_variants"
 class VariantLibrary:
     schema_version: str
     variants: dict[str, EffectVariant]
+    builtin_names: set[str] = None  # type: ignore[assignment]
+
+    def __post_init__(self) -> None:
+        if self.builtin_names is None:
+            self.builtin_names = set()
 
     def get(self, name: str) -> EffectVariant | None:
         """Look up a variant by name (case-insensitive)."""
@@ -172,6 +177,8 @@ def load_variant_library(
         variant = EffectVariant.from_dict(data)
         variants[variant.name] = variant
 
+    builtin_names = set(variants.keys())
+
     # Load custom overrides / additions
     if custom_dir.is_dir():
         for custom_file in sorted(custom_dir.glob("*.json")):
@@ -196,4 +203,4 @@ def load_variant_library(
                     exc,
                 )
 
-    return VariantLibrary(schema_version=schema_version, variants=variants)
+    return VariantLibrary(schema_version=schema_version, variants=variants, builtin_names=builtin_names)
