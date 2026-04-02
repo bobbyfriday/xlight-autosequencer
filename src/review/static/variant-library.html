@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Variant Library — xLight AutoSequencer</title>
+  <link rel="stylesheet" href="/variant-library.css">
+  <link rel="stylesheet" href="/navbar.css">
+</head>
+<body>
+  <div id="app">
+    <div id="toolbar">
+      <h1>Variant Library <span id="summary-stats" class="text-dim"></span></h1>
+    </div>
+    <div id="main">
+      <div id="sidebar">
+        <div id="filters">
+          <div class="filter-group">
+            <label>Effect</label>
+            <select id="filter-effect"><option value="">All effects</option></select>
+          </div>
+          <div class="filter-group">
+            <label>Energy</label>
+            <div class="toggle-group" id="filter-energy">
+              <button data-value="low">Low</button>
+              <button data-value="medium">Medium</button>
+              <button data-value="high">High</button>
+            </div>
+          </div>
+          <div class="filter-group">
+            <label>Tier</label>
+            <div class="toggle-group" id="filter-tier">
+              <button data-value="background">Background</button>
+              <button data-value="mid">Mid</button>
+              <button data-value="foreground">Foreground</button>
+              <button data-value="hero">Hero</button>
+            </div>
+          </div>
+          <div class="filter-group">
+            <label>Section</label>
+            <div class="checkbox-group" id="filter-section">
+              <label><input type="checkbox" value="verse"> Verse</label>
+              <label><input type="checkbox" value="chorus"> Chorus</label>
+              <label><input type="checkbox" value="bridge"> Bridge</label>
+              <label><input type="checkbox" value="intro"> Intro</label>
+              <label><input type="checkbox" value="outro"> Outro</label>
+              <label><input type="checkbox" value="build"> Build</label>
+              <label><input type="checkbox" value="drop"> Drop</label>
+            </div>
+          </div>
+          <div class="filter-group">
+            <label>Scope</label>
+            <div class="toggle-group" id="filter-scope">
+              <button data-value="single-prop">Single Prop</button>
+              <button data-value="group">Group</button>
+            </div>
+          </div>
+          <div class="filter-group">
+            <label>Search</label>
+            <input type="text" id="filter-search" placeholder="Search variants..." autocomplete="off">
+          </div>
+          <button id="btn-clear-filters">Clear Filters</button>
+        </div>
+        <div id="coverage-panel">
+          <div class="coverage-header" id="coverage-toggle">Coverage <span class="chevron">&#9660;</span></div>
+          <div id="coverage-content"></div>
+        </div>
+      </div>
+      <div id="content">
+        <div id="variant-list"></div>
+        <div id="detail-panel" style="display:none">
+          <button id="btn-close-detail" class="btn-secondary">&#10005; Close</button>
+          <div id="detail-content"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="/navbar.js"></script>
+  <script src="/variant-library.js"></script>
+</body>
+</html>
