@@ -1768,9 +1768,13 @@ def group_layout_cmd(
 @click.option("--story", "story_path", default=None, type=click.Path(dir_okay=False),
               help="Path to song story JSON (uses _story_reviewed.json if exists, "
                    "falls back to _story.json)")
+@click.option("--transition-mode", "transition_mode", default="subtle",
+              type=click.Choice(["none", "subtle", "dramatic"]),
+              help="Section transition mode: none (no fades), subtle (1-beat), dramatic (1-bar). "
+                   "Default: subtle")
 def generate_cmd(audio_file, layout_file, output_dir, genre, occasion,
                  fresh, no_wizard, target_section, theme_overrides_raw,
-                 tiers_raw, story_path):
+                 tiers_raw, story_path, transition_mode):
     """Generate an xLights .xsq sequence from an MP3 and layout file."""
     from src.generator.models import GenerationConfig
     from src.generator.plan import generate_sequence, read_song_metadata
@@ -1825,6 +1829,7 @@ def generate_cmd(audio_file, layout_file, output_dir, genre, occasion,
         target_sections=[target_section] if target_section else None,
         tiers=tiers,
         story_path=Path(story_path) if story_path else None,
+        transition_mode=transition_mode,
     )
 
     tiers_label = ", ".join(sorted(

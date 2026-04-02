@@ -749,7 +749,16 @@ def _snap_sections_to_bars(sections: list, bars: "TimingTrack") -> list:
 
     Uses the same adaptive window as the validator: half the median bar interval,
     clamped to 400–1200 ms.  Sections already on a bar boundary are unchanged.
-    Returns a (possibly mutated) list of TimingMark objects.
+
+    Enhanced with:
+    - Crossover prevention: snap window reduced if moving a boundary would cross
+      its neighbour in the sorted list.
+    - Merge/duplicate prevention: after snapping, duplicate timestamps are resolved
+      by absorbing the shorter adjacent section into its longer neighbour.
+    - Minimum section duration guard: sections shorter than 2000ms are absorbed
+      into their preceding neighbour with a logged warning.
+
+    Returns a new list of TimingMark objects (originals are not mutated).
     """
     import copy as _copy
     if not sections or not bars or not bars.marks:
@@ -764,11 +773,45 @@ def _snap_sections_to_bars(sections: list, bars: "TimingTrack") -> list:
     else:
         window_ms = 500
 
+    # Sort sections by time before processing
+    working = sorted(sections, key=lambda m: m.time_ms)
+
+    # First pass: snap each boundary, respecting neighbours to prevent crossover
     result = []
     snapped = 0
-    for mark in sections:
+    for i, mark in enumerate(working):
+        prev_time = result[-1].time_ms if result else None
+        next_time = working[i + 1].time_ms if i + 1 < len(working) else None
+
         nearest = _nearest_in_sorted(mark.time_ms, bar_times)
-        if nearest is not None and abs(nearest - mark.time_ms) <= window_ms and nearest != mark.time_ms:
+        if nearest is None or nearest == mark.time_ms:
+            result.append(mark)
+            continue
+
+        dist = abs(nearest - mark.time_ms)
+        if dist > window_ms:
+            result.append(mark)
+            continue
+
+        # Crossover prevention: reduce effective window if neighbours are close
+        effective_window = window_ms
+        if prev_time is not None:
+            gap_to_prev = mark.time_ms - prev_time
+            # Don't snap past the previous boundary
+            if nearest <= prev_time:
+                result.append(mark)
+                continue
+            # Reduce window if boundaries are very close
+            effective_window = min(effective_window, gap_to_prev // 2)
+        if next_time is not None:
+            gap_to_next = next_time - mark.time_ms
+            # Don't snap past the next boundary
+            if nearest >= next_time:
+                result.append(mark)
+                continue
+            effective_window = min(effective_window, gap_to_next // 2)
+
+        if dist <= effective_window:
             new_mark = _copy.copy(mark)
             new_mark.time_ms = nearest
             result.append(new_mark)
@@ -778,6 +821,41 @@ def _snap_sections_to_bars(sections: list, bars: "TimingTrack") -> list:
 
     if snapped:
         print(f"  L1 snap: {snapped}/{len(sections)} boundaries snapped to bars (window={window_ms}ms)")
+
+    # Second pass: resolve duplicate timestamps (zero-length sections)
+    # Keep unique times, absorb duplicates into preceding section
+    seen: list = []
+    for mark in result:
+        if seen and seen[-1].time_ms == mark.time_ms:
+            # Duplicate — skip (absorb shorter section into preceding one)
+            import logging as _logging
+            _logging.getLogger(__name__).debug(
+                "Absorbed duplicate boundary at %dms", mark.time_ms
+            )
+        else:
+            seen.append(mark)
+    result = seen
+
+    # Third pass: minimum section duration guard (2000ms)
+    _MIN_SECTION_MS = 2000
+    merged = True
+    while merged and len(result) > 1:
+        merged = False
+        new_result = [result[0]]
+        for i in range(1, len(result)):
+            gap = result[i].time_ms - new_result[-1].time_ms
+            if gap < _MIN_SECTION_MS:
+                # Absorb into preceding section (drop this boundary)
+                import logging as _logging
+                _logging.getLogger(__name__).warning(
+                    "Absorbing short section (%dms < %dms minimum) at boundary %dms",
+                    gap, _MIN_SECTION_MS, result[i].time_ms,
+                )
+                merged = True
+            else:
+                new_result.append(result[i])
+        result = new_result
+
     return result
 
 
