@@ -382,6 +382,7 @@ def _place_effect_on_group(
     # 2. Apply variant overrides (if variant_ref is set and found in library)
     # 3. Apply layer.parameter_overrides on top
     params: dict[str, Any] = {}
+    direction_cycle: dict | None = None
     if layer.variant_ref is not None and variant_library is not None:
         variant = variant_library.get(layer.variant_ref)
         if variant is None:
@@ -392,6 +393,7 @@ def _place_effect_on_group(
             )
         else:
             params.update(variant.parameter_overrides)
+            direction_cycle = variant.direction_cycle
     params.update(layer.parameter_overrides)
 
     # Apply variation via seed (small parameter tweaks for repeated sections)
@@ -405,6 +407,7 @@ def _place_effect_on_group(
         return [_make_placement(
             effect_def, group.name, start_ms, end_ms,
             params, resolved_palette, layer.blend_mode, duration_type,
+            direction_cycle=direction_cycle,
         )]
 
     elif duration_type == "bar":
@@ -412,7 +415,7 @@ def _place_effect_on_group(
             effect_def, group.name, section, hierarchy,
             params, resolved_palette, layer.blend_mode,
             chord_marks=chord_marks, tension_curve=tension_curve,
-            chord_weight=chord_weight,
+            chord_weight=chord_weight, direction_cycle=direction_cycle,
         )
 
     elif duration_type == "beat":
@@ -421,17 +424,20 @@ def _place_effect_on_group(
             params, resolved_palette, layer.blend_mode,
             chord_marks=chord_marks, tension_curve=tension_curve,
             danceability=danceability, chord_weight=chord_weight,
+            direction_cycle=direction_cycle,
         )
 
     elif duration_type == "trigger":
         return _place_per_trigger(
             effect_def, group.name, section, hierarchy,
             params, resolved_palette, layer.blend_mode,
+            direction_cycle=direction_cycle,
         )
 
     return [_make_placement(
         effect_def, group.name, start_ms, end_ms,
         params, resolved_palette, layer.blend_mode, "section",
+        direction_cycle=direction_cycle,
     )]
 
 
@@ -508,6 +514,7 @@ def _place_per_bar(
     chord_marks: list[TimingMark] | None = None,
     tension_curve: list[tuple[int, int]] | None = None,
     chord_weight: float = 0.4,
+    direction_cycle: dict | None = None,
 ) -> list[EffectPlacement]:
     """Place one effect instance per bar within the section."""
     bars_track = hierarchy.bars
@@ -528,7 +535,7 @@ def _place_per_bar(
         placements.append(_make_placement(
             effect_def, group_name, bar_start, bar_end,
             params, bar_palette, blend_mode, "bar",
-            instance_index=i,
+            instance_index=i, direction_cycle=direction_cycle,
         ))
     return placements
 
@@ -541,6 +548,7 @@ def _place_per_beat(
     tension_curve: list[tuple[int, int]] | None = None,
     danceability: float | None = None,
     chord_weight: float = 0.4,
+    direction_cycle: dict | None = None,
 ) -> list[EffectPlacement]:
     """Place effect instances per beat, subject to energy-driven density."""
     beats_track = hierarchy.beats
@@ -565,7 +573,7 @@ def _place_per_beat(
         placements.append(_make_placement(
             effect_def, group_name, beat_start, beat_end,
             params, beat_palette, blend_mode, "beat",
-            instance_index=i,
+            instance_index=i, direction_cycle=direction_cycle,
         ))
     return placements
 
@@ -574,6 +582,7 @@ def _place_per_trigger(
     effect_def: EffectDefinition, group_name: str, section: SectionEnergy,
     hierarchy: HierarchyResult, params: dict[str, Any],
     palette: list[str], blend_mode: str,
+    direction_cycle: dict | None = None,
 ) -> list[EffectPlacement]:
     """Place one-shot effect instances on onset/impact events."""
     events_track = None
@@ -595,7 +604,7 @@ def _place_per_trigger(
         placements.append(_make_placement(
             effect_def, group_name, trigger_start, trigger_end,
             params, palette, blend_mode, "trigger",
-            instance_index=i,
+            instance_index=i, direction_cycle=direction_cycle,
         ))
     return placements
 
@@ -610,6 +619,7 @@ def _make_placement(
     blend_mode: str,
     duration_type: str,
     instance_index: int = 0,
+    direction_cycle: dict | None = None,
 ) -> EffectPlacement:
     """Create a single EffectPlacement with appropriate fades."""
     fade_in, fade_out = _calculate_fades(duration_type, end_ms - start_ms)
@@ -621,15 +631,28 @@ def _make_placement(
         if key not in resolved_params:
             resolved_params[key] = val
 
-    # Alternate directions on repeated instances for visual variety
-    for key, directions in _ALTERNATING_DIRECTIONS.items():
-        if key in resolved_params:
-            resolved_params[key] = directions[instance_index % len(directions)]
+    # Apply variant-defined direction cycling (takes precedence over hardcoded)
+    if direction_cycle is not None:
+        dc_param = direction_cycle.get("param", "")
+        dc_values = direction_cycle.get("values", [])
+        dc_mode = direction_cycle.get("mode", "alternate")
+        if dc_param and dc_values:
+            if dc_mode == "random":
+                resolved_params[dc_param] = dc_values[
+                    hash((instance_index, dc_param)) % len(dc_values)
+                ]
+            else:  # "alternate"
+                resolved_params[dc_param] = dc_values[instance_index % len(dc_values)]
+    else:
+        # Fallback: hardcoded direction alternation for effects without variant cycle
+        for key, directions in _ALTERNATING_DIRECTIONS.items():
+            if key in resolved_params:
+                resolved_params[key] = directions[instance_index % len(directions)]
 
-    # Single Strand: alternate chase direction between instances
-    if effect_def.name == "Single Strand":
-        chase_key = "E_CHOICE_Chase_Type1"
-        resolved_params[chase_key] = ["Left-Right", "Right-Left"][instance_index % 2]
+        # Single Strand: alternate chase direction between instances
+        if effect_def.name == "Single Strand":
+            chase_key = "E_CHOICE_Chase_Type1"
+            resolved_params[chase_key] = ["Left-Right", "Right-Left"][instance_index % 2]
 
     return EffectPlacement(
         effect_name=effect_def.name,
