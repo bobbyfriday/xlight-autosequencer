@@ -207,6 +207,28 @@ class TestCurvesModeInBuildPlan:
             f"'all' mode ({total_all} curves) should have >= 'brightness' mode ({total_brightness})"
         )
 
+    def test_brightness_mode_filters_with_known_l5_effect(self) -> None:
+        """'On' effect has an L5 brightness mapping — verify brightness mode generates it."""
+        from src.generator.value_curves import generate_value_curves
+        from src.generator.models import EffectPlacement
+
+        effect_lib = load_effect_library()
+        effect_def = effect_lib.effects["On"]
+        hierarchy = _make_hierarchy()
+        placement = EffectPlacement(
+            effect_name="On", xlights_id="x1", model_or_group="Test",
+            start_ms=0, end_ms=5000,
+        )
+
+        curves_all = generate_value_curves(placement, effect_def, hierarchy, "all")
+        curves_brightness = generate_value_curves(placement, effect_def, hierarchy, "brightness")
+        curves_speed = generate_value_curves(placement, effect_def, hierarchy, "speed")
+
+        assert curves_brightness, "Expected On_Transparency curve in brightness mode"
+        assert curves_all, "Expected On_Transparency curve in all mode"
+        assert not curves_speed, "Expected no curves for 'On' effect in speed mode"
+        assert set(curves_brightness.keys()) <= set(curves_all.keys())
+
 
 # ---------------------------------------------------------------------------
 # T012: xSQ writer encodes curves inline

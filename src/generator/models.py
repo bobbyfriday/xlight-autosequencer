@@ -128,6 +128,8 @@ class GenerationConfig:
     story_path: Optional[Path] = None   # Optional path to song story JSON
     curves_mode: str = "all"            # Value curve generation: all, brightness, speed, color, none
 
+    _VALID_CURVES_MODES = frozenset({"all", "brightness", "speed", "color", "none"})
+
     def __post_init__(self) -> None:
         self.audio_path = Path(self.audio_path)
         self.layout_path = Path(self.layout_path)
@@ -135,3 +137,8 @@ class GenerationConfig:
             self.output_dir = self.audio_path.parent
         else:
             self.output_dir = Path(self.output_dir)
+        if self.curves_mode not in self._VALID_CURVES_MODES:
+            raise ValueError(
+                f"Invalid curves_mode {self.curves_mode!r}. "
+                f"Must be one of: {sorted(self._VALID_CURVES_MODES)}"
+            )

@@ -155,9 +155,13 @@ def build_plan(
                 for placement in placements:
                     effect_def = effect_library.effects.get(placement.effect_name)
                     if effect_def:
-                        placement.value_curves = generate_value_curves(
+                        curves = generate_value_curves(
                             placement, effect_def, hierarchy, config.curves_mode
                         )
+                        # Remap from logical param name to xLights storage_name so
+                        # _serialize_effect_params writes the correct key in the xSQ.
+                        storage = {p.name: p.storage_name for p in effect_def.parameters}
+                        placement.value_curves = {storage.get(k, k): v for k, v in curves.items()}
 
     # 6. Assemble plan
     return SequencePlan(
@@ -302,9 +306,11 @@ def regenerate_sections(config: GenerationConfig, existing_xsq: Path) -> Path:
             for placement in placements:
                 effect_def = effect_library.effects.get(placement.effect_name)
                 if effect_def:
-                    placement.value_curves = generate_value_curves(
+                    curves = generate_value_curves(
                         placement, effect_def, hierarchy, curves_mode
                     )
+                    storage = {p.name: p.storage_name for p in effect_def.parameters}
+                    placement.value_curves = {storage.get(k, k): v for k, v in curves.items()}
 
     # Merge new effects into the document
     for assignment in assignments:
