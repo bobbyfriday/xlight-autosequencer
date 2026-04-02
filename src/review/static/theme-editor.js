@@ -17,6 +17,7 @@ const state = {
   filterOccasion: '',
   filterGenre: '',
   searchText: '',
+  variantCache: {},
 };
 
 // ── DOM refs ────────────────────────────────────────────────────────────────
@@ -75,6 +76,21 @@ async function loadEffects() {
     state.blendModes = data.blend_modes || [];
   } catch (err) {
     console.error('Failed to load effects:', err);
+  }
+}
+
+// ── Variant Loading ────────────────────────────────────────────────────────
+async function loadVariantsForEffect(effectName) {
+  if (!effectName) return [];
+  if (state.variantCache[effectName]) return state.variantCache[effectName];
+  try {
+    const resp = await fetch(`/variants?effect=${encodeURIComponent(effectName)}`);
+    const data = await resp.json();
+    state.variantCache[effectName] = data.variants || [];
+    return state.variantCache[effectName];
+  } catch (err) {
+    console.error(`Failed to load variants for ${effectName}:`, err);
+    return [];
   }
 }
 
@@ -287,11 +303,11 @@ function renderDetailView(theme) {
   }
   html += '</ol></div>';
 
-  // Variants
+  // Alternates (alternate layer sets)
   if (theme.variants && theme.variants.length > 0) {
-    html += '<div class="detail-section"><h3>Variants</h3>';
+    html += '<div class="detail-section"><h3>Alternates</h3>';
     theme.variants.forEach((v, i) => {
-      html += `<div class="variant-block"><h4>Variant ${i + 1}</h4><ol class="layer-list">`;
+      html += `<div class="variant-block"><h4>Alternate ${i + 1}</h4><ol class="layer-list">`;
       for (const layer of v.layers || []) {
         html += `<li><strong>${esc(layer.effect)}</strong> — ${esc(layer.blend_mode)}</li>`;
       }
@@ -431,8 +447,8 @@ function renderEditForm(theme) {
   // Layers
   html += '<div class="form-group"><label>Layers</label><div id="layer-editor" class="layer-editor"></div></div>';
 
-  // Variants
-  html += '<div class="form-group"><label>Variants</label><div id="variant-editor"></div></div>';
+  // Alternates (alternate layer sets)
+  html += '<div class="form-group"><label>Alternates</label><div id="variant-editor"></div></div>';
 
   // Actions
   html += '<div class="form-actions">';
@@ -447,7 +463,7 @@ function renderEditForm(theme) {
   renderPaletteEditor('palette-editor', theme.palette || ['#FFFFFF', '#FFFFFF'], 2);
   renderPaletteEditor('accent-palette-editor', theme.accent_palette || [], 0);
   renderLayerEditor(theme.layers || []);
-  renderVariantEditor(theme.variants || []);
+  renderAlternateEditor(theme.variants || []);
 
   // Bind events
   bindFormDirtyTracking();
@@ -628,7 +644,9 @@ function createLayerRow(layer, index, total) {
   });
   effectSel.addEventListener('change', () => {
     state.dirty = true;
+    delete row.dataset.variantRef;
     refreshLayerParams(row, effectSel.value, {});
+    renderVariantPicker(row, effectSel.value);
   });
 
   // Blend mode select
@@ -693,7 +711,16 @@ function createLayerRow(layer, index, total) {
   const params = document.createElement('div');
   params.className = 'layer-params';
   row.appendChild(params);
+
+  // Store variant_ref from layer data
+  if (layer.variant_ref) {
+    row.dataset.variantRef = layer.variant_ref;
+  }
+
   refreshLayerParams(row, layer.effect, layer.parameter_overrides || {});
+
+  // Fire-and-forget: render variant picker (async)
+  renderVariantPicker(row, layer.effect);
 
   return row;
 }
@@ -766,12 +793,15 @@ function getLayerData() {
     const blendSel = row.querySelector('.layer-editor-header select:nth-of-type(2)');
     const effectName = effectSel ? effectSel.value : '';
     const overrides = collectParamOverrides(row, effectName);
+    const variantRef = row.dataset.variantRef || null;
 
-    return {
+    const data = {
       effect: effectName,
       blend_mode: blendSel ? blendSel.value : 'Normal',
       parameter_overrides: overrides,
     };
+    if (variantRef) data.variant_ref = variantRef;
+    return data;
   });
 }
 
@@ -803,27 +833,27 @@ function collectParamOverrides(layerRow, effectName) {
   return overrides;
 }
 
-// ── Variant Editor Component ────────────────────────────────────────────────
-function renderVariantEditor(variants) {
+// ── Alternate Editor Component (theme alternate layer sets) ─────────────────
+function renderAlternateEditor(alternates) {
   const container = $('#variant-editor');
   container.innerHTML = '';
 
-  variants.forEach((v, i) => {
+  alternates.forEach((v, i) => {
     const block = document.createElement('div');
     block.className = 'variant-block';
 
     const header = document.createElement('div');
     header.style.cssText = 'display:flex;align-items:center;gap:8px;margin-bottom:6px';
     const title = document.createElement('h4');
-    title.textContent = `Variant ${i + 1}`;
+    title.textContent = `Alternate ${i + 1}`;
     title.style.margin = '0';
     const removeBtn = document.createElement('button');
     removeBtn.className = 'btn-remove btn-danger';
     removeBtn.textContent = '\u00D7';
     removeBtn.addEventListener('click', () => {
-      const data = getVariantData();
+      const data = getAlternateData();
       data.splice(i, 1);
-      renderVariantEditor(data);
+      renderAlternateEditor(data);
       state.dirty = true;
     });
     header.append(title, removeBtn);
@@ -835,24 +865,24 @@ function renderVariantEditor(variants) {
     block.appendChild(layerContainer);
     container.appendChild(block);
 
-    // Render layers within variant
-    renderVariantLayers(layerContainer, v.layers || []);
+    // Render layers within alternate
+    renderAlternateLayers(layerContainer, v.layers || []);
   });
 
   const addBtn = document.createElement('button');
   addBtn.className = 'btn-secondary';
-  addBtn.textContent = '+ Add Variant';
+  addBtn.textContent = '+ Add Alternate';
   addBtn.style.marginTop = '4px';
   addBtn.addEventListener('click', () => {
-    const data = getVariantData();
+    const data = getAlternateData();
     data.push({ layers: [{ effect: 'Color Wash', blend_mode: 'Normal', parameter_overrides: {} }] });
-    renderVariantEditor(data);
+    renderAlternateEditor(data);
     state.dirty = true;
   });
   container.appendChild(addBtn);
 }
 
-function renderVariantLayers(container, layers) {
+function renderAlternateLayers(container, layers) {
   container.innerHTML = '';
   layers.forEach((layer, i) => {
     container.appendChild(createLayerRow(layer, i, layers.length));
@@ -864,7 +894,7 @@ function renderVariantLayers(container, layers) {
   addBtn.addEventListener('click', () => {
     const currentLayers = getLayerDataFromContainer(container);
     currentLayers.push({ effect: '', blend_mode: 'Normal', parameter_overrides: {} });
-    renderVariantLayers(container, currentLayers);
+    renderAlternateLayers(container, currentLayers);
     state.dirty = true;
   });
   container.appendChild(addBtn);
@@ -877,20 +907,267 @@ function getLayerDataFromContainer(container) {
     const blendSel = row.querySelector('.layer-editor-header select:nth-of-type(2)');
     const effectName = effectSel ? effectSel.value : '';
     const overrides = collectParamOverrides(row, effectName);
-    return {
+    const variantRef = row.dataset.variantRef || null;
+    const data = {
       effect: effectName,
       blend_mode: blendSel ? blendSel.value : 'Normal',
       parameter_overrides: overrides,
     };
+    if (variantRef) data.variant_ref = variantRef;
+    return data;
   });
 }
 
-function getVariantData() {
+function getAlternateData() {
   const blocks = $$('#variant-editor .variant-block');
   return Array.from(blocks).map(block => {
     const layerContainer = block.querySelector('.layer-editor');
     return { layers: getLayerDataFromContainer(layerContainer) };
   });
+}
+
+// ── Variant Picker (T006, T008, T009, T010) ────────────────────────────────
+// ── Context-Aware Variant Scoring (US2) ────────────────────────────────────
+const MOOD_TO_ENERGY = {
+  aggressive: 'high',
+  dark: 'medium',
+  ethereal: 'low',
+  structural: 'medium',
+};
+
+function buildScoringContext(effectName, layerRow) {
+  const ctx = { base_effect: effectName };
+  const mood = ($('#edit-mood') || {}).value || '';
+  const genre = ($('#edit-genre') || {}).value || '';
+
+  if (mood && MOOD_TO_ENERGY[mood]) {
+    ctx.energy_level = MOOD_TO_ENERGY[mood];
+  }
+  if (genre && genre !== 'any') {
+    ctx.genre = genre;
+  }
+
+  // Determine tier from layer position (check main layers and alternate layers)
+  const mainRows = Array.from($$('#layer-editor .layer-editor-row'));
+  let idx = mainRows.indexOf(layerRow);
+  let total = mainRows.length;
+  if (idx < 0) {
+    // Layer is inside an alternate block — find position within its container
+    const container = layerRow.closest('.layer-editor');
+    if (container) {
+      const altRows = Array.from(container.querySelectorAll('.layer-editor-row'));
+      idx = altRows.indexOf(layerRow);
+      total = altRows.length;
+    }
+  }
+  if (total > 0 && idx >= 0) {
+    if (idx === 0) ctx.tier_affinity = 'background';
+    else if (idx === total - 1 && total >= 3) ctx.tier_affinity = 'hero';
+    else ctx.tier_affinity = total > 2 ? 'mid' : 'foreground';
+  }
+
+  return ctx;
+}
+
+async function loadScoredVariants(effectName, layerRow) {
+  const ctx = buildScoringContext(effectName, layerRow);
+  // Only use scored query if we have context beyond just base_effect
+  const hasContext = ctx.energy_level || ctx.tier_affinity || ctx.genre;
+  if (!hasContext) return null; // fallback to unranked
+
+  try {
+    const resp = await fetch('/variants/query', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(ctx),
+    });
+    const data = await resp.json();
+    return data.results || null;
+  } catch (err) {
+    console.error('Failed to score variants:', err);
+    return null;
+  }
+}
+
+async function renderVariantPicker(layerRow, effectName) {
+  // Find or create the .variant-picker container after .layer-params
+  let picker = layerRow.querySelector('.variant-picker');
+  if (!picker) {
+    picker = document.createElement('div');
+    picker.className = 'variant-picker';
+    layerRow.appendChild(picker);
+  }
+  picker.innerHTML = '';
+
+  if (!effectName) {
+    picker.innerHTML = '<div class="variant-picker-empty">Select an effect to see variants</div>';
+    return;
+  }
+
+  // Generation counter to discard stale async results
+  const gen = (layerRow._pickerGen = (layerRow._pickerGen || 0) + 1);
+
+  // Show loading state
+  picker.innerHTML = '<div class="variant-picker-empty">Loading variants...</div>';
+
+  // Try scored results first (US2), fallback to unranked list
+  let variants = [];
+  let scoreMap = {};
+  const scoredResults = await loadScoredVariants(effectName, layerRow);
+  if (gen !== layerRow._pickerGen) return; // stale — a newer call superseded us
+
+  if (scoredResults && scoredResults.length > 0) {
+    variants = scoredResults.map(r => {
+      scoreMap[r.variant.name] = r.score;
+      return r.variant;
+    });
+    // Don't overwrite the unranked cache with scored subset
+  } else {
+    variants = await loadVariantsForEffect(effectName);
+    if (gen !== layerRow._pickerGen) return; // stale
+  }
+
+  picker.innerHTML = '';
+
+  if (!variants || variants.length === 0) {
+    picker.innerHTML = '<div class="variant-picker-empty">No variants available</div>';
+    return;
+  }
+
+  const currentRef = layerRow.dataset.variantRef || '';
+
+  // T010: Check if the current variant_ref is valid
+  if (currentRef && !variants.find(v => v.name === currentRef)) {
+    const warn = document.createElement('div');
+    warn.style.marginBottom = '4px';
+    const badge = document.createElement('span');
+    badge.className = 'variant-warning';
+    badge.textContent = 'Variant not found: ' + currentRef;
+    const detachBtn = document.createElement('button');
+    detachBtn.className = 'btn-secondary';
+    detachBtn.textContent = 'Detach';
+    detachBtn.style.cssText = 'margin-left:6px;font-size:11px;padding:2px 6px';
+    detachBtn.addEventListener('click', () => {
+      detachVariant(layerRow);
+    });
+    warn.append(badge, detachBtn);
+    picker.appendChild(warn);
+  }
+
+  // Clear variant link
+  if (currentRef) {
+    const clearLink = document.createElement('span');
+    clearLink.className = 'variant-clear-link';
+    clearLink.textContent = 'Clear variant';
+    clearLink.addEventListener('click', () => {
+      detachVariant(layerRow);
+    });
+    picker.appendChild(clearLink);
+  }
+
+  // Render variant cards
+  for (const variant of variants) {
+    const card = document.createElement('div');
+    card.className = 'variant-card';
+    if (variant.name === currentRef) {
+      card.classList.add('variant-selected');
+    }
+
+    // Name + score badge
+    const nameEl = document.createElement('div');
+    nameEl.className = 'variant-card-name';
+    nameEl.textContent = variant.name;
+    if (scoreMap[variant.name] !== undefined) {
+      const scoreBadge = document.createElement('span');
+      scoreBadge.className = 'variant-score';
+      scoreBadge.textContent = Math.round(scoreMap[variant.name] * 100) + '%';
+      nameEl.appendChild(scoreBadge);
+    }
+    card.appendChild(nameEl);
+
+    // Description
+    if (variant.description) {
+      const descEl = document.createElement('div');
+      descEl.className = 'variant-card-desc';
+      descEl.textContent = variant.description;
+      card.appendChild(descEl);
+    }
+
+    // Tag badges
+    const tags = variant.tags || {};
+    const tagContainer = document.createElement('div');
+    tagContainer.style.marginTop = '2px';
+
+    if (tags.energy_level) {
+      const t = document.createElement('span');
+      t.className = 'variant-tag variant-tag-energy';
+      t.textContent = tags.energy_level;
+      tagContainer.appendChild(t);
+    }
+    if (tags.tier_affinity) {
+      const t = document.createElement('span');
+      t.className = 'variant-tag variant-tag-tier';
+      t.textContent = tags.tier_affinity;
+      tagContainer.appendChild(t);
+    }
+    if (tags.section_roles && tags.section_roles.length > 0) {
+      for (const role of tags.section_roles) {
+        const t = document.createElement('span');
+        t.className = 'variant-tag variant-tag-section';
+        t.textContent = role;
+        tagContainer.appendChild(t);
+      }
+    }
+    card.appendChild(tagContainer);
+
+    // Click handler
+    card.addEventListener('click', () => {
+      applyVariantToLayer(layerRow, variant);
+      // Re-render picker to update selection highlight
+      renderVariantPicker(layerRow, effectName);
+    });
+
+    picker.appendChild(card);
+  }
+}
+
+function applyVariantToLayer(layerRow, variant) {
+  layerRow.dataset.variantRef = variant.name;
+
+  // Get current effect name from the select
+  const effectSel = layerRow.querySelector('.layer-editor-header select:first-of-type');
+  const effectName = effectSel ? effectSel.value : '';
+
+  // Clean application: use only the variant's parameter overrides.
+  // Any previous variant or manual overrides are replaced entirely.
+  const variantOverrides = variant.parameter_overrides || {};
+
+  refreshLayerParams(layerRow, effectName, { ...variantOverrides });
+
+  // Mark param rows whose values came from the variant
+  const paramRows = layerRow.querySelectorAll('.param-row');
+  paramRows.forEach(pr => {
+    const storageName = pr.dataset.storageName;
+    if (storageName && storageName in variantOverrides) {
+      pr.classList.add('variant-provided');
+    }
+  });
+
+  state.dirty = true;
+}
+
+function detachVariant(layerRow) {
+  delete layerRow.dataset.variantRef;
+
+  // Reset params to effect defaults (remove all variant-provided overrides)
+  const effectSel = layerRow.querySelector('.layer-editor-header select:first-of-type');
+  const effectName = effectSel ? effectSel.value : '';
+  refreshLayerParams(layerRow, effectName, {});
+
+  // Re-render the variant picker to show unselected state
+  renderVariantPicker(layerRow, effectName);
+
+  state.dirty = true;
 }
 
 // ── Save / Cancel / Restore ─────────────────────────────────────────────────
@@ -996,7 +1273,7 @@ function collectFormData() {
     palette: getPaletteColors('palette-editor'),
     accent_palette: getPaletteColors('accent-palette-editor'),
     layers: getLayerData(),
-    variants: getVariantData(),
+    variants: getAlternateData(),
   };
 }
 

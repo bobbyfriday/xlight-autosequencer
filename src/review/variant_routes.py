@@ -72,12 +72,36 @@ def _variant_to_dict(variant, is_builtin: bool, effect_library: EffectLibrary) -
 # NOTE: static routes (/query, /coverage) must be declared before /<path:name>
 # so Flask routes them as static segments rather than matching the dynamic param.
 
+
+@variant_bp.route("/", methods=["GET"])
+def variant_browser_or_list():
+    """Serve the browser page for HTML requests, or list variants for JSON/API requests.
+
+    If the request has query params (effect, energy, tier, section, scope, q)
+    or accepts JSON, serve the API response. Otherwise serve the HTML page.
+    """
+    # API requests: have filter params, or explicitly accept JSON
+    has_filters = any(request.args.get(k) for k in ("effect", "energy", "tier", "section", "scope", "q"))
+    wants_json = "application/json" in (request.accept_mimetypes.best or "")
+    if has_filters or wants_json:
+        return _list_variants_json()
+    # Browser navigation: serve the HTML page
+    from flask import send_from_directory
+    static_dir = Path(__file__).parent / "static"
+    return send_from_directory(static_dir, "variant-library.html")
+
+
 @variant_bp.route("", methods=["GET"])
 def list_variants():
     """List all variants with optional filtering and free-text search.
 
     Query params: effect, energy, tier, section, scope, q (free-text)
     """
+    return _list_variants_json()
+
+
+def _list_variants_json():
+    """Shared implementation for listing variants as JSON."""
     lib = _get_library()
     elib = _get_effect_library()
     builtin_names = _get_builtin_names()

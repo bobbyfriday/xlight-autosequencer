@@ -8,6 +8,7 @@
   const NAV_ITEMS = [
     { label: 'Song Library', href: '/', icon: '&#9836;' },
     { label: 'Theme Editor', href: '/themes/', icon: '&#9672;' },
+    { label: 'Variant Library', href: '/variants/', icon: '&#9783;' },
     { label: 'Layout Grouping', href: '/grouper', icon: '&#9638;' },
   ];
 

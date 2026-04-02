@@ -128,6 +128,7 @@ class GenerationConfig:
     tiers: Optional[set[int]] = None
     story_path: Optional[Path] = None   # Optional path to song story JSON
     transition_mode: str = "subtle"     # "none", "subtle", or "dramatic"
+    curves_mode: str = "all"            # Value curve generation: all, brightness, speed, color, none
 
     def __post_init__(self) -> None:
         self.audio_path = Path(self.audio_path)

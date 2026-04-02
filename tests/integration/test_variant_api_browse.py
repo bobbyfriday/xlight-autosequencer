@@ -197,3 +197,16 @@ class TestGetVariantsCoverage:
         resp = client.get("/variants/coverage")
         data = resp.get_json()
         assert "coverage" in data  # not {"error": "Variant not found: coverage"}
+
+
+class TestVariantBrowserPage:
+    def test_browser_page_returns_html(self, client):
+        resp = client.get("/variants/")
+        assert resp.status_code == 200
+        assert b"Variant Library" in resp.data
+
+    def test_api_still_works_alongside_page(self, client):
+        resp = client.get("/variants?effect=Fire")
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert "variants" in data
