@@ -1,0 +1,61 @@
+{
+  "schema_version": "1.0.0",
+  "variants": [
+    {
+      "name": "Fire Blaze High",
+      "base_effect": "Fire",
+      "description": "Tall intense fire with GrowWithMusic enabled, great for chorus sections",
+      "parameter_overrides": {
+        "E_SLIDER_Fire_Height": 85,
+        "E_CHECKBOX_Fire_GrowWithMusic": true
+      },
+      "tags": {
+        "tier_affinity": "foreground",
+        "energy_level": "high",
+        "speed_feel": "fast",
+        "direction": null,
+        "section_roles": ["chorus", "build", "drop"],
+        "scope": "group",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Bars Sweep Left",
+      "base_effect": "Bars",
+      "description": "Horizontal bars sweeping left at moderate speed, versatile mid-layer effect",
+      "parameter_overrides": {
+        "E_SLIDER_Bars_BarCount": 3,
+        "E_CHOICE_Bars_Direction": "Left"
+      },
+      "tags": {
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "moderate",
+        "direction": "sweep-left",
+        "section_roles": ["verse", "chorus", "bridge"],
+        "scope": "group",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Meteors Gentle Rain",
+      "base_effect": "Meteors",
+      "description": "Soft falling meteors with long trails and slow speed, ideal for ambient verse sections",
+      "parameter_overrides": {
+        "E_SLIDER_Meteors_Count": 5,
+        "E_SLIDER_Meteors_Length": 40,
+        "E_SLIDER_Meteors_Speed": 8,
+        "E_CHOICE_Meteors_Effect": "Down"
+      },
+      "tags": {
+        "tier_affinity": "background",
+        "energy_level": "low",
+        "speed_feel": "slow",
+        "direction": "rain-down",
+        "section_roles": ["verse", "intro", "outro"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    }
+  ]
+}

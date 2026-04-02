@@ -1,6 +1,8 @@
 """Validate theme definitions against the schema and effect library."""
 from __future__ import annotations
 
+import logging
+
 from src.effects.library import EffectLibrary
 from src.themes.models import (
     VALID_BLEND_MODES,
@@ -9,10 +11,16 @@ from src.themes.models import (
     VALID_OCCASIONS,
 )
 
+logger = logging.getLogger(__name__)
+
 _REQUIRED_FIELDS = ("name", "mood", "intent", "layers", "palette")
 
 
-def validate_theme(data: dict, effect_library: EffectLibrary) -> list[str]:
+def validate_theme(
+    data: dict,
+    effect_library: EffectLibrary,
+    variant_library=None,
+) -> list[str]:
     """Validate a parsed theme definition dict. Returns list of error messages."""
     errors: list[str] = []
 
@@ -63,6 +71,23 @@ def validate_theme(data: dict, effect_library: EffectLibrary) -> list[str]:
             blend = layer.get("blend_mode", "Normal")
             if blend not in VALID_BLEND_MODES:
                 errors.append(f"Layer {i}: invalid blend_mode '{blend}'")
+
+            # Check variant_ref (optional)
+            variant_ref = layer.get("variant_ref")
+            if variant_ref is not None and variant_library is not None:
+                variant = variant_library.get(variant_ref)
+                if variant is None:
+                    logger.warning(
+                        "Layer %d: variant_ref '%s' not found in variant library — "
+                        "effect will fall back to base defaults",
+                        i, variant_ref,
+                    )
+                elif variant.base_effect != effect_name:
+                    errors.append(
+                        f"Layer {i}: variant_ref '{variant_ref}' has base_effect "
+                        f"'{variant.base_effect}' but layer effect is '{effect_name}' — "
+                        "base_effect mismatch"
+                    )
 
     # Variants (optional)
     for vi, variant in enumerate(data.get("variants", [])):

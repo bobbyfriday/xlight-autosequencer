@@ -1,6 +1,7 @@
 """Effect placement engine — maps theme layers to power groups and timing tracks."""
 from __future__ import annotations
 
+import logging
 import random
 from typing import Any
 
@@ -23,6 +24,8 @@ from src.generator.models import (
 )
 from src.grouper.grouper import PowerGroup
 from src.themes.models import EffectLayer
+
+logger = logging.getLogger(__name__)
 
 
 # Tier ranges for layer-to-group mapping
@@ -131,6 +134,7 @@ def place_effects(
     effect_library: EffectLibrary,
     hierarchy: HierarchyResult,
     tiers: set[int] | None = None,
+    variant_library=None,
 ) -> dict[str, list[EffectPlacement]]:
     """Place effects from theme layers onto power groups, aligned to timing tracks.
 
@@ -241,6 +245,7 @@ def place_effects(
                             tension_curve=tension_curve,
                             danceability=danceability,
                             chord_weight=chord_weight,
+                            variant_library=variant_library,
                         )
                         if rot_placements:
                             result.setdefault(group.name, []).extend(rot_placements)
@@ -269,6 +274,7 @@ def place_effects(
                     tension_curve=tension_curve,
                     danceability=danceability,
                     chord_weight=chord_weight,
+                    variant_library=variant_library,
                 )
                 if placements:
                     result.setdefault(group.name, []).extend(placements)
@@ -364,13 +370,29 @@ def _place_effect_on_group(
     tension_curve: list[tuple[int, int]] | None = None,
     danceability: float | None = None,
     chord_weight: float = 0.4,
+    variant_library=None,
 ) -> list[EffectPlacement]:
     """Create effect placement instances for a group within a section."""
     start_ms = section.start_ms
     end_ms = section.end_ms
     duration_type = effect_def.duration_type
 
-    params = dict(layer.parameter_overrides)
+    # Resolution chain:
+    # 1. Start with empty base
+    # 2. Apply variant overrides (if variant_ref is set and found in library)
+    # 3. Apply layer.parameter_overrides on top
+    params: dict[str, Any] = {}
+    if layer.variant_ref is not None and variant_library is not None:
+        variant = variant_library.get(layer.variant_ref)
+        if variant is None:
+            logger.warning(
+                "variant_ref '%s' not found in variant library — "
+                "falling back to base effect defaults",
+                layer.variant_ref,
+            )
+        else:
+            params.update(variant.parameter_overrides)
+    params.update(layer.parameter_overrides)
 
     # Apply variation via seed (small parameter tweaks for repeated sections)
     if variation_seed > 0:

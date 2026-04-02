@@ -1,0 +1,20 @@
+{
+  "name": "Meteors Gentle Rain",
+  "base_effect": "Meteors",
+  "description": "Soft falling meteors with long trails and slow speed, ideal for ambient verse sections",
+  "parameter_overrides": {
+    "E_SLIDER_Meteors_Count": 5,
+    "E_SLIDER_Meteors_Length": 40,
+    "E_SLIDER_Meteors_Speed": 8,
+    "E_CHOICE_Meteors_Effect": "Down"
+  },
+  "tags": {
+    "tier_affinity": "background",
+    "energy_level": "low",
+    "speed_feel": "slow",
+    "direction": "rain-down",
+    "section_roles": ["verse", "intro", "outro"],
+    "scope": "single-prop",
+    "genre_affinity": "any"
+  }
+}

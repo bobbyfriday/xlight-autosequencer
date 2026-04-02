@@ -378,6 +378,10 @@ def create_app(analysis_path: str | None = None, audio_path: str | None = None,
     from src.review.theme_routes import theme_bp  # noqa: PLC0415
     app.register_blueprint(theme_bp)
 
+    # ── Register the variant library blueprint (always available) ─────────────
+    from src.review.variant_routes import variant_bp  # noqa: PLC0415
+    app.register_blueprint(variant_bp)
+
     # ── Story review SPA route (always available) ─────────────────────────────
     @app.route("/story-review")
     def story_review_spa():

@@ -1,0 +1,229 @@
+{
+  "schema_version": "1.0.0",
+  "variants": [
+    {
+      "name": "Fire Blaze High",
+      "base_effect": "Fire",
+      "description": "Tall intense fire with music-reactive height. Best for chorus and drop sections on foreground props.",
+      "parameter_overrides": {
+        "E_SLIDER_Fire_Height": 85,
+        "E_CHECKBOX_Fire_GrowWithMusic": true
+      },
+      "tags": {
+        "tier_affinity": "foreground",
+        "energy_level": "high",
+        "speed_feel": "fast",
+        "direction": null,
+        "section_roles": ["chorus", "build", "drop"],
+        "scope": "group",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Fire Blaze Low",
+      "base_effect": "Fire",
+      "description": "Low-burning fire without music reactivity. Subtle ambient effect for background layers.",
+      "parameter_overrides": {
+        "E_SLIDER_Fire_Height": 30,
+        "E_CHECKBOX_Fire_GrowWithMusic": false
+      },
+      "tags": {
+        "tier_affinity": "background",
+        "energy_level": "low",
+        "speed_feel": "slow",
+        "direction": null,
+        "section_roles": ["verse", "intro"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Fire Medium Music",
+      "base_effect": "Fire",
+      "description": "Mid-height fire with music reactivity. Versatile foreground effect for verse and chorus sections.",
+      "parameter_overrides": {
+        "E_SLIDER_Fire_Height": 55,
+        "E_CHECKBOX_Fire_GrowWithMusic": true
+      },
+      "tags": {
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "moderate",
+        "direction": null,
+        "section_roles": ["verse", "chorus", "bridge"],
+        "scope": "group",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Bars Sweep Left",
+      "base_effect": "Bars",
+      "description": "Horizontal bars sweeping left at moderate speed. Versatile mid-layer effect that works on any section.",
+      "parameter_overrides": {
+        "E_SLIDER_Bars_BarCount": 3,
+        "E_CHOICE_Bars_Direction": "Left"
+      },
+      "tags": {
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "moderate",
+        "direction": "sweep-left",
+        "section_roles": ["verse", "chorus", "bridge"],
+        "scope": "group",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Bars Sweep Right",
+      "base_effect": "Bars",
+      "description": "Horizontal bars sweeping right at moderate speed. Pair with Bars Sweep Left for alternating direction effect.",
+      "parameter_overrides": {
+        "E_SLIDER_Bars_BarCount": 3,
+        "E_CHOICE_Bars_Direction": "Right"
+      },
+      "tags": {
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "moderate",
+        "direction": "sweep-right",
+        "section_roles": ["verse", "chorus", "bridge"],
+        "scope": "group",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Bars Alternate Left Right",
+      "base_effect": "Bars",
+      "description": "Bars alternating left and right, creating a bouncing rhythm. Great for beat-driven sections.",
+      "parameter_overrides": {
+        "E_SLIDER_Bars_BarCount": 2,
+        "E_CHOICE_Bars_Direction": "Alternate Left"
+      },
+      "tags": {
+        "tier_affinity": "foreground",
+        "energy_level": "high",
+        "speed_feel": "fast",
+        "direction": "sweep-left",
+        "section_roles": ["chorus", "drop"],
+        "scope": "group",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Bars Expand Out",
+      "base_effect": "Bars",
+      "description": "Bars expanding outward from center. Creates a pulse effect ideal for build and drop moments.",
+      "parameter_overrides": {
+        "E_SLIDER_Bars_BarCount": 4,
+        "E_CHOICE_Bars_Direction": "expand"
+      },
+      "tags": {
+        "tier_affinity": "hero",
+        "energy_level": "high",
+        "speed_feel": "fast",
+        "direction": "expand-out",
+        "section_roles": ["build", "drop", "chorus"],
+        "scope": "group",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Meteors Gentle Rain",
+      "base_effect": "Meteors",
+      "description": "Soft falling meteors with long trails and slow speed. Ideal for ambient verse and intro sections.",
+      "parameter_overrides": {
+        "E_SLIDER_Meteors_Count": 5,
+        "E_SLIDER_Meteors_Length": 40,
+        "E_SLIDER_Meteors_Speed": 8,
+        "E_CHOICE_Meteors_Effect": "Down"
+      },
+      "tags": {
+        "tier_affinity": "background",
+        "energy_level": "low",
+        "speed_feel": "slow",
+        "direction": "rain-down",
+        "section_roles": ["verse", "intro", "outro"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Meteors Heavy Storm",
+      "base_effect": "Meteors",
+      "description": "Dense fast-falling meteors with short trails. High-energy effect for chorus and drop sections.",
+      "parameter_overrides": {
+        "E_SLIDER_Meteors_Count": 35,
+        "E_SLIDER_Meteors_Length": 20,
+        "E_SLIDER_Meteors_Speed": 30,
+        "E_CHOICE_Meteors_Effect": "Down"
+      },
+      "tags": {
+        "tier_affinity": "foreground",
+        "energy_level": "high",
+        "speed_feel": "fast",
+        "direction": "rain-down",
+        "section_roles": ["chorus", "drop"],
+        "scope": "group",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Meteors Shoot Up",
+      "base_effect": "Meteors",
+      "description": "Meteors shooting upward, creating a launch/lift feeling. Works well for build sections.",
+      "parameter_overrides": {
+        "E_SLIDER_Meteors_Count": 15,
+        "E_SLIDER_Meteors_Length": 30,
+        "E_SLIDER_Meteors_Speed": 20,
+        "E_CHOICE_Meteors_Effect": "Up"
+      },
+      "tags": {
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "moderate",
+        "direction": "shoot-up",
+        "section_roles": ["build", "chorus"],
+        "scope": "group",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "On Solid Full",
+      "base_effect": "On",
+      "description": "Full-brightness solid color block. Maximum visibility for any section.",
+      "parameter_overrides": {
+        "E_TEXTCTRL_Eff_On_Start": 100,
+        "E_TEXTCTRL_Eff_On_End": 100,
+        "E_TEXTCTRL_Eff_On_Transparency": 0
+      },
+      "tags": {
+        "tier_affinity": "hero",
+        "energy_level": "high",
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": ["chorus", "drop"],
+        "scope": "group",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "On Dim Ambient",
+      "base_effect": "On",
+      "description": "Low-transparency solid color. Subtle background wash for quiet sections.",
+      "parameter_overrides": {
+        "E_TEXTCTRL_Eff_On_Start": 100,
+        "E_TEXTCTRL_Eff_On_End": 100,
+        "E_TEXTCTRL_Eff_On_Transparency": 60
+      },
+      "tags": {
+        "tier_affinity": "background",
+        "energy_level": "low",
+        "speed_feel": null,
+        "direction": null,
+        "section_roles": ["verse", "intro", "outro", "bridge"],
+        "scope": "group",
+        "genre_affinity": "any"
+      }
+    }
+  ]
+}
