@@ -1,0 +1,61 @@
+{
+  "effect": "Liquid",
+  "variants": [
+    {
+      "name": "Liquid Elastic",
+      "base_effect": "Liquid",
+      "description": "Elastic particle simulation with bottom barrier and held colors. Bouncy organic motion on single-line props.",
+      "parameter_overrides": {
+        "E_CHECKBOX_BottomBarrier": 1,
+        "E_CHECKBOX_Enabled2": 1,
+        "E_CHECKBOX_Enabled3": 0,
+        "E_CHECKBOX_Enabled4": 1,
+        "E_CHECKBOX_FlowMusic1": 0,
+        "E_CHECKBOX_HoldColor": 1,
+        "E_CHECKBOX_LeftBarrier": 0,
+        "E_CHECKBOX_MixColors": 0,
+        "E_CHECKBOX_RightBarrier": 0,
+        "E_CHECKBOX_TopBarrier": 0,
+        "E_CHOICE_ParticleType": "Elastic",
+        "E_TEXTCTRL_Size": 415
+      },
+      "tags": {
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "moderate",
+        "direction": null,
+        "section_roles": ["chorus", "bridge"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Liquid Water",
+      "base_effect": "Liquid",
+      "description": "Water particle simulation flowing freely. Smooth fluid motion ideal for horizontal matrices.",
+      "parameter_overrides": {
+        "E_CHECKBOX_BottomBarrier": 0,
+        "E_CHECKBOX_Enabled2": 0,
+        "E_CHECKBOX_Enabled3": 0,
+        "E_CHECKBOX_Enabled4": 0,
+        "E_CHECKBOX_FlowMusic1": 0,
+        "E_CHECKBOX_HoldColor": 1,
+        "E_CHECKBOX_LeftBarrier": 0,
+        "E_CHECKBOX_MixColors": 0,
+        "E_CHECKBOX_RightBarrier": 0,
+        "E_CHECKBOX_TopBarrier": 0,
+        "E_CHOICE_ParticleType": "Water",
+        "E_TEXTCTRL_Size": 699
+      },
+      "tags": {
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "moderate",
+        "direction": null,
+        "section_roles": ["verse", "bridge"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    }
+  ]
+}

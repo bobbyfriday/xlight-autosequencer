@@ -1,0 +1,138 @@
+{
+  "effect": "Marquee",
+  "variants": [
+    {
+      "name": "Marquee Thin Reverse",
+      "base_effect": "Marquee",
+      "description": "Thin single-pixel marquee scrolling in reverse. Subtle chasing light on arches and single-line props.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Marquee_Reverse": 1,
+        "E_SLIDER_MarqueeXC": 0,
+        "E_SLIDER_MarqueeYC": 0,
+        "E_SLIDER_Marquee_Band_Size": 3,
+        "E_SLIDER_Marquee_ScaleX": 100,
+        "E_SLIDER_Marquee_ScaleY": 100,
+        "E_SLIDER_Marquee_Skip_Size": 0,
+        "E_SLIDER_Marquee_Speed": 1,
+        "E_SLIDER_Marquee_Stagger": 0,
+        "E_SLIDER_Marquee_Start": 0,
+        "E_SLIDER_Marquee_Thickness": 1
+      },
+      "tags": {
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "slow",
+        "direction": null,
+        "section_roles": ["verse", "bridge"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Marquee Thin",
+      "base_effect": "Marquee",
+      "description": "Thin single-pixel marquee scrolling forward. Classic chasing light effect on arches and matrices.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Marquee_Reverse": 0,
+        "E_SLIDER_MarqueeXC": 0,
+        "E_SLIDER_MarqueeYC": 0,
+        "E_SLIDER_Marquee_Band_Size": 3,
+        "E_SLIDER_Marquee_ScaleX": 100,
+        "E_SLIDER_Marquee_ScaleY": 100,
+        "E_SLIDER_Marquee_Skip_Size": 0,
+        "E_SLIDER_Marquee_Speed": 1,
+        "E_SLIDER_Marquee_Stagger": 0,
+        "E_SLIDER_Marquee_Start": 0,
+        "E_SLIDER_Marquee_Thickness": 1
+      },
+      "tags": {
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "slow",
+        "direction": null,
+        "section_roles": ["verse", "chorus"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Marquee Thick",
+      "base_effect": "Marquee",
+      "description": "Thick 10-pixel marquee band scrolling at moderate speed. Bold moving stripe on matrices and trees.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Marquee_Reverse": 0,
+        "E_SLIDER_MarqueeXC": 0,
+        "E_SLIDER_MarqueeYC": 0,
+        "E_SLIDER_Marquee_Band_Size": 3,
+        "E_SLIDER_Marquee_ScaleX": 100,
+        "E_SLIDER_Marquee_ScaleY": 100,
+        "E_SLIDER_Marquee_Speed": 3,
+        "E_SLIDER_Marquee_Stagger": 0,
+        "E_SLIDER_Marquee_Start": 0,
+        "E_SLIDER_Marquee_Thickness": 10
+      },
+      "tags": {
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "slow",
+        "direction": null,
+        "section_roles": ["chorus", "bridge"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Marquee Medium",
+      "base_effect": "Marquee",
+      "description": "Medium 3-pixel marquee band at moderate speed. Balanced chasing light for horizontal matrices.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Marquee_Reverse": 0,
+        "E_SLIDER_MarqueeXC": 0,
+        "E_SLIDER_MarqueeYC": 0,
+        "E_SLIDER_Marquee_Band_Size": 3,
+        "E_SLIDER_Marquee_ScaleX": 100,
+        "E_SLIDER_Marquee_ScaleY": 100,
+        "E_SLIDER_Marquee_Speed": 3,
+        "E_SLIDER_Marquee_Stagger": 0,
+        "E_SLIDER_Marquee_Start": 0,
+        "E_SLIDER_Marquee_Thickness": 3
+      },
+      "tags": {
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "slow",
+        "direction": null,
+        "section_roles": ["verse", "chorus"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Marquee Wide Stagger",
+      "base_effect": "Marquee",
+      "description": "Wide 5-band marquee with staggered offset and skip gaps. Complex layered chase pattern on trees.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Marquee_Reverse": 0,
+        "E_SLIDER_MarqueeXC": 0,
+        "E_SLIDER_MarqueeYC": 0,
+        "E_SLIDER_Marquee_Band_Size": 5,
+        "E_SLIDER_Marquee_ScaleX": 100,
+        "E_SLIDER_Marquee_ScaleY": 100,
+        "E_SLIDER_Marquee_Skip_Size": 16,
+        "E_SLIDER_Marquee_Speed": 3,
+        "E_SLIDER_Marquee_Stagger": 29,
+        "E_SLIDER_Marquee_Start": 0,
+        "E_SLIDER_Marquee_Thickness": 9
+      },
+      "tags": {
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "slow",
+        "direction": null,
+        "section_roles": ["chorus", "build"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    }
+  ]
+}

@@ -1,0 +1,163 @@
+{
+  "effect": "Spirals",
+  "variants": [
+    {
+      "name": "Spirals 3D Blend",
+      "base_effect": "Spirals",
+      "description": "One thick blended spiral with 3D depth. Smooth color transitions on trees and single-line props.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Spirals_3D": 1,
+        "E_CHECKBOX_Spirals_Blend": 1,
+        "E_CHECKBOX_Spirals_Grow": 0,
+        "E_CHECKBOX_Spirals_Shrink": 0,
+        "E_SLIDER_Spirals_Count": 1,
+        "E_SLIDER_Spirals_Thickness": 50
+      },
+      "tags": {
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "moderate",
+        "direction": null,
+        "section_roles": ["verse", "chorus", "bridge"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Spirals 3D Blend Thin",
+      "base_effect": "Spirals",
+      "description": "One thin blended spiral with 3D depth. Delicate wrapping line on trees and matrices.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Spirals_3D": 1,
+        "E_CHECKBOX_Spirals_Blend": 1,
+        "E_CHECKBOX_Spirals_Grow": 0,
+        "E_CHECKBOX_Spirals_Shrink": 0,
+        "E_SLIDER_Spirals_Count": 1,
+        "E_SLIDER_Spirals_Thickness": 32
+      },
+      "tags": {
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "moderate",
+        "direction": null,
+        "section_roles": ["verse", "bridge"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Spirals 3D Slow Spin",
+      "base_effect": "Spirals",
+      "description": "Sharp-edged spiral with slow rotation and 3D depth. Gentle twisting motion on custom props.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Spirals_3D": 1,
+        "E_CHECKBOX_Spirals_Blend": 0,
+        "E_CHECKBOX_Spirals_Grow": 0,
+        "E_CHECKBOX_Spirals_Shrink": 0,
+        "E_SLIDER_Spirals_Count": 1,
+        "E_SLIDER_Spirals_Rotation": 5,
+        "E_SLIDER_Spirals_Thickness": 50
+      },
+      "tags": {
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "slow",
+        "direction": null,
+        "section_roles": ["verse", "intro"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Spirals 3D Sharp",
+      "base_effect": "Spirals",
+      "description": "Sharp-edged spiral with 3D depth and no rotation. Static candy-cane stripe pattern on custom props.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Spirals_3D": 1,
+        "E_CHECKBOX_Spirals_Blend": 0,
+        "E_CHECKBOX_Spirals_Grow": 0,
+        "E_CHECKBOX_Spirals_Shrink": 0,
+        "E_SLIDER_Spirals_Count": 1,
+        "E_SLIDER_Spirals_Thickness": 50
+      },
+      "tags": {
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "slow",
+        "direction": null,
+        "section_roles": ["verse", "bridge"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Spirals 3D Blend Fast Spin",
+      "base_effect": "Spirals",
+      "description": "Blended spiral with fast rotation and 3D depth. Energetic twisting color bands on matrices and trees.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Spirals_3D": 1,
+        "E_CHECKBOX_Spirals_Blend": 1,
+        "E_CHECKBOX_Spirals_Grow": 0,
+        "E_CHECKBOX_Spirals_Shrink": 0,
+        "E_SLIDER_Spirals_Count": 1,
+        "E_SLIDER_Spirals_Rotation": 20,
+        "E_SLIDER_Spirals_Thickness": 50
+      },
+      "tags": {
+        "tier_affinity": "mid",
+        "energy_level": "high",
+        "speed_feel": "moderate",
+        "direction": null,
+        "section_roles": ["chorus", "build", "drop"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Spirals 3D Sharp Fast Spin",
+      "base_effect": "Spirals",
+      "description": "Sharp-edged spiral with fast rotation and 3D depth. Bold spinning stripes on custom props and trees.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Spirals_3D": 1,
+        "E_CHECKBOX_Spirals_Blend": 0,
+        "E_CHECKBOX_Spirals_Grow": 0,
+        "E_CHECKBOX_Spirals_Shrink": 0,
+        "E_SLIDER_Spirals_Count": 1,
+        "E_SLIDER_Spirals_Rotation": 20,
+        "E_SLIDER_Spirals_Thickness": 50
+      },
+      "tags": {
+        "tier_affinity": "mid",
+        "energy_level": "high",
+        "speed_feel": "moderate",
+        "direction": null,
+        "section_roles": ["chorus", "build", "drop"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Spirals Quad Reverse",
+      "base_effect": "Spirals",
+      "description": "Four thick spirals rotating in reverse. Dense multi-helix pattern wrapping around trees.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Spirals_3D": 0,
+        "E_CHECKBOX_Spirals_Blend": 0,
+        "E_CHECKBOX_Spirals_Grow": 0,
+        "E_CHECKBOX_Spirals_Shrink": 0,
+        "E_SLIDER_Spirals_Count": 4,
+        "E_SLIDER_Spirals_Rotation": -40,
+        "E_SLIDER_Spirals_Thickness": 98
+      },
+      "tags": {
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "moderate",
+        "direction": null,
+        "section_roles": ["chorus", "bridge"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    }
+  ]
+}

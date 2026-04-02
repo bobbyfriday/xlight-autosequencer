@@ -1,0 +1,345 @@
+{
+  "effect": "Single Strand",
+  "variants": [
+    {
+      "name": "Chase Right-Left Subtle",
+      "base_effect": "Single Strand",
+      "description": "Right-to-left fireworks chase with subtle color mix. Light sparkle trail on matrices and single-line props.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Chase_Group_All": 0,
+        "E_CHOICE_Chase_Type1": "Right-Left",
+        "E_CHOICE_SingleStrand_Colors": "Palette",
+        "E_CHOICE_SingleStrand_FX": "Fireworks 1D",
+        "E_CHOICE_SingleStrand_FX_Palette": "* Colors Only",
+        "E_SLIDER_Color_Mix1": 10,
+        "E_SLIDER_FX_Intensity": 128,
+        "E_SLIDER_FX_Speed": 128,
+        "E_SLIDER_Number_Chases": 1,
+        "E_SLIDER_Skips_Advance": 0,
+        "E_SLIDER_Skips_BandSize": 1,
+        "E_SLIDER_Skips_SkipSize": 1,
+        "E_SLIDER_Skips_StartPos": 1
+      },
+      "tags": {
+        "tier_affinity": "foreground",
+        "energy_level": "medium",
+        "speed_feel": "fast",
+        "direction": "horizontal",
+        "section_roles": ["chorus", "verse"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      },
+      "direction_cycle": {
+        "param": "E_CHOICE_Skips_Direction",
+        "values": ["Left", "Right"],
+        "mode": "alternate"
+      }
+    },
+    {
+      "name": "Chase Left-Right Subtle",
+      "base_effect": "Single Strand",
+      "description": "Left-to-right fireworks chase with subtle color mix. Light sparkle trail on arches and matrices.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Chase_Group_All": 0,
+        "E_CHOICE_Chase_Type1": "Left-Right",
+        "E_CHOICE_SingleStrand_Colors": "Palette",
+        "E_CHOICE_SingleStrand_FX": "Fireworks 1D",
+        "E_CHOICE_SingleStrand_FX_Palette": "* Colors Only",
+        "E_SLIDER_Color_Mix1": 10,
+        "E_SLIDER_FX_Intensity": 128,
+        "E_SLIDER_FX_Speed": 128,
+        "E_SLIDER_Number_Chases": 1,
+        "E_SLIDER_Skips_Advance": 0,
+        "E_SLIDER_Skips_BandSize": 1,
+        "E_SLIDER_Skips_SkipSize": 1,
+        "E_SLIDER_Skips_StartPos": 1
+      },
+      "tags": {
+        "tier_affinity": "foreground",
+        "energy_level": "medium",
+        "speed_feel": "fast",
+        "direction": "horizontal",
+        "section_roles": ["chorus", "verse"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      },
+      "direction_cycle": {
+        "param": "E_CHOICE_Skips_Direction",
+        "values": ["Left", "Right"],
+        "mode": "alternate"
+      }
+    },
+    {
+      "name": "Chase From Middle Full",
+      "base_effect": "Single Strand",
+      "description": "Fireworks chase expanding from center with full color mix. Bright outward burst on stars and single-line props.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Chase_Group_All": 0,
+        "E_CHOICE_Chase_Type1": "From Middle",
+        "E_CHOICE_SingleStrand_Colors": "Palette",
+        "E_CHOICE_SingleStrand_FX": "Fireworks 1D",
+        "E_CHOICE_SingleStrand_FX_Palette": "* Colors Only",
+        "E_SLIDER_Color_Mix1": 100,
+        "E_SLIDER_FX_Intensity": 128,
+        "E_SLIDER_FX_Speed": 128,
+        "E_SLIDER_Number_Chases": 1,
+        "E_SLIDER_Skips_Advance": 0,
+        "E_SLIDER_Skips_BandSize": 1,
+        "E_SLIDER_Skips_SkipSize": 1,
+        "E_SLIDER_Skips_StartPos": 1
+      },
+      "tags": {
+        "tier_affinity": "foreground",
+        "energy_level": "high",
+        "speed_feel": "fast",
+        "direction": "horizontal",
+        "section_roles": ["chorus", "drop"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      },
+      "direction_cycle": {
+        "param": "E_CHOICE_Skips_Direction",
+        "values": ["Left", "Right"],
+        "mode": "alternate"
+      }
+    },
+    {
+      "name": "Chase To Middle Full",
+      "base_effect": "Single Strand",
+      "description": "Fireworks chase converging to center with full color mix. Inward pull effect on matrices and stars.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Chase_Group_All": 0,
+        "E_CHOICE_Chase_Type1": "To Middle",
+        "E_CHOICE_SingleStrand_Colors": "Palette",
+        "E_CHOICE_SingleStrand_FX": "Fireworks 1D",
+        "E_CHOICE_SingleStrand_FX_Palette": "* Colors Only",
+        "E_SLIDER_Color_Mix1": 100,
+        "E_SLIDER_FX_Intensity": 128,
+        "E_SLIDER_FX_Speed": 128,
+        "E_SLIDER_Number_Chases": 1,
+        "E_SLIDER_Skips_Advance": 0,
+        "E_SLIDER_Skips_BandSize": 1,
+        "E_SLIDER_Skips_SkipSize": 1,
+        "E_SLIDER_Skips_StartPos": 1
+      },
+      "tags": {
+        "tier_affinity": "foreground",
+        "energy_level": "high",
+        "speed_feel": "fast",
+        "direction": "horizontal",
+        "section_roles": ["chorus", "drop"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      },
+      "direction_cycle": {
+        "param": "E_CHOICE_Skips_Direction",
+        "values": ["Left", "Right"],
+        "mode": "alternate"
+      }
+    },
+    {
+      "name": "Chase Left-Right Medium",
+      "base_effect": "Single Strand",
+      "description": "Left-to-right fireworks chase with medium color mix. Balanced sparkle trail on arches and matrices.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Chase_Group_All": 0,
+        "E_CHOICE_Chase_Type1": "Left-Right",
+        "E_CHOICE_SingleStrand_Colors": "Palette",
+        "E_CHOICE_SingleStrand_FX": "Fireworks 1D",
+        "E_CHOICE_SingleStrand_FX_Palette": "* Colors Only",
+        "E_SLIDER_Color_Mix1": 36,
+        "E_SLIDER_FX_Intensity": 128,
+        "E_SLIDER_FX_Speed": 128,
+        "E_SLIDER_Number_Chases": 1,
+        "E_SLIDER_Skips_Advance": 0,
+        "E_SLIDER_Skips_BandSize": 1,
+        "E_SLIDER_Skips_SkipSize": 1,
+        "E_SLIDER_Skips_StartPos": 1
+      },
+      "tags": {
+        "tier_affinity": "foreground",
+        "energy_level": "medium",
+        "speed_feel": "fast",
+        "direction": "horizontal",
+        "section_roles": ["chorus", "verse", "bridge"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      },
+      "direction_cycle": {
+        "param": "E_CHOICE_Skips_Direction",
+        "values": ["Left", "Right"],
+        "mode": "alternate"
+      }
+    },
+    {
+      "name": "Chase Right-Left Strong",
+      "base_effect": "Single Strand",
+      "description": "Right-to-left fireworks chase with strong color blending. Vivid sparkle sweep on arches and matrices.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Chase_Group_All": 0,
+        "E_CHOICE_Chase_Type1": "Right-Left",
+        "E_CHOICE_SingleStrand_Colors": "Palette",
+        "E_CHOICE_SingleStrand_FX": "Fireworks 1D",
+        "E_CHOICE_SingleStrand_FX_Palette": "* Colors Only",
+        "E_SLIDER_Color_Mix1": 55,
+        "E_SLIDER_FX_Intensity": 128,
+        "E_SLIDER_FX_Speed": 128,
+        "E_SLIDER_Number_Chases": 1,
+        "E_SLIDER_Skips_Advance": 0,
+        "E_SLIDER_Skips_BandSize": 1,
+        "E_SLIDER_Skips_SkipSize": 1,
+        "E_SLIDER_Skips_StartPos": 1
+      },
+      "tags": {
+        "tier_affinity": "foreground",
+        "energy_level": "medium",
+        "speed_feel": "fast",
+        "direction": "horizontal",
+        "section_roles": ["chorus", "build"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      },
+      "direction_cycle": {
+        "param": "E_CHOICE_Skips_Direction",
+        "values": ["Left", "Right"],
+        "mode": "alternate"
+      }
+    },
+    {
+      "name": "Chase To Middle Heavy",
+      "base_effect": "Single Strand",
+      "description": "Fireworks chase converging to center with heavy color mix. Bold inward pull on arches and trees.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Chase_Group_All": 0,
+        "E_CHOICE_Chase_Type1": "To Middle",
+        "E_CHOICE_SingleStrand_Colors": "Palette",
+        "E_CHOICE_SingleStrand_FX": "Fireworks 1D",
+        "E_CHOICE_SingleStrand_FX_Palette": "* Colors Only",
+        "E_SLIDER_Color_Mix1": 75,
+        "E_SLIDER_FX_Intensity": 128,
+        "E_SLIDER_FX_Speed": 128,
+        "E_SLIDER_Number_Chases": 1,
+        "E_SLIDER_Skips_Advance": 0,
+        "E_SLIDER_Skips_BandSize": 1,
+        "E_SLIDER_Skips_SkipSize": 1,
+        "E_SLIDER_Skips_StartPos": 1
+      },
+      "tags": {
+        "tier_affinity": "foreground",
+        "energy_level": "high",
+        "speed_feel": "fast",
+        "direction": "horizontal",
+        "section_roles": ["chorus", "drop", "build"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      },
+      "direction_cycle": {
+        "param": "E_CHOICE_Skips_Direction",
+        "values": ["Left", "Right"],
+        "mode": "alternate"
+      }
+    },
+    {
+      "name": "Chase Bounce Medium",
+      "base_effect": "Single Strand",
+      "description": "Bouncing fireworks chase with medium color mix. Playful back-and-forth motion on arches and single-line props.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Chase_Group_All": 0,
+        "E_CHOICE_Chase_Type1": "Bounce from Left",
+        "E_CHOICE_SingleStrand_Colors": "Palette",
+        "E_CHOICE_SingleStrand_FX": "Fireworks 1D",
+        "E_CHOICE_SingleStrand_FX_Palette": "* Colors Only",
+        "E_SLIDER_Color_Mix1": 50,
+        "E_SLIDER_FX_Intensity": 128,
+        "E_SLIDER_FX_Speed": 128,
+        "E_SLIDER_Number_Chases": 1,
+        "E_SLIDER_Skips_Advance": 0,
+        "E_SLIDER_Skips_BandSize": 1,
+        "E_SLIDER_Skips_SkipSize": 1,
+        "E_SLIDER_Skips_StartPos": 1
+      },
+      "tags": {
+        "tier_affinity": "foreground",
+        "energy_level": "medium",
+        "speed_feel": "fast",
+        "direction": "horizontal",
+        "section_roles": ["chorus", "bridge"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      },
+      "direction_cycle": {
+        "param": "E_CHOICE_Skips_Direction",
+        "values": ["Left", "Right"],
+        "mode": "alternate"
+      }
+    },
+    {
+      "name": "Chase All To Middle Full",
+      "base_effect": "Single Strand",
+      "description": "All-group fireworks chase converging to center with full mix. Synchronized inward pull across all groups.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Chase_Group_All": 1,
+        "E_CHOICE_Chase_Type1": "To Middle",
+        "E_CHOICE_SingleStrand_Colors": "Palette",
+        "E_CHOICE_SingleStrand_FX": "Fireworks 1D",
+        "E_CHOICE_SingleStrand_FX_Palette": "* Colors Only",
+        "E_SLIDER_Color_Mix1": 100,
+        "E_SLIDER_FX_Intensity": 128,
+        "E_SLIDER_FX_Speed": 128,
+        "E_SLIDER_Number_Chases": 1,
+        "E_SLIDER_Skips_Advance": 0,
+        "E_SLIDER_Skips_BandSize": 1,
+        "E_SLIDER_Skips_SkipSize": 1,
+        "E_SLIDER_Skips_StartPos": 1
+      },
+      "tags": {
+        "tier_affinity": "foreground",
+        "energy_level": "high",
+        "speed_feel": "fast",
+        "direction": "horizontal",
+        "section_roles": ["drop", "chorus"],
+        "scope": "group",
+        "genre_affinity": "any"
+      },
+      "direction_cycle": {
+        "param": "E_CHOICE_Skips_Direction",
+        "values": ["Left", "Right"],
+        "mode": "alternate"
+      }
+    },
+    {
+      "name": "Chase All Left-Right Full",
+      "base_effect": "Single Strand",
+      "description": "All-group left-to-right fireworks chase with full color mix. Synchronized sweep across all groups.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Chase_Group_All": 1,
+        "E_CHOICE_Chase_Type1": "Left-Right",
+        "E_CHOICE_SingleStrand_Colors": "Palette",
+        "E_CHOICE_SingleStrand_FX": "Fireworks 1D",
+        "E_CHOICE_SingleStrand_FX_Palette": "* Colors Only",
+        "E_SLIDER_Color_Mix1": 100,
+        "E_SLIDER_FX_Intensity": 128,
+        "E_SLIDER_FX_Speed": 128,
+        "E_SLIDER_Number_Chases": 1,
+        "E_SLIDER_Skips_Advance": 0,
+        "E_SLIDER_Skips_BandSize": 1,
+        "E_SLIDER_Skips_SkipSize": 1,
+        "E_SLIDER_Skips_StartPos": 1
+      },
+      "tags": {
+        "tier_affinity": "foreground",
+        "energy_level": "high",
+        "speed_feel": "fast",
+        "direction": "horizontal",
+        "section_roles": ["drop", "chorus"],
+        "scope": "group",
+        "genre_affinity": "any"
+      },
+      "direction_cycle": {
+        "param": "E_CHOICE_Skips_Direction",
+        "values": ["Left", "Right"],
+        "mode": "alternate"
+      }
+    }
+  ]
+}

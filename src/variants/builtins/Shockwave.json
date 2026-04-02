@@ -1,0 +1,123 @@
+{
+  "effect": "Shockwave",
+  "variants": [
+    {
+      "name": "Shockwave Center",
+      "base_effect": "Shockwave",
+      "description": "Standard shockwave expanding from center with blended edges. Classic impact burst on matrices and single-line props.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Shockwave_Blend_Edges": 1,
+        "E_SLIDER_Shockwave_Accel": 0,
+        "E_SLIDER_Shockwave_CenterX": 50,
+        "E_SLIDER_Shockwave_CenterY": 50,
+        "E_SLIDER_Shockwave_End_Radius": 70,
+        "E_SLIDER_Shockwave_End_Width": 70,
+        "E_SLIDER_Shockwave_Start_Radius": 1,
+        "E_SLIDER_Shockwave_Start_Width": 15
+      },
+      "tags": {
+        "tier_affinity": "hero",
+        "energy_level": "high",
+        "speed_feel": "fast",
+        "direction": null,
+        "section_roles": ["drop", "chorus", "build"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Shockwave Off-Center",
+      "base_effect": "Shockwave",
+      "description": "Shockwave expanding from an off-center point. Asymmetric impact burst on custom props.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Shockwave_Blend_Edges": 1,
+        "E_SLIDER_Shockwave_Accel": 0,
+        "E_SLIDER_Shockwave_CenterX": 63,
+        "E_SLIDER_Shockwave_CenterY": 50,
+        "E_SLIDER_Shockwave_End_Radius": 31,
+        "E_SLIDER_Shockwave_End_Width": 24,
+        "E_SLIDER_Shockwave_Start_Radius": 5,
+        "E_SLIDER_Shockwave_Start_Width": 5
+      },
+      "tags": {
+        "tier_affinity": "hero",
+        "energy_level": "high",
+        "speed_feel": "fast",
+        "direction": null,
+        "section_roles": ["drop", "chorus"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Shockwave Bottom Wide",
+      "base_effect": "Shockwave",
+      "description": "Wide shockwave expanding from bottom edge. Dramatic upward blast effect on single-line props.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Shockwave_Blend_Edges": 1,
+        "E_SLIDER_Shockwave_Accel": 0,
+        "E_SLIDER_Shockwave_CenterX": 50,
+        "E_SLIDER_Shockwave_CenterY": 0,
+        "E_SLIDER_Shockwave_End_Radius": 225,
+        "E_SLIDER_Shockwave_End_Width": 200,
+        "E_SLIDER_Shockwave_Start_Radius": 0,
+        "E_SLIDER_Shockwave_Start_Width": 75
+      },
+      "tags": {
+        "tier_affinity": "hero",
+        "energy_level": "high",
+        "speed_feel": "fast",
+        "direction": null,
+        "section_roles": ["drop", "build"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Shockwave Center Thin",
+      "base_effect": "Shockwave",
+      "description": "Tight thin shockwave pulse from center. Subtle ring flash for accent hits on trees.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Shockwave_Blend_Edges": 1,
+        "E_SLIDER_Shockwave_Accel": 0,
+        "E_SLIDER_Shockwave_CenterX": 50,
+        "E_SLIDER_Shockwave_CenterY": 50,
+        "E_SLIDER_Shockwave_End_Radius": 10,
+        "E_SLIDER_Shockwave_End_Width": 10,
+        "E_SLIDER_Shockwave_Start_Radius": 1,
+        "E_SLIDER_Shockwave_Start_Width": 5
+      },
+      "tags": {
+        "tier_affinity": "hero",
+        "energy_level": "high",
+        "speed_feel": "fast",
+        "direction": null,
+        "section_roles": ["drop", "chorus"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Shockwave Decel",
+      "base_effect": "Shockwave",
+      "description": "Decelerating shockwave that slows as it expands. Dramatic impact that lingers on icicles and single-line props.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Shockwave_Blend_Edges": 1,
+        "E_SLIDER_Shockwave_Accel": -7,
+        "E_SLIDER_Shockwave_CenterX": 50,
+        "E_SLIDER_Shockwave_CenterY": 50,
+        "E_SLIDER_Shockwave_Start_Radius": 0,
+        "E_SLIDER_Shockwave_Start_Width": 0
+      },
+      "tags": {
+        "tier_affinity": "hero",
+        "energy_level": "high",
+        "speed_feel": "moderate",
+        "direction": null,
+        "section_roles": ["drop", "build"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    }
+  ]
+}

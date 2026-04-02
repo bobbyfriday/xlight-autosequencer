@@ -1,0 +1,57 @@
+{
+  "effect": "Fill",
+  "variants": [
+    {
+      "name": "Fill Wrap Horizontal",
+      "base_effect": "Fill",
+      "description": "Wrapping color fill sweeping left and right. Clean wipe transition for icicles and single-line props.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Fill_Color_Time": 0,
+        "E_CHECKBOX_Fill_Wrap": 1,
+        "E_SLIDER_Fill_Band_Size": 0,
+        "E_SLIDER_Fill_Offset": 0,
+        "E_SLIDER_Fill_Skip_Size": 0
+      },
+      "tags": {
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "moderate",
+        "direction": "horizontal",
+        "section_roles": ["verse", "chorus", "bridge"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      },
+      "direction_cycle": {
+        "param": "E_CHOICE_Fill_Direction",
+        "values": ["Left", "Right"],
+        "mode": "alternate"
+      }
+    },
+    {
+      "name": "Fill Wrap Vertical",
+      "base_effect": "Fill",
+      "description": "Wrapping color fill sweeping up and down. Smooth vertical wipe for arches and custom props.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Fill_Color_Time": 0,
+        "E_CHECKBOX_Fill_Wrap": 1,
+        "E_SLIDER_Fill_Band_Size": 0,
+        "E_SLIDER_Fill_Offset": 0,
+        "E_SLIDER_Fill_Skip_Size": 0
+      },
+      "tags": {
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "moderate",
+        "direction": "vertical",
+        "section_roles": ["verse", "chorus", "bridge"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      },
+      "direction_cycle": {
+        "param": "E_CHOICE_Fill_Direction",
+        "values": ["Up", "Down"],
+        "mode": "alternate"
+      }
+    }
+  ]
+}

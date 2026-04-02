@@ -26,6 +26,7 @@ class EffectLayer:
     effect: str
     blend_mode: str = "Normal"
     parameter_overrides: dict[str, int | float | bool | str] = field(default_factory=dict)
+    variant_ref: str | None = None
 
     @classmethod
     def from_dict(cls, data: dict) -> EffectLayer:
@@ -33,7 +34,16 @@ class EffectLayer:
             effect=data["effect"],
             blend_mode=data.get("blend_mode", "Normal"),
             parameter_overrides=data.get("parameter_overrides", {}),
+            variant_ref=data.get("variant_ref", None),
         )
+
+    def to_dict(self) -> dict:
+        return {
+            "effect": self.effect,
+            "blend_mode": self.blend_mode,
+            "parameter_overrides": self.parameter_overrides,
+            "variant_ref": self.variant_ref,
+        }
 
 
 @dataclass

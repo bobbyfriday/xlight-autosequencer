@@ -1,0 +1,167 @@
+{
+  "effect": "Morph",
+  "variants": [
+    {
+      "name": "Morph Quick",
+      "base_effect": "Morph",
+      "description": "Fast narrow morph transition completing in 20% duration. Quick color wipe for beat-synced accents.",
+      "parameter_overrides": {
+        "E_SLIDER_MorphAccel": 0,
+        "E_SLIDER_MorphDuration": 20,
+        "E_SLIDER_MorphEndLength": 1,
+        "E_SLIDER_MorphStartLength": 1,
+        "E_SLIDER_Morph_End_X2": 100,
+        "E_SLIDER_Morph_End_Y2": 100,
+        "E_SLIDER_Morph_Repeat_Count": 0,
+        "E_SLIDER_Morph_Repeat_Skip": 1,
+        "E_SLIDER_Morph_Stagger": 0,
+        "E_SLIDER_Morph_Start_X2": 100,
+        "E_SLIDER_Morph_Start_Y2": 0
+      },
+      "tags": {
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "fast",
+        "direction": null,
+        "section_roles": ["chorus", "drop", "build"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Morph Wide",
+      "base_effect": "Morph",
+      "description": "Wide morph band sweeping across the display. Thick color transition that fills more of the prop.",
+      "parameter_overrides": {
+        "E_SLIDER_MorphAccel": 0,
+        "E_SLIDER_MorphDuration": 50,
+        "E_SLIDER_MorphEndLength": 41,
+        "E_SLIDER_MorphStartLength": 41,
+        "E_SLIDER_Morph_End_X2": 100,
+        "E_SLIDER_Morph_End_Y2": 100,
+        "E_SLIDER_Morph_Repeat_Count": 0,
+        "E_SLIDER_Morph_Repeat_Skip": 1,
+        "E_SLIDER_Morph_Stagger": 0,
+        "E_SLIDER_Morph_Start_X2": 100,
+        "E_SLIDER_Morph_Start_Y2": 0
+      },
+      "tags": {
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "moderate",
+        "direction": null,
+        "section_roles": ["verse", "bridge"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Morph Medium",
+      "base_effect": "Morph",
+      "description": "Medium-speed thin morph transition at 50% duration. Balanced color wipe for general use.",
+      "parameter_overrides": {
+        "E_SLIDER_MorphAccel": 0,
+        "E_SLIDER_MorphDuration": 50,
+        "E_SLIDER_MorphEndLength": 1,
+        "E_SLIDER_MorphStartLength": 1,
+        "E_SLIDER_Morph_End_X2": 100,
+        "E_SLIDER_Morph_End_Y2": 100,
+        "E_SLIDER_Morph_Repeat_Count": 0,
+        "E_SLIDER_Morph_Repeat_Skip": 1,
+        "E_SLIDER_Morph_Stagger": 0,
+        "E_SLIDER_Morph_Start_X2": 100,
+        "E_SLIDER_Morph_Start_Y2": 0
+      },
+      "tags": {
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "moderate",
+        "direction": null,
+        "section_roles": ["chorus", "bridge"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Morph Fast",
+      "base_effect": "Morph",
+      "description": "Snappy morph completing in 30% duration. Quick reveal transition for energetic sections.",
+      "parameter_overrides": {
+        "E_SLIDER_MorphAccel": 0,
+        "E_SLIDER_MorphDuration": 30,
+        "E_SLIDER_MorphEndLength": 1,
+        "E_SLIDER_MorphStartLength": 1,
+        "E_SLIDER_Morph_End_X2": 100,
+        "E_SLIDER_Morph_End_Y2": 100,
+        "E_SLIDER_Morph_Repeat_Count": 0,
+        "E_SLIDER_Morph_Repeat_Skip": 1,
+        "E_SLIDER_Morph_Stagger": 0,
+        "E_SLIDER_Morph_Start_X2": 100,
+        "E_SLIDER_Morph_Start_Y2": 0
+      },
+      "tags": {
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "fast",
+        "direction": null,
+        "section_roles": ["chorus", "build"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Morph Slow",
+      "base_effect": "Morph",
+      "description": "Gradual morph taking 60% of the duration. Leisurely color sweep for calm passages.",
+      "parameter_overrides": {
+        "E_SLIDER_MorphAccel": 0,
+        "E_SLIDER_MorphDuration": 60,
+        "E_SLIDER_MorphEndLength": 1,
+        "E_SLIDER_MorphStartLength": 1,
+        "E_SLIDER_Morph_End_X2": 100,
+        "E_SLIDER_Morph_End_Y2": 100,
+        "E_SLIDER_Morph_Repeat_Count": 0,
+        "E_SLIDER_Morph_Repeat_Skip": 1,
+        "E_SLIDER_Morph_Stagger": 0,
+        "E_SLIDER_Morph_Start_X2": 100,
+        "E_SLIDER_Morph_Start_Y2": 0
+      },
+      "tags": {
+        "tier_affinity": "mid",
+        "energy_level": "low",
+        "speed_feel": "slow",
+        "direction": null,
+        "section_roles": ["verse", "intro", "outro"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Morph Standard",
+      "base_effect": "Morph",
+      "description": "Standard morph at 40% duration. Versatile color transition at a comfortable pace.",
+      "parameter_overrides": {
+        "E_SLIDER_MorphAccel": 0,
+        "E_SLIDER_MorphDuration": 40,
+        "E_SLIDER_MorphEndLength": 1,
+        "E_SLIDER_MorphStartLength": 1,
+        "E_SLIDER_Morph_End_X2": 100,
+        "E_SLIDER_Morph_End_Y2": 100,
+        "E_SLIDER_Morph_Repeat_Count": 0,
+        "E_SLIDER_Morph_Repeat_Skip": 1,
+        "E_SLIDER_Morph_Stagger": 0,
+        "E_SLIDER_Morph_Start_X2": 100,
+        "E_SLIDER_Morph_Start_Y2": 0
+      },
+      "tags": {
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "moderate",
+        "direction": null,
+        "section_roles": ["verse", "chorus", "bridge"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    }
+  ]
+}

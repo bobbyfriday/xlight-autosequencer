@@ -1,0 +1,41 @@
+{
+  "effect": "Tree",
+  "variants": [
+    {
+      "name": "Tree Dense",
+      "base_effect": "Tree",
+      "description": "Ten-branch tree pattern filling the display. Dense layered branches on single-line props.",
+      "parameter_overrides": {
+        "E_SLIDER_Tree_Branches": 10,
+        "E_SLIDER_Tree_Speed": 10
+      },
+      "tags": {
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "slow",
+        "direction": null,
+        "section_roles": ["verse", "chorus"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Tree Sparse",
+      "base_effect": "Tree",
+      "description": "Three-branch tree pattern with open spacing. Simple tree silhouette on tree props.",
+      "parameter_overrides": {
+        "E_SLIDER_Tree_Branches": 3,
+        "E_SLIDER_Tree_Speed": 10
+      },
+      "tags": {
+        "tier_affinity": "mid",
+        "energy_level": "low",
+        "speed_feel": "slow",
+        "direction": null,
+        "section_roles": ["verse", "intro", "outro"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    }
+  ]
+}

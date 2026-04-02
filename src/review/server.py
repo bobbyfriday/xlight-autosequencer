@@ -7,7 +7,7 @@ import threading
 import time
 from pathlib import Path
 
-from flask import Flask, Response, jsonify, request, send_file, send_from_directory, stream_with_context
+from flask import Flask, Response, abort, jsonify, request, send_file, send_from_directory, stream_with_context
 from werkzeug.utils import secure_filename
 
 
@@ -237,6 +237,51 @@ def _run_analysis(app: Flask, job: AnalysisJob) -> None:
                 except Exception as exc:
                     job.record_warning(f"Story building failed: {exc}")
 
+            # Update library entry with resolved title/artist
+            try:
+                from src.library import Library
+                _title = None
+                _artist = None
+                # Prefer story metadata (Genius-resolved)
+                if story_path:
+                    try:
+                        _story = json.loads(Path(story_path).read_text(encoding="utf-8"))
+                        _song = _story.get("song") or {}
+                        _title = _song.get("title") or None
+                        _artist = _song.get("artist") or None
+                    except Exception:
+                        pass
+                # Fallback: hierarchy JSON song metadata
+                if not _title or not _artist:
+                    try:
+                        _hier = json.loads(Path(out_path).read_text(encoding="utf-8"))
+                        _song = _hier.get("song") or {}
+                        if not _title:
+                            _title = _song.get("title") or None
+                        if not _artist:
+                            _artist = _song.get("artist") or None
+                    except Exception:
+                        pass
+                # Fallback: ID3 tags
+                if not _title or not _artist:
+                    try:
+                        from mutagen.easyid3 import EasyID3
+                        tags = EasyID3(str(mp3))
+                        if not _title and tags.get("title"):
+                            _title = tags["title"][0]
+                        if not _artist and tags.get("artist"):
+                            _artist = tags["artist"][0]
+                    except Exception:
+                        pass
+                if _title or _artist:
+                    existing = Library().find_by_hash(result.source_hash)
+                    if existing:
+                        existing.title = _title
+                        existing.artist = _artist
+                        Library().upsert(existing)
+            except Exception:
+                pass
+
             with job.lock:
                 job.result_path = out_path
                 job.story_path = story_path
@@ -333,6 +378,10 @@ def create_app(analysis_path: str | None = None, audio_path: str | None = None,
     from src.review.theme_routes import theme_bp  # noqa: PLC0415
     app.register_blueprint(theme_bp)
 
+    # ── Register the variant library blueprint (always available) ─────────────
+    from src.review.variant_routes import variant_bp  # noqa: PLC0415
+    app.register_blueprint(variant_bp)
+
     # ── Story review SPA route (always available) ─────────────────────────────
     @app.route("/story-review")
     def story_review_spa():
@@ -365,6 +414,22 @@ def create_app(analysis_path: str | None = None, audio_path: str | None = None,
         lib = Library()
         entries = lib.all_entries()
 
+        def _clean_filename_title(filename: str) -> str:
+            """Turn '12_-_Carmina_Burana.mp3' into 'Carmina Burana'."""
+            import re
+            name = Path(filename).stem
+            # Strip leading track number patterns: "12 - ", "12_-_", "12. "
+            name = re.sub(r'^\d+[\s._-]+', '', name)
+            # Strip leading "- " left over from "12 - Title"
+            name = re.sub(r'^-[\s_]+', '', name)
+            # Replace underscores and multiple spaces
+            name = name.replace('_', ' ').strip()
+            name = re.sub(r'\s{2,}', ' ', name)
+            # Title-case if all lowercase
+            if name == name.lower():
+                name = name.title()
+            return name or filename
+
         def _enrich(e):
             """Enrich a library entry with dashboard display fields."""
             entry_dict = {**e.__dict__}
@@ -372,46 +437,91 @@ def create_app(analysis_path: str | None = None, audio_path: str | None = None,
             entry_dict["file_exists"] = entry_dict["source_file_exists"]
             entry_dict["analysis_exists"] = Path(e.analysis_path).exists()
 
-            # Title/artist from analysis JSON (Genius cache or ID3 tags)
-            title = e.filename
-            artist = "Unknown"
+            # Title/artist: prefer stored values from library entry
+            title = e.title
+            artist = e.artist
+            album = None
+            genre = None
+            year = None
+            has_cover = False
             quality_score = None
             has_phonemes = False
             has_story = False
+
+            # Check for story file (independent of analysis file)
+            mp3 = Path(e.source_file)
+            story_path = mp3.parent / (mp3.stem + "_story.json")
+            has_story = story_path.exists()
+            entry_dict["story_path"] = str(story_path) if has_story else None
 
             try:
                 with open(e.analysis_path, "r", encoding="utf-8") as fh:
                     data = json.load(fh)
                 has_phonemes = data.get("phoneme_result") is not None
-                # Quality score from hierarchy validation
                 quality_score = (data.get("validation") or {}).get("overall_score")
-                # Song metadata from story or song_structure
                 song_meta = data.get("song") or {}
-                if song_meta.get("title"):
+                if not title and song_meta.get("title"):
                     title = song_meta["title"]
-                if song_meta.get("artist"):
+                if not artist and song_meta.get("artist") and song_meta["artist"] != "Unknown":
                     artist = song_meta["artist"]
-                # Check for story file
-                mp3 = Path(e.source_file)
-                story_path = mp3.parent / (mp3.stem + "_story.json")
-                has_story = story_path.exists()
             except Exception:
                 pass
 
-            # Fallback: try ID3 tags via mutagen
-            if title == e.filename or artist == "Unknown":
+            # Story JSON: Genius-resolved title/artist
+            if has_story and (not title or not artist):
                 try:
-                    from mutagen.easyid3 import EasyID3
-                    tags = EasyID3(e.source_file)
-                    if title == e.filename and tags.get("title"):
-                        title = tags["title"][0]
-                    if artist == "Unknown" and tags.get("artist"):
-                        artist = tags["artist"][0]
+                    story_data = json.loads(story_path.read_text(encoding="utf-8"))
+                    song_meta = story_data.get("song") or {}
+                    if not title and song_meta.get("title"):
+                        title = song_meta["title"]
+                    if not artist and song_meta.get("artist") and song_meta["artist"] != "Unknown":
+                        artist = song_meta["artist"]
                 except Exception:
                     pass
 
-            entry_dict["title"] = title
-            entry_dict["artist"] = artist
+            # ID3 tags: album, genre, year, cover art + title/artist fallback
+            if mp3.exists():
+                try:
+                    import mutagen as _mutagen
+                    mf = _mutagen.File(str(mp3))
+                    if mf is not None and mf.tags is not None:
+                        tags = mf.tags
+                        # Title/artist from tags
+                        if not title:
+                            v = tags.get("TIT2") or tags.get("title")
+                            if v:
+                                title = str(v[0]) if isinstance(v, list) else str(v)
+                        if not artist:
+                            v = tags.get("TPE1") or tags.get("artist")
+                            if v:
+                                artist = str(v[0]) if isinstance(v, list) else str(v)
+                        # Album
+                        v = tags.get("TALB") or tags.get("album")
+                        if v:
+                            album = str(v[0]) if isinstance(v, list) else str(v)
+                        # Genre
+                        v = tags.get("TCON") or tags.get("genre")
+                        if v:
+                            genre = str(v[0]) if isinstance(v, list) else str(v)
+                        # Year
+                        v = tags.get("TDRC") or tags.get("TYER") or tags.get("date")
+                        if v:
+                            year = (str(v[0]) if isinstance(v, list) else str(v))[:4]
+                        # Cover art
+                        has_cover = any(
+                            k.startswith("APIC") for k in tags.keys()
+                        ) if hasattr(tags, 'keys') else False
+                        if not has_cover and hasattr(mf, 'pictures'):
+                            has_cover = len(mf.pictures) > 0
+                except Exception:
+                    pass
+
+            entry_dict["title"] = title or _clean_filename_title(e.filename)
+            entry_dict["artist"] = artist or "Unknown"
+            entry_dict["album"] = album
+            entry_dict["genre"] = genre
+            entry_dict["year"] = year
+            entry_dict["has_cover"] = has_cover
             entry_dict["quality_score"] = quality_score
             entry_dict["has_phonemes"] = has_phonemes
             entry_dict["has_story"] = has_story
@@ -422,6 +532,82 @@ def create_app(analysis_path: str | None = None, audio_path: str | None = None,
             "entries": [_enrich(e) for e in entries],
         }
         return jsonify(result)
+
+    @app.route("/library/debug")
+    def library_debug():
+        """Debug endpoint: show what metadata extraction finds for each song."""
+        from src.library import Library
+        entries = Library().all_entries()
+        results = []
+        for e in entries:
+            mp3 = Path(e.source_file)
+            info = {
+                "filename": e.filename,
+                "source_file": e.source_file,
+                "source_exists": mp3.exists(),
+                "analysis_path": e.analysis_path,
+                "analysis_exists": Path(e.analysis_path).exists(),
+                "stored_title": e.title,
+                "stored_artist": e.artist,
+            }
+            # Check story JSON
+            story_path = mp3.parent / (mp3.stem + "_story.json")
+            info["story_exists"] = story_path.exists()
+            if story_path.exists():
+                try:
+                    sd = json.loads(story_path.read_text(encoding="utf-8"))
+                    info["story_song"] = sd.get("song")
+                except Exception as exc:
+                    info["story_error"] = str(exc)
+            # Check analysis JSON
+            if Path(e.analysis_path).exists():
+                try:
+                    ad = json.loads(Path(e.analysis_path).read_text(encoding="utf-8"))
+                    info["analysis_song"] = ad.get("song")
+                except Exception as exc:
+                    info["analysis_error"] = str(exc)
+            # Check mutagen
+            if mp3.exists():
+                try:
+                    import mutagen as _mutagen
+                    mf = _mutagen.File(str(mp3))
+                    info["mutagen_type"] = type(mf).__name__ if mf else None
+                    info["mutagen_tags_type"] = type(mf.tags).__name__ if mf and mf.tags else None
+                    if mf and mf.tags:
+                        info["mutagen_keys"] = list(mf.tags.keys())[:20]
+                        # Try reading specific tags
+                        for key in ["TIT2", "TPE1", "TALB", "TCON", "TDRC", "TYER"]:
+                            v = mf.tags.get(key)
+                            if v:
+                                info[f"tag_{key}"] = str(v)
+                except Exception as exc:
+                    info["mutagen_error"] = str(exc)
+            results.append(info)
+        return jsonify(results)
+
+    @app.route("/library/<source_hash>/cover")
+    def library_cover(source_hash):
+        """Serve embedded cover art from the MP3's tags."""
+        from src.library import Library
+        entry = Library().find_by_hash(source_hash)
+        if entry is None:
+            abort(404)
+        try:
+            import mutagen as _mutagen
+            mf = _mutagen.File(entry.source_file)
+            if mf is not None and mf.tags is not None:
+                # ID3v2 APIC frames
+                for key in mf.tags.keys():
+                    if key.startswith("APIC"):
+                        apic = mf.tags[key]
+                        return Response(apic.data, mimetype=apic.mime or "image/jpeg")
+                # FLAC/OGG style pictures
+                if hasattr(mf, 'pictures') and mf.pictures:
+                    pic = mf.pictures[0]
+                    return Response(pic.data, mimetype=pic.mime or "image/jpeg")
+        except Exception:
+            pass
+        abort(404)
 
     @app.route("/library/<source_hash>", methods=["DELETE"])
     def library_delete(source_hash):
@@ -566,7 +752,11 @@ def create_app(analysis_path: str | None = None, audio_path: str | None = None,
         job.build_story = False
         job.status = "done"
         job.result_path = entry.analysis_path
-        job.story_path = None
+        # Resolve story path from source file
+        mp3 = Path(entry.source_file)
+        story_path = mp3.parent / (mp3.stem + "_story.json")
+        story_path_str = str(story_path) if story_path.exists() else None
+        job.story_path = story_path_str
         job.events = []
         job.total = 0
         job.error_message = None
@@ -576,7 +766,7 @@ def create_app(analysis_path: str | None = None, audio_path: str | None = None,
         job.genius_title = None
         with _job_lock:
             _current_job = job
-        return jsonify({"ok": True}), 200
+        return jsonify({"ok": True, "story_path": story_path_str}), 200
 
     @app.route("/hierarchy-library")
     def hierarchy_library():

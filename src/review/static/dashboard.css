@@ -255,8 +255,30 @@ body {
 .library-table tbody tr.expanded { background: #1e2a3a; }
 .library-table tbody tr.missing { opacity: 0.5; }
 
+.col-cover { width: 40px; padding: 6px 8px !important; }
+.cover-thumb {
+  width: 36px;
+  height: 36px;
+  border-radius: 4px;
+  object-fit: cover;
+  display: block;
+}
+.cover-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 4px;
+  background: #2a2a2a;
+  color: #444;
+  font-size: 16px;
+}
+
 .song-title-cell { font-weight: 500; color: #ddd; }
 .song-artist-cell { color: #888; }
+.song-album-cell { color: #777; font-size: 12px; }
+.song-genre-cell { color: #777; font-size: 12px; }
 
 /* Quality score bar */
 .quality-bar {

@@ -1,0 +1,135 @@
+{
+  "effect": "Bars",
+  "variants": [
+    {
+      "name": "Bars Single 3D Half-Cycle",
+      "base_effect": "Bars",
+      "description": "Single thick bar with 3D depth that completes a half-cycle expansion. Subtle movement suitable for background layers.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Bars_3D": 1,
+        "E_CHECKBOX_Bars_Gradient": 0,
+        "E_CHECKBOX_Bars_Highlight": 0,
+        "E_SLIDER_Bars_BarCount": 1,
+        "E_TEXTCTRL_Bars_Cycles": 0.5
+      },
+      "tags": {
+        "tier_affinity": "background",
+        "energy_level": "medium",
+        "speed_feel": "slow",
+        "direction": "radial",
+        "section_roles": ["verse", "intro"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      },
+      "direction_cycle": {
+        "param": "E_CHOICE_Bars_Direction",
+        "values": ["expand", "compress"],
+        "mode": "alternate"
+      }
+    },
+    {
+      "name": "Bars Single 3D Radial",
+      "base_effect": "Bars",
+      "description": "Single bar with 3D depth effect that expands and compresses. Good for matrices and custom props.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Bars_3D": 1,
+        "E_CHECKBOX_Bars_Gradient": 0,
+        "E_CHECKBOX_Bars_Highlight": 0,
+        "E_SLIDER_Bars_BarCount": 1,
+        "E_TEXTCTRL_Bars_Cycles": 1.0
+      },
+      "tags": {
+        "tier_affinity": "background",
+        "energy_level": "medium",
+        "speed_feel": "moderate",
+        "direction": "radial",
+        "section_roles": ["verse", "chorus", "bridge"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      },
+      "direction_cycle": {
+        "param": "E_CHOICE_Bars_Direction",
+        "values": ["expand", "compress"],
+        "mode": "alternate"
+      }
+    },
+    {
+      "name": "Bars Quad 3D Vertical",
+      "base_effect": "Bars",
+      "description": "Four bars with 3D depth sweeping vertically. Creates a striped movement pattern on trees and matrices.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Bars_3D": 1,
+        "E_CHECKBOX_Bars_Gradient": 0,
+        "E_CHECKBOX_Bars_Highlight": 0,
+        "E_SLIDER_Bars_BarCount": 4,
+        "E_TEXTCTRL_Bars_Cycles": 2
+      },
+      "tags": {
+        "tier_affinity": "background",
+        "energy_level": "medium",
+        "speed_feel": "moderate",
+        "direction": "vertical",
+        "section_roles": ["chorus", "bridge"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      },
+      "direction_cycle": {
+        "param": "E_CHOICE_Bars_Direction",
+        "values": ["up", "down"],
+        "mode": "alternate"
+      }
+    },
+    {
+      "name": "Bars Single Flat Vertical",
+      "base_effect": "Bars",
+      "description": "Single flat bar sweeping vertically without 3D depth. Clean simple fill for arches and single-line props.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Bars_3D": 0,
+        "E_CHECKBOX_Bars_Gradient": 0,
+        "E_CHECKBOX_Bars_Highlight": 0,
+        "E_SLIDER_Bars_BarCount": 1,
+        "E_TEXTCTRL_Bars_Cycles": 1.0
+      },
+      "tags": {
+        "tier_affinity": "background",
+        "energy_level": "low",
+        "speed_feel": "moderate",
+        "direction": "vertical",
+        "section_roles": ["verse", "intro", "outro"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      },
+      "direction_cycle": {
+        "param": "E_CHOICE_Bars_Direction",
+        "values": ["up", "down"],
+        "mode": "alternate"
+      }
+    },
+    {
+      "name": "Bars Single 3D Vertical",
+      "base_effect": "Bars",
+      "description": "Single bar with 3D depth sweeping vertically. Adds dimension to custom and linear props.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Bars_3D": 1,
+        "E_CHECKBOX_Bars_Gradient": 0,
+        "E_CHECKBOX_Bars_Highlight": 0,
+        "E_SLIDER_Bars_BarCount": 1,
+        "E_TEXTCTRL_Bars_Cycles": 1.0
+      },
+      "tags": {
+        "tier_affinity": "background",
+        "energy_level": "medium",
+        "speed_feel": "moderate",
+        "direction": "vertical",
+        "section_roles": ["verse", "chorus", "bridge"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      },
+      "direction_cycle": {
+        "param": "E_CHOICE_Bars_Direction",
+        "values": ["up", "down"],
+        "mode": "alternate"
+      }
+    }
+  ]
+}

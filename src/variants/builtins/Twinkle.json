@@ -1,0 +1,109 @@
+{
+  "effect": "Twinkle",
+  "variants": [
+    {
+      "name": "Twinkle Gentle",
+      "base_effect": "Twinkle",
+      "description": "Default twinkle with moderate steps and no re-randomization. Soft ambient sparkle for background layers.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Twinkle_ReRandom": 0,
+        "E_CHECKBOX_Twinkle_Strobe": 0,
+        "E_CHOICE_Twinkle_Style": "New Render Method",
+        "E_SLIDER_Twinkle_Steps": 30
+      },
+      "tags": {
+        "tier_affinity": "background",
+        "energy_level": "low",
+        "speed_feel": "slow",
+        "direction": null,
+        "section_roles": ["verse", "intro", "outro"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Twinkle Medium",
+      "base_effect": "Twinkle",
+      "description": "Seventeen simultaneous twinkles at moderate pace. Balanced ambient sparkle for single-line props.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Twinkle_ReRandom": 0,
+        "E_CHECKBOX_Twinkle_Strobe": 0,
+        "E_CHOICE_Twinkle_Style": "New Render Method",
+        "E_SLIDER_Twinkle_Count": 17,
+        "E_SLIDER_Twinkle_Steps": 30
+      },
+      "tags": {
+        "tier_affinity": "background",
+        "energy_level": "low",
+        "speed_feel": "slow",
+        "direction": null,
+        "section_roles": ["verse", "bridge"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Twinkle Sparse",
+      "base_effect": "Twinkle",
+      "description": "Only three simultaneous twinkles. Minimal delicate sparkle for quiet moments on custom props.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Twinkle_ReRandom": 0,
+        "E_CHECKBOX_Twinkle_Strobe": 0,
+        "E_CHOICE_Twinkle_Style": "New Render Method",
+        "E_SLIDER_Twinkle_Count": 3,
+        "E_SLIDER_Twinkle_Steps": 30
+      },
+      "tags": {
+        "tier_affinity": "background",
+        "energy_level": "low",
+        "speed_feel": "slow",
+        "direction": null,
+        "section_roles": ["verse", "intro", "outro"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Twinkle Dense",
+      "base_effect": "Twinkle",
+      "description": "Thirty simultaneous twinkles for busy sparkle. Active shimmer on custom props and icicles.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Twinkle_ReRandom": 0,
+        "E_CHECKBOX_Twinkle_Strobe": 0,
+        "E_CHOICE_Twinkle_Style": "New Render Method",
+        "E_SLIDER_Twinkle_Count": 30,
+        "E_SLIDER_Twinkle_Steps": 30
+      },
+      "tags": {
+        "tier_affinity": "background",
+        "energy_level": "medium",
+        "speed_feel": "moderate",
+        "direction": null,
+        "section_roles": ["chorus", "verse"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Twinkle Strobe",
+      "base_effect": "Twinkle",
+      "description": "Dense rapid twinkling with strobe flash. High-energy accent for choruses and drops.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Twinkle_ReRandom": 0,
+        "E_CHECKBOX_Twinkle_Strobe": 1,
+        "E_CHOICE_Twinkle_Style": "New Render Method",
+        "E_SLIDER_Twinkle_Count": 50,
+        "E_SLIDER_Twinkle_Steps": 30
+      },
+      "tags": {
+        "tier_affinity": "background",
+        "energy_level": "high",
+        "speed_feel": "fast",
+        "direction": null,
+        "section_roles": ["chorus", "drop", "build"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    }
+  ]
+}

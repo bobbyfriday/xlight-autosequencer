@@ -2362,5 +2362,329 @@ def story_review_cmd(story_path: str, port: int, no_browser: bool) -> None:
         raise
 
 
+# ──────────────────────────────────────────────────────────────────────────────
+# variant subcommand group (FR-028)
+# ──────────────────────────────────────────────────────────────────────────────
+
+_variant_library_override = None
+_variant_effect_library_override = None
+_variant_custom_dir_override = None
+
+
+def _get_variant_lib():
+    if _variant_library_override is not None:
+        return _variant_library_override
+    from src.variants.library import load_variant_library
+    return load_variant_library(effect_library=_get_variant_effect_lib())
+
+
+def _get_variant_effect_lib():
+    if _variant_effect_library_override is not None:
+        return _variant_effect_library_override
+    from src.effects.library import load_effect_library
+    return load_effect_library()
+
+
+def _get_variant_custom_dir() -> Path:
+    if _variant_custom_dir_override is not None:
+        return Path(_variant_custom_dir_override)
+    return Path.home() / ".xlight" / "custom_variants"
+
+
+@cli.group("variant")
+def variant_group() -> None:
+    """Manage the effect variant library."""
+
+
+@variant_group.command("list")
+@click.option("--effect", default=None, help="Filter by base effect name")
+@click.option("--energy", default=None, help="Filter by energy level (low/medium/high)")
+@click.option("--tier", default=None, help="Filter by tier affinity")
+@click.option("--section", default=None, help="Filter by section role")
+@click.option("--prop", default=None, help="(reserved, not yet applied)")
+@click.option("--scope", default=None, help="Filter by scope (single-prop/group)")
+@click.option("--format", "fmt", default="table", type=click.Choice(["table", "json"]))
+def variant_list(
+    effect: str | None,
+    energy: str | None,
+    tier: str | None,
+    section: str | None,
+    prop: str | None,
+    scope: str | None,
+    fmt: str,
+) -> None:
+    """List variants with optional filtering."""
+    import json as _json
+    lib = _get_variant_lib()
+    results = lib.query(
+        base_effect=effect,
+        energy_level=energy,
+        tier_affinity=tier,
+        section_role=section,
+        scope=scope,
+    )
+    if fmt == "json":
+        click.echo(_json.dumps({"variants": [v.to_dict() for v in results]}, indent=2))
+        return
+    if not results:
+        click.echo("No variants found matching the specified filters.")
+        return
+    header = f"{'Name':<30} {'Base Effect':<15} {'Energy':<10} {'Tier':<12} {'Scope':<12} {'Description'}"
+    click.echo(header)
+    click.echo("-" * len(header))
+    for v in results:
+        click.echo(
+            f"{v.name:<30} {v.base_effect:<15} "
+            f"{(v.tags.energy_level or ''):<10} "
+            f"{(v.tags.tier_affinity or ''):<12} "
+            f"{(v.tags.scope or ''):<12} "
+            f"{v.description}"
+        )
+
+
+@variant_group.command("show")
+@click.argument("name")
+def variant_show(name: str) -> None:
+    """Show full detail for a variant by name."""
+    lib = _get_variant_lib()
+    effect_lib = _get_variant_effect_lib()
+    v = lib.get(name)
+    if v is None:
+        click.echo(f"ERROR: Variant not found: {name}", err=True)
+        sys.exit(1)
+    click.echo(f"Name:          {v.name}")
+    click.echo(f"Base Effect:   {v.base_effect}")
+    click.echo(f"Description:   {v.description}")
+    click.echo(f"Energy Level:  {v.tags.energy_level}")
+    click.echo(f"Tier Affinity: {v.tags.tier_affinity}")
+    click.echo(f"Speed Feel:    {v.tags.speed_feel}")
+    click.echo(f"Direction:     {v.tags.direction}")
+    click.echo(f"Section Roles: {', '.join(v.tags.section_roles)}")
+    click.echo(f"Scope:         {v.tags.scope}")
+    click.echo(f"Genre Affinity:{v.tags.genre_affinity}")
+    click.echo(f"Parameter Overrides:")
+    for k, val in v.parameter_overrides.items():
+        click.echo(f"  {k} = {val}")
+    base_defn = effect_lib.get(v.base_effect)
+    if base_defn:
+        click.echo(f"Base Effect Info:")
+        click.echo(f"  Category:     {base_defn.category}")
+        click.echo(f"  Layer Role:   {base_defn.layer_role}")
+        click.echo(f"  Duration Type:{base_defn.duration_type}")
+        click.echo(f"  Prop Suitability: {base_defn.prop_suitability}")
+
+
+@variant_group.command("coverage")
+@click.option("--format", "fmt", default="table", type=click.Choice(["table", "json"]))
+def variant_coverage(fmt: str) -> None:
+    """Show variant coverage by base effect."""
+    import json as _json
+    lib = _get_variant_lib()
+    effect_lib = _get_variant_effect_lib()
+
+    by_effect: dict[str, list] = {}
+    for v in lib.variants.values():
+        by_effect.setdefault(v.base_effect, []).append(v)
+
+    coverage = []
+    for effect_name, defn in effect_lib.effects.items():
+        variants = by_effect.get(effect_name, [])
+        if variants:
+            complete = sum(
+                1 for v in variants
+                if v.tags.energy_level and v.tags.tier_affinity
+                and v.tags.scope and v.tags.speed_feel
+            )
+            tag_completeness = round(complete / len(variants), 2)
+        else:
+            tag_completeness = 0.0
+        coverage.append({
+            "effect": effect_name,
+            "category": defn.category,
+            "variant_count": len(variants),
+            "tag_completeness": tag_completeness,
+        })
+
+    coverage.sort(key=lambda x: (-x["variant_count"], x["effect"]))
+    total = sum(x["variant_count"] for x in coverage)
+
+    if fmt == "json":
+        click.echo(_json.dumps({
+            "coverage": coverage,
+            "total_variants": total,
+            "effects_with_variants": sum(1 for x in coverage if x["variant_count"] > 0),
+            "effects_without_variants": sum(1 for x in coverage if x["variant_count"] == 0),
+        }, indent=2))
+        return
+
+    click.echo(f"{'Effect':<20} {'Category':<15} {'Variants':>8}  {'Tag Complete':>12}")
+    click.echo("-" * 60)
+    for entry in coverage:
+        if entry["variant_count"] > 0:
+            click.echo(
+                f"{entry['effect']:<20} {entry['category']:<15} "
+                f"{entry['variant_count']:>8}  {entry['tag_completeness']:>12.0%}"
+            )
+    click.echo(f"\nTotal variants: {total}")
+
+
+@variant_group.command("import")
+@click.argument("xsq_path", type=click.Path(exists=True, dir_okay=False))
+@click.option("--dry-run", is_flag=True, default=False, help="Preview without saving")
+@click.option("--skip-duplicates", is_flag=True, default=False, help="Omit duplicates from output")
+@click.option("--format", "fmt", default="table", type=click.Choice(["table", "json"]))
+def variant_import(xsq_path: str, dry_run: bool, skip_duplicates: bool, fmt: str) -> None:
+    """Import effect variants from an .xsq sequence file."""
+    import json as _json
+    from src.variants.importer import extract_variants_from_xsq
+
+    lib = _get_variant_lib()
+    effect_lib = _get_variant_effect_lib()
+    custom_dir = _get_variant_custom_dir()
+
+    try:
+        results = extract_variants_from_xsq(
+            xsq_path,
+            effect_lib,
+            skip_duplicates=skip_duplicates,
+            existing_library=lib if not dry_run else None,
+            dry_run=dry_run,
+            custom_dir=custom_dir,
+        )
+    except ValueError as exc:
+        click.echo(f"ERROR: {exc}", err=True)
+        sys.exit(1)
+
+    if fmt == "json":
+        click.echo(_json.dumps(results, indent=2))
+    else:
+        if not results:
+            click.echo("No variants found in file.")
+        else:
+            click.echo(f"{'Status':<12} {'Name':<35} {'Base Effect':<15} {'Params':>6}")
+            click.echo("-" * 72)
+            for r in results:
+                click.echo(
+                    f"{r['status']:<12} {r['name']:<35} {r['base_effect']:<15} "
+                    f"{len(r['parameter_overrides']):>6}"
+                )
+
+    imported = sum(1 for r in results if r["status"] == "imported")
+    duplicates = sum(1 for r in results if r["status"] == "duplicate")
+    unknown = sum(1 for r in results if r["status"] == "unknown")
+    click.echo(f"Imported: {imported} | Duplicates: {duplicates} | Unknown: {unknown}")
+
+
+@variant_group.command("create")
+@click.option("--name", required=True, help="Variant name")
+@click.option("--effect", "--base-effect", "base_effect", default=None, help="Base effect name")
+@click.option("--description", default="", help="Description")
+@click.option("--from-file", "from_file", default=None, type=click.Path(exists=True, dir_okay=False))
+def variant_create(
+    name: str,
+    base_effect: str | None,
+    description: str,
+    from_file: str | None,
+) -> None:
+    """Create a new custom variant."""
+    import json as _json
+    from src.variants.validator import validate_variant
+    from src.variants.models import EffectVariant
+
+    custom_dir = _get_variant_custom_dir()
+    lib = _get_variant_lib()
+    effect_lib = _get_variant_effect_lib()
+
+    if from_file:
+        data = _json.loads(Path(from_file).read_text(encoding="utf-8"))
+    else:
+        data = {"name": name, "base_effect": base_effect or "", "description": description,
+                "parameter_overrides": {}, "tags": {}}
+
+    if not from_file and not data.get("parameter_overrides"):
+        click.echo("WARNING: Creating variant with no parameter overrides (identical to base effect defaults)", err=True)
+
+    # CLI flags override file contents
+    data["name"] = name
+    if base_effect:
+        data["base_effect"] = base_effect
+    if description:
+        data["description"] = description
+
+    errors = validate_variant(data, effect_lib)
+    if errors:
+        for e in errors:
+            click.echo(f"ERROR: {e}", err=True)
+        sys.exit(1)
+
+    if lib.get(data["name"]) is not None:
+        click.echo(f"ERROR: Variant '{data['name']}' already exists", err=True)
+        sys.exit(1)
+
+    variant = EffectVariant.from_dict(data)
+    lib.save_custom_variant(variant, custom_dir)
+    click.echo(f"Created variant '{variant.name}'")
+
+
+@variant_group.command("edit")
+@click.argument("name")
+@click.option("--from-file", "from_file", required=True, type=click.Path(exists=True, dir_okay=False))
+def variant_edit(name: str, from_file: str) -> None:
+    """Edit an existing custom variant from a JSON file."""
+    import json as _json
+    from src.variants.validator import validate_variant
+    from src.variants.models import EffectVariant
+
+    custom_dir = _get_variant_custom_dir()
+    lib = _get_variant_lib()
+    effect_lib = _get_variant_effect_lib()
+
+    existing = lib.get(name)
+    if existing is None:
+        click.echo(f"ERROR: Variant '{name}' not found", err=True)
+        sys.exit(1)
+
+    if existing.name in lib.builtin_names:
+        click.echo(f"ERROR: Cannot edit built-in variant '{name}'", err=True)
+        sys.exit(1)
+
+    data = _json.loads(Path(from_file).read_text(encoding="utf-8"))
+    data["name"] = existing.name
+
+    errors = validate_variant(data, effect_lib)
+    if errors:
+        for e in errors:
+            click.echo(f"ERROR: {e}", err=True)
+        sys.exit(1)
+
+    variant = EffectVariant.from_dict(data)
+    lib.save_custom_variant(variant, custom_dir)
+    click.echo(f"Updated variant '{variant.name}'")
+
+
+@variant_group.command("delete")
+@click.argument("name")
+@click.option("--yes", is_flag=True, default=False, help="Skip confirmation prompt")
+def variant_delete(name: str, yes: bool) -> None:
+    """Delete a custom variant."""
+    custom_dir = _get_variant_custom_dir()
+    lib = _get_variant_lib()
+
+    existing = lib.get(name)
+    if existing is None:
+        click.echo(f"ERROR: Variant '{name}' not found", err=True)
+        sys.exit(1)
+
+    if existing.name in lib.builtin_names:
+        click.echo(f"ERROR: Cannot delete built-in variant '{name}'", err=True)
+        sys.exit(1)
+
+    if not yes:
+        click.confirm(f"Delete variant '{existing.name}'?", abort=True)
+
+    lib.delete_custom_variant(name, custom_dir)
+    click.echo(f"Deleted variant '{existing.name}'")
+
+
 def main() -> None:
     cli()

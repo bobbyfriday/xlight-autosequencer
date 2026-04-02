@@ -1,0 +1,43 @@
+{
+  "effect": "VU Meter",
+  "variants": [
+    {
+      "name": "VU Meter Beat Color",
+      "base_effect": "VU Meter",
+      "description": "Color flash on each beat timing event. Pulse-synced color changes on custom and single-line props.",
+      "parameter_overrides": {
+        "E_CHOICE_VUMeter_TimingTrack": "Beats",
+        "E_CHOICE_VUMeter_Type": "Timing Event Color",
+        "E_SLIDER_VUMeter_Sensitivity": 70
+      },
+      "tags": {
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "fast",
+        "direction": null,
+        "section_roles": ["chorus", "build", "drop"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "VU Meter Pulse",
+      "base_effect": "VU Meter",
+      "description": "Pulsing color bars triggered by timing events. Reactive bar visualization on custom props and cubes.",
+      "parameter_overrides": {
+        "E_CHOICE_VUMeter_TimingTrack": "Beats",
+        "E_CHOICE_VUMeter_Type": "Timing Event Pulse Color",
+        "E_SLIDER_VUMeter_Bars": 6
+      },
+      "tags": {
+        "tier_affinity": "mid",
+        "energy_level": "high",
+        "speed_feel": "fast",
+        "direction": null,
+        "section_roles": ["chorus", "drop", "build"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    }
+  ]
+}

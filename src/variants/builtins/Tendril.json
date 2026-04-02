@@ -1,0 +1,22 @@
+{
+  "effect": "Tendril",
+  "variants": [
+    {
+      "name": "Tendril Wander",
+      "base_effect": "Tendril",
+      "description": "Organic tendril with random wandering movement. Unpredictable flowing line for ambient interest.",
+      "parameter_overrides": {
+        "E_CHOICE_Tendril_Movement": "Random"
+      },
+      "tags": {
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "moderate",
+        "direction": null,
+        "section_roles": ["verse", "bridge"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    }
+  ]
+}

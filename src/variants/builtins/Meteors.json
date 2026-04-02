@@ -1,0 +1,122 @@
+{
+  "effect": "Meteors",
+  "variants": [
+    {
+      "name": "Meteors Sparse Explode",
+      "base_effect": "Meteors",
+      "description": "Ten meteors exploding outward slowly. Light scattering burst on horizontal matrices.",
+      "parameter_overrides": {
+        "E_CHECKBOX_FadeWithDistance": 0,
+        "E_CHECKBOX_Meteors_UseMusic": 0,
+        "E_CHOICE_Meteors_Effect": "Explode",
+        "E_CHOICE_Meteors_Type": "Palette",
+        "E_SLIDER_Meteors_Count": 10,
+        "E_SLIDER_Meteors_Length": 25,
+        "E_SLIDER_Meteors_Speed": 10,
+        "E_SLIDER_Meteors_Swirl_Intensity": 0
+      },
+      "tags": {
+        "tier_affinity": "foreground",
+        "energy_level": "medium",
+        "speed_feel": "slow",
+        "direction": null,
+        "section_roles": ["chorus", "bridge"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Meteors Sparse Rise",
+      "base_effect": "Meteors",
+      "description": "Ten music-reactive meteors rising upward. Ascending sparks on matrices and trees.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Meteors_UseMusic": 1,
+        "E_CHOICE_Meteors_Effect": "Up",
+        "E_CHOICE_Meteors_Type": "Palette",
+        "E_SLIDER_Meteors_Count": 10,
+        "E_SLIDER_Meteors_Speed": 10,
+        "E_SLIDER_Meteors_Swirl_Intensity": 0
+      },
+      "tags": {
+        "tier_affinity": "foreground",
+        "energy_level": "medium",
+        "speed_feel": "slow",
+        "direction": null,
+        "section_roles": ["build", "chorus"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Meteors Medium Rain",
+      "base_effect": "Meteors",
+      "description": "Fifteen meteors falling downward like rain. Gentle cascade effect on trees.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Meteors_UseMusic": 0,
+        "E_CHOICE_Meteors_Effect": "Down",
+        "E_CHOICE_Meteors_Type": "Range",
+        "E_SLIDER_Meteors_Count": 15,
+        "E_SLIDER_Meteors_Length": 25,
+        "E_SLIDER_Meteors_Speed": 10,
+        "E_SLIDER_Meteors_Swirl_Intensity": 0
+      },
+      "tags": {
+        "tier_affinity": "foreground",
+        "energy_level": "medium",
+        "speed_feel": "slow",
+        "direction": null,
+        "section_roles": ["verse", "bridge", "outro"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Meteors Dense Explode",
+      "base_effect": "Meteors",
+      "description": "Twenty-eight meteors exploding with swirl intensity. Thick particle burst on horizontal matrices.",
+      "parameter_overrides": {
+        "E_CHECKBOX_FadeWithDistance": 0,
+        "E_CHECKBOX_Meteors_UseMusic": 0,
+        "E_CHOICE_Meteors_Effect": "Explode",
+        "E_CHOICE_Meteors_Type": "Palette",
+        "E_SLIDER_Meteors_Count": 28,
+        "E_SLIDER_Meteors_Length": 22,
+        "E_SLIDER_Meteors_Speed": 10,
+        "E_SLIDER_Meteors_Swirl_Intensity": 20
+      },
+      "tags": {
+        "tier_affinity": "foreground",
+        "energy_level": "high",
+        "speed_feel": "moderate",
+        "direction": null,
+        "section_roles": ["chorus", "drop"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Meteors Intense Explode",
+      "base_effect": "Meteors",
+      "description": "Seventy-nine fast meteors in a dense explosion. Maximum impact burst for high-energy moments.",
+      "parameter_overrides": {
+        "E_CHECKBOX_FadeWithDistance": 0,
+        "E_CHECKBOX_Meteors_UseMusic": 0,
+        "E_CHOICE_Meteors_Effect": "Explode",
+        "E_CHOICE_Meteors_Type": "Palette",
+        "E_SLIDER_Meteors_Count": 79,
+        "E_SLIDER_Meteors_Length": 25,
+        "E_SLIDER_Meteors_Speed": 50,
+        "E_SLIDER_Meteors_Swirl_Intensity": 0
+      },
+      "tags": {
+        "tier_affinity": "foreground",
+        "energy_level": "high",
+        "speed_feel": "fast",
+        "direction": null,
+        "section_roles": ["drop", "chorus", "build"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    }
+  ]
+}

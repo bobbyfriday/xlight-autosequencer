@@ -1,0 +1,65 @@
+{
+  "effect": "Plasma",
+  "variants": [
+    {
+      "name": "Plasma Classic Fast",
+      "base_effect": "Plasma",
+      "description": "Classic plasma pattern at high speed. Vivid swirling color gradients on custom props and trees.",
+      "parameter_overrides": {
+        "E_CHOICE_Plasma_Color": "Normal",
+        "E_SLIDER_Plasma_Line_Density": 1,
+        "E_SLIDER_Plasma_Speed": 87,
+        "E_SLIDER_Plasma_Style": 1
+      },
+      "tags": {
+        "tier_affinity": "background",
+        "energy_level": "high",
+        "speed_feel": "fast",
+        "direction": null,
+        "section_roles": ["chorus", "build", "drop"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Plasma Pattern6 Fast",
+      "base_effect": "Plasma",
+      "description": "Alternate plasma pattern with fast organic movement. Dynamic shifting colors on cubes and trees.",
+      "parameter_overrides": {
+        "E_CHOICE_Plasma_Color": "Normal",
+        "E_SLIDER_Plasma_Line_Density": 1,
+        "E_SLIDER_Plasma_Speed": 91,
+        "E_SLIDER_Plasma_Style": 6
+      },
+      "tags": {
+        "tier_affinity": "background",
+        "energy_level": "high",
+        "speed_feel": "fast",
+        "direction": null,
+        "section_roles": ["chorus", "build"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Plasma Pattern7 Fast",
+      "base_effect": "Plasma",
+      "description": "Third plasma pattern variant at high speed. Unique organic color flow on trees.",
+      "parameter_overrides": {
+        "E_CHOICE_Plasma_Color": "Normal",
+        "E_SLIDER_Plasma_Line_Density": 1,
+        "E_SLIDER_Plasma_Speed": 85,
+        "E_SLIDER_Plasma_Style": 7
+      },
+      "tags": {
+        "tier_affinity": "background",
+        "energy_level": "high",
+        "speed_feel": "fast",
+        "direction": null,
+        "section_roles": ["chorus", "build"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    }
+  ]
+}

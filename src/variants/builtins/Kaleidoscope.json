@@ -1,0 +1,47 @@
+{
+  "effect": "Kaleidoscope",
+  "variants": [
+    {
+      "name": "Kaleidoscope Square",
+      "base_effect": "Kaleidoscope",
+      "description": "Square-pattern kaleidoscope mirroring from center. Symmetrical reflections on matrices and trees.",
+      "parameter_overrides": {
+        "E_CHOICE_Kaleidoscope_Type": "Square",
+        "E_SLIDER_Kaleidoscope_Rotation": 0,
+        "E_SLIDER_Kaleidoscope_Size": 47,
+        "E_SLIDER_Kaleidoscope_X": 50,
+        "E_SLIDER_Kaleidoscope_Y": 50
+      },
+      "tags": {
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "moderate",
+        "direction": null,
+        "section_roles": ["chorus", "bridge"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Kaleidoscope Triangle",
+      "base_effect": "Kaleidoscope",
+      "description": "Triangle-pattern kaleidoscope with smaller mirrored segments. Intricate reflections on matrices.",
+      "parameter_overrides": {
+        "E_CHOICE_Kaleidoscope_Type": "Triangle",
+        "E_SLIDER_Kaleidoscope_Rotation": 0,
+        "E_SLIDER_Kaleidoscope_Size": 25,
+        "E_SLIDER_Kaleidoscope_X": 50,
+        "E_SLIDER_Kaleidoscope_Y": 50
+      },
+      "tags": {
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "moderate",
+        "direction": null,
+        "section_roles": ["chorus", "bridge"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    }
+  ]
+}

@@ -58,13 +58,13 @@
     <div id="progress-error" class="progress-error" style="display:none"></div>
     <div id="progress-done" class="progress-done" style="display:none">
       <p>Analysis complete!</p>
-      <button id="btn-view-result" class="btn btn-primary btn-small">View Timeline</button>
+      <button id="btn-view-result" class="btn btn-primary btn-small">View Result</button>
     </div>
   </div>
 
   <!-- Search and filter bar -->
   <div class="filter-bar">
-    <input id="search-input" type="text" class="search-input" placeholder="Search songs by title or artist...">
+    <input id="search-input" type="text" class="search-input" placeholder="Search by title, artist, album, or genre...">
     <span id="song-count" class="song-count"></span>
   </div>
 
@@ -73,8 +73,12 @@
     <table id="library-table" class="library-table">
       <thead>
         <tr>
+          <th class="col-cover"></th>
           <th data-sort="title" class="sortable">Title <span class="sort-arrow"></span></th>
           <th data-sort="artist" class="sortable">Artist <span class="sort-arrow"></span></th>
+          <th data-sort="album" class="sortable">Album <span class="sort-arrow"></span></th>
+          <th data-sort="genre" class="sortable">Genre <span class="sort-arrow"></span></th>
+          <th data-sort="year" class="sortable col-num">Year <span class="sort-arrow"></span></th>
           <th data-sort="duration_ms" class="sortable col-num">Duration <span class="sort-arrow"></span></th>
           <th data-sort="estimated_tempo_bpm" class="sortable col-num">BPM <span class="sort-arrow"></span></th>
           <th data-sort="quality_score" class="sortable col-num">Quality <span class="sort-arrow"></span></th>
@@ -98,7 +102,7 @@
   <!-- Song detail panel (injected below rows) -->
   <template id="detail-template">
     <tr class="detail-row">
-      <td colspan="8">
+      <td colspan="12">
         <div class="detail-panel">
           <div class="detail-meta">
             <div class="detail-col">

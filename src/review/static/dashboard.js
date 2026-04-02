@@ -69,7 +69,9 @@
     if (q) {
       list = list.filter(function (e) {
         return (e.title || '').toLowerCase().indexOf(q) >= 0 ||
-               (e.artist || '').toLowerCase().indexOf(q) >= 0;
+               (e.artist || '').toLowerCase().indexOf(q) >= 0 ||
+               (e.album || '').toLowerCase().indexOf(q) >= 0 ||
+               (e.genre || '').toLowerCase().indexOf(q) >= 0;
       });
     }
     // Sort
@@ -131,9 +133,17 @@
       if (_expandedHash === e.source_hash) tr.classList.add('expanded');
       tr.dataset.hash = e.source_hash;
 
+      var coverHtml = e.has_cover
+        ? '<img class="cover-thumb" src="/library/' + esc(e.source_hash) + '/cover" alt="">'
+        : '<span class="cover-placeholder">&#9836;</span>';
+
       tr.innerHTML =
+        '<td class="col-cover">' + coverHtml + '</td>' +
         '<td class="song-title-cell">' + esc(e.title || e.filename) + '</td>' +
         '<td class="song-artist-cell">' + esc(e.artist || '') + '</td>' +
+        '<td class="song-album-cell">' + esc(e.album || '') + '</td>' +
+        '<td class="song-genre-cell">' + esc(e.genre || '') + '</td>' +
+        '<td class="col-num">' + esc(e.year || '') + '</td>' +
         '<td class="col-num">' + fmtDuration(e.duration_ms) + '</td>' +
         '<td class="col-num">' + fmtBpm(e.estimated_tempo_bpm) + '</td>' +
         '<td class="col-num">' + renderQuality(e.quality_score) + '</td>' +
@@ -141,10 +151,10 @@
         '<td class="col-num">' + fmtDate(e.analyzed_at) + '</td>' +
         '<td class="col-actions"><button class="btn-expand" data-hash="' + esc(e.source_hash) + '">Details</button></td>';
 
-      // Click row to go to timeline (but not on buttons)
+      // Click row to go to story view (but not on buttons)
       tr.addEventListener('click', function (ev) {
         if (ev.target.tagName === 'BUTTON') return;
-        openSong(e.source_hash, 'timeline');
+        openSong(e.source_hash, e.has_story ? 'story' : 'timeline', e.story_path);
       });
 
       tb.appendChild(tr);
@@ -225,7 +235,7 @@
       btn.addEventListener('click', function () {
         var action = btn.dataset.action;
         if (action === 'timeline') openSong(entry.source_hash, 'timeline');
-        else if (action === 'story') openSong(entry.source_hash, 'story');
+        else if (action === 'story') openSong(entry.source_hash, 'story', entry.story_path);
         else if (action === 'phonemes') openSong(entry.source_hash, 'phonemes');
         else if (action === 'reanalyze') reanalyzeSong(entry);
         else if (action === 'delete') showDeleteDialog(entry);
@@ -236,13 +246,17 @@
   }
 
   // ── Navigation helpers ─────────────────────────────────────────────────────
-  function openSong(hash, tool) {
-    // First, set current job to this library entry
+  function openSong(hash, tool, storyPath) {
+    // Set current job to this library entry, then navigate
     fetch('/open-from-library?hash=' + hash, { method: 'POST' })
       .then(function () {
-        if (tool === 'timeline') window.location.href = '/timeline?hash=' + hash;
-        else if (tool === 'story') window.location.href = '/story-review?hash=' + hash;
-        else if (tool === 'phonemes') window.location.href = '/phonemes-view?hash=' + hash;
+        if (tool === 'story' && storyPath) {
+          window.location.href = '/story-review?path=' + encodeURIComponent(storyPath);
+        } else if (tool === 'phonemes') {
+          window.location.href = '/phonemes-view?hash=' + hash;
+        } else {
+          window.location.href = '/timeline?hash=' + hash;
+        }
       });
   }
 
@@ -347,7 +361,7 @@
       if (existing && dup) {
         dup.style.display = '';
         document.getElementById('btn-go-existing').onclick = function () {
-          openSong(existing.source_hash, 'timeline');
+          openSong(existing.source_hash, existing.has_story ? 'story' : 'timeline', existing.story_path);
         };
         document.getElementById('btn-reanalyze').onclick = startAnalysis;
       } else if (dup) {
@@ -416,8 +430,11 @@
         fetchLibrary();
 
         document.getElementById('btn-view-result').onclick = function () {
-          // Navigate to the timeline for the most recent analysis
-          window.location.href = '/timeline';
+          if (data.story_path) {
+            window.location.href = '/story-review?path=' + encodeURIComponent(data.story_path);
+          } else {
+            window.location.href = '/timeline';
+          }
         };
         return;
       }

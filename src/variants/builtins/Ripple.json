@@ -1,0 +1,139 @@
+{
+  "effect": "Ripple",
+  "variants": [
+    {
+      "name": "Ripple Circle",
+      "base_effect": "Ripple",
+      "description": "Standard circle ripple expanding outward from center. Clean concentric rings on stars and trees.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Ripple3D": 0,
+        "E_CHOICE_Ripple_Movement": "Explode",
+        "E_CHOICE_Ripple_Object_To_Draw": "Circle",
+        "E_SLIDER_Ripple_Thickness": 3,
+        "E_SLIDER_Ripple_XC": 0,
+        "E_SLIDER_Ripple_YC": 0
+      },
+      "tags": {
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "moderate",
+        "direction": null,
+        "section_roles": ["chorus", "bridge"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Ripple Circle 3D Offset",
+      "base_effect": "Ripple",
+      "description": "3D circle ripple expanding from an off-center point. Asymmetric depth rings on custom props.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Ripple3D": 1,
+        "E_CHOICE_Ripple_Movement": "Explode",
+        "E_CHOICE_Ripple_Object_To_Draw": "Circle",
+        "E_SLIDER_Ripple_Thickness": 3,
+        "E_SLIDER_Ripple_XC": 26,
+        "E_SLIDER_Ripple_YC": 0
+      },
+      "tags": {
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "moderate",
+        "direction": null,
+        "section_roles": ["chorus", "bridge"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Ripple Circle Thick",
+      "base_effect": "Ripple",
+      "description": "Thick circle ripple with wider bands expanding outward. Bold concentric rings filling more space.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Ripple3D": 0,
+        "E_CHOICE_Ripple_Movement": "Explode",
+        "E_CHOICE_Ripple_Object_To_Draw": "Circle",
+        "E_SLIDER_Ripple_Thickness": 6,
+        "E_SLIDER_Ripple_XC": 0,
+        "E_SLIDER_Ripple_YC": 0
+      },
+      "tags": {
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "moderate",
+        "direction": null,
+        "section_roles": ["chorus", "build"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Ripple Circle 3D",
+      "base_effect": "Ripple",
+      "description": "3D circle ripple expanding from center with depth shading. Dimensional ring pulse on matrices and trees.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Ripple3D": 1,
+        "E_CHOICE_Ripple_Movement": "Explode",
+        "E_CHOICE_Ripple_Object_To_Draw": "Circle",
+        "E_SLIDER_Ripple_Thickness": 3,
+        "E_SLIDER_Ripple_XC": 0,
+        "E_SLIDER_Ripple_YC": 0
+      },
+      "tags": {
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "moderate",
+        "direction": null,
+        "section_roles": ["chorus", "bridge"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Ripple Circle Implode",
+      "base_effect": "Ripple",
+      "description": "Thick circle ripple collapsing inward toward center. Reverse pulse that draws focus to the center point.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Ripple3D": 0,
+        "E_CHOICE_Ripple_Movement": "Implode",
+        "E_CHOICE_Ripple_Object_To_Draw": "Circle",
+        "E_SLIDER_Ripple_Thickness": 6,
+        "E_SLIDER_Ripple_XC": 0,
+        "E_SLIDER_Ripple_YC": 0
+      },
+      "tags": {
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "moderate",
+        "direction": null,
+        "section_roles": ["outro", "bridge"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Ripple Star",
+      "base_effect": "Ripple",
+      "description": "Star-shaped ripple expanding outward with full thickness. Eye-catching burst shape on matrices.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Ripple3D": 0,
+        "E_CHOICE_Ripple_Movement": "Explode",
+        "E_CHOICE_Ripple_Object_To_Draw": "Star",
+        "E_SLIDER_RIPPLE_POINTS": 5,
+        "E_SLIDER_Ripple_Rotation": 0,
+        "E_SLIDER_Ripple_Thickness": 100,
+        "E_SLIDER_Ripple_XC": 0,
+        "E_SLIDER_Ripple_YC": 0
+      },
+      "tags": {
+        "tier_affinity": "mid",
+        "energy_level": "high",
+        "speed_feel": "moderate",
+        "direction": null,
+        "section_roles": ["chorus", "drop"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    }
+  ]
+}

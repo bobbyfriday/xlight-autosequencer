@@ -1,0 +1,151 @@
+{
+  "effect": "Shape",
+  "variants": [
+    {
+      "name": "Shape Star Slow Spin",
+      "base_effect": "Shape",
+      "description": "Large star rotating slowly at 212 degrees. Dramatic spinning star impact on trees.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Shape_UseMusic": 0,
+        "E_CHOICE_Shape_ObjectToDraw": "Star",
+        "E_SLIDER_Shape_Growth": 100,
+        "E_SLIDER_Shape_Lifetime": 100,
+        "E_SLIDER_Shape_Rotation": 212,
+        "E_SLIDER_Shape_StartSize": 100,
+        "E_SLIDER_Shape_Thickness": 100
+      },
+      "tags": {
+        "tier_affinity": "hero",
+        "energy_level": "high",
+        "speed_feel": "moderate",
+        "direction": null,
+        "section_roles": ["drop", "chorus"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Shape Star Medium Spin",
+      "base_effect": "Shape",
+      "description": "Large star rotating at medium speed. Bold spinning accent for trees.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Shape_UseMusic": 0,
+        "E_CHOICE_Shape_ObjectToDraw": "Star",
+        "E_SLIDER_Shape_Growth": 100,
+        "E_SLIDER_Shape_Lifetime": 100,
+        "E_SLIDER_Shape_Rotation": 138,
+        "E_SLIDER_Shape_StartSize": 100,
+        "E_SLIDER_Shape_Thickness": 100
+      },
+      "tags": {
+        "tier_affinity": "hero",
+        "energy_level": "high",
+        "speed_feel": "moderate",
+        "direction": null,
+        "section_roles": ["drop", "chorus"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Shape Star Full Spin Large",
+      "base_effect": "Shape",
+      "description": "Large star making a full 360-degree rotation. Complete spinning star reveal on trees.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Shape_UseMusic": 0,
+        "E_CHOICE_Shape_ObjectToDraw": "Star",
+        "E_SLIDER_Shape_CentreX": 0,
+        "E_SLIDER_Shape_CentreY": 46,
+        "E_SLIDER_Shape_Growth": 100,
+        "E_SLIDER_Shape_Lifetime": 100,
+        "E_SLIDER_Shape_Rotation": 360,
+        "E_SLIDER_Shape_StartSize": 63,
+        "E_SLIDER_Shape_Thickness": 100
+      },
+      "tags": {
+        "tier_affinity": "hero",
+        "energy_level": "high",
+        "speed_feel": "fast",
+        "direction": null,
+        "section_roles": ["drop", "chorus", "build"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Shape Star Full Spin Small",
+      "base_effect": "Shape",
+      "description": "Small thin star making a full rotation. Compact spinning accent on matrices.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Shape_UseMusic": 0,
+        "E_CHOICE_Shape_ObjectToDraw": "Star",
+        "E_SLIDER_Shape_CentreX": 0,
+        "E_SLIDER_Shape_CentreY": 46,
+        "E_SLIDER_Shape_Growth": 100,
+        "E_SLIDER_Shape_Lifetime": 100,
+        "E_SLIDER_Shape_Rotation": 360,
+        "E_SLIDER_Shape_StartSize": 10,
+        "E_SLIDER_Shape_Thickness": 30
+      },
+      "tags": {
+        "tier_affinity": "hero",
+        "energy_level": "high",
+        "speed_feel": "fast",
+        "direction": null,
+        "section_roles": ["drop", "chorus"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Shape Star Full Spin Medium",
+      "base_effect": "Shape",
+      "description": "Medium star making a full rotation with thick outline. Versatile spinning star on trees.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Shape_UseMusic": 0,
+        "E_CHOICE_Shape_ObjectToDraw": "Star",
+        "E_SLIDER_Shape_CentreX": 0,
+        "E_SLIDER_Shape_CentreY": 46,
+        "E_SLIDER_Shape_Growth": 100,
+        "E_SLIDER_Shape_Lifetime": 100,
+        "E_SLIDER_Shape_Rotation": 360,
+        "E_SLIDER_Shape_StartSize": 30,
+        "E_SLIDER_Shape_Thickness": 100
+      },
+      "tags": {
+        "tier_affinity": "hero",
+        "energy_level": "high",
+        "speed_feel": "fast",
+        "direction": null,
+        "section_roles": ["drop", "chorus", "build"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Shape Star Static",
+      "base_effect": "Shape",
+      "description": "Static star with no rotation. Steady star overlay that holds position on trees.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Shape_UseMusic": 0,
+        "E_CHOICE_Shape_ObjectToDraw": "Star",
+        "E_SLIDER_Shape_CentreX": 0,
+        "E_SLIDER_Shape_CentreY": 46,
+        "E_SLIDER_Shape_Growth": 100,
+        "E_SLIDER_Shape_Lifetime": 100,
+        "E_SLIDER_Shape_Rotation": 0,
+        "E_SLIDER_Shape_StartSize": 63,
+        "E_SLIDER_Shape_Thickness": 100
+      },
+      "tags": {
+        "tier_affinity": "hero",
+        "energy_level": "medium",
+        "speed_feel": "slow",
+        "direction": null,
+        "section_roles": ["verse", "bridge", "intro"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    }
+  ]
+}

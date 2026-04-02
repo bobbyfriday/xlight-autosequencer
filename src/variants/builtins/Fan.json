@@ -1,0 +1,108 @@
+{
+  "effect": "Fan",
+  "variants": [
+    {
+      "name": "Fan 2-Blade",
+      "base_effect": "Fan",
+      "description": "Two-blade fan sweeping a full rotation. Wide coverage pattern for custom props.",
+      "parameter_overrides": {
+        "E_SLIDER_Fan_Accel": 0,
+        "E_SLIDER_Fan_Blade_Angle": 90,
+        "E_SLIDER_Fan_Blade_Width": 100,
+        "E_SLIDER_Fan_CenterX": 50,
+        "E_SLIDER_Fan_CenterY": 50,
+        "E_SLIDER_Fan_Duration": 100,
+        "E_SLIDER_Fan_Element_Width": 100,
+        "E_SLIDER_Fan_Num_Blades": 2,
+        "E_SLIDER_Fan_Num_Elements": 1,
+        "E_SLIDER_Fan_Start_Angle": 0
+      },
+      "tags": {
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "moderate",
+        "direction": null,
+        "section_roles": ["chorus", "bridge"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Fan 3-Blade",
+      "base_effect": "Fan",
+      "description": "Three-blade fan with full rotation sweep. Balanced radial motion on matrices and single-line props.",
+      "parameter_overrides": {
+        "E_SLIDER_Fan_Accel": 0,
+        "E_SLIDER_Fan_Blade_Angle": 90,
+        "E_SLIDER_Fan_Blade_Width": 100,
+        "E_SLIDER_Fan_CenterX": 50,
+        "E_SLIDER_Fan_CenterY": 50,
+        "E_SLIDER_Fan_Duration": 100,
+        "E_SLIDER_Fan_Element_Width": 100,
+        "E_SLIDER_Fan_Num_Blades": 3,
+        "E_SLIDER_Fan_Num_Elements": 1,
+        "E_SLIDER_Fan_Start_Angle": 0
+      },
+      "tags": {
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "moderate",
+        "direction": null,
+        "section_roles": ["chorus", "bridge"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Fan 3-Blade Short",
+      "base_effect": "Fan",
+      "description": "Three-blade fan with shortened sweep duration. Quicker partial rotation for accent moments.",
+      "parameter_overrides": {
+        "E_SLIDER_Fan_Accel": 0,
+        "E_SLIDER_Fan_Blade_Angle": 90,
+        "E_SLIDER_Fan_Blade_Width": 100,
+        "E_SLIDER_Fan_CenterX": 50,
+        "E_SLIDER_Fan_CenterY": 50,
+        "E_SLIDER_Fan_Duration": 76,
+        "E_SLIDER_Fan_Element_Width": 100,
+        "E_SLIDER_Fan_Num_Blades": 3,
+        "E_SLIDER_Fan_Num_Elements": 1,
+        "E_SLIDER_Fan_Start_Angle": 0
+      },
+      "tags": {
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "moderate",
+        "direction": null,
+        "section_roles": ["chorus", "build"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Fan 3-Blade Off-Center",
+      "base_effect": "Fan",
+      "description": "Three-blade fan with off-center pivot point. Asymmetric rotation for trees and single-line props.",
+      "parameter_overrides": {
+        "E_SLIDER_Fan_Accel": 0,
+        "E_SLIDER_Fan_Blade_Angle": 90,
+        "E_SLIDER_Fan_Blade_Width": 100,
+        "E_SLIDER_Fan_CenterY": 50,
+        "E_SLIDER_Fan_Duration": 100,
+        "E_SLIDER_Fan_Element_Width": 100,
+        "E_SLIDER_Fan_Num_Blades": 3,
+        "E_SLIDER_Fan_Num_Elements": 1,
+        "E_SLIDER_Fan_Start_Angle": 0
+      },
+      "tags": {
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "moderate",
+        "direction": null,
+        "section_roles": ["chorus", "bridge"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    }
+  ]
+}
