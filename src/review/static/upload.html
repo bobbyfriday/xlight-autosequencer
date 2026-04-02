@@ -3,14 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>xlight-analyze — Upload &amp; Analyze</title>
+  <title>x-onset — Upload &amp; Analyze</title>
+  <link rel="stylesheet" href="/theme.css">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      background: #1a1a1a;
-      color: #e0e0e0;
-      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--xo-bg);
+      color: var(--xo-fg);
+      font-family: var(--xo-font-main);
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -46,8 +47,8 @@
     }
     #drop-zone:hover,
     #drop-zone.drag-over {
-      border-color: #4a9eff;
-      background: #1e2d40;
+      border-color: var(--xo-accent);
+      background: var(--xo-accent-dim);
     }
 
     #drop-zone p {
@@ -58,7 +59,7 @@
 
     #file-name {
       font-size: 0.85rem;
-      color: #7ec8e3;
+      color: var(--xo-accent);
       font-weight: 500;
       min-height: 1.2em;
     }
@@ -79,7 +80,7 @@
       cursor: pointer;
       align-self: flex-start;
     }
-    #btn-browse:hover { background: #3a3a3a; border-color: #4a9eff; color: #fff; }
+    #btn-browse:hover { background: #3a3a3a; border-color: var(--xo-accent); color: #fff; }
 
     .options {
       display: flex;
@@ -103,7 +104,7 @@
       color: #a78bfa;
     }
     .options input[type="checkbox"] {
-      accent-color: #4a9eff;
+      accent-color: var(--xo-accent);
       width: 15px;
       height: 15px;
     }
@@ -118,7 +119,7 @@
 
     #btn-analyze {
       padding: 0.6rem 1.4rem;
-      background: #4a9eff;
+      background: var(--xo-accent);
       color: #fff;
       border: none;
       border-radius: 6px;
@@ -160,7 +161,7 @@
     #progress-bar {
       height: 100%;
       width: 0%;
-      background: #4a9eff;
+      background: var(--xo-accent);
       transition: width 0.25s ease;
       border-radius: 4px;
     }
@@ -177,7 +178,7 @@
       display: flex;
       align-items: center;
       gap: 0.5rem;
-      color: #ccc;
+      color: var(--xo-fg);
       padding: 0.1rem 0;
     }
     .algo-row .ok  { color: #4caf50; }
@@ -187,7 +188,7 @@
       display: flex;
       align-items: center;
       gap: 0.6rem;
-      color: #4a9eff;
+      color: var(--xo-accent);
       font-weight: 600;
       font-size: 0.82rem;
       padding: 0.4rem 0 0.2rem;
@@ -280,7 +281,7 @@
   </style>
 </head>
 <body>
-  <h1>xlight-analyze</h1>
+  <h1 class="brand-header"><span class="xo-css-logo">x-<span class="onset-pulse">onset</span></span></h1>
 
   <!-- Upload form -->
   <div id="upload-form">

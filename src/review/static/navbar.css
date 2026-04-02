@@ -1,4 +1,4 @@
-/* Shared navigation bar for xlight-analyze */
+/* Shared navigation bar for x-onset */
 
 .xlight-navbar {
   position: fixed;
@@ -11,22 +11,22 @@
   align-items: center;
   gap: 0;
   background: #111;
-  border-bottom: 1px solid #2a2a2a;
+  border-bottom: 1px solid var(--xo-border);
   padding: 0 16px;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--xo-font-main);
   font-size: 13px;
   user-select: none;
 }
 
 .navbar-brand {
-  color: #4a9eff;
+  color: var(--xo-accent);
   font-weight: 700;
   font-size: 15px;
   text-decoration: none;
   margin-right: 24px;
   letter-spacing: 0.5px;
 }
-.navbar-brand:hover { color: #6bb3ff; }
+.navbar-brand:hover { color: #81EBFF; }
 
 .navbar-links {
   display: flex;
@@ -47,11 +47,11 @@
   background: #1e1e1e;
 }
 .navbar-link.active {
-  color: #4a9eff;
-  background: #1a2a3a;
+  color: var(--xo-accent);
+  background: var(--xo-accent-dim);
 }
 .navbar-link.active-parent {
-  color: #6ba3d6;
+  color: #81EBFF;
 }
 
 .navbar-icon {
@@ -68,7 +68,7 @@
   color: #666;
 }
 .navbar-breadcrumb a {
-  color: #4a9eff;
+  color: var(--xo-accent);
   text-decoration: none;
 }
 .navbar-breadcrumb a:hover {

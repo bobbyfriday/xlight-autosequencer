@@ -1,14 +1,14 @@
-/* Theme Editor — xLight AutoSequencer */
+/* Theme Editor — x-onset */
 
 :root {
-  --bg: #1a1a1a;
+  --bg: var(--xo-bg);
   --bg2: #222222;
   --bg3: #2a2a2a;
-  --border: #333333;
-  --text: #e0e0e0;
+  --border: var(--xo-border);
+  --text: var(--xo-fg);
   --text-dim: #888888;
-  --accent: #5a9e5a;
-  --accent-hover: #6ebe6e;
+  --accent: var(--xo-accent);
+  --accent-hover: #81EBFF;
   --danger: #d95a5a;
   --danger-hover: #e06e6e;
   --warning: #d9a05a;
@@ -22,7 +22,7 @@ html, body {
   padding: 0;
   background: var(--bg);
   color: var(--text);
-  font-family: monospace;
+  font-family: var(--xo-font-mono);
   font-size: 13px;
 }
 

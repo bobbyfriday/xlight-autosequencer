@@ -1,5 +1,5 @@
 /**
- * Dashboard logic for xlight-analyze unified homepage.
+ * Dashboard logic for x-onset unified homepage.
  * Handles: song library table, sort/filter, upload, detail panel, delete.
  */
 (function () {

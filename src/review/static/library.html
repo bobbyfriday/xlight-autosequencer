@@ -3,14 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>xlight-analyze — Library</title>
+  <title>x-onset — Library</title>
+  <link rel="stylesheet" href="/theme.css">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      background: #1a1a1a;
-      color: #e0e0e0;
-      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--xo-bg);
+      color: var(--xo-fg);
+      font-family: var(--xo-font-main);
       min-height: 100vh;
       padding: 2rem;
     }
@@ -105,7 +106,7 @@
     .score-bar-fill {
       height: 100%;
       border-radius: 3px;
-      background: #4a9eff;
+      background: var(--xo-accent);
       transition: width 0.2s;
     }
     .score-bar-fill.score-good  { background: #4caf50; }
@@ -114,7 +115,7 @@
     .score-val { font-size: 0.8rem; color: #aaa; }
 
     .col-overall .score-val { color: #fff; font-weight: 600; }
-    .col-overall .score-bar-fill { background: #4a9eff; }
+    .col-overall .score-bar-fill { background: var(--xo-accent); }
 
     .badge-warn {
       display: inline-block;
@@ -177,12 +178,12 @@
     }
     #drop-zone:hover,
     #drop-zone.drag-over {
-      border-color: #4a9eff;
-      background: #1e2d40;
+      border-color: var(--xo-accent);
+      background: var(--xo-accent-dim);
     }
     #drop-zone p { color: #888; font-size: 0.9rem; margin-top: 0.5rem; }
 
-    #file-name { font-size: 0.85rem; color: #7ec8e3; font-weight: 500; min-height: 1.2em; }
+    #file-name { font-size: 0.85rem; color: var(--xo-accent); font-weight: 500; min-height: 1.2em; }
     #file-error { font-size: 0.82rem; color: #ff6b6b; min-height: 1.2em; }
 
     #btn-browse {
@@ -195,7 +196,7 @@
       cursor: pointer;
       align-self: flex-start;
     }
-    #btn-browse:hover { background: #3a3a3a; border-color: #4a9eff; color: #fff; }
+    #btn-browse:hover { background: #3a3a3a; border-color: var(--xo-accent); color: #fff; }
 
     .options {
       display: flex;
@@ -210,14 +211,14 @@
       color: #bbb;
     }
     .options input[type="checkbox"] {
-      accent-color: #4a9eff;
+      accent-color: var(--xo-accent);
       width: 15px;
       height: 15px;
     }
 
     #btn-analyze {
       padding: 0.6rem 1.4rem;
-      background: #4a9eff;
+      background: var(--xo-accent);
       color: #fff;
       border: none;
       border-radius: 6px;
@@ -251,7 +252,7 @@
     #progress-bar {
       height: 100%;
       width: 0%;
-      background: #4a9eff;
+      background: var(--xo-accent);
       transition: width 0.25s ease;
       border-radius: 4px;
     }
@@ -285,7 +286,7 @@
   </style>
 </head>
 <body>
-  <h1>xlight-analyze</h1>
+  <h1 class="brand-header"><span class="xo-css-logo">x-<span class="onset-pulse">onset</span></span></h1>
   <p class="subtitle">Analysis cache &amp; song library</p>
 
   <!-- ── Hierarchy library section ─────────────────────────────────────── -->
