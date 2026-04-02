@@ -6,7 +6,7 @@
       "mood": "ethereal",
       "occasion": "general",
       "genre": "any",
-      "intent": "Deep space and slow, infinite movement — shooting stars over shifting nebula gas",
+      "intent": "Deep space and slow, infinite movement \u2014 shooting stars over shifting nebula gas",
       "layers": [
         {
           "effect": "Butterfly",
@@ -30,7 +30,12 @@
           "parameter_overrides": {
             "E_SLIDER_Ripple_Thickness": 4,
             "E_SLIDER_Ripple_Movement": 20
-          }
+          },
+          "effect_pool": [
+            "Ripple Circle",
+            "Ripple Star",
+            "Spirals 3D Slow Spin"
+          ]
         }
       ],
       "variants": [
@@ -142,7 +147,7 @@
       "mood": "ethereal",
       "occasion": "general",
       "genre": "any",
-      "intent": "Pulsing deep-sea creatures or glowing forests — organic, living movement",
+      "intent": "Pulsing deep-sea creatures or glowing forests \u2014 organic, living movement",
       "layers": [
         {
           "effect": "Plasma",
@@ -204,7 +209,7 @@
       "mood": "aggressive",
       "occasion": "general",
       "genre": "rock",
-      "intent": "Raw power — house looks like it is on fire and exploding",
+      "intent": "Raw power \u2014 house looks like it is on fire and exploding",
       "layers": [
         {
           "effect": "Fire",
@@ -221,7 +226,13 @@
             "E_SLIDER_Shockwave_Start_Width": 8,
             "E_SLIDER_Shockwave_End_Radius": 100,
             "E_SLIDER_Shockwave_Speed": 70
-          }
+          },
+          "effect_pool": [
+            "Fire Medium",
+            "Fire Music-Reactive",
+            "Meteors Intense Explode",
+            "Shockwave Center"
+          ]
         },
         {
           "effect": "Strobe",
@@ -339,7 +350,7 @@
       "mood": "aggressive",
       "occasion": "general",
       "genre": "any",
-      "intent": "Sharp, fast, directional bullets of light — combat aesthetic",
+      "intent": "Sharp, fast, directional bullets of light \u2014 combat aesthetic",
       "layers": [
         {
           "effect": "Meteors",
@@ -459,7 +470,8 @@
         "#FF1133",
         "#880022",
         "#AA0033"
-      ]
+      ],
+      "transition_mode": "dramatic"
     },
     "Glitch City": {
       "name": "Glitch City",
@@ -523,14 +535,15 @@
         "#FF33AA",
         "#CC00CC",
         "#FF66DD"
-      ]
+      ],
+      "transition_mode": "none"
     },
     "The Kraken": {
       "name": "The Kraken",
       "mood": "dark",
       "occasion": "general",
       "genre": "any",
-      "intent": "Organic, writhing movement that feels claustrophobic — tentacles in the deep",
+      "intent": "Organic, writhing movement that feels claustrophobic \u2014 tentacles in the deep",
       "layers": [
         {
           "effect": "Liquid",
@@ -592,7 +605,7 @@
       "mood": "structural",
       "occasion": "general",
       "genre": "pop",
-      "intent": "Precise, mathematical beauty — Tron-inspired symmetry",
+      "intent": "Precise, mathematical beauty \u2014 Tron-inspired symmetry",
       "layers": [
         {
           "effect": "Plasma",
@@ -609,7 +622,12 @@
             "E_SLIDER_Pinwheel_Arms": 6,
             "E_SLIDER_Pinwheel_Speed": 15,
             "E_SLIDER_Pinwheel_Twist": 25
-          }
+          },
+          "effect_pool": [
+            "Bars Single 3D Half-Cycle",
+            "Bars Quad 3D Vertical",
+            "Single Strand Rainbow Chase"
+          ]
         }
       ],
       "variants": [
@@ -720,7 +738,7 @@
       "mood": "structural",
       "occasion": "general",
       "genre": "any",
-      "intent": "Interlocked movement across props — morphs that zip back and forth",
+      "intent": "Interlocked movement across props \u2014 morphs that zip back and forth",
       "layers": [
         {
           "effect": "Plasma",
@@ -782,7 +800,7 @@
       "mood": "ethereal",
       "occasion": "christmas",
       "genre": "any",
-      "intent": "Gentle snowfall over twinkling cool blue lights — peaceful winter scene",
+      "intent": "Gentle snowfall over twinkling cool blue lights \u2014 peaceful winter scene",
       "layers": [
         {
           "effect": "Color Wash",
@@ -853,7 +871,7 @@
       "mood": "structural",
       "occasion": "christmas",
       "genre": "pop",
-      "intent": "Classic candy cane stripes chasing along the roofline — fun and festive",
+      "intent": "Classic candy cane stripes chasing along the roofline \u2014 fun and festive",
       "layers": [
         {
           "effect": "Single Strand",
@@ -918,7 +936,7 @@
       "mood": "ethereal",
       "occasion": "christmas",
       "genre": "classical",
-      "intent": "Slow golden fire with warm twinkle — cozy fireplace warmth on a cold night",
+      "intent": "Slow golden fire with warm twinkle \u2014 cozy fireplace warmth on a cold night",
       "layers": [
         {
           "effect": "Fire",
@@ -981,7 +999,7 @@
       "mood": "structural",
       "occasion": "christmas",
       "genre": "any",
-      "intent": "Radiant star burst with expanding ripples — guiding light of the season",
+      "intent": "Radiant star burst with expanding ripples \u2014 guiding light of the season",
       "layers": [
         {
           "effect": "Pinwheel",
@@ -1045,7 +1063,7 @@
       "mood": "aggressive",
       "occasion": "christmas",
       "genre": "rock",
-      "intent": "High-energy holiday hype — shockwaves and strobes in classic Christmas colors",
+      "intent": "High-energy holiday hype \u2014 shockwaves and strobes in classic Christmas colors",
       "layers": [
         {
           "effect": "Shockwave",
@@ -1107,7 +1125,7 @@
       "mood": "ethereal",
       "occasion": "christmas",
       "genre": "classical",
-      "intent": "Slow, peaceful color wash with gentle snowfall — contemplative holiday stillness",
+      "intent": "Slow, peaceful color wash with gentle snowfall \u2014 contemplative holiday stillness",
       "layers": [
         {
           "effect": "Color Wash",
@@ -1170,7 +1188,7 @@
       "mood": "dark",
       "occasion": "halloween",
       "genre": "any",
-      "intent": "Eerie purple plasma with unsettling slow strobe flickers — haunted house ambiance",
+      "intent": "Eerie purple plasma with unsettling slow strobe flickers \u2014 haunted house ambiance",
       "layers": [
         {
           "effect": "Plasma",
@@ -1232,7 +1250,7 @@
       "mood": "aggressive",
       "occasion": "halloween",
       "genre": "rock",
-      "intent": "Blazing orange fire with explosive shockwaves — carved pumpkin brought to life",
+      "intent": "Blazing orange fire with explosive shockwaves \u2014 carved pumpkin brought to life",
       "layers": [
         {
           "effect": "Fire",
@@ -1297,7 +1315,7 @@
       "mood": "dark",
       "occasion": "halloween",
       "genre": "any",
-      "intent": "Low creeping fog with tendrils reaching through the darkness — graveyard at midnight",
+      "intent": "Low creeping fog with tendrils reaching through the darkness \u2014 graveyard at midnight",
       "layers": [
         {
           "effect": "Liquid",

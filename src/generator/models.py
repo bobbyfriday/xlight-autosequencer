@@ -97,6 +97,7 @@ class SequencePlan:
     layout_groups: list = field(default_factory=list)  # list[PowerGroup]
     models: list[str] = field(default_factory=list)
     frame_interval_ms: int = FRAME_INTERVAL_MS
+    rotation_plan: Optional[Any] = None  # RotationPlan when variant rotation is active
 
 
 @dataclass
@@ -126,6 +127,7 @@ class GenerationConfig:
     theme_overrides: Optional[dict[int, str]] = None
     tiers: Optional[set[int]] = None
     story_path: Optional[Path] = None   # Optional path to song story JSON
+    transition_mode: str = "subtle"     # "none", "subtle", or "dramatic"
     curves_mode: str = "all"            # Value curve generation: all, brightness, speed, color, none
 
     _VALID_CURVES_MODES = frozenset({"all", "brightness", "speed", "color", "none"})

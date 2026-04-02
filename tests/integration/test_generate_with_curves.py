@@ -230,6 +230,7 @@ class TestCurvesModeInBuildPlan:
         assert set(curves_brightness.keys()) <= set(curves_all.keys())
 
 
+
 # ---------------------------------------------------------------------------
 # T012: xSQ writer encodes curves inline
 # ---------------------------------------------------------------------------

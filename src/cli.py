@@ -1789,12 +1789,16 @@ def _load_curves_mode_from_config() -> str:
 @click.option("--story", "story_path", default=None, type=click.Path(dir_okay=False),
               help="Path to song story JSON (uses _story_reviewed.json if exists, "
                    "falls back to _story.json)")
+@click.option("--transition-mode", "transition_mode", default="subtle",
+              type=click.Choice(["none", "subtle", "dramatic"]),
+              help="Section transition mode: none (no fades), subtle (1-beat), dramatic (1-bar). "
+                   "Default: subtle")
 @click.option("--curves", "curves_mode", default=None,
               type=click.Choice(sorted(_VALID_CURVES_MODES)),
               help="Value curve generation mode (default: all). Overrides config file.")
 def generate_cmd(audio_file, layout_file, output_dir, genre, occasion,
                  fresh, no_wizard, target_section, theme_overrides_raw,
-                 tiers_raw, story_path, curves_mode):
+                 tiers_raw, story_path, transition_mode, curves_mode):
     """Generate an xLights .xsq sequence from an MP3 and layout file."""
     from src.generator.models import GenerationConfig
     from src.generator.plan import generate_sequence, read_song_metadata
@@ -1856,6 +1860,7 @@ def generate_cmd(audio_file, layout_file, output_dir, genre, occasion,
         target_sections=[target_section] if target_section else None,
         tiers=tiers,
         story_path=Path(story_path) if story_path else None,
+        transition_mode=transition_mode,
         curves_mode=curves_mode,
     )
 
@@ -2716,6 +2721,57 @@ def variant_delete(name: str, yes: bool) -> None:
 
     lib.delete_custom_variant(name, custom_dir)
     click.echo(f"Deleted variant '{existing.name}'")
+
+
+@cli.command("rotation-report")
+@click.argument("plan_path", type=click.Path(exists=True))
+@click.option("--section", default=None, help="Filter to section label")
+@click.option("--group", default=None, help="Filter to group name")
+@click.option("--format", "fmt", type=click.Choice(["table", "json"]), default="table")
+def rotation_report_cmd(plan_path: str, section: str | None, group: str | None, fmt: str) -> None:
+    """Display the rotation plan for a generated sequence."""
+    with open(plan_path) as f:
+        data = json.load(f)
+
+    rp = data.get("rotation_plan")
+    if not rp:
+        click.echo("No rotation plan found in this file.", err=True)
+        raise SystemExit(2)
+
+    entries = rp.get("entries", [])
+
+    # Apply filters
+    if section:
+        entries = [e for e in entries if e["section_label"] == section]
+    if group:
+        entries = [e for e in entries if e["group_name"] == group]
+
+    if fmt == "json":
+        click.echo(json.dumps({"rotation_plan": {**rp, "entries": entries}}, indent=2))
+    else:
+        # Table format
+        click.echo(
+            f"{'Section':<15} {'Group':<25} {'Variant':<25} {'Score':>6}  {'Top Factors'}"
+        )
+        click.echo("\u2500" * 100)
+        for e in entries:
+            bd = e.get("score_breakdown", {})
+            top = sorted(bd.items(), key=lambda x: x[1], reverse=True)[:2]
+            factors = ", ".join(f"{k}={v:.2f}" for k, v in top)
+            click.echo(
+                f"{e['section_label']:<15} {e['group_name']:<25} "
+                f"{e['variant_name']:<25} {e['score']:>6.2f}  {factors}"
+            )
+
+        # Summary
+        sym = rp.get("symmetry_pairs", [])
+        unique_variants = len(set(e["variant_name"] for e in entries))
+        click.echo(f"\nSymmetry pairs: {len(sym)}")
+        click.echo(
+            f"Sections: {rp.get('sections_count', 0)} | "
+            f"Groups: {rp.get('groups_count', 0)} | "
+            f"Unique variants: {unique_variants}"
+        )
 
 
 def main() -> None:

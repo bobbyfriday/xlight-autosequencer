@@ -27,6 +27,7 @@ class EffectLayer:
     blend_mode: str = "Normal"
     parameter_overrides: dict[str, int | float | bool | str] = field(default_factory=dict)
     variant_ref: str | None = None
+    effect_pool: list[str] = field(default_factory=list)
 
     @classmethod
     def from_dict(cls, data: dict) -> EffectLayer:
@@ -35,6 +36,7 @@ class EffectLayer:
             blend_mode=data.get("blend_mode", "Normal"),
             parameter_overrides=data.get("parameter_overrides", {}),
             variant_ref=data.get("variant_ref", None),
+            effect_pool=data.get("effect_pool", []),
         )
 
     def to_dict(self) -> dict:
@@ -43,6 +45,7 @@ class EffectLayer:
             "blend_mode": self.blend_mode,
             "parameter_overrides": self.parameter_overrides,
             "variant_ref": self.variant_ref,
+            "effect_pool": self.effect_pool,
         }
 
 
@@ -69,6 +72,16 @@ class Theme:
     palette: list[str]
     accent_palette: list[str] = field(default_factory=list)
     variants: list[ThemeVariant] = field(default_factory=list)
+    transition_mode: str | None = None
+
+    def __post_init__(self) -> None:
+        if self.transition_mode is not None:
+            valid = ("none", "subtle", "dramatic")
+            if self.transition_mode not in valid:
+                raise ValueError(
+                    f"transition_mode must be None or one of {valid}, "
+                    f"got {self.transition_mode!r}"
+                )
 
     @classmethod
     def from_dict(cls, data: dict) -> Theme:
@@ -82,4 +95,21 @@ class Theme:
             palette=data["palette"],
             accent_palette=data.get("accent_palette", []),
             variants=[ThemeVariant.from_dict(v) for v in data.get("variants", [])],
+            transition_mode=data.get("transition_mode", None),
         )
+
+    def to_dict(self) -> dict:
+        d = {
+            "name": self.name,
+            "mood": self.mood,
+            "occasion": self.occasion,
+            "genre": self.genre,
+            "intent": self.intent,
+            "layers": [l.to_dict() for l in self.layers],
+            "palette": self.palette,
+            "accent_palette": self.accent_palette,
+            "variants": [{"layers": [l.to_dict() for l in v.layers]} for v in self.variants],
+        }
+        if self.transition_mode is not None:
+            d["transition_mode"] = self.transition_mode
+        return d
