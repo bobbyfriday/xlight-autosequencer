@@ -595,6 +595,11 @@ class TestModeOverrideLogic:
         assert get_fade("subtle") != get_fade("dramatic")
         assert get_fade("none") == 0
 
+    def test_theme_invalid_transition_mode_raises(self):
+        """Invalid transition_mode on a theme should raise ValueError."""
+        with pytest.raises(ValueError, match="transition_mode must be"):
+            _make_theme(transition_mode="blazing_fast")
+
     def test_theme_dramatic_overrides_global_none(self):
         """theme.transition_mode='dramatic' should apply even if global is 'none'."""
         p_a = _make_placement(effect_name="Fire", xlights_id="E_FIRE")
@@ -611,3 +616,59 @@ class TestModeOverrideLogic:
 
         # Theme override "dramatic" → fades present
         assert p_a.fade_out_ms > 0
+
+
+# ---------------------------------------------------------------------------
+# apply_transitions — combined entry point
+# ---------------------------------------------------------------------------
+
+class TestApplyTransitions:
+    def test_crossfade_and_fadeout_combined(self):
+        """apply_transitions should apply both crossfades and fadeout in one call."""
+        p_a = _make_placement(effect_name="Fire", xlights_id="E_FIRE")
+        p_b_first = _make_placement(effect_name="Meteors", xlights_id="E_METEORS", start_ms=10000, end_ms=15000)
+        p_b_last = _make_placement(effect_name="Meteors", xlights_id="E_METEORS", start_ms=15000, end_ms=20000)
+
+        a = _make_assignment("verse", 0, 10000, group_effects={"08_HERO": [p_a]})
+        b = _make_assignment("outro", 10000, 20000, group_effects={"08_HERO": [p_b_first, p_b_last]})
+
+        config = TransitionConfig(mode="subtle", fadeout_strategy="progressive")
+        apply_transitions([a, b], config, bpm=120)
+
+        # Crossfade: verse→outro boundary
+        assert p_a.fade_out_ms > 0, "Crossfade should set fade_out on outgoing"
+        assert p_b_first.fade_in_ms > 0, "Crossfade should set fade_in on incoming"
+        # Fadeout: last placement in outro should have fade_out
+        assert p_b_last.fade_out_ms > 0, "Fadeout should set fade_out on last outro placement"
+
+    def test_fadeout_preserves_larger_crossfade(self):
+        """If crossfade set a larger fade_out_ms than fadeout would, keep the larger value."""
+        p_last = _make_placement(effect_name="Fire", xlights_id="E_FIRE", start_ms=0, end_ms=5000)
+
+        # Single short section — abrupt fade will be 3000ms
+        a = _make_assignment("chorus", 0, 5000, group_effects={"08_HERO": [p_last]})
+        # Manually set a larger fade from a hypothetical crossfade pass
+        p_last.fade_out_ms = 9999
+
+        from src.generator.transitions import apply_fadeout, FadeOutPlan
+        plan = FadeOutPlan(start_ms=2000, end_ms=5000, is_outro=False, tier_offsets={8: 0.0})
+        apply_fadeout([a], plan)
+
+        # Fadeout would set 3000ms, but existing 9999 is larger — should keep 9999
+        assert p_last.fade_out_ms == 9999
+
+    def test_mode_none_fadeout_none_produces_all_zeros(self):
+        """mode=none + fadeout_strategy=none → zero fades everywhere."""
+        p_a = _make_placement(effect_name="Fire", xlights_id="E_FIRE")
+        p_b = _make_placement(effect_name="Meteors", xlights_id="E_METEORS")
+
+        a = _make_assignment("verse", 0, 10000, group_effects={"g": [p_a]})
+        b = _make_assignment("outro", 10000, 20000, group_effects={"g": [p_b]})
+
+        config = TransitionConfig(mode="none", fadeout_strategy="none")
+        apply_transitions([a, b], config, bpm=120)
+
+        assert p_a.fade_in_ms == 0
+        assert p_a.fade_out_ms == 0
+        assert p_b.fade_in_ms == 0
+        assert p_b.fade_out_ms == 0

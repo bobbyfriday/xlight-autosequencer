@@ -74,6 +74,15 @@ class Theme:
     variants: list[ThemeVariant] = field(default_factory=list)
     transition_mode: str | None = None
 
+    def __post_init__(self) -> None:
+        if self.transition_mode is not None:
+            valid = ("none", "subtle", "dramatic")
+            if self.transition_mode not in valid:
+                raise ValueError(
+                    f"transition_mode must be None or one of {valid}, "
+                    f"got {self.transition_mode!r}"
+                )
+
     @classmethod
     def from_dict(cls, data: dict) -> Theme:
         return cls(

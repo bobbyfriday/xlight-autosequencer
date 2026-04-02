@@ -8,11 +8,14 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 import sys
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 import librosa
+
+_snap_logger = logging.getLogger(__name__)
 import numpy as np
 
 if TYPE_CHECKING:
@@ -828,8 +831,7 @@ def _snap_sections_to_bars(sections: list, bars: "TimingTrack") -> list:
     for mark in result:
         if seen and seen[-1].time_ms == mark.time_ms:
             # Duplicate — skip (absorb shorter section into preceding one)
-            import logging as _logging
-            _logging.getLogger(__name__).debug(
+            _snap_logger.debug(
                 "Absorbed duplicate boundary at %dms", mark.time_ms
             )
         else:
@@ -846,8 +848,7 @@ def _snap_sections_to_bars(sections: list, bars: "TimingTrack") -> list:
             gap = result[i].time_ms - new_result[-1].time_ms
             if gap < _MIN_SECTION_MS:
                 # Absorb into preceding section (drop this boundary)
-                import logging as _logging
-                _logging.getLogger(__name__).warning(
+                _snap_logger.warning(
                     "Absorbing short section (%dms < %dms minimum) at boundary %dms",
                     gap, _MIN_SECTION_MS, result[i].time_ms,
                 )

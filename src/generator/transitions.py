@@ -88,7 +88,7 @@ def compute_crossfade_duration(bpm: float, mode: str, section_duration_ms: int) 
         return 0
 
     max_duration = section_duration_ms // 2
-    return min(int(raw), max_duration)
+    return min(round(raw), max_duration)
 
 
 def detect_same_effect_continuation(
@@ -274,7 +274,7 @@ def apply_fadeout(
         if fade_ms <= 0:
             continue
 
-        placements[-1].fade_out_ms = fade_ms
+        placements[-1].fade_out_ms = max(placements[-1].fade_out_ms, fade_ms)
 
 
 def apply_transitions(

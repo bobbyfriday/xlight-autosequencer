@@ -77,13 +77,10 @@ class TestMergePrevention:
         result = _snap_sections_to_bars(sections, bars)
         times = sorted(m.time_ms for m in result)
 
-        # No two consecutive times should be within 2000ms
+        # All consecutive gaps must be >= 2000ms (minimum section duration)
         for i in range(len(times) - 1):
             gap = times[i + 1] - times[i]
-            if gap < 2000:
-                # A gap < 2000ms is allowed only if we have original legitimate short sections
-                # In this test, the 1500→2500 section (1000ms) must be absorbed
-                pass  # Absorb check is about the merged result
+            assert gap >= 2000, f"Short section survived: {gap}ms gap in {times}"
 
         # The result must have no zero-length sections
         for i in range(len(times) - 1):
@@ -118,8 +115,8 @@ class TestCrossoverPrevention:
         for i in range(len(times) - 1):
             assert times[i] <= times[i + 1], f"Order violated: {times}"
 
-        # No duplicates allowed
-        assert len(times) == len(set(times)) or True  # merging is allowed
+        # No duplicates (merging absorbs one of the boundaries)
+        assert len(times) == len(set(times)), f"Duplicate timestamps after snap: {times}"
 
 
 class TestEmptyInputs:
