@@ -8,6 +8,13 @@ from src.effects.library import EffectLibrary
 from src.variants.library import VariantLibrary
 from src.variants.models import EffectVariant, VariantTags
 
+# xLights param key names → our effect library names (spacing/casing mismatches)
+_EFFECT_NAME_ALIASES: dict[str, str] = {
+    "ColorWash": "Color Wash",
+    "VUMeter": "VU Meter",
+    "SingleStrand": "Single Strand",
+}
+
 
 def _parse_effect_db(root: ET.Element) -> dict[int, dict[str, str]]:
     """Build a ref → parameter dict index from <EffectDB> element.
@@ -60,7 +67,12 @@ def _extract_effect_name(params: dict[str, str], label: str) -> str | None:
             candidates[effect_name] = candidates.get(effect_name, 0) + 1
 
     if candidates:
-        return max(candidates, key=lambda k: candidates[k])
+        # xLights meta-effects (e.g. Single Strand) contain sub-effect params
+        # (Chase, Skips) that outvote the parent.  Detect by known marker keys.
+        if "SingleStrand" in candidates:
+            return "Single Strand"
+        name = max(candidates, key=lambda k: candidates[k])
+        return _EFFECT_NAME_ALIASES.get(name, name)
 
     if label:
         first_word = label.split()[0] if label.split() else ""
