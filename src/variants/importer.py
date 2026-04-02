@@ -95,15 +95,16 @@ def _make_identity_key(base_effect: str, params: dict) -> str:
         v = params[k]
         if isinstance(v, bool):
             normalized[k] = int(v)
+        elif isinstance(v, float) and v == int(v):
+            normalized[k] = int(v)
         else:
             normalized[k] = v
 
     payload = json.dumps(
         {"base_effect": base_effect, "params": normalized},
         sort_keys=True,
-        ensure_ascii=False,
     )
-    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+    return hashlib.sha256(payload.encode()).hexdigest()
 
 
 def _coerce_param_values(params: dict[str, str]) -> dict[str, int | float | str]:

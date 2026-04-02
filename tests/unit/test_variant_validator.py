@@ -160,6 +160,29 @@ class TestValidateVariant:
         errors = validate_variant(data, effect_lib)
         assert any("name" in e.lower() for e in errors)
 
+    def test_direction_cycle_invalid_param_name(self, effect_lib):
+        """direction_cycle.param must reference a known parameter for the base effect."""
+        data = _valid_data()
+        data["direction_cycle"] = {
+            "param": "E_CHOICE_Fire_NonExistent",
+            "values": ["Left", "Right"],
+            "mode": "alternate",
+        }
+        errors = validate_variant(data, effect_lib)
+        assert any("direction_cycle param" in e and "not a known parameter" in e for e in errors)
+
+    def test_direction_cycle_param_in_overrides_rejected(self, effect_lib):
+        """direction_cycle.param must not also appear in parameter_overrides."""
+        data = _valid_data()
+        data["parameter_overrides"]["E_CHOICE_Fire_Location"] = "Top"
+        data["direction_cycle"] = {
+            "param": "E_CHOICE_Fire_Location",
+            "values": ["Top", "Bottom"],
+            "mode": "alternate",
+        }
+        errors = validate_variant(data, effect_lib)
+        assert any("should not also appear in parameter_overrides" in e for e in errors)
+
     def test_wrong_type_parameter_value_returns_error_not_exception(self, effect_lib):
         """A string value for a numeric slider must return an error, not raise TypeError."""
         data = _valid_data()

@@ -222,6 +222,20 @@ class TestEffectVariant:
         )
         assert v_bool.identity_key() == v_int.identity_key()
 
+    def test_identity_key_float_int_equivalence(self):
+        """1.0 (float) and 1 (int) must produce the same identity key."""
+        v_float = EffectVariant(
+            name="A", base_effect="Bars", description="d",
+            parameter_overrides={"E_TEXTCTRL_Bars_Cycles": 1.0},
+            tags=VariantTags(),
+        )
+        v_int = EffectVariant(
+            name="A", base_effect="Bars", description="d",
+            parameter_overrides={"E_TEXTCTRL_Bars_Cycles": 1},
+            tags=VariantTags(),
+        )
+        assert v_float.identity_key() == v_int.identity_key()
+
     def test_identity_key_false_zero_equivalence(self):
         """False (bool) and 0 (int) must produce the same identity key."""
         v_bool = EffectVariant(

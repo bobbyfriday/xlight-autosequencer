@@ -157,6 +157,7 @@ def query_variants():
 
     scored, relaxed_filters = rank_variants_with_fallback(ctx, lib, elib)
 
+    min_score = body.get("min_score", 0.0)
     results = [
         {
             "variant": variant.to_dict(),
@@ -164,6 +165,7 @@ def query_variants():
             "breakdown": {k: round(v, 6) for k, v in breakdown.items()},
         }
         for variant, score, breakdown in scored
+        if score >= min_score
     ]
 
     return jsonify({
@@ -220,6 +222,10 @@ def import_variants():
     import tempfile
     import os
 
+    MAX_UPLOAD_SIZE = 50 * 1024 * 1024  # 50 MB
+    if request.content_length and request.content_length > MAX_UPLOAD_SIZE:
+        return jsonify({"error": "File too large (max 50 MB)"}), 413
+
     dry_run = request.args.get("dry_run", "").lower() in ("true", "1")
     skip_dupes = request.args.get("skip_duplicates", "").lower() in ("true", "1")
 
@@ -273,7 +279,9 @@ def create_variant():
     from src.variants.validator import validate_variant
     from src.variants.models import EffectVariant
 
-    data = request.get_json(force=True) or {}
+    data = request.get_json(silent=True)
+    if data is None:
+        return jsonify({"errors": ["Request body must be valid JSON"]}), 400
     elib = _get_effect_library()
     errors = validate_variant(data, elib)
     if errors:
@@ -319,7 +327,9 @@ def update_variant(name: str):
     if existing.name in builtin_names:
         return jsonify({"error": f"Cannot modify built-in variant '{name}'"}), 403
 
-    data = request.get_json(force=True) or {}
+    data = request.get_json(silent=True)
+    if data is None:
+        return jsonify({"errors": ["Request body must be valid JSON"]}), 400
     data["name"] = existing.name  # name is immutable via PUT
 
     errors = validate_variant(data, elib)

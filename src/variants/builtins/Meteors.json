@@ -87,7 +87,7 @@
       "tags": {
         "tier_affinity": "foreground",
         "energy_level": "high",
-        "speed_feel": "slow",
+        "speed_feel": "moderate",
         "direction": null,
         "section_roles": ["chorus", "drop"],
         "scope": "single-prop",

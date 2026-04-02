@@ -91,10 +91,13 @@ class EffectVariant:
         value loaded as a Python bool and the same value loaded as an int
         produce the same key.
         """
-        normalized = {
-            k: int(v) if isinstance(v, bool) else v
-            for k, v in self.parameter_overrides.items()
-        }
+        normalized = {}
+        for k, v in self.parameter_overrides.items():
+            if isinstance(v, bool):
+                v = int(v)
+            elif isinstance(v, float) and v == int(v):
+                v = int(v)
+            normalized[k] = v
         payload = json.dumps(
             {"base_effect": self.base_effect, "params": normalized},
             sort_keys=True,

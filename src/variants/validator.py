@@ -118,4 +118,20 @@ def validate_variant(data: dict, effect_library: EffectLibrary) -> list[str]:
                     "direction_cycle.mode must be one of ['alternate', 'random']"
                 )
 
+            # Check dc param is a valid parameter for this effect
+            if effect_defn is not None and isinstance(dc.get("param"), str):
+                known_params = {p.storage_name for p in effect_defn.parameters}
+                if dc["param"] not in known_params:
+                    errors.append(
+                        f"direction_cycle param '{dc['param']}' is not a known parameter "
+                        f"for effect '{data['base_effect']}'"
+                    )
+
+            # dc param should not also appear in parameter_overrides
+            if isinstance(dc.get("param"), str) and dc["param"] in data.get("parameter_overrides", {}):
+                errors.append(
+                    f"direction_cycle param '{dc['param']}' should not also appear in "
+                    f"parameter_overrides (the generator controls this parameter dynamically)"
+                )
+
     return errors

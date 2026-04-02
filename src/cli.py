@@ -2375,7 +2375,7 @@ def _get_variant_lib():
     if _variant_library_override is not None:
         return _variant_library_override
     from src.variants.library import load_variant_library
-    return load_variant_library()
+    return load_variant_library(effect_library=_get_variant_effect_lib())
 
 
 def _get_variant_effect_lib():
@@ -2600,6 +2600,9 @@ def variant_create(
     else:
         data = {"name": name, "base_effect": base_effect or "", "description": description,
                 "parameter_overrides": {}, "tags": {}}
+
+    if not from_file and not data.get("parameter_overrides"):
+        click.echo("WARNING: Creating variant with no parameter overrides (identical to base effect defaults)", err=True)
 
     # CLI flags override file contents
     data["name"] = name

@@ -261,3 +261,9 @@ With multiple developers after Foundation:
 - Constitution requires test-first: write tests, confirm they fail, then implement
 - Commit after each task or logical group
 - Stop at any checkpoint to validate story independently
+
+---
+
+## Deferred Work
+
+- [ ] T049 Implement direction_cycle consumption in effect_placer.py — when placing an effect with direction_cycle, alternate the direction parameter value based on beat/bar timing from the hierarchy. Currently direction_cycle is modeled and validated but not consumed by the generator.

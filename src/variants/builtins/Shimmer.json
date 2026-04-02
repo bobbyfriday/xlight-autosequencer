@@ -4,7 +4,7 @@
     {
       "name": "Shimmer Subtle",
       "base_effect": "Shimmer",
-      "description": "Gentle shimmer with low duty factor and fast cycling. Soft sparkle background for stars and custom props.",
+      "description": "Gentle shimmer with low duty factor and slow cycling. Soft sparkle background for stars and custom props.",
       "parameter_overrides": {
         "E_CHECKBOX_Shimmer_Use_All_Colors": 1,
         "E_SLIDER_Shimmer_Duty_Factor": 21,
@@ -13,7 +13,7 @@
       "tags": {
         "tier_affinity": "background",
         "energy_level": "low",
-        "speed_feel": "fast",
+        "speed_feel": "slow",
         "direction": null,
         "section_roles": ["verse", "intro", "outro"],
         "scope": "single-prop",

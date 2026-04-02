@@ -105,10 +105,10 @@
       },
       "tags": {
         "tier_affinity": "mid",
-        "energy_level": "medium",
+        "energy_level": "high",
         "speed_feel": "moderate",
         "direction": null,
-        "section_roles": ["chorus", "build"],
+        "section_roles": ["chorus", "build", "drop"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
@@ -128,10 +128,10 @@
       },
       "tags": {
         "tier_affinity": "mid",
-        "energy_level": "medium",
+        "energy_level": "high",
         "speed_feel": "moderate",
         "direction": null,
-        "section_roles": ["chorus", "build"],
+        "section_roles": ["chorus", "build", "drop"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
