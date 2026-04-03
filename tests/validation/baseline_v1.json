@@ -1,0 +1,80 @@
+{
+  "version": "1.0",
+  "entries": [
+    {
+      "scenario_name": "pop_anthem",
+      "scores": {
+        "beat_alignment": 100.0,
+        "energy_tracking": 67.9,
+        "effect_variety": 22.4,
+        "theme_coherence": 100.0,
+        "temporal_coverage": 100.0,
+        "transition_quality": 100.0,
+        "tier_utilization": 58.3,
+        "repetition_avoidance": 100.0,
+        "color_usage": 100.0
+      },
+      "overall": 83.2
+    },
+    {
+      "scenario_name": "christmas_ballad",
+      "scores": {
+        "beat_alignment": 100.0,
+        "energy_tracking": 44.6,
+        "effect_variety": 24.9,
+        "theme_coherence": 100.0,
+        "temporal_coverage": 100.0,
+        "transition_quality": 100.0,
+        "tier_utilization": 55.0,
+        "repetition_avoidance": 100.0,
+        "color_usage": 100.0
+      },
+      "overall": 80.5
+    },
+    {
+      "scenario_name": "edm_banger",
+      "scores": {
+        "beat_alignment": 100.0,
+        "energy_tracking": 67.9,
+        "effect_variety": 24.4,
+        "theme_coherence": 100.0,
+        "temporal_coverage": 100.0,
+        "transition_quality": 100.0,
+        "tier_utilization": 58.3,
+        "repetition_avoidance": 100.0,
+        "color_usage": 100.0
+      },
+      "overall": 83.4
+    },
+    {
+      "scenario_name": "orchestral_piece",
+      "scores": {
+        "beat_alignment": 100.0,
+        "energy_tracking": 57.1,
+        "effect_variety": 22.3,
+        "theme_coherence": 100.0,
+        "temporal_coverage": 100.0,
+        "transition_quality": 100.0,
+        "tier_utilization": 57.7,
+        "repetition_avoidance": 100.0,
+        "color_usage": 100.0
+      },
+      "overall": 81.9
+    },
+    {
+      "scenario_name": "short_jingle",
+      "scores": {
+        "beat_alignment": 100.0,
+        "energy_tracking": 75.0,
+        "effect_variety": 33.1,
+        "theme_coherence": 100.0,
+        "temporal_coverage": 100.0,
+        "transition_quality": 100.0,
+        "tier_utilization": 61.0,
+        "repetition_avoidance": 100.0,
+        "color_usage": 100.0
+      },
+      "overall": 85.5
+    }
+  ]
+}
