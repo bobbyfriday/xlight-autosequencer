@@ -118,6 +118,14 @@
     if (tw) tw.style.display = '';
     if (fb) fb.style.display = '';
 
+    // Auto-expand upload section when library is empty
+    var uploadSection = document.getElementById('upload-section');
+    if (uploadSection) {
+      if (total === 0) {
+        uploadSection.classList.remove('collapsed');
+      }
+    }
+
     // Update sort indicators
     document.querySelectorAll('.library-table th').forEach(function (th) {
       th.classList.remove('sorted', 'sort-asc', 'sort-desc');
@@ -164,6 +172,34 @@
         renderDetail(e, tb);
       }
     });
+
+    // Update workflow guide based on library state
+    var steps = document.querySelectorAll('.workflow-step');
+    var connectors = document.querySelectorAll('.workflow-connector');
+    if (steps.length > 0) {
+      // Reset all
+      steps.forEach(function(s) { s.classList.remove('active', 'completed'); });
+      connectors.forEach(function(c) { c.classList.remove('completed'); });
+
+      if (total === 0) {
+        // No songs: step 1 is active
+        steps[0].classList.add('active');
+      } else {
+        // Songs exist: step 1 complete, step 2 active
+        steps[0].classList.add('completed');
+        if (connectors[0]) connectors[0].classList.add('completed');
+        steps[1].classList.add('active');
+
+        // Check if any songs have story data
+        var hasStory = _entries.some(function(e) { return e.has_story; });
+        if (hasStory) {
+          steps[1].classList.remove('active');
+          steps[1].classList.add('completed');
+          if (connectors[1]) connectors[1].classList.add('completed');
+          steps[2].classList.add('active');
+        }
+      }
+    }
 
     // Attach expand button handlers
     tb.querySelectorAll('.btn-expand').forEach(function (btn) {
@@ -235,6 +271,7 @@
       btn.addEventListener('click', function () {
         var action = btn.dataset.action;
         if (action === 'timeline') openSong(entry.source_hash, 'timeline');
+        else if (action === 'preview') window.location.href = '/generation-preview?hash=' + entry.source_hash;
         else if (action === 'story') openSong(entry.source_hash, 'story', entry.story_path);
         else if (action === 'phonemes') openSong(entry.source_hash, 'phonemes');
         else if (action === 'reanalyze') reanalyzeSong(entry);
@@ -424,10 +461,36 @@
         es.close();
         document.getElementById('progress-bar').style.width = '100%';
         document.getElementById('progress-label').textContent = 'Complete';
-        document.getElementById('progress-done').style.display = '';
         _lastResultHash = null;
         // Refresh library
         fetchLibrary();
+
+        // Show analysis summary in the done section
+        var doneSec = document.getElementById('progress-done');
+        if (doneSec && data.summary) {
+          var s = data.summary;
+          var summaryHtml = '<div class="analysis-summary">';
+          summaryHtml += '<p class="summary-headline">&#10003; Analysis complete!</p>';
+          summaryHtml += '<div class="summary-stats">';
+          summaryHtml += '<span class="summary-stat">' + (s.track_count || 0) + ' tracks</span>';
+          if (s.stems_available && s.stems_available.length > 1) {
+            summaryHtml += '<span class="summary-stat">' + (s.stems_available.length - 1) + ' stems</span>';
+          }
+          if (s.has_phonemes) summaryHtml += '<span class="summary-stat">Phonemes</span>';
+          if (s.has_story) summaryHtml += '<span class="summary-stat">Story</span>';
+          summaryHtml += '</div>';
+          if (s.warnings && s.warnings.length > 0) {
+            summaryHtml += '<div class="summary-warnings">';
+            s.warnings.forEach(function(w) {
+              summaryHtml += '<div class="summary-warning">&#9888; ' + w + '</div>';
+            });
+            summaryHtml += '</div>';
+          }
+          summaryHtml += '</div>';
+          doneSec.innerHTML = summaryHtml +
+            '<button id="btn-view-result" class="btn btn-primary btn-small">View Result</button>';
+        }
+        doneSec.style.display = '';
 
         document.getElementById('btn-view-result').onclick = function () {
           if (data.story_path) {

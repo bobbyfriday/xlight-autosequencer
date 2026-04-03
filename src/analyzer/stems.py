@@ -219,13 +219,22 @@ print(json.dumps(result))
 '''
             print("  → htdemucs_6s (drums, bass, vocals, guitar, piano, other)...",
                   file=sys.stderr)
-            proc = _sp.run(
-                [str(vamp_python), "-c", script],
-                capture_output=True, text=True, timeout=600,
-            )
-            if proc.returncode != 0:
+            try:
+                proc = _sp.run(
+                    [str(vamp_python), "-c", script],
+                    capture_output=True, text=True, timeout=600,
+                )
+            except _sp.TimeoutExpired:
                 raise RuntimeError(
-                    f"demucs subprocess failed:\n{proc.stderr[:1000]}"
+                    "Demucs stem separation timed out after 10 minutes. "
+                    "This may indicate insufficient memory or CPU. "
+                    "Try closing other applications and retrying."
+                )
+            if proc.returncode != 0:
+                stderr_snippet = proc.stderr[:1000] if proc.stderr else "(no stderr)"
+                raise RuntimeError(
+                    f"Demucs stem separation failed (exit code {proc.returncode}):\n"
+                    f"{stderr_snippet}"
                 )
 
             # Parse the JSON output (last line of stdout)

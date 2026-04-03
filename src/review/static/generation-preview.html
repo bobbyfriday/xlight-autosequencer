@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generation Preview — x-onset</title>
+  <link rel="stylesheet" href="/theme.css">
+  <link rel="stylesheet" href="/navbar.css">
+  <link rel="stylesheet" href="/dashboard.css">
+  <style>
+    .preview-container {
+      max-width: 900px;
+      margin: 20px auto;
+      padding: 0 20px;
+    }
+    .preview-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .preview-header h2 {
+      font-size: 18px;
+      text-transform: none;
+      letter-spacing: normal;
+    }
+    .preview-stats {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .stat-card {
+      background: #1e1e1e;
+      border: 1px solid #2a2a2a;
+      border-radius: 6px;
+      padding: 16px;
+      flex: 1;
+      text-align: center;
+    }
+    .stat-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--xo-accent);
+    }
+    .stat-label {
+      font-size: 12px;
+      color: #888;
+      margin-top: 4px;
+    }
+    .section-list {
+      background: #1e1e1e;
+      border: 1px solid #2a2a2a;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .section-list h3 {
+      padding: 12px 16px;
+      font-size: 13px;
+      color: #888;
+      border-bottom: 1px solid #2a2a2a;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .section-item {
+      display: flex;
+      align-items: center;
+      padding: 10px 16px;
+      border-bottom: 1px solid #222;
+      gap: 12px;
+    }
+    .section-item:last-child { border-bottom: none; }
+    .section-label-badge {
+      padding: 3px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+      min-width: 80px;
+      text-align: center;
+    }
+    .section-time {
+      font-size: 12px;
+      color: #888;
+      font-family: var(--xo-font-mono);
+      min-width: 110px;
+    }
+    .section-duration {
+      font-size: 12px;
+      color: #666;
+      min-width: 60px;
+    }
+    .section-bar {
+      flex: 1;
+      height: 8px;
+      background: #333;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .section-bar-fill {
+      height: 100%;
+      border-radius: 4px;
+    }
+    .no-data {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+    }
+    .back-link {
+      display: inline-block;
+      margin-bottom: 16px;
+      color: var(--xo-accent);
+      font-size: 13px;
+      text-decoration: none;
+    }
+    .back-link:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="preview-container">
+    <a href="/" class="back-link">&larr; Back to Library</a>
+    <div class="preview-header">
+      <h2 id="song-title">Loading...</h2>
+    </div>
+
+    <div class="preview-stats">
+      <div class="stat-card">
+        <div class="stat-value" id="stat-sections">-</div>
+        <div class="stat-label">Sections</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="stat-tracks">-</div>
+        <div class="stat-label">Timing Tracks</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="stat-stems">-</div>
+        <div class="stat-label">Stems</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="stat-duration">-</div>
+        <div class="stat-label">Duration</div>
+      </div>
+    </div>
+
+    <div class="section-list">
+      <h3>Section Breakdown</h3>
+      <div id="section-items"></div>
+    </div>
+  </div>
+
+  <script src="/navbar.js"></script>
+  <script>
+    'use strict';
+    var SECTION_COLORS = {
+      'intro':        '#3cb454',
+      'verse':        '#508cdc',
+      'pre-chorus':   '#a050dc',
+      'chorus':       '#dc4646',
+      'bridge':       '#dca028',
+      'outro':        '#888',
+      'instrumental': '#28c8c8',
+      'break':        '#c8c828',
+      'silence':      '#555',
+    };
+
+    function fmtMs(ms) {
+      var s = Math.floor(ms / 1000);
+      var m = Math.floor(s / 60);
+      s = s % 60;
+      return m + ':' + (s < 10 ? '0' : '') + s;
+    }
+
+    var params = new URLSearchParams(window.location.search);
+    var hash = params.get('hash');
+
+    if (!hash) {
+      document.getElementById('song-title').textContent = 'No song selected';
+      document.getElementById('section-items').innerHTML = '<div class="no-data">Select a song from the library to preview generation.</div>';
+    } else {
+      fetch('/api/generation-preview/' + hash)
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (data.error) {
+            document.getElementById('song-title').textContent = 'Error';
+            document.getElementById('section-items').innerHTML = '<div class="no-data">' + data.error + '</div>';
+            return;
+          }
+
+          document.getElementById('song-title').textContent = data.title || 'Unknown';
+          document.getElementById('stat-sections').textContent = data.section_count || 0;
+          document.getElementById('stat-tracks').textContent = data.track_count || 0;
+          document.getElementById('stat-stems').textContent =
+            (data.stems_available || []).filter(function(s) { return s !== 'full_mix'; }).length || 0;
+          document.getElementById('stat-duration').textContent = fmtMs(data.duration_ms || 0);
+
+          var items = document.getElementById('section-items');
+          if (!data.sections || data.sections.length === 0) {
+            items.innerHTML = '<div class="no-data">No sections detected. Run analysis with structure detection enabled.</div>';
+            return;
+          }
+
+          var totalMs = data.duration_ms || 1;
+          var html = '';
+          data.sections.forEach(function(sec) {
+            var color = SECTION_COLORS[sec.label] || '#666';
+            var widthPct = Math.max(1, ((sec.end_ms - sec.start_ms) / totalMs) * 100);
+            html += '<div class="section-item">';
+            html += '<span class="section-label-badge" style="background:' + color + '22;color:' + color + ';border:1px solid ' + color + '44">' + sec.label + '</span>';
+            html += '<span class="section-time">' + fmtMs(sec.start_ms) + ' &mdash; ' + fmtMs(sec.end_ms) + '</span>';
+            html += '<span class="section-duration">' + sec.duration_s + 's</span>';
+            html += '<div class="section-bar"><div class="section-bar-fill" style="width:' + widthPct + '%;background:' + color + '"></div></div>';
+            html += '</div>';
+          });
+          items.innerHTML = html;
+        })
+        .catch(function(err) {
+          document.getElementById('song-title').textContent = 'Error loading preview';
+          document.getElementById('section-items').innerHTML = '<div class="no-data">Failed to load: ' + err.message + '</div>';
+        });
+    }
+  </script>
+</body>
+</html>

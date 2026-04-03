@@ -1,6 +1,7 @@
 """T010: Abstract base class for all analysis algorithms."""
 from __future__ import annotations
 
+import os
 import sys
 from abc import ABC, abstractmethod
 
@@ -39,16 +40,22 @@ class Algorithm(ABC):
     def run(self, audio: np.ndarray, sample_rate: int) -> TimingTrack | None:
         """
         Public entry point. Returns TimingTrack on success, None on failure.
-        Failures are logged to stderr but do NOT propagate.
+        Recoverable failures are logged to stderr but do NOT propagate.
+        MemoryError, SystemExit, and KeyboardInterrupt always propagate.
         """
         try:
             track = self._run(audio, sample_rate)
             return track
+        except (MemoryError, SystemExit, KeyboardInterrupt):
+            raise
         except Exception as exc:
+            import traceback
             print(
-                f"WARNING: {self.name} failed: {exc}. Track omitted from output.",
+                f"WARNING: {self.name} failed ({type(exc).__name__}): {exc}",
                 file=sys.stderr,
             )
+            if os.environ.get("XLIGHT_VERBOSE"):
+                traceback.print_exc(file=sys.stderr)
             return None
 
     def metadata(self) -> AnalysisAlgorithm:
