@@ -8,9 +8,44 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
+import contextlib
+import tempfile
+
 from src import export as export_mod
 from src.analyzer.result import AnalysisResult
 from src.paths import PathContext
+
+
+@contextlib.contextmanager
+def _file_lock(path: Path, timeout: float = 10.0):
+    """Advisory file lock using a .lock sidecar file.
+
+    Uses fcntl on Unix. Falls back to no-op if locking is unavailable.
+    """
+    lock_path = path.with_suffix(path.suffix + ".lock")
+    lock_fd = None
+    try:
+        lock_path.parent.mkdir(parents=True, exist_ok=True)
+        lock_fd = open(lock_path, "w")
+        try:
+            import fcntl
+            fcntl.flock(lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except (ImportError, OSError):
+            # fcntl not available (Windows) or lock contention — proceed without lock
+            pass
+        yield
+    finally:
+        if lock_fd is not None:
+            try:
+                import fcntl
+                fcntl.flock(lock_fd, fcntl.LOCK_UN)
+            except (ImportError, OSError):
+                pass
+            lock_fd.close()
+            try:
+                lock_path.unlink(missing_ok=True)
+            except OSError:
+                pass
 
 
 @dataclass
@@ -73,6 +108,8 @@ class CacheStatus:
             try:
                 result = cache.load()
                 track_count = len(result.timing_tracks)
+            except (MemoryError, SystemExit, KeyboardInterrupt):
+                raise
             except Exception:
                 pass
 
@@ -106,6 +143,8 @@ class AnalysisCache:
             return False
         try:
             result = export_mod.read(str(self._output_path))
+        except (MemoryError, SystemExit, KeyboardInterrupt):
+            raise
         except Exception:
             return False
         if result.source_hash is None:
@@ -117,9 +156,23 @@ class AnalysisCache:
         return export_mod.read(str(self._output_path))
 
     def save(self, result: AnalysisResult) -> None:
-        """Stamp ``source_hash`` onto *result* and write it to the output path."""
+        """Stamp ``source_hash`` onto *result* and atomically write to the output path."""
         result.source_hash = self._compute_md5()
-        export_mod.write(result, str(self._output_path))
+        with _file_lock(self._output_path):
+            # Write to temp file first, then rename for atomicity
+            self._output_path.parent.mkdir(parents=True, exist_ok=True)
+            tmp_fd, tmp_path = tempfile.mkstemp(
+                dir=str(self._output_path.parent),
+                suffix=".tmp",
+            )
+            try:
+                os.close(tmp_fd)
+                export_mod.write(result, tmp_path)
+                os.replace(tmp_path, str(self._output_path))
+            except BaseException:
+                with contextlib.suppress(OSError):
+                    os.unlink(tmp_path)
+                raise
 
     # ── Internal helpers ──────────────────────────────────────────────────────
 

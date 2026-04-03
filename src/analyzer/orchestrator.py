@@ -61,19 +61,38 @@ def _load_cache(audio_path: Path, source_hash: str) -> "HierarchyResult | None":
                 and data.get("source_hash") == source_hash):
             from src.analyzer.result import HierarchyResult as _HR
             return _HR.from_dict(data)
-    except Exception:
-        pass
+    except (MemoryError, SystemExit, KeyboardInterrupt):
+        raise
+    except (json.JSONDecodeError, KeyError, ValueError, TypeError) as exc:
+        _snap_logger.warning("Cache load failed for %s: %s", json_path, exc)
+    except Exception as exc:
+        _snap_logger.warning("Unexpected cache error for %s: %s", json_path, exc)
     return None
 
 
 def _write_cache(audio_path: Path, result: "HierarchyResult") -> None:
-    """Write HierarchyResult JSON to output folder."""
+    """Write HierarchyResult JSON to output folder atomically."""
+    import os
+    import tempfile
+
     json_path = _hierarchy_json_path(audio_path)
     json_path.parent.mkdir(parents=True, exist_ok=True)
-    json_path.write_text(
-        json.dumps(result.to_dict(), indent=2, ensure_ascii=False),
-        encoding="utf-8",
+    content = json.dumps(result.to_dict(), indent=2, ensure_ascii=False)
+    # Write to temp file then rename for atomicity
+    tmp_fd, tmp_path = tempfile.mkstemp(
+        dir=str(json_path.parent),
+        suffix=".tmp",
     )
+    try:
+        os.close(tmp_fd)
+        Path(tmp_path).write_text(content, encoding="utf-8")
+        os.replace(tmp_path, str(json_path))
+    except BaseException:
+        try:
+            os.unlink(tmp_path)
+        except OSError:
+            pass
+        raise
 
 
 # ── Algorithm list builder ────────────────────────────────────────────────────
@@ -88,90 +107,79 @@ def _make_stem_algo(algo_cls, stem: str):
 
 
 def _build_algorithm_list(caps: dict[str, bool], stems_available: list[str]):
-    """Build the ~15 algorithm instances needed per the level mapping (research.md R6)."""
-    from src.analyzer.algorithms.librosa_beats import LibrosaBeatAlgorithm, LibrosaBarAlgorithm
-    from src.analyzer.algorithms.librosa_onset import LibrosaOnsetAlgorithm  # name="librosa_onsets"
+    """Build the ~15 algorithm instances needed per the level mapping (research.md R6).
+
+    Uses the centralized algorithm registry for class discovery instead of
+    duplicating try/import/except blocks.
+    """
+    from src.analyzer.algorithms.registry import get_algorithm_map
+
+    # Build the registry map filtered to requested libraries
+    libraries: set[str] = {"librosa"}
+    if caps.get("vamp"):
+        libraries.add("vamp")
+    if caps.get("madmom"):
+        libraries.add("madmom")
+    algo_map = get_algorithm_map(libraries=libraries)
 
     algos = []
 
+    # Helper: instantiate by registry name, warn if unavailable
+    def _add(name: str) -> bool:
+        cls = algo_map.get(name)
+        if cls is not None:
+            algos.append(cls())
+            return True
+        return False
+
+    def _add_stem(name: str, stem: str) -> bool:
+        cls = algo_map.get(name)
+        if cls is not None:
+            algos.append(_make_stem_algo(cls, stem))
+            return True
+        return False
+
     # ── Always-available (librosa) ────────────────────────────────────────────
-    algos += [
-        LibrosaBarAlgorithm(),    # L2 bar candidate (name="librosa_bars")
-        LibrosaBeatAlgorithm(),   # L3 beat candidate (name="librosa_beats")
-        LibrosaOnsetAlgorithm(),  # L4 full_mix events (name="librosa_onsets")
-    ]
+    _add("librosa_bars")     # L2 bar candidate
+    _add("librosa_beats")    # L3 beat candidate
+    _add("librosa_onsets")   # L4 full_mix events
 
     # ── Vamp algorithms (optional) ────────────────────────────────────────────
     if caps.get("vamp"):
-        try:
-            from src.analyzer.algorithms.vamp_beats import QMBarAlgorithm, QMBeatAlgorithm, BeatRootAlgorithm
-            algos += [
-                QMBarAlgorithm(),     # L2 bar candidate
-                QMBeatAlgorithm(),    # L3 beat candidate
-                BeatRootAlgorithm(),  # L3 beat candidate
-            ]
-        except Exception as exc:
-            print(f"WARNING: vamp_beats unavailable: {exc}", file=sys.stderr)
+        _add("qm_bars")      # L2 bar candidate
+        _add("qm_beats")     # L3 beat candidate
+        _add("beatroot")     # L3 beat candidate
 
-        try:
-            from src.analyzer.algorithms.vamp_bbc import BBCEnergyAlgorithm, BBCSpectralFluxAlgorithm
-            # L0/L5: bbc_energy on full_mix (for impacts/gaps derivation)
-            algos.append(BBCEnergyAlgorithm())
-            # L5: bbc_spectral_flux on full_mix
-            algos.append(BBCSpectralFluxAlgorithm())
-            # L5: bbc_energy per stem (guitar included for solo detection + L4 filtering)
+        # L0/L5: bbc_energy on full_mix (for impacts/gaps derivation)
+        _add("bbc_energy")
+        # L5: bbc_spectral_flux on full_mix
+        _add("bbc_spectral_flux")
+        # L5: bbc_energy per stem (guitar included for solo detection + L4 filtering)
+        if "bbc_energy" in algo_map:
             energy_stems = [s for s in stems_available if s not in ("full_mix",)]
-            for stem in energy_stems[:5]:  # drums, bass, vocals, guitar, other
+            for stem in energy_stems[:5]:
                 if stem in ("drums", "bass", "vocals", "guitar", "other"):
-                    algos.append(_make_stem_algo(BBCEnergyAlgorithm, stem))
-        except Exception as exc:
-            print(f"WARNING: vamp_bbc unavailable: {exc}", file=sys.stderr)
+                    _add_stem("bbc_energy", stem)
 
-        try:
-            from src.analyzer.algorithms.vamp_segmentation import SegmentinoAlgorithm
-            algos.append(SegmentinoAlgorithm())  # L1 sections
-        except Exception as exc:
-            print(f"WARNING: segmentino unavailable: {exc}", file=sys.stderr)
+        _add("segmentino")    # L1 sections
+        _add("qm_segments")   # L1 sections
 
-        try:
-            from src.analyzer.algorithms.vamp_structure import QMSegmenterAlgorithm
-            algos.append(QMSegmenterAlgorithm())
-        except Exception as exc:
-            print(f"WARNING: qm_segmenter unavailable: {exc}", file=sys.stderr)
+        # Force full_mix: Chordino's default preferred_stem="piano" is too sparse
+        # for most genres. Full mix gives reliable chord detection.
+        _add_stem("chordino_chords", "full_mix")  # L6 chords
 
-        try:
-            from src.analyzer.algorithms.vamp_harmony import ChordinoAlgorithm
-            # Force full_mix: Chordino's default preferred_stem="piano" is too sparse
-            # for most genres. Full mix gives reliable chord detection.
-            algos.append(_make_stem_algo(ChordinoAlgorithm, "full_mix"))  # L6 chords
-        except Exception as exc:
-            print(f"WARNING: chordino unavailable: {exc}", file=sys.stderr)
+        _add("qm_key")        # L6 key
 
-        try:
-            from src.analyzer.algorithms.vamp_extra import QMKeyAlgorithm
-            algos.append(QMKeyAlgorithm())  # L6 key
-        except Exception as exc:
-            print(f"WARNING: qm_key unavailable: {exc}", file=sys.stderr)
-
-        try:
-            from src.analyzer.algorithms.vamp_aubio import AubioOnsetAlgorithm
-            # L4: per-stem onset detection
+        # L4: per-stem onset detection
+        if "aubio_onset" in algo_map:
             for stem in stems_available:
                 if stem != "full_mix":
-                    algos.append(_make_stem_algo(AubioOnsetAlgorithm, stem))
-        except Exception as exc:
-            print(f"WARNING: aubio unavailable: {exc}", file=sys.stderr)
+                    _add_stem("aubio_onset", stem)
 
     # ── Madmom algorithms (optional) ─────────────────────────────────────────
     if caps.get("madmom"):
-        try:
-            from src.analyzer.algorithms.madmom_beat import MadmomBeatAlgorithm, MadmomDownbeatAlgorithm
-            algos += [
-                MadmomBeatAlgorithm(),     # L3 beat candidate
-                MadmomDownbeatAlgorithm(), # L2 bar candidate
-            ]
-        except Exception as exc:
-            print(f"WARNING: madmom unavailable: {exc}", file=sys.stderr)
+        _add("madmom_beats")      # L3 beat candidate
+        _add("madmom_downbeats")  # L2 bar candidate
 
     return algos
 
@@ -196,6 +204,7 @@ def run_orchestrator(
     fresh: bool = False,
     dry_run: bool = False,
     progress_callback=None,
+    profile: str | None = None,
 ) -> "HierarchyResult":
     """Run the full hierarchy analysis pipeline on a single MP3 file.
 
@@ -204,10 +213,14 @@ def run_orchestrator(
         fresh: If True, ignore any cached result and re-run analysis.
         dry_run: If True, print what would run and return without executing.
         progress_callback: Optional callable(index, total, name, mark_count).
+        profile: Analysis preset — "quick" (librosa-only), "standard" (auto-detect),
+                 "full" (all available), or None (same as standard).
 
     Returns:
         HierarchyResult with all available hierarchy levels populated.
     """
+    import time as _time
+
     from src.analyzer.audio import load
     from src.analyzer.capabilities import detect_capabilities
     from src.analyzer.derived import derive_energy_drops, derive_energy_impacts, derive_gaps
@@ -215,11 +228,22 @@ def run_orchestrator(
     from src.analyzer.runner import AnalysisRunner
     from src.analyzer.selector import select_best_bar_track, select_best_beat_track, rank_tracks
 
+    _t0 = _time.monotonic()
     src_path = Path(audio_path).resolve()
 
     # ── Stage 1: Detect capabilities ─────────────────────────────────────────
     caps = detect_capabilities()
     warnings: list[str] = []
+
+    # ── Apply profile constraints ────────────────────────────────────────────
+    if profile == "quick":
+        # Quick: librosa-only, no stems, no vamp, no madmom
+        caps = {"vamp": False, "madmom": False, "demucs": False,
+                "essentia": False, "librosa": True}
+        warnings.append("Profile 'quick': librosa-only, no stems")
+    elif profile == "full":
+        pass  # use everything detected
+    # None or "standard": use default detected capabilities
 
     # ── Stage 2: Dry run mode (before cache check) ────────────────────────────
     if dry_run:
@@ -299,8 +323,22 @@ def run_orchestrator(
     # ── Stage 6: Run algorithms ───────────────────────────────────────────────
     algos = _build_algorithm_list(caps, stems_available)
 
+    # Default CLI progress display when no external callback is provided
+    def _default_progress(index: int, total: int, name: str, mark_count: int) -> None:
+        bar_width = 30
+        filled = int(bar_width * index / total) if total else 0
+        bar = "█" * filled + "░" * (bar_width - filled)
+        pct = int(100 * index / total) if total else 0
+        marks_str = f" ({mark_count} marks)" if mark_count else ""
+        print(f"\r  [{bar}] {pct:3d}% ({index}/{total}) {name}{marks_str}",
+              end="", flush=True, file=sys.stderr)
+        if index == total:
+            print(file=sys.stderr)  # newline when done
+
+    effective_callback = progress_callback or _default_progress
+
     runner = AnalysisRunner(algos)
-    analysis = runner.run(str(src_path), progress_callback=progress_callback, stems=stems)
+    analysis = runner.run(str(src_path), progress_callback=effective_callback, stems=stems)
 
     # Index tracks by base algorithm name (strip :stem or _stem suffix)
     tracks_by_name: dict[str, list["TimingTrack"]] = {}
@@ -586,6 +624,10 @@ def run_orchestrator(
     print(format_validation_report(result.validation))
 
     # ── Stage 12: Write outputs ───────────────────────────────────────────────
+    elapsed = _time.monotonic() - _t0
+    print(f"\nAnalysis complete in {elapsed:.1f}s — "
+          f"{len(analysis.timing_tracks)} tracks generated")
+
     _write_cache(src_path, result)
     _write_xtiming(src_path, result)
 

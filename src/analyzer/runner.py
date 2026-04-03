@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -23,7 +24,7 @@ _SUBPROCESS_LIBS: frozenset[str] = frozenset({"vamp", "madmom"})
 
 # Path to the repo root (src/analyzer/runner.py → ../../)
 _REPO_ROOT = Path(__file__).resolve().parents[2]
-_VAMP_PYTHON = _REPO_ROOT / ".venv-vamp" / "bin" / "python"
+_VAMP_PYTHON = Path(os.environ["XLIGHT_VENV_VAMP"]) if os.environ.get("XLIGHT_VENV_VAMP") else _REPO_ROOT / ".venv-vamp" / "bin" / "python"
 _VAMP_RUNNER = Path(__file__).with_name("vamp_runner.py")
 
 
@@ -79,8 +80,11 @@ class AnalysisRunner:
         sub_algos   = [a for a in self._algorithms if a.library in _SUBPROCESS_LIBS]
 
         # ── In-process algorithms (librosa) — run in parallel ────────────────
+        # Cache resampled stems to avoid redundant librosa.resample calls
+        _resample_cache: dict[str, np.ndarray] = {}
+
         def _run_one(algo: Algorithm) -> tuple[Algorithm, TimingTrack | None]:
-            algo_audio, algo_sr = _select_audio(algo, audio, sr, stems)
+            algo_audio, algo_sr = _select_audio(algo, audio, sr, stems, _resample_cache)
             return algo, algo.run(algo_audio, algo_sr)
 
         with ThreadPoolExecutor(max_workers=min(4, len(local_algos) or 1)) as pool:
@@ -117,8 +121,9 @@ class AnalysisRunner:
                 used_algorithms.extend(sub_algos_meta)
             else:
                 print(
-                    "INFO: .venv-vamp not found — vamp/madmom algorithms skipped. "
-                    "See README for setup instructions.",
+                    "INFO: .venv-vamp not found — vamp/madmom algorithms skipped.\n"
+                    "  To enable: run ./scripts/install.sh or set XLIGHT_VENV_VAMP "
+                    "to the path of a Python with vamp/madmom installed.",
                     file=sys.stderr,
                 )
                 for i, algo in enumerate(sub_algos):
@@ -203,6 +208,8 @@ def _run_subprocess_batch(
     algo_meta: list[AnalysisAlgorithm] = []
     proc_idx = 0
 
+    dropped_lines: list[str] = []
+
     for line in proc.stdout:
         line = line.strip()
         if not line:
@@ -210,6 +217,7 @@ def _run_subprocess_batch(
         try:
             msg = json.loads(line)
         except json.JSONDecodeError:
+            dropped_lines.append(line[:200])
             continue
 
         event = msg.get("event")
@@ -236,10 +244,26 @@ def _run_subprocess_batch(
         elif event == "error":
             print(f"WARNING: vamp subprocess error: {msg.get('message', '')}", file=sys.stderr)
 
+        else:
+            dropped_lines.append(line[:200])
+
     proc.wait()
     stderr_out = proc.stderr.read()
     if stderr_out:
         print(f"[vamp subprocess stderr]\n{stderr_out}", file=sys.stderr)
+
+    if dropped_lines:
+        print(
+            f"WARNING: {len(dropped_lines)} non-protocol line(s) from vamp subprocess "
+            f"(first: {dropped_lines[0]!r})",
+            file=sys.stderr,
+        )
+    if proc.returncode and proc.returncode != 0 and not tracks:
+        print(
+            f"WARNING: vamp subprocess exited with code {proc.returncode} "
+            f"and produced no tracks",
+            file=sys.stderr,
+        )
 
     return tracks, algo_meta
 
@@ -249,13 +273,15 @@ def _select_audio(
     full_mix: np.ndarray,
     full_mix_sr: int,
     stems: StemSet | None,
+    resample_cache: dict[str, np.ndarray] | None = None,
 ) -> tuple[np.ndarray, int]:
     """
     Return the (audio, sample_rate) pair the algorithm should use.
 
     When stems is None or the algorithm prefers "full_mix", returns the full-mix
     array. Otherwise returns the matching stem array, resampled to full_mix_sr
-    when the stem sample rate differs.
+    when the stem sample rate differs. Resampled arrays are cached in
+    *resample_cache* to avoid redundant computation across algorithms.
     """
     if stems is None or algo.preferred_stem == "full_mix":
         return full_mix, full_mix_sr
@@ -266,8 +292,14 @@ def _select_audio(
 
     stem_sr = stems.sample_rate
     if stem_sr != full_mix_sr:
-        import librosa as _librosa
-        stem_arr = _librosa.resample(stem_arr, orig_sr=stem_sr, target_sr=full_mix_sr)
+        cache_key = algo.preferred_stem
+        if resample_cache is not None and cache_key in resample_cache:
+            stem_arr = resample_cache[cache_key]
+        else:
+            import librosa as _librosa
+            stem_arr = _librosa.resample(stem_arr, orig_sr=stem_sr, target_sr=full_mix_sr)
+            if resample_cache is not None:
+                resample_cache[cache_key] = stem_arr
         stem_sr = full_mix_sr
 
     return stem_arr, stem_sr
@@ -281,104 +313,5 @@ def default_algorithms(
     Return the full list of algorithm instances.
     Algorithms that require unavailable libraries are silently omitted.
     """
-    algorithms: list[Algorithm] = []
-
-    # --- librosa algorithms (always available) ---
-    from src.analyzer.algorithms.librosa_beats import LibrosaBeatAlgorithm, LibrosaBarAlgorithm
-    from src.analyzer.algorithms.librosa_bands import (
-        LibrosaBassAlgorithm,
-        LibrosaMidAlgorithm,
-        LibrosaTrebleAlgorithm,
-    )
-    from src.analyzer.algorithms.librosa_hpss import LibrosaDrumsAlgorithm, LibrosaHarmonicAlgorithm
-    from src.analyzer.algorithms.librosa_onset import LibrosaOnsetAlgorithm
-
-    algorithms += [
-        LibrosaBeatAlgorithm(),
-        LibrosaBarAlgorithm(),
-        LibrosaOnsetAlgorithm(),
-        LibrosaBassAlgorithm(),
-        LibrosaMidAlgorithm(),
-        LibrosaTrebleAlgorithm(),
-        LibrosaDrumsAlgorithm(),
-        LibrosaHarmonicAlgorithm(),
-    ]
-
-    # --- madmom algorithms (optional) ---
-    if include_madmom:
-        try:
-            from src.analyzer.algorithms.madmom_beat import (
-                MadmomBeatAlgorithm,
-                MadmomDownbeatAlgorithm,
-            )
-            algorithms += [MadmomBeatAlgorithm(), MadmomDownbeatAlgorithm()]
-        except ImportError:
-            print(
-                "INFO: madmom not available — madmom_beats and madmom_downbeats skipped.",
-                file=sys.stderr,
-            )
-
-    # --- Vamp algorithms (optional) ---
-    if include_vamp:
-        try:
-            from src.analyzer.algorithms.vamp_beats import QMBeatAlgorithm, QMBarAlgorithm, BeatRootAlgorithm
-            from src.analyzer.algorithms.vamp_onsets import (
-                QMOnsetComplexAlgorithm,
-                QMOnsetHFCAlgorithm,
-                QMOnsetPhaseAlgorithm,
-            )
-            from src.analyzer.algorithms.vamp_structure import QMSegmenterAlgorithm, QMTempoAlgorithm
-            from src.analyzer.algorithms.vamp_pitch import PYINNotesAlgorithm, PYINPitchChangesAlgorithm
-            from src.analyzer.algorithms.vamp_harmony import ChordinoAlgorithm, NNLSChromaAlgorithm
-
-            algorithms += [
-                QMBeatAlgorithm(),
-                QMBarAlgorithm(),
-                BeatRootAlgorithm(),
-                QMOnsetComplexAlgorithm(),
-                QMOnsetHFCAlgorithm(),
-                QMOnsetPhaseAlgorithm(),
-                QMSegmenterAlgorithm(),
-                QMTempoAlgorithm(),
-                PYINNotesAlgorithm(),
-                PYINPitchChangesAlgorithm(),
-                ChordinoAlgorithm(),
-                NNLSChromaAlgorithm(),
-            ]
-
-            # New Vamp algorithms (015-sweep-matrix)
-            from src.analyzer.algorithms.vamp_aubio import (
-                AubioOnsetAlgorithm, AubioTempoAlgorithm, AubioNotesAlgorithm,
-            )
-            from src.analyzer.algorithms.vamp_bbc import (
-                BBCEnergyAlgorithm, BBCSpectralFluxAlgorithm,
-                BBCPeaksAlgorithm, BBCRhythmAlgorithm,
-            )
-            from src.analyzer.algorithms.vamp_segmentation import SegmentinoAlgorithm
-            from src.analyzer.algorithms.vamp_extra import (
-                QMKeyAlgorithm, QMTranscriptionAlgorithm, SilvetNotesAlgorithm,
-                PercussionOnsetsAlgorithm, AmplitudeFollowerAlgorithm, TempogramAlgorithm,
-            )
-            algorithms += [
-                AubioOnsetAlgorithm(),
-                AubioTempoAlgorithm(),
-                AubioNotesAlgorithm(),
-                BBCEnergyAlgorithm(),
-                BBCSpectralFluxAlgorithm(),
-                BBCPeaksAlgorithm(),
-                BBCRhythmAlgorithm(),
-                SegmentinoAlgorithm(),
-                QMKeyAlgorithm(),
-                QMTranscriptionAlgorithm(),
-                SilvetNotesAlgorithm(),
-                PercussionOnsetsAlgorithm(),
-                AmplitudeFollowerAlgorithm(),
-                TempogramAlgorithm(),
-            ]
-        except ImportError:
-            print(
-                "INFO: vamp Python package not available — Vamp plugin algorithms skipped.",
-                file=sys.stderr,
-            )
-
-    return algorithms
+    from src.analyzer.algorithms.registry import get_algorithms
+    return get_algorithms(include_vamp=include_vamp, include_madmom=include_madmom)

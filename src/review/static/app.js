@@ -695,6 +695,23 @@ btnNext.addEventListener('click', focusNext);
 btnPrev.addEventListener('click', focusPrev);
 btnClear.addEventListener('click', clearFocus);
 
+// ── Legend toggle ───────────────────────────────────────────────────────
+const btnLegend = document.getElementById('btn-legend');
+const legendPanel = document.getElementById('legend-panel');
+if (btnLegend && legendPanel) {
+  btnLegend.addEventListener('click', () => {
+    legendPanel.classList.toggle('visible');
+    btnLegend.classList.toggle('active');
+  });
+  // Close on click outside
+  document.addEventListener('click', (e) => {
+    if (!legendPanel.contains(e.target) && e.target !== btnLegend) {
+      legendPanel.classList.remove('visible');
+      btnLegend.classList.remove('active');
+    }
+  });
+}
+
 // ── Export ───────────────────────────────────────────────────────────────────
 
 async function doExport(overwrite = false) {

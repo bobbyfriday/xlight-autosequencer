@@ -67,6 +67,20 @@ def _print_breakdown(tracks) -> None:
                 )
 
 
+def _rich_error(message: str, causes: list[str] | None = None, fixes: list[str] | None = None) -> str:
+    """Format an error message with optional causes and fixes."""
+    lines = [f"ERROR: {message}"]
+    if causes:
+        lines.append("\nPossible causes:")
+        for c in causes:
+            lines.append(f"  - {c}")
+    if fixes:
+        lines.append("\nHow to fix:")
+        for f in fixes:
+            lines.append(f"  {f}")
+    return "\n".join(lines)
+
+
 # ──────────────────────────────────────────────────────────────────────────────
 # Main CLI group
 # ──────────────────────────────────────────────────────────────────────────────
@@ -84,10 +98,16 @@ def cli() -> None:
 @click.argument("path", type=click.Path(exists=True))
 @click.option("--fresh", is_flag=True, default=False, help="Ignore cache and re-run analysis")
 @click.option("--dry-run", is_flag=True, default=False, help="Show what would run without executing")
+@click.option(
+    "--profile", "profile", default=None,
+    type=click.Choice(["quick", "standard", "full"], case_sensitive=False),
+    help="Analysis preset: quick (librosa-only, fast), standard (auto-detect), full (all available)",
+)
 def analyze_cmd(
     path: str,
     fresh: bool,
     dry_run: bool,
+    profile: str | None,
 ) -> None:
     """Run hierarchical analysis on an MP3 file or directory of MP3s."""
 
@@ -106,7 +126,7 @@ def analyze_cmd(
         for i, mp3 in enumerate(mp3s, 1):
             click.echo(f"[{i}/{len(mp3s)}] {mp3.name}...", nl=False)
             try:
-                result = run_orchestrator(str(mp3), fresh=fresh, dry_run=dry_run)
+                result = run_orchestrator(str(mp3), fresh=fresh, dry_run=dry_run, profile=profile)
                 # Check if it was cached
                 click.echo(" done")
                 succeeded += 1
@@ -126,17 +146,60 @@ def analyze_cmd(
         click.echo(f"WARNING: {input_path.name} is not an MP3 — attempting analysis anyway", err=True)
 
     try:
-        run_orchestrator(str(input_path), fresh=fresh, dry_run=dry_run)
+        run_orchestrator(str(input_path), fresh=fresh, dry_run=dry_run, profile=profile)
     except SystemExit:
         raise
     except FileNotFoundError as exc:
-        click.echo(f"ERROR: {exc}", err=True)
+        msg = str(exc)
+        if "ffmpeg" in msg.lower():
+            click.echo(_rich_error(
+                msg,
+                causes=["ffmpeg is not installed or not in PATH"],
+                fixes=[
+                    "macOS:   brew install ffmpeg",
+                    "Linux:   sudo apt-get install ffmpeg",
+                    "Windows: choco install ffmpeg",
+                ],
+            ), err=True)
+        else:
+            click.echo(_rich_error(
+                msg,
+                fixes=["Check the file path and try again"],
+            ), err=True)
         sys.exit(1)
     except PermissionError as exc:
-        click.echo(f"ERROR: Cannot write output: {exc}", err=True)
+        click.echo(_rich_error(
+            f"Cannot write output: {exc}",
+            fixes=[
+                "Check write permissions on the output directory",
+                "Try specifying a different output path with --output",
+            ],
+        ), err=True)
         sys.exit(3)
+    except MemoryError:
+        click.echo(_rich_error(
+            "Out of memory during analysis",
+            causes=[
+                "Audio file is very large",
+                "Too many algorithms running in parallel",
+                "Stem separation requires significant memory",
+            ],
+            fixes=[
+                "Close other applications and retry",
+                "Try analyzing without stems: xlight-analyze analyze song.mp3",
+                "Use a shorter audio file or reduce quality settings",
+            ],
+        ), err=True)
+        sys.exit(2)
     except Exception as exc:
-        click.echo(f"ERROR: Analysis failed: {exc}", err=True)
+        click.echo(_rich_error(
+            f"Analysis failed: {exc}",
+            fixes=[
+                "Re-run with XLIGHT_VERBOSE=1 for full traceback",
+                "Check that all dependencies are installed: pip install -r requirements.txt",
+                "See docs/troubleshooting.md for common issues",
+            ],
+        ), err=True)
         sys.exit(2)
 
 

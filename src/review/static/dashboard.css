@@ -395,3 +395,111 @@ body {
 .empty-icon { font-size: 48px; margin-bottom: 12px; }
 .empty-state h2 { color: #888; font-size: 20px; margin-bottom: 8px; }
 .empty-state p { font-size: 14px; margin-bottom: 20px; }
+
+/* ── Accessibility: focus indicators ─────────────────────────────────── */
+.btn:focus-visible, .upload-toggle:focus-visible, .search-input:focus-visible,
+.btn-expand:focus-visible, .sortable:focus-visible {
+  outline: 2px solid var(--xo-accent);
+  outline-offset: 2px;
+}
+
+/* ── Improved contrast ───────────────────────────────────────────────── */
+.song-artist-cell { color: #999; }
+.song-album-cell, .song-genre-cell { color: #888; }
+.quality-label { color: #777; }
+
+/* ── Workflow guide ───────────────────────────────────────────────────── */
+.workflow-guide {
+  margin: 16px 20px 0;
+  padding: 14px 20px;
+  background: #1e1e1e;
+  border: 1px solid #2a2a2a;
+  border-radius: 6px;
+}
+.workflow-steps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+}
+.workflow-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: default;
+  transition: background 0.15s;
+}
+.workflow-step:hover { background: #252525; }
+.step-number {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #333;
+  color: #888;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  flex-shrink: 0;
+  border: 1px solid #444;
+}
+.step-label {
+  font-size: 12px;
+  color: #888;
+  white-space: nowrap;
+}
+.workflow-connector {
+  width: 24px;
+  height: 1px;
+  background: #333;
+  flex-shrink: 0;
+}
+/* Active/completed states */
+.workflow-step.active .step-number {
+  background: var(--xo-accent);
+  color: var(--xo-bg);
+  border-color: var(--xo-accent);
+}
+.workflow-step.active .step-label { color: var(--xo-accent); }
+.workflow-step.completed .step-number {
+  background: #2a5;
+  color: #fff;
+  border-color: #2a5;
+}
+.workflow-step.completed .step-label { color: #4a4; }
+.workflow-connector.completed { background: #2a5; }
+
+/* ── Analysis summary card ────────────────────────────────────────────── */
+.analysis-summary {
+  margin-bottom: 10px;
+}
+.summary-headline {
+  color: #4a4;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+.summary-stats {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.summary-stat {
+  background: #2a3a2a;
+  color: #8c8;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+.summary-warnings {
+  margin-top: 6px;
+}
+.summary-warning {
+  color: #c90;
+  font-size: 12px;
+  padding: 2px 0;
+}

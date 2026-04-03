@@ -98,6 +98,7 @@ class AnalysisJob:
         self.result_path: str | None = None
         self.story_path: str | None = None
         self.error_message: str | None = None
+        self.summary: dict | None = None
         self.lock = threading.Lock()
         # Genius retry: background thread waits on this event
         self._genius_event = threading.Event()
@@ -282,9 +283,26 @@ def _run_analysis(app: Flask, job: AnalysisJob) -> None:
             except Exception:
                 pass
 
+            # Build analysis summary for the UI
+            track_count = len(result.algorithms_run)
+            has_phonemes = False
+            try:
+                hier_data = json.loads(Path(out_path).read_text(encoding="utf-8"))
+                has_phonemes = hier_data.get("phoneme_result") is not None
+            except Exception:
+                pass
+            summary = {
+                "track_count": track_count,
+                "stems_available": result.stems_available,
+                "has_phonemes": has_phonemes,
+                "has_story": story_path is not None,
+                "warnings": result.warnings,
+            }
+
             with job.lock:
                 job.result_path = out_path
                 job.story_path = story_path
+                job.summary = summary
                 job.status = "done"
 
         except Exception as exc:
@@ -306,6 +324,7 @@ def _progress_generator(job: AnalysisJob):
             result_path = job.result_path
             story_path = job.story_path
             error_msg = job.error_message
+            summary = job.summary
 
         # Drain any new events (safe: events list is append-only and we
         # read up to a count captured under the lock)
@@ -316,7 +335,10 @@ def _progress_generator(job: AnalysisJob):
         if status != "running":
             # All events drained — now send the terminal event
             if status == "done":
-                yield f"data: {json.dumps({'done': True, 'result_path': result_path, 'story_path': story_path})}\n\n"
+                done_payload = {'done': True, 'result_path': result_path, 'story_path': story_path}
+                if summary:
+                    done_payload['summary'] = summary
+                yield f"data: {json.dumps(done_payload)}\n\n"
             else:
                 yield f"data: {json.dumps({'error': error_msg or 'Analysis failed'})}\n\n"
             return
@@ -1482,6 +1504,59 @@ def create_app(analysis_path: str | None = None, audio_path: str | None = None,
             "has_edits": has_edits,
             "edited_prop_count": len(merged.edited_props),
         })
+
+    # ── Generation preview ─────────────────────────────────────────────────
+
+    @app.route("/generation-preview")
+    def generation_preview_page():
+        return send_from_directory(app.static_folder, "generation-preview.html")
+
+    @app.route("/api/generation-preview/<hash_id>")
+    def generation_preview_api(hash_id: str):
+        """Return a preview of what generation would produce for a song."""
+        from src.library import Library
+
+        lib = Library()
+        entry = lib.find_by_hash(hash_id)
+        if entry is None:
+            return jsonify({"error": "Song not found"}), 404
+
+        analysis_path = entry.analysis_path
+        if not analysis_path or not Path(analysis_path).exists():
+            return jsonify({"error": "Analysis not found"}), 404
+
+        try:
+            data = json.loads(Path(analysis_path).read_text(encoding="utf-8"))
+        except Exception as exc:
+            return jsonify({"error": f"Cannot read analysis: {exc}"}), 500
+
+        hierarchy = data.get("hierarchy", data)
+        raw_sections = hierarchy.get("sections", [])
+
+        sections = []
+        for sec in raw_sections:
+            label = sec.get("label", "unknown")
+            start = sec.get("time_ms", 0)
+            end = sec.get("end_ms", start)
+            duration_s = (end - start) / 1000.0
+            sections.append({
+                "label": label,
+                "start_ms": start,
+                "end_ms": end,
+                "duration_s": round(duration_s, 1),
+            })
+
+        preview = {
+            "title": entry.title or Path(entry.source_file).stem,
+            "duration_ms": data.get("duration_ms", hierarchy.get("duration_ms", 0)),
+            "section_count": len(sections),
+            "sections": sections,
+            "stems_available": data.get("stems_available", hierarchy.get("stems_available", [])),
+            "track_count": len(data.get("timing_tracks", [])),
+            "has_story": bool(hierarchy.get("song_story")),
+        }
+
+        return jsonify(preview)
 
     # ── Rotation report endpoint ───────────────────────────────────────────
 

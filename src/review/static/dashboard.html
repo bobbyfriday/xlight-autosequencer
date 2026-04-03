@@ -51,8 +51,8 @@
     <!-- Genius prompt -->
     <div id="genius-prompt" class="genius-prompt" style="display:none">
       <p>Genius lookup needs help. Enter artist and title:</p>
-      <input id="genius-artist" type="text" placeholder="Artist">
-      <input id="genius-title" type="text" placeholder="Title">
+      <input id="genius-artist" type="text" placeholder="Artist" aria-label="Artist name for Genius lookup">
+      <input id="genius-title" type="text" placeholder="Title" aria-label="Song title for Genius lookup">
       <button id="btn-genius-submit" class="btn btn-small">Submit</button>
       <button id="btn-genius-skip" class="btn btn-small btn-secondary">Skip</button>
     </div>
@@ -63,14 +63,44 @@
     </div>
   </div>
 
+  <!-- Workflow guide -->
+  <div id="workflow-guide" class="workflow-guide">
+    <div class="workflow-steps">
+      <div class="workflow-step" data-step="upload">
+        <div class="step-number">1</div>
+        <div class="step-label">Upload &amp; Analyze</div>
+      </div>
+      <div class="workflow-connector"></div>
+      <div class="workflow-step" data-step="review">
+        <div class="step-number">2</div>
+        <div class="step-label">Review Timeline</div>
+      </div>
+      <div class="workflow-connector"></div>
+      <div class="workflow-step" data-step="story">
+        <div class="step-number">3</div>
+        <div class="step-label">Story &amp; Themes</div>
+      </div>
+      <div class="workflow-connector"></div>
+      <div class="workflow-step" data-step="layout">
+        <div class="step-number">4</div>
+        <div class="step-label">Layout Groups</div>
+      </div>
+      <div class="workflow-connector"></div>
+      <div class="workflow-step" data-step="generate">
+        <div class="step-number">5</div>
+        <div class="step-label">Generate Sequence</div>
+      </div>
+    </div>
+  </div>
+
   <!-- Search and filter bar -->
   <div class="filter-bar">
-    <input id="search-input" type="text" class="search-input" placeholder="Search by title, artist, album, or genre...">
+    <input id="search-input" type="text" class="search-input" placeholder="Search by title, artist, album, or genre..." aria-label="Search songs by title, artist, album, or genre">
     <span id="song-count" class="song-count"></span>
   </div>
 
   <!-- Song library table -->
-  <div id="library-table-wrap" class="library-table-wrap">
+  <div id="library-table-wrap" class="library-table-wrap" role="main">
     <table id="library-table" class="library-table">
       <thead>
         <tr>
@@ -120,6 +150,7 @@
           </div>
           <div class="detail-actions">
             <button class="btn btn-small btn-action" data-action="timeline">Review Timeline</button>
+            <button class="btn btn-small btn-action" data-action="preview">Preview Generation</button>
             <button class="btn btn-small btn-action" data-action="story">Story Review</button>
             <button class="btn btn-small btn-action" data-action="phonemes">Phonemes</button>
             <button class="btn btn-small btn-action btn-secondary" data-action="reanalyze">Re-analyze</button>
@@ -139,8 +170,8 @@
         <input type="checkbox" id="delete-files-check"> Also delete analysis files from disk
       </label>
       <div class="dialog-buttons">
-        <button id="btn-delete-cancel" class="btn btn-small">Cancel</button>
-        <button id="btn-delete-confirm" class="btn btn-small btn-danger">Delete</button>
+        <button id="btn-delete-cancel" class="btn btn-small" aria-label="Cancel deletion">Cancel</button>
+        <button id="btn-delete-confirm" class="btn btn-small btn-danger" aria-label="Confirm deletion">Delete</button>
       </div>
     </div>
   </div>
