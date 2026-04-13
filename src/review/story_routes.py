@@ -163,9 +163,24 @@ def _quick_profile(section: dict, story: dict) -> dict:
 
 
 def _init_edits(story: dict, story_path: str) -> dict:
-    """Create a fresh edits dict seeded from the story's source_hash."""
+    """Create a fresh edits dict seeded from the story's source_hash.
+
+    The base_story_hash is always computed from the on-disk base _story.json
+    (not the in-memory story which may already have structural edits applied).
+    This ensures the hash stays consistent across sessions so edits are not
+    falsely detected as stale on reload.
+    """
     now = datetime.now(timezone.utc).isoformat()
-    story_bytes = json.dumps(story, sort_keys=True, ensure_ascii=False).encode()
+    # Hash the on-disk base story, not the in-memory (possibly edited) story
+    base_path = _get_base_story_path(Path(story_path))
+    if base_path and base_path.exists():
+        try:
+            base_story = json.loads(base_path.read_text(encoding="utf-8"))
+            story_bytes = json.dumps(base_story, sort_keys=True, ensure_ascii=False).encode()
+        except Exception:
+            story_bytes = json.dumps(story, sort_keys=True, ensure_ascii=False).encode()
+    else:
+        story_bytes = json.dumps(story, sort_keys=True, ensure_ascii=False).encode()
     base_story_hash = hashlib.md5(story_bytes).hexdigest()
     return {
         "schema_version": "1.0.0",
@@ -270,15 +285,36 @@ def story_load():
         has_edits = True
         try:
             edits_data = json.loads(edits_path.read_text(encoding="utf-8"))
-            # Locate the base _story.json (not _reviewed) to hash
+            # Primary check: source_hash (audio file hash) must match.
+            # This is the authoritative test — if the same song, edits are valid.
+            # Secondary: base_story_hash detects if the story was re-generated
+            # (e.g. re-analyzed). Only mark stale if the base story truly changed
+            # AND it's a different song or the base story was re-generated.
+            story_source = story.get("song", {}).get("source_hash", "")
+            edits_source = edits_data.get("source_hash", "")
+            source_matches = bool(story_source) and story_source == edits_source
+
             base_path = _get_base_story_path(resolved)
             if base_path and base_path.exists():
-                # Hash must match _init_edits: normalized JSON, not raw bytes
                 base_story = json.loads(base_path.read_text(encoding="utf-8"))
                 normalized = json.dumps(base_story, sort_keys=True, ensure_ascii=False).encode()
                 current_hash = hashlib.md5(normalized).hexdigest()
                 saved_hash = edits_data.get("base_story_hash", "")
-                stale_edits = saved_hash != current_hash and bool(saved_hash)
+                base_hash_matches = saved_hash == current_hash
+
+                if source_matches and not base_hash_matches:
+                    # Same song but hash drifted (old bug or structural edits) —
+                    # self-heal the edits file so future loads work cleanly.
+                    edits_data["base_story_hash"] = current_hash
+                    stale_edits = False
+                elif not source_matches and edits_source:
+                    # Different song entirely — edits are truly stale
+                    stale_edits = True
+                else:
+                    stale_edits = not base_hash_matches and bool(saved_hash)
+            else:
+                # No base file to compare — trust source_hash
+                stale_edits = not source_matches and bool(edits_source)
 
             # If edits are not stale, restore them into the session and apply
             if not stale_edits:
@@ -718,6 +754,82 @@ def story_boundary():
     return jsonify({"sections": [section, next_section]})
 
 
+@story_bp.route("/delete", methods=["POST"])
+def story_delete_section():
+    """Delete a section and merge its time range into an adjacent section.
+
+    Body: ``{"section_id": "s03"}``
+    Returns: ``{"sections": updated_sections_list}``
+
+    The deleted section's time range is absorbed by the adjacent section
+    that has lower energy (preferring to extend the quieter neighbor).
+    If only one neighbor exists (first or last section), that neighbor absorbs.
+    Cannot delete the last remaining section.
+    """
+    story = _session.get("story")
+    if story is None:
+        return jsonify({"error": "No story loaded"}), 400
+
+    body = request.get_json(force=True) or {}
+    section_id = body.get("section_id", "").strip()
+
+    if not section_id:
+        return jsonify({"error": "section_id is required"}), 400
+
+    sections = story["sections"]
+    if len(sections) <= 1:
+        return jsonify({"error": "Cannot delete the only remaining section"}), 400
+
+    idx, section = _find_section(story, section_id)
+    if section is None:
+        return jsonify({"error": f"Section '{section_id}' not found"}), 404
+
+    # Choose which neighbor absorbs the deleted section's time range.
+    # Prefer the neighbor with lower energy (extend the quiet one).
+    # If only one neighbor exists, use that one.
+    prev_section = sections[idx - 1] if idx > 0 else None
+    next_section = sections[idx + 1] if idx + 1 < len(sections) else None
+
+    if prev_section and next_section:
+        e_prev = prev_section["character"].get("energy_score", 0)
+        e_next = next_section["character"].get("energy_score", 0)
+        absorber = prev_section if e_prev <= e_next else next_section
+    elif prev_section:
+        absorber = prev_section
+    else:
+        absorber = next_section
+
+    # Extend the absorber to cover the deleted section's time range
+    if absorber["start"] > section["start"]:
+        absorber["start"] = section["start"]
+        absorber["start_fmt"] = _fmt_time(section["start"])
+    if absorber["end"] < section["end"]:
+        absorber["end"] = section["end"]
+        absorber["end_fmt"] = _fmt_time(section["end"])
+    absorber["duration"] = round(absorber["end"] - absorber["start"], 3)
+
+    _quick_profile(absorber, story)
+
+    # Remove the deleted section
+    sections.pop(idx)
+
+    # Reassign IDs and re-bucket moments
+    moments = story.get("moments", [])
+    _reassign_section_ids(sections, moments)
+
+    edits = _ensure_edits(story, _session["story_path"])
+    _track_section_edit(edits, {
+        "section_id": section_id,
+        "action": "delete",
+        "original_role": section["role"],
+        "original_start": section["start"],
+        "original_end": section["end"],
+        "absorbed_by": absorber["id"],
+    })
+
+    return jsonify({"sections": sections})
+
+
 # ── Phase 6: Moment Curation + Save/Export ─────────────────────────────────────
 
 @story_bp.route("/moment/dismiss", methods=["POST"])
@@ -861,6 +973,36 @@ def story_export():
     )
 
     return jsonify({"status": "exported", "path": str(reviewed_path)})
+
+
+@story_bp.route("/revert", methods=["POST"])
+def story_revert():
+    """Revert to the original auto-generated story, discarding all edits.
+
+    Reloads the base ``<stem>_story.json`` file (not reviewed), clears the
+    in-memory edits, and returns the original story.
+
+    Returns: ``{"story": original_story_dict}``
+    """
+    story_path = _session.get("story_path")
+    if story_path is None:
+        return jsonify({"error": "No story loaded"}), 400
+
+    base_path = _get_base_story_path(Path(story_path))
+    if base_path is None or not base_path.exists():
+        return jsonify({"error": "Base story file not found — cannot revert"}), 404
+
+    try:
+        story = json.loads(base_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        return jsonify({"error": f"Cannot read base story file: {exc}"}), 500
+
+    _session["story"] = story
+    _session["story_path"] = str(base_path)
+    _session["edits"] = None  # clear all edits
+    _session.pop("hierarchy", None)  # clear cached hierarchy
+
+    return jsonify(story)
 
 
 # ── Phase 7: Creative Preferences ─────────────────────────────────────────────

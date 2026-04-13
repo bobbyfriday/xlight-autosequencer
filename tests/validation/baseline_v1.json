@@ -5,76 +5,76 @@
       "scenario_name": "pop_anthem",
       "scores": {
         "beat_alignment": 100.0,
-        "energy_tracking": 58.3,
-        "effect_variety": 22.8,
+        "energy_tracking": 50.0,
+        "effect_variety": 18.5,
         "theme_coherence": 100.0,
         "temporal_coverage": 100.0,
         "transition_quality": 100.0,
-        "tier_utilization": 58.3,
+        "tier_utilization": 33.5,
         "repetition_avoidance": 100.0,
         "color_usage": 100.0
       },
-      "overall": 82.2
+      "overall": 78.0
     },
     {
       "scenario_name": "christmas_ballad",
       "scores": {
         "beat_alignment": 100.0,
-        "energy_tracking": 44.6,
-        "effect_variety": 25.3,
+        "energy_tracking": 33.9,
+        "effect_variety": 20.9,
         "theme_coherence": 100.0,
         "temporal_coverage": 100.0,
         "transition_quality": 100.0,
-        "tier_utilization": 55.0,
+        "tier_utilization": 29.3,
         "repetition_avoidance": 100.0,
         "color_usage": 100.0
       },
-      "overall": 80.5
+      "overall": 76.0
     },
     {
       "scenario_name": "edm_banger",
       "scores": {
         "beat_alignment": 100.0,
-        "energy_tracking": 61.9,
-        "effect_variety": 24.9,
+        "energy_tracking": 75.0,
+        "effect_variety": 18.4,
         "theme_coherence": 100.0,
         "temporal_coverage": 100.0,
         "transition_quality": 100.0,
-        "tier_utilization": 58.3,
+        "tier_utilization": 33.5,
         "repetition_avoidance": 100.0,
         "color_usage": 100.0
       },
-      "overall": 82.8
+      "overall": 80.8
     },
     {
       "scenario_name": "orchestral_piece",
       "scores": {
         "beat_alignment": 100.0,
-        "energy_tracking": 57.1,
-        "effect_variety": 22.6,
+        "energy_tracking": 20.0,
+        "effect_variety": 20.8,
         "theme_coherence": 100.0,
         "temporal_coverage": 100.0,
         "transition_quality": 100.0,
-        "tier_utilization": 57.7,
+        "tier_utilization": 33.3,
         "repetition_avoidance": 100.0,
         "color_usage": 100.0
       },
-      "overall": 81.9
+      "overall": 74.9
     },
     {
       "scenario_name": "short_jingle",
       "scores": {
         "beat_alignment": 100.0,
-        "energy_tracking": 25.0,
-        "effect_variety": 37.6,
+        "energy_tracking": 75.0,
+        "effect_variety": 26.8,
         "theme_coherence": 100.0,
         "temporal_coverage": 100.0,
         "transition_quality": 100.0,
-        "tier_utilization": 61.0,
+        "tier_utilization": 38.3,
         "repetition_avoidance": 100.0,
         "color_usage": 100.0
       },
-      "overall": 80.4
+      "overall": 82.2
     }
   ]
 }

@@ -915,6 +915,9 @@ function renderActiveTab() {
     case "themes":
       renderThemesTab(section);
       break;
+    case "generate":
+      renderGenerateTab();
+      break;
   }
 }
 
@@ -1454,6 +1457,25 @@ function wireToolbar() {
       .catch(e => alert("Save error: " + e));
   });
 
+  document.getElementById("revert-btn").addEventListener("click", () => {
+    if (!confirm("Revert to the original auto-generated story? All edits (splits, merges, renames, deletions) will be lost.")) return;
+    fetch("/story/revert", { method: "POST" })
+      .then(r => r.json())
+      .then(d => {
+        if (d.error) { alert("Revert failed: " + d.error); return; }
+        state.story = d;
+        state.currentSectionIdx = 0;
+        renderTimeline();
+        renderStemTracks();
+        selectSection(0);
+        const btn = document.getElementById("revert-btn");
+        const prev = btn.textContent;
+        btn.textContent = "Reverted!";
+        setTimeout(() => { btn.textContent = prev; }, 1500);
+      })
+      .catch(e => alert("Revert error: " + e));
+  });
+
   document.getElementById("export-btn").addEventListener("click", () => {
     fetch("/story/export", { method: "POST" })
       .then(r => r.json())
@@ -1542,9 +1564,22 @@ function addSectionEditControls(section) {
     </div>
   `;
 
+  // Delete section row
+  const deleteRow = document.createElement("div");
+  deleteRow.className = "edit-row";
+  const sectionCount = state.story ? state.story.sections.length : 0;
+  deleteRow.innerHTML = `
+    <label class="edit-label">Delete</label>
+    <div class="edit-control">
+      <button id="delete-section-btn" class="edit-btn edit-btn--danger"
+              ${sectionCount <= 1 ? "disabled" : ""}>Delete section</button>
+    </div>
+  `;
+
   wrapper.appendChild(roleRow);
   wrapper.appendChild(splitRow);
   wrapper.appendChild(hlRow);
+  wrapper.appendChild(deleteRow);
   el.appendChild(wrapper);
 
   // Wire rename button
@@ -1613,6 +1648,23 @@ function addSectionEditControls(section) {
         selectSection(idx >= 0 ? idx : state.currentSectionIdx);
       })
       .catch(e => alert("Highlight error: " + e));
+  });
+
+  // Wire delete section button
+  document.getElementById("delete-section-btn").addEventListener("click", () => {
+    const role = _roleLabel(section.role);
+    if (!confirm(`Delete "${role}" (${section.id})? Its time range will be absorbed by a neighbor.`)) return;
+    fetch("/story/delete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ section_id: section.id }),
+    })
+      .then(r => r.json())
+      .then(data => {
+        if (data.error) { alert("Delete failed: " + data.error); return; }
+        return reloadStoryFromSession();
+      })
+      .catch(e => alert("Delete error: " + e));
   });
 }
 
@@ -1905,4 +1957,193 @@ document.addEventListener("keydown", (e) => {
     zoomReset();
   }
 });
+
+// ── Generate tab ──────────────────────────────────────────────────────────────
+
+let _genPollInterval = null;
+
+function _stopGenPoll() {
+  if (_genPollInterval !== null) {
+    clearInterval(_genPollInterval);
+    _genPollInterval = null;
+  }
+}
+
+function _genSourceHash() {
+  return state.story && state.story.song && state.story.song.source_hash
+    ? state.story.song.source_hash
+    : null;
+}
+
+function _genSongGenre() {
+  return (state.story && state.story.song && state.story.song.genre) || "any";
+}
+
+async function renderGenerateTab() {
+  const el = document.querySelector('.flyout-content[data-tab-content="generate"]');
+  if (!el) return;
+
+  const sourceHash = _genSourceHash();
+  if (!sourceHash) {
+    el.innerHTML = '<p class="placeholder">No song loaded.</p>';
+    return;
+  }
+
+  el.innerHTML = '<p class="placeholder">Loading...</p>';
+
+  let settingsData;
+  try {
+    const resp = await fetch("/generate/settings");
+    settingsData = await resp.json();
+  } catch (_) {
+    el.innerHTML = '<p class="placeholder error-text">Could not reach the server.</p>';
+    return;
+  }
+
+  if (!settingsData.layout_configured) {
+    el.innerHTML = `
+      <div class="gen-section">
+        <p class="gen-notice">No layout groups configured.</p>
+        <p>Set up your xLights layout in the <a href="/grouper" target="_blank">grouper</a> and save to enable generation.</p>
+      </div>`;
+    return;
+  }
+
+  const songGenre = _genSongGenre();
+  const knownGenres = ["any", "pop", "rock", "classical"];
+  const genreValue = knownGenres.includes(songGenre) ? songGenre : "any";
+
+  el.innerHTML = `
+    <div class="gen-section">
+      <h4 class="gen-heading">Generate Sequence</h4>
+      <div class="gen-form">
+        <label class="gen-label">Genre
+          <select id="gen-genre" class="gen-select">
+            <option value="any"${genreValue === "any" ? " selected" : ""}>Any</option>
+            <option value="pop"${genreValue === "pop" ? " selected" : ""}>Pop</option>
+            <option value="rock"${genreValue === "rock" ? " selected" : ""}>Rock</option>
+            <option value="classical"${genreValue === "classical" ? " selected" : ""}>Classical</option>
+          </select>
+        </label>
+        <label class="gen-label">Occasion
+          <select id="gen-occasion" class="gen-select">
+            <option value="general" selected>General</option>
+            <option value="christmas">Christmas</option>
+            <option value="halloween">Halloween</option>
+          </select>
+        </label>
+        <label class="gen-label">Transitions
+          <select id="gen-transition" class="gen-select">
+            <option value="subtle" selected>Subtle</option>
+            <option value="none">None</option>
+            <option value="dramatic">Dramatic</option>
+          </select>
+        </label>
+      </div>
+      <button id="gen-btn" class="gen-btn">Generate Sequence</button>
+      <div id="gen-status" class="gen-status"></div>
+    </div>
+    <div id="gen-history-section"></div>`;
+
+  document.getElementById("gen-btn").addEventListener("click", _onGenerateClick);
+  _renderGenHistory(sourceHash, el.querySelector("#gen-history-section"));
+}
+
+async function _onGenerateClick() {
+  const btn = document.getElementById("gen-btn");
+  const statusEl = document.getElementById("gen-status");
+  const sourceHash = _genSourceHash();
+  if (!sourceHash || !btn || !statusEl) return;
+
+  btn.disabled = true;
+  statusEl.textContent = "Starting generation…";
+  statusEl.className = "gen-status gen-status--running";
+
+  const genre = document.getElementById("gen-genre")?.value || "any";
+  const occasion = document.getElementById("gen-occasion")?.value || "general";
+  const transitionMode = document.getElementById("gen-transition")?.value || "subtle";
+
+  let resp;
+  try {
+    resp = await fetch(`/generate/${sourceHash}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ genre, occasion, transition_mode: transitionMode }),
+    });
+  } catch (_) {
+    statusEl.textContent = "Network error — could not reach the server.";
+    statusEl.className = "gen-status gen-status--error";
+    btn.disabled = false;
+    return;
+  }
+
+  if (resp.status === 409) {
+    const data = await resp.json().catch(() => ({}));
+    statusEl.innerHTML = `${_esc(data.error || "No layout configured.")} <a href="/grouper" target="_blank">Set up grouper →</a>`;
+    statusEl.className = "gen-status gen-status--error";
+    btn.disabled = false;
+    return;
+  }
+
+  if (!resp.ok) {
+    const data = await resp.json().catch(() => ({}));
+    statusEl.textContent = data.error || "Generation failed.";
+    statusEl.className = "gen-status gen-status--error";
+    btn.disabled = false;
+    return;
+  }
+
+  const { job_id } = await resp.json();
+  statusEl.textContent = "Generation in progress…";
+
+  _stopGenPoll();
+  _genPollInterval = setInterval(async () => {
+    try {
+      const pollResp = await fetch(`/generate/${sourceHash}/status?job_id=${encodeURIComponent(job_id)}`);
+      const pollData = await pollResp.json();
+
+      if (pollData.status === "complete") {
+        _stopGenPoll();
+        statusEl.textContent = "Done! Downloading…";
+        statusEl.className = "gen-status gen-status--done";
+        window.location = `/generate/${sourceHash}/download/${encodeURIComponent(job_id)}`;
+        btn.disabled = false;
+        // Refresh history
+        const histEl = document.getElementById("gen-history-section");
+        if (histEl) _renderGenHistory(sourceHash, histEl);
+      } else if (pollData.status === "failed") {
+        _stopGenPoll();
+        statusEl.textContent = pollData.error || "Generation failed.";
+        statusEl.className = "gen-status gen-status--error";
+        btn.disabled = false;
+      }
+    } catch (_) {
+      // Network hiccup — keep polling
+    }
+  }, 2000);
+}
+
+async function _renderGenHistory(sourceHash, container) {
+  if (!container) return;
+  try {
+    const resp = await fetch(`/generate/${sourceHash}/history`);
+    const data = await resp.json();
+    if (!data.jobs || data.jobs.length === 0) {
+      container.innerHTML = "";
+      return;
+    }
+    const rows = data.jobs.map(j => {
+      const d = new Date(j.created_at * 1000);
+      const ts = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      return `<div class="gen-history-row">
+        <span class="gen-history-ts">${_esc(ts)}</span>
+        <span class="gen-history-opts">${_esc(j.genre)} / ${_esc(j.occasion)}</span>
+        <a href="/generate/${_esc(sourceHash)}/download/${_esc(j.job_id)}" class="gen-history-dl">Re-download</a>
+      </div>`;
+    }).join("");
+    container.innerHTML = `<div class="gen-section"><h4 class="gen-heading gen-heading--sm">Previous Generations</h4>${rows}</div>`;
+  } catch (_) {
+    container.innerHTML = "";
+  }
+}
 

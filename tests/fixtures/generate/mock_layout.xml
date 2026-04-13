@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xlightsproject>
+  <modelGroups>
+    <modelGroup name="All Props" models="Arch1,MiniTree1" layout="minimalGrid" GridSize="400"/>
+  </modelGroups>
+  <models>
+    <model name="Arch1" DisplayAs="Arch" StringType="RGB Nodes" StartChannel="1" PixelCount="50"
+           WorldPosX="0" WorldPosY="0" WorldPosZ="0" ScaleX="1.0" ScaleY="1.0" ScaleZ="1.0"/>
+    <model name="MiniTree1" DisplayAs="Tree 360" StringType="RGB Nodes" StartChannel="151" PixelCount="50"
+           WorldPosX="2" WorldPosY="0" WorldPosZ="0" ScaleX="1.0" ScaleY="1.0" ScaleZ="1.0"/>
+  </models>
+</xlightsproject>

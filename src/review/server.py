@@ -409,6 +409,10 @@ def create_app(analysis_path: str | None = None, audio_path: str | None = None,
     from src.review.variant_routes import variant_bp  # noqa: PLC0415
     app.register_blueprint(variant_bp)
 
+    # ── Register the sequence generation blueprint (always available) ─────────
+    from src.review.generate_routes import generate_bp  # noqa: PLC0415
+    app.register_blueprint(generate_bp, url_prefix="/generate")
+
     # ── Story review SPA route (always available) ─────────────────────────────
     @app.route("/story-review")
     def story_review_spa():
@@ -1502,6 +1506,9 @@ def create_app(analysis_path: str | None = None, audio_path: str | None = None,
             save_edits(edits, layout_path)
         except Exception as exc:
             return jsonify({"error": f"Save failed: {exc}"}), 500
+
+        from src.settings import save_settings
+        save_settings({"layout_path": str(layout_path)})
 
         from src.grouper.editor import edits_path
         return jsonify({"success": True, "edits_path": str(edits_path(layout_path))})

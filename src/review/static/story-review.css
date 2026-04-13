@@ -537,6 +537,10 @@ html, body {
 .edit-btn:hover { background: #444; }
 .edit-btn:active { background: #555; }
 .edit-btn.active { border-color: #d9a05a; color: #f0c078; background: #3a2a10; }
+.edit-btn--danger { border-color: #8b3030; color: #e06060; }
+.edit-btn--danger:hover { background: #4a1a1a; border-color: #c04040; }
+.edit-btn--danger:disabled { opacity: 0.35; cursor: not-allowed; }
+.edit-btn--danger:disabled:hover { background: #333; border-color: #8b3030; }
 
 .edit-hint {
   font-size: 11px;
@@ -831,4 +835,139 @@ input[type="text"] {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #555;
+}
+
+/* ── Generate tab ────────────────────────────────────────────────────────── */
+
+.gen-section {
+  padding: 12px 0;
+  border-bottom: 1px solid #333;
+}
+
+.gen-section:last-child {
+  border-bottom: none;
+}
+
+.gen-heading {
+  font-size: 0.8em;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #aaa;
+  margin: 0 0 10px 0;
+}
+
+.gen-heading--sm {
+  font-size: 0.72em;
+  margin-bottom: 6px;
+}
+
+.gen-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.gen-label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.8em;
+  color: #aaa;
+}
+
+.gen-select {
+  background: #2a2a2a;
+  border: 1px solid #444;
+  border-radius: 4px;
+  color: #e0e0e0;
+  padding: 5px 8px;
+  font-size: 0.9em;
+  cursor: pointer;
+}
+
+.gen-select:focus {
+  outline: none;
+  border-color: #66aaff;
+}
+
+.gen-btn {
+  width: 100%;
+  padding: 8px 14px;
+  background: #1a5cb3;
+  border: none;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 0.9em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.gen-btn:hover:not(:disabled) {
+  background: #2270d0;
+}
+
+.gen-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.gen-notice {
+  color: #e0a040;
+  font-size: 0.85em;
+  margin: 0 0 6px 0;
+}
+
+.gen-status {
+  margin-top: 8px;
+  font-size: 0.82em;
+  min-height: 1.2em;
+}
+
+.gen-status--running {
+  color: #aaa;
+}
+
+.gen-status--done {
+  color: #6fcf6f;
+}
+
+.gen-status--error {
+  color: #e05050;
+}
+
+.gen-history-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 0;
+  font-size: 0.82em;
+  border-top: 1px solid #2a2a2a;
+}
+
+.gen-history-ts {
+  color: #888;
+  white-space: nowrap;
+  min-width: 50px;
+}
+
+.gen-history-opts {
+  color: #bbb;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gen-history-dl {
+  color: #6699cc;
+  text-decoration: none;
+  white-space: nowrap;
+  font-size: 0.9em;
+}
+
+.gen-history-dl:hover {
+  text-decoration: underline;
 }

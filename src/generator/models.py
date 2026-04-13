@@ -69,7 +69,10 @@ class EffectPlacement:
     blend_mode: str = "Normal"
     fade_in_ms: int = 0
     fade_out_ms: int = 0
-    value_curves: dict[str, list[tuple[float, float]]] = field(default_factory=dict)
+    value_curves: dict[str, Any] = field(default_factory=dict)
+    # Values are either:
+    #   list[tuple[float, float]]  — legacy (points only, assumes 0-100 range)
+    #   tuple[list[tuple[float,float]], float, float] — (points, min, max)
 
     def __post_init__(self) -> None:
         self.start_ms = frame_align(self.start_ms)
@@ -114,6 +117,24 @@ class XsqDocument:
 
 
 @dataclass
+class WorkingSetEntry:
+    """A single effect in a theme's working set with its selection weight."""
+
+    effect_name: str        # Base effect name (e.g., "Butterfly")
+    variant_name: str       # Specific variant name (e.g., "Butterfly Medium Fast")
+    weight: float           # Selection probability (0.0-1.0, all entries sum to 1.0)
+    source: str             # "layer_0", "layer_1", "effect_pool", "alternate"
+
+
+@dataclass
+class WorkingSet:
+    """Weighted list of effects derived from a theme's layer structure at generation time."""
+
+    effects: list[WorkingSetEntry]      # Ordered by weight descending
+    theme_name: str                     # Source theme name (for debugging)
+
+
+@dataclass
 class GenerationConfig:
     """User choices from the wizard or CLI flags."""
 
@@ -129,6 +150,8 @@ class GenerationConfig:
     story_path: Optional[Path] = None   # Optional path to song story JSON
     transition_mode: str = "subtle"     # "none", "subtle", or "dramatic"
     curves_mode: str = "all"            # Value curve generation: all, brightness, speed, color, none
+    focused_vocabulary: bool = True     # Derive weighted working set per theme (Phase 1)
+    embrace_repetition: bool = True     # Remove intra-section dedup, relax cross-section penalty (Phase 1)
 
     _VALID_CURVES_MODES = frozenset({"all", "brightness", "speed", "color", "none"})
 

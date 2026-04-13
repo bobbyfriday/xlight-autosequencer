@@ -162,6 +162,8 @@ class RotationEngine:
         theme=None,
         theme_assignments=None,
         symmetry_pairs: list | None = None,
+        embrace_repetition: bool = False,
+        working_sets: dict | None = None,
     ) -> RotationPlan:
         """Build a complete rotation plan assigning variants to tier 5-8 groups.
 
@@ -170,16 +172,26 @@ class RotationEngine:
 
         Intra-section deduplication: within a section, already-selected variants
         are penalized (score * 0.3) so groups get distinct variants when possible.
+        Disabled when ``embrace_repetition=True``.
 
         Cross-section repeat penalty: when two sections share the same label
         (e.g. two verses), variants that were assigned to the same group in the
-        previous section of that label are penalized (score * 0.5).
+        previous section of that label are penalized (score * 0.5, or 0.85 when
+        ``embrace_repetition=True`` to allow sustained repetition).
+
+        Beat tier (tier 4) is excluded from all rotation plan assignments —
+        it is handled by the chase pattern in place_effects regardless of
+        ``embrace_repetition``.
 
         When ``symmetry_pairs`` is provided, group_b in each pair copies the
         variant assignment from group_a (with source="symmetry").
 
         Transition continuity: at least one group retains its variant from the
         previous section. If not, the lowest-tier group is forced to keep it.
+
+        When ``working_sets`` is provided (dict of theme_name → WorkingSet), variant
+        candidates are constrained to only those whose base_effect appears in that
+        theme's WorkingSet. This is the T012 focused_vocabulary constraint.
         """
         tier_groups = [g for g in groups if 5 <= g.tier <= 8]
         entries: list[RotationEntry] = []
@@ -254,25 +266,42 @@ class RotationEngine:
                     results = self._rank_for_group(section_energy, group, section_theme)
                     source = "library"
 
+                # T012: focused_vocabulary — constrain to variants whose base_effect
+                # appears in the theme's WorkingSet (when working_sets provided)
+                if working_sets is not None and section_theme is not None:
+                    ws = working_sets.get(section_theme.name)
+                    if ws and ws.effects:
+                        allowed_effects = {e.effect_name for e in ws.effects}
+                        ws_results = [(v, s, b) for v, s, b in results if v.base_effect in allowed_effects]
+                        if ws_results:
+                            results = ws_results
+
                 if not results:
                     continue
 
                 # T026: apply cross-section repeat penalty
+                # embrace_repetition=True: relaxed penalty (0.85) — same effect can sustain
+                # embrace_repetition=False: aggressive penalty (0.5) — forces cross-section variety
+                cross_section_penalty = 0.85 if embrace_repetition else 0.5
                 prev_variant = prev_assignments.get(group.name)
                 if prev_variant:
                     results = [
-                        (v, s * (0.5 if v.name == prev_variant else 1.0), b)
+                        (v, s * (cross_section_penalty if v.name == prev_variant else 1.0), b)
                         for v, s, b in results
                     ]
                     results.sort(key=lambda x: x[1], reverse=True)
 
-                # T025: prefer variants not yet used in this section
-                unused = [(v, s, b) for v, s, b in results if v.name not in used_in_section]
-                if unused:
-                    variant, score, breakdown = unused[0]
-                else:
-                    # All variants exhausted — fall back to highest-scoring one
+                if embrace_repetition:
+                    # T018: No intra-section dedup — same variant can repeat across groups
                     variant, score, breakdown = results[0]
+                else:
+                    # T025: prefer variants not yet used in this section
+                    unused = [(v, s, b) for v, s, b in results if v.name not in used_in_section]
+                    if unused:
+                        variant, score, breakdown = unused[0]
+                    else:
+                        # All variants exhausted — fall back to highest-scoring one
+                        variant, score, breakdown = results[0]
 
                 used_in_section.add(variant.name)
 

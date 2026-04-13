@@ -37,6 +37,10 @@ Auto-generated from all feature plans. Last updated: 2026-04-09
 - JSON files — `~/.xlight/library.json` (song library), `~/.xlight/custom_themes/*.json` (custom themes), `src/themes/builtin_themes.json` (built-in themes, read-only) (027-unified-dashboard)
 - Python 3.11+ (backend), Vanilla JavaScript ES2020+ (frontend) + Flask 3+ (web server), click 8+ (CLI), existing analysis pipeline (033-theme-variant-separation)
 - JSON files (builtin_themes.json, variant builtins/*.json, custom themes/variants) (033-theme-variant-separation)
+- Python 3.11+ (backend), Vanilla JavaScript ES2020+ (frontend) + Flask 3+ (web server), existing `src/generator/plan.py` + `src/generator/xsq_writer.py`, `src/library.py` — no new dependencies (034-library-sequence-gen)
+- `~/.xlight/settings.json` (layout path), in-memory `_jobs` dict (generation state), `tempfile.mkdtemp()` (generated `.xsq` files) (034-library-sequence-gen)
+- Python 3.11+ + click 8+ (CLI), Flask 3+ (web server), existing generator pipeline (036-focused-effects-repetition)
+- JSON files (theme definitions, effect definitions, variant library) (036-focused-effects-repetition)
 
 - **Language**: Python 3.11+
 - **Audio analysis**: vamp (Python host), librosa 0.10+, madmom 0.16+
@@ -126,9 +130,9 @@ already been tried and why.
 - Timestamps are always stored as integers (milliseconds) — never floats
 
 ## Recent Changes
+- 036-focused-effects-repetition: Added Python 3.11+ + click 8+ (CLI), Flask 3+ (web server), existing generator pipeline
+- 034-library-sequence-gen: Added Python 3.11+ (backend), Vanilla JavaScript ES2020+ (frontend) + Flask 3+ (web server), existing `src/generator/plan.py` + `src/generator/xsq_writer.py`, `src/library.py` — no new dependencies
 - 033-theme-variant-separation: Added Python 3.11+ (backend), Vanilla JavaScript ES2020+ (frontend) + Flask 3+ (web server), click 8+ (CLI), existing analysis pipeline
-- 027-unified-dashboard: Added Python 3.11+ (backend), Vanilla JavaScript ES2020+ (frontend) + Flask 3+ (web server), click 8+ (CLI), mutagen (ID3 tags), existing analysis pipeline
-- 023-devcontainer-path-resolution: Added Python 3.11+ + pathlib (stdlib), os (stdlib), hashlib (stdlib) — no new dependencies
   `htdemucs_6s` separates audio into 6 stems (drums, bass, vocals, guitar, piano, other).
   Algorithms route to their preferred stem via `Algorithm.preferred_stem` class attribute.
   Stems are MD5-cached in `.stems/<hash>/` adjacent to the source file. Each `TimingTrack`

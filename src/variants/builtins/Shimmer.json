@@ -12,10 +12,10 @@
       },
       "tags": {
         "tier_affinity": "background",
-        "energy_level": "low",
+        "energy_level": "high",
         "speed_feel": "slow",
         "direction": null,
-        "section_roles": ["verse", "intro", "outro"],
+        "section_roles": ["chorus", "drop", "hook", "climax"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
@@ -30,11 +30,11 @@
         "E_TEXTCTRL_Shimmer_Cycles": 4
       },
       "tags": {
-        "tier_affinity": "background",
-        "energy_level": "medium",
-        "speed_feel": "slow",
+        "tier_affinity": "foreground",
+        "energy_level": "high",
+        "speed_feel": "moderate",
         "direction": null,
-        "section_roles": ["chorus", "verse", "bridge"],
+        "section_roles": ["chorus", "drop", "hook", "climax"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }

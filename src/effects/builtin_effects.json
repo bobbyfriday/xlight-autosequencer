@@ -172,18 +172,6 @@
       "intent": "Smooth ambient color transitions for verses, intros, and low-energy sections",
       "parameters": [
         {
-          "name": "ColorWash_Count",
-          "storage_name": "E_SLIDER_ColorWash_Count",
-          "widget_type": "slider",
-          "value_type": "int",
-          "default": 1,
-          "min": 1,
-          "max": 100,
-          "choices": null,
-          "description": "Number of color bands visible simultaneously",
-          "supports_value_curve": true
-        },
-        {
           "name": "ColorWash_Cycles",
           "storage_name": "E_TEXTCTRL_ColorWash_Cycles",
           "widget_type": "textctrl",
@@ -254,28 +242,6 @@
           "choices": null,
           "description": "Reverse the direction of horizontal/vertical fades",
           "supports_value_curve": false
-        },
-        {
-          "name": "Color_Wash_Cycles",
-          "storage_name": "E_SLIDER_Color Wash_Cycles",
-          "widget_type": "slider",
-          "value_type": "int",
-          "default": 1,
-          "min": 1,
-          "max": 10,
-          "description": "Number of color fade cycles per second",
-          "supports_value_curve": true
-        },
-        {
-          "name": "Color_Wash_Shimmer",
-          "storage_name": "E_CHECKBOX_Color Wash_Shimmer",
-          "widget_type": "checkbox",
-          "value_type": "bool",
-          "default": 0,
-          "min": null,
-          "max": null,
-          "description": "Enable shimmer/sparkle overlay on the color wash",
-          "supports_value_curve": false
         }
       ],
       "prop_suitability": {
@@ -293,16 +259,6 @@
           "analysis_field": "beats.bpm",
           "mapping_type": "direct",
           "description": "Faster BPM = more wash cycles for rhythmic color movement",
-          "input_min": 0.0,
-          "input_max": 100.0,
-          "curve_shape": "linear"
-        },
-        {
-          "parameter": "ColorWash_Count",
-          "analysis_level": "L5",
-          "analysis_field": "energy_curves.overall",
-          "mapping_type": "direct",
-          "description": "Higher energy = more color bands for visual density",
           "input_min": 0.0,
           "input_max": 100.0,
           "curve_shape": "linear"
@@ -531,7 +487,7 @@
         },
         {
           "name": "Strobe_Type",
-          "storage_name": "E_CHOICE_Strobe_Type",
+          "storage_name": "E_SLIDER_Strobe_Type",
           "widget_type": "choice",
           "value_type": "choice",
           "default": "From Middle",
@@ -815,7 +771,7 @@
         },
         {
           "name": "Bars_Center",
-          "storage_name": "E_SLIDER_Bars_Center",
+          "storage_name": "E_TEXTCTRL_Bars_Center",
           "widget_type": "slider",
           "value_type": "int",
           "default": 0,
@@ -1253,7 +1209,7 @@
         },
         {
           "name": "Fan_Revolutions",
-          "storage_name": "E_TEXTCTRL_Fan_Revolutions",
+          "storage_name": "E_SLIDER_Fan_Revolutions",
           "widget_type": "textctrl",
           "value_type": "float",
           "default": 1.0,
@@ -2150,7 +2106,7 @@
         },
         {
           "name": "Shape_Count",
-          "storage_name": "E_SLIDER_Shape_Count",
+          "storage_name": "E_TEXTCTRL_Shape_Count",
           "widget_type": "slider",
           "value_type": "int",
           "default": 5,
@@ -2581,7 +2537,7 @@
         },
         {
           "name": "Spirals_Movement",
-          "storage_name": "E_SLIDER_Spirals_Movement",
+          "storage_name": "E_TEXTCTRL_Spirals_Movement",
           "widget_type": "slider",
           "value_type": "int",
           "default": 10,
@@ -2684,50 +2640,45 @@
           "supports_value_curve": false
         },
         {
-          "name": "Wave_FillColor",
-          "storage_name": "E_CHOICE_Wave_FillColor",
+          "name": "Fill_Colors",
+          "storage_name": "E_CHOICE_Fill_Colors",
           "widget_type": "choice",
           "value_type": "choice",
           "default": "None",
           "min": null,
           "max": null,
-          "choices": [
-            "None",
-            "Color 1",
-            "Color 2",
-            "Rainbow"
-          ],
+          "choices": ["None", "Color 1", "Color 2", "Rainbow"],
           "description": "Fill color beneath the wave",
           "supports_value_curve": false
         },
         {
-          "name": "Wave_Number",
-          "storage_name": "E_SLIDER_Wave_Number",
+          "name": "Number_Waves",
+          "storage_name": "E_SLIDER_Number_Waves",
           "widget_type": "slider",
           "value_type": "int",
           "default": 1,
           "min": 1,
-          "max": 10,
+          "max": 900,
           "choices": null,
           "description": "Number of simultaneous waves",
           "supports_value_curve": true
         },
         {
-          "name": "Wave_Thickness",
-          "storage_name": "E_SLIDER_Wave_Thickness",
+          "name": "Thickness_Percentage",
+          "storage_name": "E_SLIDER_Thickness_Percentage",
           "widget_type": "slider",
           "value_type": "int",
-          "default": 5,
+          "default": 25,
           "min": 0,
           "max": 100,
           "choices": null,
-          "description": "Thickness of the wave line",
+          "description": "Thickness of the wave line as percentage",
           "supports_value_curve": true
         },
         {
           "name": "Wave_Speed",
-          "storage_name": "E_SLIDER_Wave_Speed",
-          "widget_type": "slider",
+          "storage_name": "E_TEXTCTRL_Wave_Speed",
+          "widget_type": "textctrl",
           "value_type": "int",
           "default": 10,
           "min": 0,
@@ -2786,17 +2737,6 @@
           "choices": null,
           "description": "Mirror the wave pattern vertically for symmetric effect",
           "supports_value_curve": false
-        },
-        {
-          "name": "Wave_Number_Of_Waves",
-          "storage_name": "E_SLIDER_Wave_Number_Of_Waves",
-          "widget_type": "slider",
-          "value_type": "int",
-          "default": 2,
-          "min": 1,
-          "max": 5,
-          "description": "Number of wave peaks visible simultaneously",
-          "supports_value_curve": true
         }
       ],
       "prop_suitability": {
@@ -3533,7 +3473,7 @@
         },
         {
           "name": "Meteors_XOffset",
-          "storage_name": "E_SLIDER_Meteors_XOffset",
+          "storage_name": "E_TEXTCTRL_Meteors_XOffset",
           "widget_type": "slider",
           "value_type": "int",
           "default": 0,
@@ -3545,7 +3485,7 @@
         },
         {
           "name": "Meteors_YOffset",
-          "storage_name": "E_SLIDER_Meteors_YOffset",
+          "storage_name": "E_TEXTCTRL_Meteors_YOffset",
           "widget_type": "slider",
           "value_type": "int",
           "default": 0,
@@ -5112,7 +5052,7 @@
         },
         {
           "name": "Pictures_Speed",
-          "storage_name": "E_SLIDER_Pictures_Speed",
+          "storage_name": "E_TEXTCTRL_Pictures_Speed",
           "widget_type": "slider",
           "value_type": "int",
           "default": 1,
@@ -5124,7 +5064,7 @@
         },
         {
           "name": "Pictures_FrameRateAdj",
-          "storage_name": "E_SLIDER_Pictures_FrameRateAdj",
+          "storage_name": "E_TEXTCTRL_Pictures_FrameRateAdj",
           "widget_type": "slider",
           "value_type": "int",
           "default": 10,

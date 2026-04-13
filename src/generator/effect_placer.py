@@ -21,6 +21,8 @@ from src.generator.models import (
     EffectPlacement,
     SectionAssignment,
     SectionEnergy,
+    WorkingSet,
+    WorkingSetEntry,
     frame_align,
 )
 from src.grouper.grouper import PowerGroup
@@ -38,6 +40,12 @@ _TIER_BRIGHTNESS: dict[int, float] = {
     1: 0.40,   # BASE: dim backdrop
     2: 0.40,   # GEO: dim backdrop
 }
+
+# GEO axis classification — horizontal slices vs vertical slices.
+# A prop can belong to one group from each axis (e.g. GEO_Top AND GEO_Left),
+# so only one axis should be active at a time to avoid overrides.
+_GEO_HORIZONTAL = {"02_GEO_Top", "02_GEO_Mid", "02_GEO_Bot"}
+_GEO_VERTICAL = {"02_GEO_Left", "02_GEO_Center", "02_GEO_Right"}
 
 
 def _dim_palette(palette: list[str], multiplier: float) -> list[str]:
@@ -77,7 +85,7 @@ _FORCE_PALETTE_PARAMS: dict[str, dict[str, str]] = {
     "Butterfly": {"E_CHOICE_Butterfly_Colors": "Palette"},
     "Meteors": {"E_CHOICE_Meteors_Type": "Palette", "E_CHOICE_Meteors_Effect": "Down"},
     "Single Strand": {"E_CHOICE_SingleStrand_Colors": "Palette"},
-    "Wave": {"E_CHOICE_Wave_FillColor": "Color 1", "E_CHOICE_Wave_Direction": "Right to Left"},
+    "Wave": {"E_CHOICE_Fill_Colors": "Color 1", "E_CHOICE_Wave_Direction": "Right to Left"},
     "Bars": {"E_CHOICE_Bars_Direction": "Left"},
     "Fire": {"E_CHECKBOX_Fire_GrowWithMusic": "0"},
     "Garlands": {"E_CHOICE_Garlands_Type": "Palette"},
@@ -129,6 +137,110 @@ def _build_effect_pool(
     return pool
 
 
+def derive_working_set(theme, variant_library) -> WorkingSet:
+    """Derive a weighted working set of effects from a theme's layer structure.
+
+    Algorithm (from data-model.md):
+    1. Layer weights: layer 0 = 0.40, each subsequent = previous / 2, min 0.05
+    2. effect_pool expansion: split layer's weight evenly across pool variants
+       (the layer's own variant is NOT included in pool splits — pool is separate)
+    3. Alternate layers: each alternate set contributes variants at 0.05 each
+    4. Normalize to sum = 1.0
+    5. Dedup: same base effect across entries — sum weights under highest-weighted variant
+    """
+    raw: list[tuple[str, str, float, str]] = []  # (variant_name, effect_name, weight, source)
+
+    # --- Layer weights ---
+    layer_weight = 0.40
+    for layer_idx, layer in enumerate(theme.layers):
+        source_label = f"layer_{layer_idx}"
+        if layer.effect_pool:
+            # Split evenly across pool variants only (layer variant excluded from pool split)
+            pool_names = list(layer.effect_pool)
+            per_pool = layer_weight / len(pool_names)
+            for pool_variant_name in pool_names:
+                pool_variant = variant_library.get(pool_variant_name)
+                if pool_variant is not None:
+                    raw.append((pool_variant_name, pool_variant.base_effect, per_pool, "effect_pool"))
+            # The layer's own variant does not get extra weight when pool is present
+            # (its weight is already split into the pool)
+            layer_variant = variant_library.get(layer.variant)
+            if layer_variant is not None:
+                raw.append((layer.variant, layer_variant.base_effect, per_pool, source_label))
+        else:
+            layer_variant = variant_library.get(layer.variant)
+            if layer_variant is not None:
+                raw.append((layer.variant, layer_variant.base_effect, layer_weight, source_label))
+
+        layer_weight = max(0.05, layer_weight / 2)
+
+    # --- Alternate layers ---
+    for alternate in theme.alternates:
+        for alt_layer in alternate.layers:
+            alt_variant = variant_library.get(alt_layer.variant)
+            if alt_variant is not None:
+                raw.append((alt_layer.variant, alt_variant.base_effect, 0.05, "alternate"))
+
+    if not raw:
+        return WorkingSet(effects=[], theme_name=theme.name)
+
+    # --- Deduplication: merge same base effect, keep highest-weighted variant ---
+    # Group by effect_name; combine weights; retain variant of highest raw entry
+    effect_groups: dict[str, list[tuple[str, float, str]]] = {}  # effect → [(variant, weight, source)]
+    for variant_name, effect_name, weight, source in raw:
+        effect_groups.setdefault(effect_name, []).append((variant_name, weight, source))
+
+    deduped: list[tuple[str, str, float, str]] = []  # (effect_name, variant_name, combined_weight, source)
+    for effect_name, entries in effect_groups.items():
+        combined_weight = sum(w for _, w, _ in entries)
+        # Use variant from the entry with the highest individual weight
+        best_variant, _, best_source = max(entries, key=lambda x: x[1])
+        deduped.append((effect_name, best_variant, combined_weight, best_source))
+
+    # --- Normalize ---
+    total = sum(w for _, _, w, _ in deduped)
+    if total <= 0:
+        return WorkingSet(effects=[], theme_name=theme.name)
+
+    normalized = [(en, vn, w / total, src) for en, vn, w, src in deduped]
+
+    # --- Sort by weight descending ---
+    normalized.sort(key=lambda x: x[2], reverse=True)
+
+    effects = [
+        WorkingSetEntry(
+            effect_name=en,
+            variant_name=vn,
+            weight=w,
+            source=src,
+        )
+        for en, vn, w, src in normalized
+    ]
+    return WorkingSet(effects=effects, theme_name=theme.name)
+
+
+def select_from_working_set(working_set: WorkingSet, rng) -> WorkingSetEntry:
+    """Select an entry from a WorkingSet using weighted random selection.
+
+    Args:
+        working_set: The weighted effect pool to sample from
+        rng: A random.Random instance for reproducibility
+
+    Returns:
+        A WorkingSetEntry chosen proportionally to its weight
+    """
+    if not working_set.effects:
+        raise ValueError("WorkingSet is empty — cannot select")
+    r = rng.random()
+    cumulative = 0.0
+    for entry in working_set.effects:
+        cumulative += entry.weight
+        if r <= cumulative:
+            return entry
+    # Floating point safety — return last entry
+    return working_set.effects[-1]
+
+
 def place_effects(
     assignment: SectionAssignment,
     groups: list[PowerGroup],
@@ -138,6 +250,8 @@ def place_effects(
     variant_library=None,
     rotation_plan: RotationPlan | None = None,
     section_index: int = 0,
+    working_set: WorkingSet | None = None,
+    focused_vocabulary: bool = False,
 ) -> dict[str, list[EffectPlacement]]:
     """Place effects from theme layers onto power groups, aligned to timing tracks.
 
@@ -287,14 +401,19 @@ def place_effects(
                         result.setdefault(group.name, []).extend(rot_placements)
                 continue
 
-            # Tier 6-7 effect rotation (fallback): cycle through prop-effect pool
+            # Tier 6-7 effect rotation (fallback): when rotation_plan is None, use WorkingSet
+            # (focused_vocabulary=True) or prop-effect pool (focused_vocabulary=False)
             if tier in (6, 7) and groups_for_tier:
-                pool = _build_effect_pool(effect_library, exclude={layer_variant.base_effect})
-                if pool:
+                if focused_vocabulary and working_set and working_set.effects:
+                    # T011: Draw from WorkingSet — coherent with rest of sequence
                     for gi, group in enumerate(groups_for_tier):
-                        rotated_def = pool[gi % len(pool)]
+                        ws_rng = random.Random(section_index * 10000 + gi * 100 + tier)
+                        ws_entry = select_from_working_set(working_set, ws_rng)
+                        ws_def = effect_library.effects.get(ws_entry.effect_name)
+                        if ws_def is None:
+                            ws_def = effect_def  # fallback to layer effect
                         rot_placements = _place_effect_on_group(
-                            effect_def=rotated_def,
+                            effect_def=ws_def,
                             layer=layer,
                             group=group,
                             section=assignment.section,
@@ -310,6 +429,29 @@ def place_effects(
                         if rot_placements:
                             result.setdefault(group.name, []).extend(rot_placements)
                     continue
+                else:
+                    # Original: cycle through prop-effect pool
+                    pool = _build_effect_pool(effect_library, exclude={layer_variant.base_effect})
+                    if pool:
+                        for gi, group in enumerate(groups_for_tier):
+                            rotated_def = pool[gi % len(pool)]
+                            rot_placements = _place_effect_on_group(
+                                effect_def=rotated_def,
+                                layer=layer,
+                                group=group,
+                                section=assignment.section,
+                                hierarchy=hierarchy,
+                                palette=tier_palette,
+                                variation_seed=assignment.variation_seed,
+                                chord_marks=chord_marks,
+                                tension_curve=tension_curve,
+                                danceability=danceability,
+                                chord_weight=chord_weight,
+                                variant_library=variant_library,
+                            )
+                            if rot_placements:
+                                result.setdefault(group.name, []).extend(rot_placements)
+                        continue
 
             # Tier 4 (BEAT): use chase pattern — distribute beats across groups
             if tier == 4 and groups_for_tier:
@@ -322,7 +464,43 @@ def place_effects(
                     result.setdefault(gname, []).extend(placements)
                 continue
 
+            # Tier 1-2 (BASE, GEO): energy-based exclusive activation.
+            #
+            # GEO zones overlap: Top/Mid/Bot (horizontal) and Left/Center/Right
+            # (vertical) share models, so running all 6 creates overrides.
+            #
+            # Strategy:
+            #   ethereal  → tier 1 only (BASE_All — unified wash)
+            #   structural → tier 2, one GEO axis (consistent per section)
+            #   aggressive → tier 2, GEO axes alternate per bar (swirl effect)
+            #
+            # Tier 1 is skipped when tier 2 is active (GEO covers the whole house).
+            mood = section.mood_tier
+
+            if tier == 1 and mood != "ethereal":
+                # Skip BASE_All in structural/aggressive — GEO zones handle it
+                continue
+            if tier == 2 and mood == "ethereal":
+                # Skip GEO zones in ethereal — BASE_All handles it
+                continue
+
             for group in groups_for_tier:
+                # Determine GEO axis filtering
+                bar_parity: int | None = None
+                if tier == 2:
+                    is_h = group.name in _GEO_HORIZONTAL
+                    is_v = group.name in _GEO_VERTICAL
+                    if mood == "aggressive":
+                        # Alternate axes per bar: horizontal=even, vertical=odd
+                        if is_h:
+                            bar_parity = 0
+                        elif is_v:
+                            bar_parity = 1
+                    else:
+                        # Structural: use horizontal axis only, skip vertical
+                        if is_v:
+                            continue
+
                 placements = _place_effect_on_group(
                     effect_def=effect_def,
                     layer=layer,
@@ -336,6 +514,7 @@ def place_effects(
                     danceability=danceability,
                     chord_weight=chord_weight,
                     variant_library=variant_library,
+                    bar_parity=bar_parity,
                 )
                 if placements:
                     result.setdefault(group.name, []).extend(placements)
@@ -432,8 +611,14 @@ def _place_effect_on_group(
     danceability: float | None = None,
     chord_weight: float = 0.4,
     variant_library=None,
+    bar_parity: int | None = None,
 ) -> list[EffectPlacement]:
-    """Create effect placement instances for a group within a section."""
+    """Create effect placement instances for a group within a section.
+
+    When ``bar_parity`` is set (0 or 1), bar-based placements only use bars
+    matching that parity.  Section-type effects are converted to per-bar
+    placement so the parity filter can be applied.
+    """
     start_ms = section.start_ms
     end_ms = section.end_ms
     duration_type = effect_def.duration_type
@@ -449,6 +634,17 @@ def _place_effect_on_group(
 
     # Resolve palette: blend with chord colors if available
     resolved_palette = _resolve_palette(palette, chord_marks, tension_curve, start_ms, end_ms, chord_weight)
+
+    # When bar_parity is active, force bar-based placement so the parity
+    # filter can alternate which bars this group is active on.
+    if bar_parity is not None:
+        return _place_per_bar(
+            effect_def, group.name, section, hierarchy,
+            params, resolved_palette, layer.blend_mode,
+            chord_marks=chord_marks, tension_curve=tension_curve,
+            chord_weight=chord_weight, direction_cycle=direction_cycle,
+            bar_parity=bar_parity,
+        )
 
     if duration_type == "section":
         return [_make_placement(
@@ -567,8 +763,14 @@ def _place_per_bar(
     tension_curve: list[tuple[int, int]] | None = None,
     chord_weight: float = 0.4,
     direction_cycle: dict | None = None,
+    bar_parity: int | None = None,
 ) -> list[EffectPlacement]:
-    """Place one effect instance per bar within the section."""
+    """Place one effect instance per bar within the section.
+
+    When ``bar_parity`` is set (0 or 1), only bars matching that parity are
+    placed.  This enables the GEO axis-alternation pattern where horizontal
+    zones get even bars and vertical zones get odd bars.
+    """
     bars_track = hierarchy.bars
     if bars_track is None:
         return [_make_placement(
@@ -579,6 +781,8 @@ def _place_per_bar(
     marks = _marks_in_range(bars_track.marks, section.start_ms, section.end_ms)
     placements = []
     for i, mark in enumerate(marks):
+        if bar_parity is not None and (i % 2) != bar_parity:
+            continue
         bar_start = mark.time_ms
         bar_end = marks[i + 1].time_ms if i + 1 < len(marks) else section.end_ms
         if bar_end <= bar_start:

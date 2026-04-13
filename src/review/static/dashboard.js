@@ -274,12 +274,177 @@
         else if (action === 'preview') window.location.href = '/generation-preview?hash=' + entry.source_hash;
         else if (action === 'story') openSong(entry.source_hash, 'story', entry.story_path);
         else if (action === 'phonemes') openSong(entry.source_hash, 'phonemes');
+        else if (action === 'generate') toggleGeneratePanel(entry, tr);
         else if (action === 'reanalyze') reanalyzeSong(entry);
         else if (action === 'delete') showDeleteDialog(entry);
       });
     });
 
     tb.appendChild(tr);
+  }
+
+  // ── Generate Sequence inline panel ────────────────────────────────────────
+  var _genPollInterval = null;
+
+  function toggleGeneratePanel(entry, detailRow) {
+    var panel = detailRow.querySelector('.detail-generate');
+    if (!panel) return;
+    if (panel.style.display !== 'none') {
+      panel.style.display = 'none';
+      return;
+    }
+    panel.style.display = '';
+    renderGeneratePanel(entry, panel);
+  }
+
+  function renderGeneratePanel(entry, panel) {
+    if (!entry.analysis_exists) {
+      panel.innerHTML = '<div class="gen-inline-notice">Analysis required before generating. Run analysis first.</div>';
+      return;
+    }
+
+    panel.innerHTML = '<div class="gen-inline-loading">Checking layout configuration…</div>';
+
+    fetch('/generate/settings')
+      .then(function (r) { return r.json(); })
+      .then(function (settings) {
+        if (!settings.layout_configured) {
+          panel.innerHTML = '<div class="gen-inline-notice">' +
+            'No layout groups configured. ' +
+            '<a href="/grouper" target="_blank">Set up layout groups in the grouper</a> ' +
+            'and save to enable generation.' +
+            '</div>';
+          return;
+        }
+
+        var knownGenres = ['any', 'pop', 'rock', 'classical'];
+        var songGenre = entry.genre && knownGenres.indexOf(entry.genre.toLowerCase()) >= 0
+          ? entry.genre.toLowerCase() : 'any';
+
+        function opt(val, label, sel) {
+          return '<option value="' + val + '"' + (sel === val ? ' selected' : '') + '>' + label + '</option>';
+        }
+
+        panel.innerHTML =
+          '<div class="gen-inline-form">' +
+            '<label>Genre <select class="gen-inline-select" id="gi-genre-' + esc(entry.source_hash) + '">' +
+              opt('any', 'Any', songGenre) +
+              opt('pop', 'Pop', songGenre) +
+              opt('rock', 'Rock', songGenre) +
+              opt('classical', 'Classical', songGenre) +
+            '</select></label>' +
+            '<label>Occasion <select class="gen-inline-select" id="gi-occasion-' + esc(entry.source_hash) + '">' +
+              opt('general', 'General', 'general') +
+              opt('christmas', 'Christmas', 'general') +
+              opt('halloween', 'Halloween', 'general') +
+            '</select></label>' +
+            '<label>Transitions <select class="gen-inline-select" id="gi-transition-' + esc(entry.source_hash) + '">' +
+              opt('subtle', 'Subtle', 'subtle') +
+              opt('none', 'None', 'subtle') +
+              opt('dramatic', 'Dramatic', 'subtle') +
+            '</select></label>' +
+            '<button class="btn btn-small gen-inline-btn" id="gi-btn-' + esc(entry.source_hash) + '">Generate</button>' +
+            '<span class="gen-inline-status" id="gi-status-' + esc(entry.source_hash) + '"></span>' +
+          '</div>' +
+          '<div class="gen-inline-history" id="gi-history-' + esc(entry.source_hash) + '"></div>';
+
+        document.getElementById('gi-btn-' + entry.source_hash)
+          .addEventListener('click', function () { startGeneration(entry, panel); });
+
+        loadGenHistory(entry.source_hash);
+      })
+      .catch(function () {
+        panel.innerHTML = '<div class="gen-inline-notice">Could not reach server.</div>';
+      });
+  }
+
+  function startGeneration(entry, panel) {
+    var hash = entry.source_hash;
+    var btn = document.getElementById('gi-btn-' + hash);
+    var statusEl = document.getElementById('gi-status-' + hash);
+    if (!btn || !statusEl) return;
+
+    var genre = (document.getElementById('gi-genre-' + hash) || {}).value || 'any';
+    var occasion = (document.getElementById('gi-occasion-' + hash) || {}).value || 'general';
+    var transition = (document.getElementById('gi-transition-' + hash) || {}).value || 'subtle';
+
+    btn.disabled = true;
+    statusEl.textContent = 'Starting…';
+    statusEl.className = 'gen-inline-status gen-inline-status--running';
+
+    fetch('/generate/' + hash, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ genre: genre, occasion: occasion, transition_mode: transition })
+    })
+      .then(function (r) { return r.json().then(function (d) { return { status: r.status, data: d }; }); })
+      .then(function (res) {
+        if (res.status === 409) {
+          statusEl.innerHTML = 'No layout configured. <a href="/grouper" target="_blank">Set up grouper →</a>';
+          statusEl.className = 'gen-inline-status gen-inline-status--error';
+          btn.disabled = false;
+          return;
+        }
+        if (res.status !== 202) {
+          statusEl.textContent = res.data.error || 'Generation failed.';
+          statusEl.className = 'gen-inline-status gen-inline-status--error';
+          btn.disabled = false;
+          return;
+        }
+
+        var jobId = res.data.job_id;
+        statusEl.textContent = 'Generating…';
+
+        if (_genPollInterval) clearInterval(_genPollInterval);
+        _genPollInterval = setInterval(function () {
+          fetch('/generate/' + hash + '/status?job_id=' + encodeURIComponent(jobId))
+            .then(function (r) { return r.json(); })
+            .then(function (d) {
+              if (d.status === 'complete') {
+                clearInterval(_genPollInterval);
+                _genPollInterval = null;
+                statusEl.textContent = 'Done! Downloading…';
+                statusEl.className = 'gen-inline-status gen-inline-status--done';
+                window.location.href = '/generate/' + hash + '/download/' + encodeURIComponent(jobId);
+                btn.disabled = false;
+                loadGenHistory(hash);
+              } else if (d.status === 'failed') {
+                clearInterval(_genPollInterval);
+                _genPollInterval = null;
+                statusEl.textContent = d.error || 'Generation failed.';
+                statusEl.className = 'gen-inline-status gen-inline-status--error';
+                btn.disabled = false;
+              }
+            })
+            .catch(function () { /* keep polling */ });
+        }, 2000);
+      })
+      .catch(function () {
+        statusEl.textContent = 'Network error.';
+        statusEl.className = 'gen-inline-status gen-inline-status--error';
+        btn.disabled = false;
+      });
+  }
+
+  function loadGenHistory(hash) {
+    var histEl = document.getElementById('gi-history-' + hash);
+    if (!histEl) return;
+    fetch('/generate/' + hash + '/history')
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (!data.jobs || data.jobs.length === 0) { histEl.innerHTML = ''; return; }
+        var rows = data.jobs.map(function (j) {
+          var d = new Date(j.created_at * 1000);
+          var ts = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          return '<div class="gen-hist-row">' +
+            '<span class="gen-hist-ts">' + ts + '</span>' +
+            '<span class="gen-hist-opts">' + esc(j.genre) + ' / ' + esc(j.occasion) + '</span>' +
+            '<a href="/generate/' + esc(hash) + '/download/' + esc(j.job_id) + '" class="gen-hist-dl">Re-download</a>' +
+            '</div>';
+        }).join('');
+        histEl.innerHTML = '<div class="gen-hist-header">Previous generations</div>' + rows;
+      })
+      .catch(function () {});
   }
 
   // ── Navigation helpers ─────────────────────────────────────────────────────
