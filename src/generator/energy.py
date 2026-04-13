@@ -33,15 +33,16 @@ def derive_section_energies(
     # A song at -35 LUFS (quiet) gets boosted; one at -14 LUFS stays 1.0.
     lufs_multiplier = _lufs_normalization_factor(loudness_lufs)
 
-    # Clamp section boundaries so they don't overlap —
-    # each section ends at the next section's start time
+    # Enforce contiguous section boundaries — clamp overlaps and fill gaps
     clamped: list[tuple[int, int, str]] = []
     for i, section in enumerate(sections):
         start_ms = section.time_ms
         end_ms = start_ms + (section.duration_ms or 0)
         if i + 1 < len(sections):
             next_start = sections[i + 1].time_ms
-            end_ms = min(end_ms, next_start)
+            # Clamp overlap: section can't extend past the next section's start
+            # Fill gap: if there's a gap, extend this section to cover it
+            end_ms = next_start
         clamped.append((start_ms, end_ms, section.label or "unknown"))
 
     raw_energies: list[tuple[int, int, str, int, int]] = []

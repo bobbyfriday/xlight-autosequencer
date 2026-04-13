@@ -36,7 +36,7 @@ class TransitionConfig:
     mode: str = "subtle"
     snap_window_ms: int | None = None
     fadeout_strategy: str = "progressive"
-    abrupt_end_fade_ms: int = 3000
+    abrupt_end_fade_ms: int = 1000
 
     def __post_init__(self) -> None:
         if self.mode not in VALID_MODES:
@@ -196,7 +196,7 @@ def apply_crossfades(
 def build_fadeout_plan(
     assignments: list[SectionAssignment],
     fadeout_strategy: str,
-    abrupt_end_fade_ms: int = 3000,
+    abrupt_end_fade_ms: int = 1000,
 ) -> FadeOutPlan | None:
     """Build a FadeOutPlan for the final section.
 

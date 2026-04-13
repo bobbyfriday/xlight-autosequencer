@@ -28,6 +28,7 @@
       <span class="toolbar-sep"></span>
       <button id="save-btn">Save</button>
       <button id="export-btn">Export</button>
+      <button id="revert-btn" title="Revert to auto-generated story">Revert</button>
       <button id="prefs-btn">&#9881; Prefs</button>
     </div>
 
@@ -53,6 +54,7 @@
             <button class="flyout-tab active" data-tab="details">Details</button>
             <button class="flyout-tab" data-tab="moments">Moments</button>
             <button class="flyout-tab" data-tab="themes">Themes</button>
+            <button class="flyout-tab" data-tab="generate">Generate</button>
           </div>
           <button class="flyout-close" aria-label="Close panel">&times;</button>
         </div>
@@ -65,6 +67,8 @@
           <div class="flyout-content" data-tab-content="themes" hidden>
             <p class="placeholder">Themes coming soon</p>
           </div>
+          <div class="flyout-content" data-tab-content="generate" hidden>
+          </div>
         </div>
         <div id="prefs-panel" style="display:none;">
           <!-- Populated by renderPreferencesPanel() -->
@@ -76,6 +80,6 @@
   <audio id="player" preload="auto"></audio>
 
   <script src="navbar.js"></script>
-  <script src="story-review.js?v=7"></script>
+  <script src="story-review.js?v=8"></script>
 </body>
 </html>

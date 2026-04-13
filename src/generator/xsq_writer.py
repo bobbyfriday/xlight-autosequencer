@@ -30,8 +30,6 @@ _XLIGHTS_EFFECT_DEFAULTS: dict[str, dict[str, str]] = {
     "Color Wash": {
         "E_CHECKBOX_ColorWash_HFade": "0",
         "E_CHECKBOX_ColorWash_VFade": "0",
-        "E_CHECKBOX_ColorWash_Shimmer": "0",
-        "E_SLIDER_ColorWash_Count": "1",
         "E_TEXTCTRL_ColorWash_Cycles": "1.0",
     },
     "Meteors": {
@@ -72,7 +70,7 @@ _XLIGHTS_EFFECT_DEFAULTS: dict[str, dict[str, str]] = {
     "Shimmer": {
         "E_CHECKBOX_Shimmer_Use_All_Colors": "0",
         "E_SLIDER_Shimmer_Duty_Factor": "50",
-        "E_SLIDER_Shimmer_Cycles": "10",
+        "E_TEXTCTRL_Shimmer_Cycles": "10",
     },
     "Strobe": {
         "E_SLIDER_Number_Strobes": "3",
@@ -104,7 +102,7 @@ _XLIGHTS_EFFECT_DEFAULTS: dict[str, dict[str, str]] = {
         "E_SLIDER_Spirals_Count": "1",
         "E_SLIDER_Spirals_Rotation": "20",
         "E_SLIDER_Spirals_Thickness": "50",
-        "E_SLIDER_Spirals_Movement": "10",
+        "E_TEXTCTRL_Spirals_Movement": "10",
     },
     "Single Strand": {
         "E_CHOICE_SingleStrand_Colors": "Palette",
@@ -131,7 +129,7 @@ _XLIGHTS_EFFECT_DEFAULTS: dict[str, dict[str, str]] = {
         "E_SLIDER_Plasma_Style": "1",
     },
     "Garlands": {
-        "E_SLIDER_Garlands_Cycles": "1",
+        "E_TEXTCTRL_Garlands_Cycles": "1",
         "E_SLIDER_Garlands_Spacing": "0",
         "E_SLIDER_Garlands_Type": "0",
     },
@@ -140,7 +138,7 @@ _XLIGHTS_EFFECT_DEFAULTS: dict[str, dict[str, str]] = {
         "E_CHOICE_Curtain_Edge": "center",
         "E_CHOICE_Curtain_Effect": "open",
         "E_SLIDER_Curtain_Swag": "3",
-        "E_SLIDER_Curtain_Speed": "1",
+        "E_TEXTCTRL_Curtain_Speed": "1",
     },
     "Circles": {
         "E_CHECKBOX_Circles_Bounce": "0",
@@ -196,12 +194,15 @@ _XLIGHTS_EFFECT_DEFAULTS: dict[str, dict[str, str]] = {
         "E_SLIDER_Galaxy_Start_Width": "5",
     },
     "Wave": {
+        "E_CHECKBOX_Mirror_Wave": "0",
+        "E_CHOICE_Fill_Colors": "None",
         "E_CHOICE_Wave_Direction": "Right to Left",
-        "E_CHOICE_Wave_FillColor": "None",
-        "E_CHECKBOX_Wave_Mirror_Wave": "0",
-        "E_SLIDER_Wave_Number_Of_Waves": "1",
-        "E_SLIDER_Wave_Speed": "10",
-        "E_SLIDER_Wave_Thickness": "20",
+        "E_CHOICE_Wave_Type": "Sine",
+        "E_SLIDER_Number_Waves": "180",
+        "E_SLIDER_Thickness_Percentage": "25",
+        "E_SLIDER_Wave_Height": "50",
+        "E_TEXTCTRL_Wave_Speed": "10",
+        "T_CHECKBOX_Canvas": "1",
     },
 }
 
@@ -410,27 +411,64 @@ def _serialize_effect_params(placement: EffectPlacement) -> str:
 
     # Add fades
     if placement.fade_in_ms > 0:
-        defaults["E_TEXTCTRL_Fadein"] = str(placement.fade_in_ms)
+        defaults["T_TEXTCTRL_Fadein"] = f"{placement.fade_in_ms / 1000:.2f}".rstrip("0").rstrip(".")
     if placement.fade_out_ms > 0:
-        defaults["E_TEXTCTRL_Fadeout"] = str(placement.fade_out_ms)
+        defaults["T_TEXTCTRL_Fadeout"] = f"{placement.fade_out_ms / 1000:.2f}".rstrip("0").rstrip(".")
 
     # Encode value curves inline
-    for param_name, points in placement.value_curves.items():
-        curve_str = _encode_value_curve(param_name, points)
-        defaults[param_name] = curve_str
+    for param_name, curve_data in placement.value_curves.items():
+        # param_name is the storage_name (e.g. "E_SLIDER_Wave_YOffset").
+        # xLights expects the value-curve key without the widget-type prefix:
+        # "E_VALUECURVE_Wave_YOffset", not "E_VALUECURVE_E_SLIDER_Wave_YOffset".
+        short = _strip_storage_prefix(param_name)
+        # curve_data is either (points, min, max) or legacy list of points
+        if isinstance(curve_data, tuple) and len(curve_data) == 3:
+            points, p_min, p_max = curve_data
+        else:
+            points = curve_data
+            p_min, p_max = 0.0, 100.0
+        defaults[f"E_VALUECURVE_{short}"] = _encode_value_curve(short, points, p_min, p_max)
 
     parts = [f"{k}={v}" for k, v in sorted(defaults.items())]
     return ",".join(parts)
 
 
-def _encode_value_curve(param_name: str, points: list[tuple[float, float]]) -> str:
+def _strip_storage_prefix(storage_name: str) -> str:
+    """Strip widget-type prefix from a storage_name to get the bare parameter name.
+
+    xLights value curve keys use the bare name: "E_VALUECURVE_Wave_YOffset",
+    not "E_VALUECURVE_E_SLIDER_Wave_YOffset".
+    """
+    for prefix in ("E_SLIDER_", "E_TEXTCTRL_", "E_CHECKBOX_", "E_CHOICE_", "E_NOTEBOOK_"):
+        if storage_name.startswith(prefix):
+            return storage_name[len(prefix):]
+    return storage_name
+
+
+def _encode_value_curve(
+    short_name: str,
+    points: list[tuple[float, float]],
+    p_min: float = 0.0,
+    p_max: float = 100.0,
+) -> str:
     """Encode a value curve in xLights inline format.
 
-    Uses semicolons as point delimiters and Type=Custom to match xLights .xvc format.
-    The trailing semicolon after Values is required by the xLights parser.
+    ``p_min``/``p_max`` are the parameter's actual slider range (e.g. -250/250
+    for Wave_YOffset).  xLights uses these to interpret the curve values.
+    ``RV=TRUE`` tells xLights the values are real (not 0-100 percentages).
     """
-    values_str = ";".join(f"{x:.2f}:{y:.2f}" for x, y in points)
-    return f"Active=TRUE|Id=ID_{param_name}|Type=Custom|Min=0.00|Max=100.00|Values={values_str};"
+    # xLights stores custom value curve points as (x, y) where y is normalized
+    # to 0.0-1.0 representing the fraction of the Min-Max range.
+    # e.g. Min=-250, Max=250: y=0.50 means 0 (center), y=0.85 means 175.
+    p_range = p_max - p_min if p_max != p_min else 1.0
+    values_str = ";".join(
+        f"{x:.2f}:{max(0.0, min(1.0, (y - p_min) / p_range)):.2f}"
+        for x, y in points
+    )
+    return (
+        f"Active=TRUE|Id=ID_VALUECURVE_{short_name}|Type=Custom"
+        f"|Min={p_min:.2f}|Max={p_max:.2f}|RV=TRUE|Values={values_str}|"
+    )
 
 
 def _ensure_palette(

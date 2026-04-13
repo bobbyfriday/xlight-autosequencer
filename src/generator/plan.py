@@ -146,24 +146,40 @@ def build_plan(
 
     # 3b. Load variant library and build rotation plan
     from src.variants.library import load_variant_library
+    from src.generator.effect_placer import derive_working_set
 
     variant_library = load_variant_library(effect_library=effect_library)
+
+    # 3c. Derive WorkingSet per unique theme (when focused_vocabulary=True)
+    working_sets: dict = {}
+    if config.focused_vocabulary:
+        for assignment in assignments:
+            theme_name = assignment.theme.name
+            if theme_name not in working_sets:
+                working_sets[theme_name] = derive_working_set(assignment.theme, variant_library)
+
     rotation_engine = RotationEngine(variant_library, effect_library)
     rotation_plan = rotation_engine.build_rotation_plan(
         sections=[a.section for a in assignments],
         groups=groups,
         theme_assignments=assignments,
+        embrace_repetition=config.embrace_repetition,
+        working_sets=working_sets if config.focused_vocabulary else None,
     )
 
     # 4. Place effects for each section
     model_names = [p.name for p in props]
     for idx, assignment in enumerate(assignments):
+        theme_name = assignment.theme.name
+        section_working_set = working_sets.get(theme_name) if config.focused_vocabulary else None
         group_effects = place_effects(
             assignment, groups, effect_library, hierarchy,
             tiers=config.tiers,
             variant_library=variant_library,
             rotation_plan=rotation_plan,
             section_index=idx,
+            working_set=section_working_set,
+            focused_vocabulary=config.focused_vocabulary,
         )
         assignment.group_effects = group_effects
 
@@ -177,10 +193,20 @@ def build_plan(
                         curves = generate_value_curves(
                             placement, effect_def, hierarchy, config.curves_mode
                         )
-                        # Remap from logical param name to xLights storage_name so
-                        # _serialize_effect_params writes the correct key in the xSQ.
-                        storage = {p.name: p.storage_name for p in effect_def.parameters}
-                        placement.value_curves = {storage.get(k, k): v for k, v in curves.items()}
+                        # Remap from logical param name to xLights storage_name,
+                        # and bundle the parameter's min/max range so the XSQ writer
+                        # can emit the correct Min/Max in the value curve encoding.
+                        param_lookup = {p.name: p for p in effect_def.parameters}
+                        vc: dict = {}
+                        for k, v in curves.items():
+                            p = param_lookup.get(k)
+                            if p is not None:
+                                p_min = p.min if p.min is not None else 0.0
+                                p_max = p.max if p.max is not None else 100.0
+                                vc[p.storage_name] = (v, float(p_min), float(p_max))
+                            else:
+                                vc[k] = v
+                        placement.value_curves = vc
 
     # 6. Apply transitions (crossfades at section boundaries + end-of-song fade-out)
     transition_config = TransitionConfig(mode=config.transition_mode)
@@ -230,6 +256,11 @@ def _section_energies_from_story(story: dict) -> list[SectionEnergy]:
             mood_tier=mood,
             impact_count=impact_count,
         ))
+
+    # Enforce contiguity — extend each section to meet the next, fill any gaps
+    for i in range(len(energies) - 1):
+        energies[i].end_ms = energies[i + 1].start_ms
+
     return energies
 
 

@@ -1,0 +1,376 @@
+==============================================================================
+  XSQ REFERENCE ANALYSIS: 12 - Magic [feat. David Archuleta].xsq
+==============================================================================
+
+  song                      Magic [feat. David Archuleta]
+  artist                    Lindsey Stirling & David Archuleta
+  sequenceDuration          209.065
+  sequenceTiming            25 ms
+  duration                  209.1s (3.5 min)
+  total models              29
+  timing tracks             5
+  total effect placements   2585
+  unique palettes           66
+  effect DB entries         19
+
+------------------------------------------------------------------------------
+  1. VOCABULARY -- What effects are used
+------------------------------------------------------------------------------
+
+  Effect usage (total placements):
+    Strobe                     1088  ( 42.1%)  #####################
+    Single Strand               629  ( 24.3%)  ############
+    Ripple                      510  ( 19.7%)  #########
+    Wave                        140  (  5.4%)  ##
+    Bars                        119  (  4.6%)  ##
+    Shockwave                    29  (  1.1%)  #
+    Butterfly                    21  (  0.8%)  #
+    Plasma                       14  (  0.5%)  #
+    Meteors                      14  (  0.5%)  #
+    Fill                         14  (  0.5%)  #
+    Liquid                        7  (  0.3%)  #
+
+  Core working set (90% of placements): Strobe, Single Strand, Ripple, Wave
+
+  Effects used per model (top 15 models by placement count):
+    07_COMP_Arch___Left                 [131] Strobe(64), Single Strand(37), Ripple(30)
+    07_COMP_Arch___Right                [131] Strobe(64), Single Strand(37), Ripple(30)
+    07_COMP_Candy_Cane___Left           [131] Strobe(64), Single Strand(37), Ripple(30)
+    07_COMP_Candy_Cane___Right          [131] Strobe(64), Single Strand(37), Ripple(30)
+    07_COMP_Deer                        [131] Strobe(64), Single Strand(37), Ripple(30)
+    07_COMP_Door___1_Car_Garage         [131] Strobe(64), Single Strand(37), Ripple(30)
+    07_COMP_Door___2_Car_Garage         [131] Strobe(64), Single Strand(37), Ripple(30)
+    07_COMP_Door___Front_Door           [131] Strobe(64), Single Strand(37), Ripple(30)
+    07_COMP_Peace_Stakes                [131] Strobe(64), Single Strand(37), Ripple(30)
+    07_COMP_Pixel_Matrix___1_car        [131] Strobe(64), Single Strand(37), Ripple(30)
+    07_COMP_Present                     [131] Strobe(64), Single Strand(37), Ripple(30)
+    07_COMP_Seed_Matrix___2nd_Floor___Left_Window [131] Strobe(64), Single Strand(37), Ripple(30)
+    07_COMP_Seed_Matrix___2nd_Floor___Right_Window [131] Strobe(64), Single Strand(37), Ripple(30)
+    07_COMP_Window___1_Car_Gagage       [131] Strobe(64), Single Strand(37), Ripple(30)
+    07_COMP_Window___2nd_Floor_Left     [131] Strobe(64), Single Strand(37), Ripple(30)
+
+  Effect parameter customizations (from EffectDB):
+    Bars (4 variants):
+      varies: Bars_Direction = Left, Right, compress, expand
+    Butterfly (1 variants):
+      (all identical)
+    Chase (4 variants):
+      varies: Chase_Type1 = Left-Right, Right-Left
+      varies: Number_Chases = 3, 4
+      varies: Single Strand_Speed = 30, 40
+    Fill (2 variants):
+      varies: Fill_Band_Size = 14, 15
+      varies: Fill_Position = 48, 52
+    Liquid (1 variants):
+      (all identical)
+    Meteors (1 variants):
+      (all identical)
+    Number (1 variants):
+      (all identical)
+    Plasma (1 variants):
+      (all identical)
+    Ripple (1 variants):
+      (all identical)
+    Shockwave (1 variants):
+      (all identical)
+    Wave (2 variants):
+      varies: Wave_Direction = Left to Right, Right to Left
+
+------------------------------------------------------------------------------
+  2. GRAMMAR -- How effects are structured
+------------------------------------------------------------------------------
+
+  Duration distribution (all effects):
+    Overall:
+      <0.25s        1088  ########################################
+      0.25-0.5s      107  ###
+      0.5-1s         311  ###########
+      1-2s          1009  #####################################
+      4-8s            21  #
+      8-16s           28  #
+      16-30s          21  #
+
+    Per effect type (top 8):
+      Strobe                    (n=1088) <0.25s:1088
+      Single Strand             (n= 629) 0.5-1s:17, 1-2s:612
+      Ripple                    (n= 510) 0.25-0.5s:102, 0.5-1s:272, 1-2s:136
+      Wave                      (n= 140) 1-2s:140
+      Bars                      (n= 119) 0.5-1s:7, 1-2s:112
+      Shockwave                 (n=  29) 0.25-0.5s:5, 0.5-1s:15, 1-2s:9
+      Butterfly                 (n=  21) 4-8s:14, 8-16s:7
+      Plasma                    (n=  14) 16-30s:14
+
+  Layering patterns:
+    1 layer(s): 29 model(s)
+
+  Density over time (active models per 10s window):
+    (max active models in any window: 28)
+
+         0s   28 models  ########################################
+        10s    0 models  
+        20s   28 models  ########################################
+        30s    7 models  ##########
+        40s   24 models  ##################################
+        50s   24 models  ##################################
+        60s   24 models  ##################################
+        70s   24 models  ##################################
+        80s   24 models  ##################################
+        90s   24 models  ##################################
+       100s   24 models  ##################################
+       110s   24 models  ##################################
+       120s    7 models  ##########
+       130s    7 models  ##########
+       140s    7 models  ##########
+       150s    7 models  ##########
+       160s    7 models  ##########
+       170s   24 models  ##################################
+       180s   24 models  ##################################
+       190s   28 models  ########################################
+       200s   28 models  ########################################
+
+  Gap analysis (models with gaps > 1s in their timeline):
+    04_BEAT_4                             7 gaps, 204.8s total (98% of song)
+    04_BEAT_3                             8 gaps, 203.4s total (97% of song)
+    04_BEAT_1                             8 gaps, 202.7s total (97% of song)
+    04_BEAT_2                             8 gaps, 201.9s total (97% of song)
+    08_HERO_Tune_To_Matrix                3 gaps, 186.5s total (89% of song)
+    08_HERO_Panel_Matrix                  3 gaps, 132.9s total (64% of song)
+    07_COMP_Arch___Left                   5 gaps, 110.3s total (53% of song)
+    07_COMP_Arch___Right                  5 gaps, 110.3s total (53% of song)
+    07_COMP_Candy_Cane___Left             5 gaps, 110.3s total (53% of song)
+    07_COMP_Candy_Cane___Right            5 gaps, 110.3s total (53% of song)
+    07_COMP_Deer                          5 gaps, 110.3s total (53% of song)
+    07_COMP_Door___1_Car_Garage           5 gaps, 110.3s total (53% of song)
+    07_COMP_Door___2_Car_Garage           5 gaps, 110.3s total (53% of song)
+    07_COMP_Door___Front_Door             5 gaps, 110.3s total (53% of song)
+    07_COMP_Peace_Stakes                  5 gaps, 110.3s total (53% of song)
+
+  Consecutive repetition (same effect+palette on same model):
+    Top consecutive runs (effect+palette repeated N times):
+        54x  Strobe (pal 63) on 07_COMP_Arch___Left L0
+        54x  Strobe (pal 63) on 07_COMP_Arch___Right L0
+        54x  Strobe (pal 63) on 07_COMP_Candy_Cane___Left L0
+        54x  Strobe (pal 63) on 07_COMP_Candy_Cane___Right L0
+        54x  Strobe (pal 63) on 07_COMP_Deer L0
+        54x  Strobe (pal 63) on 07_COMP_Door___1_Car_Garage L0
+        54x  Strobe (pal 63) on 07_COMP_Door___2_Car_Garage L0
+        54x  Strobe (pal 63) on 07_COMP_Door___Front_Door L0
+        54x  Strobe (pal 63) on 07_COMP_Peace_Stakes L0
+        54x  Strobe (pal 63) on 07_COMP_Pixel_Matrix___1_car L0
+        54x  Strobe (pal 63) on 07_COMP_Present L0
+        54x  Strobe (pal 63) on 07_COMP_Seed_Matrix___2nd_Floor___Left_Window L0
+        54x  Strobe (pal 63) on 07_COMP_Seed_Matrix___2nd_Floor___Right_Window L0
+        54x  Strobe (pal 63) on 07_COMP_Window___1_Car_Gagage L0
+        54x  Strobe (pal 63) on 07_COMP_Window___2nd_Floor_Left L0
+
+------------------------------------------------------------------------------
+  3. PALETTE PATTERNS
+------------------------------------------------------------------------------
+
+  Total unique palettes: 66
+
+  Active colors per palette:
+    3 active colors: 40 palettes
+    4 active colors: 11 palettes
+    5 active colors: 15 palettes
+    Average: 3.6 active colors per palette
+
+  MusicSparkles enabled: 0/66 palettes (0%)
+
+  Most common hex colors (across all palette slots):
+    #FFFFFF    79 occurrences
+    #00FFFF    66 occurrences
+    #FF00FF    66 occurrences
+    #000000    51 occurrences
+    #FFFF00    40 occurrences
+    #6C6C6C    10 occurrences
+    #666666    10 occurrences
+    #FF0A00     5 occurrences
+    #D400FF     4 occurrences
+    #4F1B66     3 occurrences
+    #2D1B66     3 occurrences
+    #FF7700     3 occurrences
+    #FF0014     3 occurrences
+    #88A7FF     3 occurrences
+    #2E0C44     2 occurrences
+
+  Palette variety per model:
+    01_BASE_All                         uses  33 distinct palette(s)
+    02_GEO_Top                          uses  33 distinct palette(s)
+    02_GEO_Mid                          uses  33 distinct palette(s)
+    02_GEO_Bot                          uses  33 distinct palette(s)
+    02_GEO_Left                         uses  33 distinct palette(s)
+    02_GEO_Center                       uses  33 distinct palette(s)
+    02_GEO_Right                        uses  33 distinct palette(s)
+    07_COMP_Arch___Left                 uses  32 distinct palette(s)
+    07_COMP_Arch___Right                uses  32 distinct palette(s)
+    07_COMP_Candy_Cane___Left           uses  32 distinct palette(s)
+    07_COMP_Candy_Cane___Right          uses  32 distinct palette(s)
+    07_COMP_Deer                        uses  32 distinct palette(s)
+    07_COMP_Door___1_Car_Garage         uses  32 distinct palette(s)
+    07_COMP_Door___2_Car_Garage         uses  32 distinct palette(s)
+    07_COMP_Door___Front_Door           uses  32 distinct palette(s)
+
+------------------------------------------------------------------------------
+  4. TIMING PATTERNS
+------------------------------------------------------------------------------
+
+  Timing tracks:
+    Beats: 478 marks
+      Sample labels: 3, 4, 1, 2, 5, 6, 7, 8, 
+      Duration range: 0.28s - 2.20s (avg 0.44s)
+    Bars: 87 marks
+      Sample labels: 
+      Duration range: 1.49s - 30.13s (avg 1.92s)
+    Sections: 15 marks
+          0.0s -     6.1s (6.1s) "N1"
+          6.1s -    21.1s (15.1s) "A"
+         21.1s -    25.8s (4.7s) "N2"
+         25.8s -    38.3s (12.6s) "A"
+         38.3s -    57.4s (19.1s) "N3"
+         57.4s -    84.5s (27.1s) "B"
+         84.5s -   100.5s (16.0s) "C"
+        100.5s -   116.5s (16.0s) "N5"
+        116.5s -   132.5s (16.0s) "C"
+        132.5s -   153.3s (20.8s) "B"
+        153.3s -   166.1s (12.8s) "A"
+        166.1s -   177.3s (11.2s) "A"
+        177.3s -   182.8s (5.5s) "N9"
+        182.8s -   193.8s (11.0s) "A"
+        193.8s -   209.1s (15.2s) "N10"
+    Chords: 100 marks
+      Sample labels: N, C, F/C, F/G, Cmaj7, Dm7, C6, D7, F, G7
+      Duration range: 0.05s - 17.00s (avg 2.09s)
+    Onsets (full_mix): 334 marks
+      Sample labels: m, l, h
+      Duration range: 0.06s - 29.11s (avg 0.51s)
+
+  Effect boundary alignment with timing marks:
+    Within   25ms of any timing mark: 4171/5170 (80.7%)
+    Within   50ms of any timing mark: 4222/5170 (81.7%)
+    Within  100ms of any timing mark: 4995/5170 (96.6%)
+    Within  250ms of any timing mark: 5163/5170 (99.9%)
+    Within  500ms of any timing mark: 5163/5170 (99.9%)
+
+  Effect start alignment with beat marks specifically:
+    Within   25ms of a beat: 1231/2585 (47.6%)
+    Within   50ms of a beat: 1607/2585 (62.2%)
+    Within  100ms of a beat: 1699/2585 (65.7%)
+    Within  250ms of a beat: 2561/2585 (99.1%)
+
+------------------------------------------------------------------------------
+  5. MODEL COVERAGE
+------------------------------------------------------------------------------
+
+  Model                                 Active Coverage  Effects
+  ----------------------------------- -------- -------- --------
+  01_BASE_All                           178.7s    85.5%       47
+  02_GEO_Top                            178.7s    85.5%       47
+  02_GEO_Mid                            178.7s    85.5%       47
+  02_GEO_Bot                            178.7s    85.5%       47
+  02_GEO_Left                           178.7s    85.5%       47
+  02_GEO_Center                         178.7s    85.5%       47
+  02_GEO_Right                          178.7s    85.5%       47
+  07_COMP_Arch___Left                    86.6s    41.4%      131
+  07_COMP_Arch___Right                   86.6s    41.4%      131
+  07_COMP_Candy_Cane___Left              86.6s    41.4%      131
+  07_COMP_Candy_Cane___Right             86.6s    41.4%      131
+  07_COMP_Deer                           86.6s    41.4%      131
+  07_COMP_Door___1_Car_Garage            86.6s    41.4%      131
+  07_COMP_Door___2_Car_Garage            86.6s    41.4%      131
+  07_COMP_Door___Front_Door              86.6s    41.4%      131
+  07_COMP_Peace_Stakes                   86.6s    41.4%      131
+  07_COMP_Pixel_Matrix___1_car           86.6s    41.4%      131
+  07_COMP_Present                        86.6s    41.4%      131
+  07_COMP_Seed_Matrix___2nd_Floor___Left_Window    86.6s    41.4%      131
+  07_COMP_Seed_Matrix___2nd_Floor___Right_Window    86.6s    41.4%      131
+  07_COMP_Window___1_Car_Gagage          86.6s    41.4%      131
+  07_COMP_Window___2nd_Floor_Left        86.6s    41.4%      131
+  07_COMP_Window___2nd_Floor_Right       86.6s    41.4%      131
+  08_HERO_Panel_Matrix                   64.4s    30.8%      101
+  08_HERO_Tune_To_Matrix                 22.2s    10.6%       30
+  04_BEAT_2                               6.3s     3.0%        8
+  04_BEAT_1                               6.0s     2.8%        8
+  04_BEAT_3                               5.7s     2.7%        7
+  04_BEAT_4                               4.3s     2.0%        6
+
+  'Sparse' (<30% coverage): 08_HERO_Tune_To_Matrix, 04_BEAT_2, 04_BEAT_1, 04_BEAT_3, 04_BEAT_4
+
+------------------------------------------------------------------------------
+  6. ANTI-PATTERNS (things NOT done)
+------------------------------------------------------------------------------
+
+  Effects NEVER used (39 of 50 known):
+    - Candle
+    - Chase
+    - Circle
+    - Color Wash
+    - Curtain
+    - DMX
+    - Faces
+    - Fan
+    - Fire
+    - Fireworks
+    - Galaxy
+    - Garlands
+    - Glediator
+    - Kaleidoscope
+    - Life
+    - Lightning
+    - Lines
+    - Marquee
+    - Morph
+    - Music
+    - Off
+    - On
+    - Pictures
+    - Pinwheel
+    - Servo
+    - Shader
+    - Shape
+    - Shimmer
+    - Snowflakes
+    - Snowstorm
+    - Spirals
+    - Spirograph
+    - State
+    - Tendril
+    - Tree
+    - Twinkle
+    - VU Meter
+    - Video
+    - Warp
+
+  All models have at least one effect.
+
+  Very short effects (<500ms): 1195 placements
+    Strobe                    1088 short placements (avg 99ms, min 75ms)
+    Ripple                     102 short placements (avg 421ms, min 325ms)
+    Shockwave                    5 short placements (avg 410ms, min 325ms)
+
+    Short effects by model:
+      07_COMP_Arch___Left                   70
+      07_COMP_Arch___Right                  70
+      07_COMP_Candy_Cane___Left             70
+      07_COMP_Candy_Cane___Right            70
+      07_COMP_Deer                          70
+      07_COMP_Door___1_Car_Garage           70
+      07_COMP_Door___2_Car_Garage           70
+      07_COMP_Door___Front_Door             70
+      07_COMP_Peace_Stakes                  70
+      07_COMP_Pixel_Matrix___1_car          70
+
+  Very long effects (>30s): 0 placements
+
+------------------------------------------------------------------------------
+  7. SUMMARY INSIGHTS
+------------------------------------------------------------------------------
+
+  Unique effect types used: 11
+  Top 3 effects account for 86% of all placements: Strobe (1088), Single Strand (629), Ripple (510)
+  Average placements per active model: 89.1
+  Effect duration: min=0.07s, median=0.50s, max=19.10s
+  Palettes actually referenced: 66 of 66
+  Most used palettes: #63 (918 uses), #65 (255 uses), #64 (170 uses)
+  Models with multi-layer effects: 0
+

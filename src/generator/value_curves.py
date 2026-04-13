@@ -85,6 +85,7 @@ def generate_value_curves(
             continue
 
         points = _map_to_output(curve_data, mapping)
+        points = _interpolate_to_min(points, MIN_CONTROL_POINTS)
         points = _downsample(points, MAX_CONTROL_POINTS)
 
         # Apply chord accents for color-category parameters when mode allows
@@ -190,6 +191,37 @@ def _apply_curve_shape(
         return 1.0 if normalized >= thresh else 0.0
 
     return normalized
+
+
+MIN_CONTROL_POINTS = 80
+
+
+def _interpolate_to_min(
+    points: list[tuple[float, float]], min_points: int
+) -> list[tuple[float, float]]:
+    """Linearly interpolate sparse control points up to at least min_points.
+
+    xLights renders smoother curves with ~80 control points.  Energy curves
+    sampled at 2 Hz produce only 4-8 raw points per bar — this upsamples
+    them so the value curve has enough resolution for smooth modulation.
+    """
+    if len(points) >= min_points or len(points) < 2:
+        return points
+
+    result: list[tuple[float, float]] = []
+    for i in range(len(points) - 1):
+        x0, y0 = points[i]
+        x1, y1 = points[i + 1]
+        # Number of sub-points proportional to the x-span
+        span = x1 - x0
+        n_sub = max(1, round(span * min_points))
+        for j in range(n_sub):
+            t = j / n_sub
+            x = round(x0 + t * (x1 - x0), 4)
+            y = round(y0 + t * (y1 - y0), 2)
+            result.append((x, y))
+    result.append(points[-1])
+    return result
 
 
 def _downsample(

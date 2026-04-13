@@ -503,3 +503,83 @@ body {
   font-size: 12px;
   padding: 2px 0;
 }
+
+/* ── Inline Generate Sequence panel ──────────────────────────────────────── */
+.detail-generate {
+  border-top: 1px solid #333;
+  margin-top: 12px;
+  padding-top: 12px;
+}
+.gen-inline-loading,
+.gen-inline-notice {
+  font-size: 13px;
+  color: #aaa;
+  padding: 4px 0;
+}
+.gen-inline-notice a {
+  color: #6699cc;
+}
+.gen-inline-form {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.gen-inline-form label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #bbb;
+}
+.gen-inline-select {
+  background: #2a2a2a;
+  border: 1px solid #444;
+  border-radius: 4px;
+  color: #e0e0e0;
+  padding: 3px 6px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.gen-inline-btn {
+  background: #1a5cb3;
+  border: none;
+  color: #fff;
+  font-weight: 600;
+}
+.gen-inline-btn:hover:not(:disabled) {
+  background: #2270d0;
+}
+.gen-inline-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.gen-inline-status {
+  font-size: 12px;
+  min-width: 120px;
+}
+.gen-inline-status--running { color: #aaa; }
+.gen-inline-status--done    { color: #6fcf6f; }
+.gen-inline-status--error   { color: #e05050; }
+.gen-inline-history {
+  margin-top: 8px;
+}
+.gen-hist-header {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #666;
+  margin-bottom: 4px;
+}
+.gen-hist-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  padding: 3px 0;
+  border-top: 1px solid #2a2a2a;
+}
+.gen-hist-ts   { color: #777; white-space: nowrap; min-width: 48px; }
+.gen-hist-opts { color: #aaa; flex: 1; }
+.gen-hist-dl   { color: #6699cc; text-decoration: none; }
+.gen-hist-dl:hover { text-decoration: underline; }
