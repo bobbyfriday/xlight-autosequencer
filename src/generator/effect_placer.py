@@ -224,16 +224,30 @@ def compute_scaled_fades(duration_ms: int) -> tuple[int, int]:
 def _build_effect_pool(
     effect_library: EffectLibrary,
     exclude: set[str] | None = None,
+    prop_type: str | None = None,
 ) -> list[EffectDefinition]:
-    """Return EffectDefinition objects for the prop-effect pool, minus exclusions."""
+    """Return EffectDefinition objects for the prop-effect pool, minus exclusions.
+
+    When ``prop_type`` is provided, effects rated ``not_recommended`` for that prop
+    type are excluded (FR-003).  If filtering would empty the pool entirely, the
+    filter is relaxed by re-calling without ``prop_type`` (FR-004).
+    """
     exclude = exclude or set()
     pool = []
     for name in _PROP_EFFECT_POOL:
         if name in exclude:
             continue
         edef = effect_library.effects.get(name)
-        if edef is not None:
-            pool.append(edef)
+        if edef is None:
+            continue
+        if prop_type is not None:
+            rating = edef.prop_suitability.get(prop_type, "possible")
+            if rating == "not_recommended":
+                continue
+        pool.append(edef)
+    # FR-004: if filtering emptied the pool, relax to unfiltered
+    if not pool and prop_type is not None:
+        return _build_effect_pool(effect_library, exclude=exclude, prop_type=None)
     return pool
 
 
@@ -541,30 +555,36 @@ def place_effects(
                             result.setdefault(group.name, []).extend(rot_placements)
                     continue
                 else:
-                    # Original: cycle through prop-effect pool
-                    pool = _build_effect_pool(effect_library, exclude={layer_variant.base_effect})
-                    if pool:
-                        for gi, group in enumerate(groups_for_tier):
-                            rotated_def = pool[gi % len(pool)]
-                            rot_placements = _place_effect_on_group(
-                                effect_def=rotated_def,
-                                layer=layer,
-                                group=group,
-                                section=assignment.section,
-                                hierarchy=hierarchy,
-                                palette=tier_palette,
-                                variation_seed=assignment.variation_seed,
-                                chord_marks=chord_marks,
-                                tension_curve=tension_curve,
-                                danceability=danceability,
-                                chord_weight=chord_weight,
-                                variant_library=variant_library,
-                                duration_scaling=duration_scaling,
-                                bpm=bpm,
-                            )
-                            if rot_placements:
-                                result.setdefault(group.name, []).extend(rot_placements)
-                        continue
+                    # Original: cycle through prop-effect pool (T023: per-group prop_type filter)
+                    for gi, group in enumerate(groups_for_tier):
+                        group_prop_type = getattr(group, "prop_type", None)
+                        pool = _build_effect_pool(
+                            effect_library,
+                            exclude={layer_variant.base_effect},
+                            prop_type=group_prop_type,
+                        )
+                        if not pool:
+                            continue
+                        rotated_def = pool[gi % len(pool)]
+                        rot_placements = _place_effect_on_group(
+                            effect_def=rotated_def,
+                            layer=layer,
+                            group=group,
+                            section=assignment.section,
+                            hierarchy=hierarchy,
+                            palette=tier_palette,
+                            variation_seed=assignment.variation_seed,
+                            chord_marks=chord_marks,
+                            tension_curve=tension_curve,
+                            danceability=danceability,
+                            chord_weight=chord_weight,
+                            variant_library=variant_library,
+                            duration_scaling=duration_scaling,
+                            bpm=bpm,
+                        )
+                        if rot_placements:
+                            result.setdefault(group.name, []).extend(rot_placements)
+                    continue
 
             # Tier 4 (BEAT): use chase pattern — distribute beats across groups
             if tier == 4 and groups_for_tier:
