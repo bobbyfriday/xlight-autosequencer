@@ -45,6 +45,7 @@
     "source=claude-code-bashhistory-${devcontainerId},target=/commandhistory,type=volume",
     "source=claude-code-config-${devcontainerId},target=/home/node/.claude,type=volume",
     "source=${localEnv:HOME}/xlights,target=/home/node/xlights,type=bind,consistency=cached",
+    "source=${localEnv:HOME}/Downloads,target=/home/node/Downloads,type=bind,consistency=cached",
     "source=${localEnv:HOME}/.config/gh,target=/home/node/.config/gh,type=bind,readonly",
     "source=${localEnv:HOME}/.ssh,target=/home/node/.ssh-host,type=bind,readonly"
   ],

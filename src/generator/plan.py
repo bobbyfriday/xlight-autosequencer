@@ -180,6 +180,7 @@ def build_plan(
             section_index=idx,
             working_set=section_working_set,
             focused_vocabulary=config.focused_vocabulary,
+            palette_restraint=config.palette_restraint,
         )
         assignment.group_effects = group_effects
 
@@ -404,6 +405,7 @@ def regenerate_sections(config: GenerationConfig, existing_xsq: Path) -> Path:
             variant_library=variant_library,
             rotation_plan=rotation_plan,
             section_index=idx,
+            palette_restraint=getattr(config, "palette_restraint", True),
         )
         assignment.group_effects = group_effects
 

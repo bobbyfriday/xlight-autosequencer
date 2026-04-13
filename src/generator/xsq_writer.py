@@ -232,10 +232,21 @@ def write_xsq(plan: SequencePlan, output_path: Path, hierarchy: HierarchyResult 
             )
 
     # Collect all placements across sections
-    all_placements: dict[str, list[EffectPlacement]] = {}
+    unordered: dict[str, list[EffectPlacement]] = {}
     for section in plan.sections:
         for group_name, placements in section.group_effects.items():
-            all_placements.setdefault(group_name, []).extend(placements)
+            unordered.setdefault(group_name, []).extend(placements)
+
+    # Sort groups by tier prefix so BASE (01) renders behind HERO (08).
+    # Groups without a 2-digit tier prefix sort last.
+    def _tier_sort_key(name: str) -> tuple[int, str]:
+        if len(name) >= 2 and name[:2].isdigit():
+            return (int(name[:2]), name)
+        return (99, name)
+
+    all_placements: dict[str, list[EffectPlacement]] = {
+        k: unordered[k] for k in sorted(unordered, key=_tier_sort_key)
+    }
 
     # Remove overlaps: sort by start time and trim/remove overlapping effects
     for group_name in all_placements:
@@ -250,7 +261,7 @@ def write_xsq(plan: SequencePlan, output_path: Path, hierarchy: HierarchyResult 
 
     for placements in all_placements.values():
         for p in placements:
-            pal_idx = _ensure_palette(p.color_palette, palette_index, palette_list)
+            pal_idx = _ensure_palette(p.color_palette, palette_index, palette_list, p.music_sparkles)
             eff_idx = _ensure_effect_entry(p, effect_db_index, effect_db_list)
             placement_cache[id(p)] = (eff_idx, pal_idx)
 
@@ -373,12 +384,13 @@ _DEFAULT_PALETTE_COLORS = [
 ]
 
 
-def _serialize_palette(colors: list[str]) -> str:
+def _serialize_palette(colors: list[str], music_sparkles: int = 0) -> str:
     """Convert a list of hex colors to xLights C_BUTTON_Palette format.
 
     Always fills all 8 palette slots — theme colors first, then defaults.
     xLights expects C_BUTTON entries grouped before C_CHECKBOX entries.
     Only the slots with theme colors get C_CHECKBOX enabled.
+    When music_sparkles > 0, appends C_SLIDER_MusicSparkles={value}.
     """
     padded = list(colors[:8])
     active_count = len(padded)
@@ -390,7 +402,10 @@ def _serialize_palette(colors: list[str]) -> str:
         f"C_CHECKBOX_Palette{i}={'1' if i <= active_count else '0'}"
         for i in range(1, 9)
     ]
-    return ",".join(buttons + checkboxes)
+    parts = buttons + checkboxes
+    if music_sparkles > 0:
+        parts.append(f"C_SLIDER_SparkleFrequency={music_sparkles}")
+    return ",".join(parts)
 
 
 def _serialize_effect_params(placement: EffectPlacement) -> str:
@@ -475,9 +490,10 @@ def _ensure_palette(
     colors: list[str],
     index: dict[str, int],
     palette_list: list[str],
+    music_sparkles: int = 0,
 ) -> int:
     """Add palette to dedup index if not already present. Return index."""
-    key = _serialize_palette(colors)
+    key = _serialize_palette(colors, music_sparkles)
     if key not in index:
         index[key] = len(palette_list)
         palette_list.append(key)

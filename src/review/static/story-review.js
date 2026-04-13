@@ -1191,6 +1191,7 @@ function renderThemesTab(section) {
       <option value="christmas"${occasion === "christmas" ? " selected" : ""}>christmas</option>
       <option value="halloween"${occasion === "halloween" ? " selected" : ""}>halloween</option>
     </select>
+    <button class="theme-apply-unassigned-btn" title="Apply the best recommended theme to each unassigned section">Apply recommended to unassigned</button>
   </div>`;
 
   // Assigned theme display
@@ -1222,10 +1223,7 @@ function renderThemesTab(section) {
     });
   }
 
-  // Bulk action
-  html += `<div class="theme-bulk-actions">
-    <button class="theme-apply-unassigned-btn" title="Apply the first recommended theme to all sections without a theme">Apply recommended to unassigned</button>
-  </div>`;
+  // (bulk action button is in the filter bar above)
 
   el.innerHTML = html;
 
@@ -1280,7 +1278,7 @@ function renderThemesTab(section) {
   const bulkBtn = el.querySelector(".theme-apply-unassigned-btn");
   if (bulkBtn) {
     bulkBtn.addEventListener("click", () => {
-      _applyToUnassigned(recs.length > 0 ? recs[0].theme.name : (filtered[0] || {}).name);
+      _applyRecommendedPerSection();
     });
   }
 }
@@ -1328,17 +1326,23 @@ async function _assignThemeToSection(sectionId, themeName) {
   }
 }
 
-async function _applyToUnassigned(themeName) {
-  if (!themeName) return;
+async function _applyRecommendedPerSection() {
   const sections = state.story.sections || [];
   const unassigned = sections.filter(s => !(s.overrides || {}).theme);
   if (unassigned.length === 0) { alert("All sections already have themes assigned."); return; }
 
-  await Promise.all(unassigned.map(s => _assignThemeToSection(s.id, themeName)));
+  const assignments = unassigned.map(s => {
+    const recs = _recommendThemes(s);
+    const themeName = recs.length > 0 ? recs[0].theme.name : (state.themeList[0] || {}).name;
+    return { section: s, themeName };
+  });
+
+  await Promise.all(assignments.map(a => _assignThemeToSection(a.section.id, a.themeName)));
   renderTimeline();
   renderActiveTab();
-  const n = unassigned.length;
-  _showToast(`Applied "${_esc(themeName)}" to ${n} section${n !== 1 ? "s" : ""}`);
+  const n = assignments.length;
+  const unique = new Set(assignments.map(a => a.themeName)).size;
+  _showToast(`Applied ${unique} theme${unique !== 1 ? "s" : ""} across ${n} section${n !== 1 ? "s" : ""}`);
 }
 
 function _showToast(message) {

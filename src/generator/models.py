@@ -73,6 +73,7 @@ class EffectPlacement:
     # Values are either:
     #   list[tuple[float, float]]  — legacy (points only, assumes 0-100 range)
     #   tuple[list[tuple[float,float]], float, float] — (points, min, max)
+    music_sparkles: int = 0  # 0=off, 1-100=sparkle frequency
 
     def __post_init__(self) -> None:
         self.start_ms = frame_align(self.start_ms)
@@ -152,6 +153,7 @@ class GenerationConfig:
     curves_mode: str = "all"            # Value curve generation: all, brightness, speed, color, none
     focused_vocabulary: bool = True     # Derive weighted working set per theme (Phase 1)
     embrace_repetition: bool = True     # Remove intra-section dedup, relax cross-section penalty (Phase 1)
+    palette_restraint: bool = True      # Trim active palette colors to 2-4 based on energy/tier
 
     _VALID_CURVES_MODES = frozenset({"all", "brightness", "speed", "color", "none"})
 
