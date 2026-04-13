@@ -79,6 +79,21 @@ def _lighten_palette(palette: list[str], amount: float) -> list[str]:
 
 _HIGH_TIERS = {7, 8}       # compound, hero
 
+# Maximum active palette colors per tier (palette restraint feature).
+_TIER_PALETTE_CAP: dict[int, int] = {
+    1: 3,   # BASE — simple background wash
+    2: 3,   # GEO — zone background
+    3: 4,   # TYPE — architecture groups
+    4: 3,   # BEAT — beat accents (minimal palette)
+    5: 4,   # TEX — texture/fidelity
+    6: 4,   # PROP — individual props
+    7: 6,   # COMP — compound groups (hero-adjacent)
+    8: 6,   # HERO — matrices, mega trees (richest palette)
+}
+
+# Effects where MusicSparkles is suppressed (redundant with built-in audio reactivity).
+_AUDIO_REACTIVE_EFFECTS: set[str] = {"VU Meter", "Music"}
+
 # Effects that default to Rainbow but should use Palette when we provide colors.
 # Maps effect name -> parameter storage_name -> value to force.
 _FORCE_PALETTE_PARAMS: dict[str, dict[str, str]] = {
@@ -119,6 +134,32 @@ _PROP_EFFECT_POOL: list[str] = [
     "Meteors", "Single Strand", "Ripple", "Spirals", "Bars",
     "Curtain", "Shockwave", "Fire", "Strobe", "Galaxy",
 ]
+
+
+def restrain_palette(palette: list[str], energy_score: int, tier: int) -> list[str]:
+    """Trim palette to 2-4 active colors based on section energy and group tier.
+
+    Algorithm: target = min(2 + energy // 33, _TIER_PALETTE_CAP[tier], len(palette))
+    Returns palette[:max(1, target)] — never fewer than 1 color.
+    """
+    base_count = 2 + energy_score // 33
+    tier_cap = _TIER_PALETTE_CAP.get(tier, 4)
+    target = min(base_count, tier_cap, len(palette))
+    return palette[:max(1, target)]
+
+
+def compute_music_sparkles(energy_score: int, effect_name: str, rng: random.Random) -> int:
+    """Compute MusicSparkles frequency for a palette placement.
+
+    Returns 0 for audio-reactive effects. Otherwise uses probability = energy/200
+    to decide whether to enable sparkles. When enabled, frequency = 20 + round(energy * 0.6).
+    """
+    if effect_name in _AUDIO_REACTIVE_EFFECTS:
+        return 0
+    probability = energy_score / 200.0
+    if rng.random() < probability:
+        return 20 + round(energy_score * 0.6)
+    return 0
 
 
 def _build_effect_pool(
@@ -252,6 +293,7 @@ def place_effects(
     section_index: int = 0,
     working_set: WorkingSet | None = None,
     focused_vocabulary: bool = False,
+    palette_restraint: bool = False,
 ) -> dict[str, list[EffectPlacement]]:
     """Place effects from theme layers onto power groups, aligned to timing tracks.
 
@@ -348,6 +390,10 @@ def place_effects(
                 tier_palette = accent
             else:
                 tier_palette = theme.palette
+
+            # Palette restraint: trim to energy/tier-appropriate color count
+            if palette_restraint:
+                tier_palette = restrain_palette(tier_palette, section.energy_score, tier)
 
             # Tier 5-8: use rotation plan when available
             if tier in (5, 6, 7, 8) and groups_for_tier and rotation_plan is not None:
@@ -518,6 +564,15 @@ def place_effects(
                 )
                 if placements:
                     result.setdefault(group.name, []).extend(placements)
+
+    # MusicSparkles: post-process placements when palette_restraint is active
+    if palette_restraint:
+        sparkle_rng = random.Random(section.start_ms * 31 + section.energy_score)
+        for placements in result.values():
+            for p in placements:
+                p.music_sparkles = compute_music_sparkles(
+                    section.energy_score, p.effect_name, sparkle_rng
+                )
 
     return result
 
