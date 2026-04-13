@@ -220,6 +220,7 @@ def compute_scaled_fades(duration_ms: int) -> tuple[int, int]:
     return fade, fade
 
 
+
 def _build_effect_pool(
     effect_library: EffectLibrary,
     exclude: set[str] | None = None,
