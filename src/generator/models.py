@@ -74,6 +74,7 @@ class EffectPlacement:
     #   list[tuple[float, float]]  — legacy (points only, assumes 0-100 range)
     #   tuple[list[tuple[float,float]], float, float] — (points, min, max)
     music_sparkles: int = 0  # 0=off, 1-100=sparkle frequency
+    layer: int = 0            # 0=primary effect layer, 1=accent overlay (Per Model Default)
 
     def __post_init__(self) -> None:
         self.start_ms = frame_align(self.start_ms)
@@ -164,6 +165,8 @@ class GenerationConfig:
     embrace_repetition: bool = True     # Remove intra-section dedup, relax cross-section penalty (Phase 1)
     palette_restraint: bool = True      # Trim active palette colors to 2-4 based on energy/tier
     duration_scaling: bool = True       # Scale effect durations by BPM and section energy
+    beat_accent_effects: bool = True    # Drum-hit Shockwave on small radials + whole-house impact accents
+    tier_selection: bool = True         # Energy/mood-driven single partition tier per section
 
     _VALID_CURVES_MODES = frozenset({"all", "brightness", "speed", "color", "none"})
 
@@ -171,7 +174,9 @@ class GenerationConfig:
         self.audio_path = Path(self.audio_path)
         self.layout_path = Path(self.layout_path)
         if self.output_dir is None:
-            self.output_dir = self.audio_path.parent
+            from src.paths import get_show_dir as _get_show_dir
+            show_dir = _get_show_dir()
+            self.output_dir = show_dir if show_dir is not None else self.audio_path.parent
         else:
             self.output_dir = Path(self.output_dir)
         if self.curves_mode not in self._VALID_CURVES_MODES:

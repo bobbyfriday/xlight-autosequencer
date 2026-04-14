@@ -245,9 +245,10 @@ def write_xsq(plan: SequencePlan, output_path: Path, hierarchy: HierarchyResult 
         k: unordered[k] for k in sorted(unordered, key=_tier_sort_key)
     }
 
-    # Remove overlaps: sort by start time and trim/remove overlapping effects
+    # Remove overlaps per layer: effects on different layers can legitimately overlap
+    # (accent layer 1 is meant to play simultaneously over base layer 0).
     for group_name in all_placements:
-        all_placements[group_name] = _remove_overlaps(all_placements[group_name])
+        all_placements[group_name] = _remove_overlaps_per_layer(all_placements[group_name])
 
     # Build deduplication indexes and cache serialized strings per placement
     palette_index: dict[str, int] = {}
@@ -335,21 +336,29 @@ def write_xsq(plan: SequencePlan, output_path: Path, hierarchy: HierarchyResult 
         model_el.set("type", "model")
         model_el.set("name", group_name)
 
-        layer_el = ET.SubElement(model_el, "EffectLayer")
-        # Per-model rendering for tier 3+ groups (group name starts with 2-digit tier)
-        if group_name[:2].isdigit() and int(group_name[:2]) >= 3:
-            layer_el.set("settings", "B_CHOICE_BufferStyle=Per Model Default")
-        for p in sorted(placements, key=lambda p: p.start_ms):
-            effect_el = ET.SubElement(layer_el, "Effect")
+        # Group placements by layer index.  Layer 0 = primary effect; layer 1+ = accent overlays.
+        layers_map: dict[int, list] = {}
+        for p in placements:
+            layers_map.setdefault(getattr(p, "layer", 0), []).append(p)
 
-            ref_idx, palette_idx = placement_cache.get(id(p), (0, 0))
+        for layer_idx in sorted(layers_map.keys()):
+            layer_el = ET.SubElement(model_el, "EffectLayer")
+            # 01_BASE_All is a whole-house wash group — render as a single unified canvas.
+            # All other groups use Per Model Default (xLights' built-in group default),
+            # so each prop renders the effect independently on its own pixel layout.
+            if group_name == "01_BASE_All":
+                layer_el.set("settings", "B_CHOICE_BufferStyle=Default")
+            for p in sorted(layers_map[layer_idx], key=lambda p: p.start_ms):
+                effect_el = ET.SubElement(layer_el, "Effect")
 
-            effect_el.set("ref", str(ref_idx))
-            effect_el.set("name", p.effect_name)
-            effect_el.set("startTime", str(p.start_ms))
-            effect_el.set("endTime", str(p.end_ms))
-            effect_el.set("palette", str(palette_idx))
-            effect_el.set("selected", "0")
+                ref_idx, palette_idx = placement_cache.get(id(p), (0, 0))
+
+                effect_el.set("ref", str(ref_idx))
+                effect_el.set("name", p.effect_name)
+                effect_el.set("startTime", str(p.start_ms))
+                effect_el.set("endTime", str(p.end_ms))
+                effect_el.set("palette", str(palette_idx))
+                effect_el.set("selected", "0")
 
     # Add timing tracks to ElementEffects
     for track_name, marks in timing_tracks.items():
@@ -591,6 +600,24 @@ def remove_effects_in_range(doc: XsqDocument, start_ms: int, end_ms: int) -> Non
         ]
         if not doc.element_effects[model_name]:
             del doc.element_effects[model_name]
+
+
+def _remove_overlaps_per_layer(placements: list[EffectPlacement]) -> list[EffectPlacement]:
+    """Run overlap removal independently per layer and reassemble.
+
+    Accent effects (layer 1) are designed to overlap base effects (layer 0) in
+    time — that is the whole point of layering.  Merging them before dedup would
+    incorrectly trim or drop accent placements that share a time range with a
+    longer base effect.
+    """
+    from collections import defaultdict
+    by_layer: dict[int, list[EffectPlacement]] = defaultdict(list)
+    for p in placements:
+        by_layer[getattr(p, "layer", 0)].append(p)
+    result: list[EffectPlacement] = []
+    for layer_placements in by_layer.values():
+        result.extend(_remove_overlaps(layer_placements))
+    return result
 
 
 def _remove_overlaps(placements: list[EffectPlacement]) -> list[EffectPlacement]:

@@ -167,32 +167,87 @@ from src.generator.effect_placer import place_effects
 # ── Tests ─────────────────────────────────────────────────────────────────────
 
 
-class TestLayerToTierMapping:
-    """Phase 1: only base layer (layer 0) placed on tier 1 BASE group."""
+def _used_tiers(result: dict[str, list], groups: list[PowerGroup]) -> set[int]:
+    """Collect the set of tiers that actually received placements."""
+    tier_of_group = {g.name: g.tier for g in groups}
+    return {tier_of_group[name] for name in result if name in tier_of_group}
 
-    def test_base_layer_on_tier_1(self) -> None:
-        """Two-layer theme places bottom on low tiers, top on high tiers."""
-        layers = [
-            EffectLayer(variant="Color Wash"),   # bottom → tiers 1, 2
-            EffectLayer(variant="Twinkle"),       # top → tiers 7, 8
-        ]
-        assignment = _make_assignment(layers=layers)
+
+def _make_ethereal_section(start_ms: int = 0, end_ms: int = 10000) -> SectionEnergy:
+    return SectionEnergy(
+        label="intro", start_ms=start_ms, end_ms=end_ms,
+        energy_score=15, mood_tier="ethereal", impact_count=0,
+    )
+
+
+def _make_aggressive_section(start_ms: int = 0, end_ms: int = 10000) -> SectionEnergy:
+    return SectionEnergy(
+        label="chorus", start_ms=start_ms, end_ms=end_ms,
+        energy_score=85, mood_tier="aggressive", impact_count=0,
+    )
+
+
+class TestTierSelectionByMood:
+    """Integration: exactly one partition tier active per section, driven by mood.
+
+    These tests assert which partition tier from {2, 4, 6, 7} receives placements.
+    Tier 8 (hero) is always in the active set per _compute_active_tiers, but whether
+    it receives placements depends on layer-to-tier mapping (single-layer themes
+    don't map any layer to tier 8).  TestComputeActiveTiers covers the full
+    active-set semantics directly.
+    """
+
+    def _place(self, section: SectionEnergy, hierarchy: HierarchyResult) -> set[int]:
+        layers = [EffectLayer(variant="Color Wash")]
+        assignment = SectionAssignment(section=section, theme=_make_theme(layers=layers))
         groups = _make_groups()
-        library = _make_library(_make_effect("Color Wash"), _make_effect("Twinkle"))
-        variant_library = _make_variant_library("Color Wash", "Twinkle")
+        # Library needs an effect from _PROP_EFFECT_POOL so the tier-6 rotation
+        # (which picks from that pool, excluding the layer's own variant) has
+        # something to place.
+        library = _make_library(
+            _make_effect("Color Wash"),
+            _make_effect("Ripple", xlights_id="E_RIPPLE"),
+        )
+        variant_library = _make_variant_library("Color Wash", "Ripple")
+        result = place_effects(assignment, groups, library, hierarchy,
+                               variant_library=variant_library)
+        return _used_tiers(result, groups)
+
+    def test_ethereal_activates_tier_1(self) -> None:
+        """Ethereal mood → whole-house wash (tier 1), no partition tier."""
+        section = _make_ethereal_section()
+        used = self._place(section, _make_hierarchy(beat_times=[0, 500, 1000, 1500]))
+        assert 1 in used
+        assert 2 not in used and 4 not in used and 6 not in used and 7 not in used
+
+    def test_structural_without_phrase_structure_uses_tier_6(self) -> None:
+        """Structural + weak phrase structure → prop-type variety (tier 6)."""
+        section = _make_section()  # default mood_tier="structural", no bars/curves
+        used = self._place(section, _make_hierarchy(beat_times=[0, 500, 1000, 1500]))
+        assert 6 in used
+        assert 1 not in used and 2 not in used and 4 not in used and 7 not in used
+
+    def test_aggressive_uses_tier_4_chase(self) -> None:
+        """Aggressive mood → beat chase (tier 4)."""
+        section = _make_aggressive_section()
+        beat_times = list(range(0, 10000, 500))
+        used = self._place(section, _make_hierarchy(beat_times=beat_times))
+        assert 4 in used
+        assert 1 not in used and 2 not in used and 6 not in used and 7 not in used
+
+    def test_explicit_tiers_override_bypasses_selection(self) -> None:
+        """Explicit `tiers=` argument bypasses the mood-based selection."""
+        assignment = _make_assignment()  # structural mood
+        groups = _make_groups()
+        library = _make_library(_make_effect("Color Wash"))
+        variant_library = _make_variant_library("Color Wash")
         hierarchy = _make_hierarchy(beat_times=[0, 500, 1000, 1500])
 
-        result = place_effects(assignment, groups, library, hierarchy, variant_library=variant_library)
-
-        tier_of_group = {g.name: g.tier for g in groups}
-        used_tiers: set[int] = set()
-        for group_name in result:
-            tier = tier_of_group.get(group_name)
-            if tier is not None:
-                used_tiers.add(tier)
-
-        assert 1 in used_tiers, "Tier 1 BASE should have effects"
-        assert 7 in used_tiers or 8 in used_tiers, "High tiers should have effects from top layer"
+        # Force tier 1 active even though structural mood would normally pick 6
+        result = place_effects(assignment, groups, library, hierarchy,
+                               variant_library=variant_library, tiers={1})
+        used = _used_tiers(result, groups)
+        assert used == {1}
 
 
 class TestDurationTypeSection:
@@ -205,7 +260,7 @@ class TestDurationTypeSection:
         variant_library = _make_variant_library("Color Wash")
         hierarchy = _make_hierarchy(beat_times=[1000, 1500, 2000, 2500, 3000])
 
-        result = place_effects(assignment, groups, library, hierarchy, variant_library=variant_library)
+        result = place_effects(assignment, groups, library, hierarchy, variant_library=variant_library, tiers={1})
 
         # Should have exactly one placement for the group
         all_placements = [p for ps in result.values() for p in ps]
@@ -230,7 +285,7 @@ class TestDurationTypeBeat:
         variant_library = _make_variant_library("Strobe")
         hierarchy = _make_hierarchy(beat_times=beat_times, duration_ms=5000)
 
-        result = place_effects(assignment, groups, library, hierarchy, variant_library=variant_library)
+        result = place_effects(assignment, groups, library, hierarchy, variant_library=variant_library, tiers={1})
 
         all_placements = [p for ps in result.values() for p in ps]
         beat_placements = [p for p in all_placements if p.effect_name == "Strobe"]
@@ -254,7 +309,7 @@ class TestEnergyDrivenDensity:
         variant_library = _make_variant_library("Strobe")
         hierarchy = _make_hierarchy(beat_times=beat_times, duration_ms=10000)
 
-        result = place_effects(assignment, groups, library, hierarchy, variant_library=variant_library)
+        result = place_effects(assignment, groups, library, hierarchy, variant_library=variant_library, tiers={1})
 
         all_placements = [p for ps in result.values() for p in ps]
         beat_placements = [p for p in all_placements if p.effect_name == "Strobe"]
@@ -271,7 +326,7 @@ class TestEnergyDrivenDensity:
         variant_library = _make_variant_library("Strobe")
         hierarchy = _make_hierarchy(beat_times=beat_times, duration_ms=10000)
 
-        result = place_effects(assignment, groups, library, hierarchy, variant_library=variant_library)
+        result = place_effects(assignment, groups, library, hierarchy, variant_library=variant_library, tiers={1})
 
         all_placements = [p for ps in result.values() for p in ps]
         beat_placements = [p for p in all_placements if p.effect_name == "Strobe"]
@@ -289,7 +344,7 @@ class TestFadeCalculation:
         variant_library = _make_variant_library("Color Wash")
         hierarchy = _make_hierarchy()
 
-        result = place_effects(assignment, groups, library, hierarchy, variant_library=variant_library)
+        result = place_effects(assignment, groups, library, hierarchy, variant_library=variant_library, tiers={1})
 
         all_placements = [p for ps in result.values() for p in ps]
         assert len(all_placements) > 0, "Should produce at least one placement"
@@ -310,7 +365,7 @@ class TestFadeCalculation:
         variant_library = _make_variant_library("Strobe")
         hierarchy = _make_hierarchy(beat_times=beat_times, duration_ms=2000)
 
-        result = place_effects(assignment, groups, library, hierarchy, variant_library=variant_library)
+        result = place_effects(assignment, groups, library, hierarchy, variant_library=variant_library, tiers={1})
 
         all_placements = [p for ps in result.values() for p in ps]
         assert len(all_placements) > 0, "Should produce at least one placement"
@@ -332,7 +387,7 @@ class TestFrameAlignment:
         variant_library = _make_variant_library("Strobe")
         hierarchy = _make_hierarchy(beat_times=beat_times, duration_ms=2500)
 
-        result = place_effects(assignment, groups, library, hierarchy, variant_library=variant_library)
+        result = place_effects(assignment, groups, library, hierarchy, variant_library=variant_library, tiers={1})
 
         all_placements = [p for ps in result.values() for p in ps]
         assert len(all_placements) > 0, "Should produce at least one placement"
@@ -355,7 +410,7 @@ class TestFlatModelFallback:
         variant_library = _make_variant_library("Color Wash")
         hierarchy = _make_hierarchy()
 
-        result = place_effects(assignment, groups, library, hierarchy, variant_library=variant_library)
+        result = place_effects(assignment, groups, library, hierarchy, variant_library=variant_library, tiers={1})
 
         # With no groups, the result should still contain placements
         # keyed by individual model names rather than group names
@@ -401,7 +456,7 @@ class TestVariantLibraryResolution:
         hierarchy = _make_hierarchy()
 
         result = place_effects(assignment, groups, library, hierarchy,
-                               variant_library=variant_lib)
+                               variant_library=variant_lib, tiers={1})
         all_placements = [p for ps in result.values() for p in ps]
         assert len(all_placements) > 0
 
@@ -430,3 +485,214 @@ class TestNoParameterOverridesOnLayer:
         assert not hasattr(layer, "parameter_overrides"), (
             "Post-refactor EffectLayer must NOT have a parameter_overrides field."
         )
+
+
+# ── Tier-selection helpers (043) ─────────────────────────────────────────────
+
+
+def _bar_marks(start_ms: int, count: int, bar_ms: int = 500) -> list[TimingMark]:
+    """Build a list of bar marks at fixed intervals."""
+    return [TimingMark(time_ms=start_ms + i * bar_ms, confidence=1.0, label=f"bar{i}")
+            for i in range(count)]
+
+
+def _hierarchy_with_bars_and_curve(
+    bar_times: list[int],
+    energy_values: list[int] | None = None,
+    energy_fps: int = 47,
+    duration_ms: int = 20000,
+) -> HierarchyResult:
+    """Build a HierarchyResult with bar track and optional full_mix energy curve."""
+    bars_track = TimingTrack(
+        name="bars", algorithm_name="test", element_type="bar",
+        marks=[TimingMark(time_ms=t, confidence=1.0, label="downbeat") for t in bar_times],
+        quality_score=0.9,
+    )
+    curves: dict[str, ValueCurve] = {}
+    if energy_values is not None:
+        curves["full_mix"] = ValueCurve(
+            name="full_mix", stem_source="full_mix", fps=energy_fps, values=energy_values,
+        )
+    return HierarchyResult(
+        schema_version="2.0.0", source_file="test.mp3", source_hash="abc",
+        duration_ms=duration_ms, estimated_bpm=120.0,
+        bars=bars_track, energy_curves=curves,
+    )
+
+
+class TestComputeActiveTiers:
+    """_compute_active_tiers returns the single-partition tier set per section."""
+
+    def test_ethereal_returns_tiers_1_and_8(self) -> None:
+        from src.generator.effect_placer import _compute_active_tiers
+        section = SectionEnergy(label="intro", start_ms=0, end_ms=10000,
+                                energy_score=20, mood_tier="ethereal", impact_count=0)
+        hierarchy = _make_hierarchy()
+        assert _compute_active_tiers(section, 0, hierarchy) == frozenset({1, 8})
+
+    def test_aggressive_returns_tiers_4_and_8(self) -> None:
+        from src.generator.effect_placer import _compute_active_tiers
+        section = SectionEnergy(label="chorus", start_ms=0, end_ms=10000,
+                                energy_score=85, mood_tier="aggressive", impact_count=0)
+        hierarchy = _make_hierarchy()
+        assert _compute_active_tiers(section, 0, hierarchy) == frozenset({4, 8})
+
+    def test_structural_without_phrase_uses_prop_tier(self) -> None:
+        """Structural section with no bar data → tier 6 (PROP variety)."""
+        from src.generator.effect_placer import _compute_active_tiers
+        section = SectionEnergy(label="verse", start_ms=0, end_ms=10000,
+                                energy_score=50, mood_tier="structural", impact_count=0)
+        hierarchy = _make_hierarchy()  # no bars, no energy curves
+        assert _compute_active_tiers(section, 0, hierarchy) == frozenset({6, 8})
+
+    def test_structural_with_strong_phrase_uses_geo(self) -> None:
+        """Structural section with periodic bar-energy pattern → tier 2 (GEO call-response)."""
+        from src.generator.effect_placer import _compute_active_tiers
+        # 16 bars, every 4th bar is loud — classic phrase structure
+        bar_times = list(range(0, 16 * 500, 500))
+        # Energy values at 47fps; bars land on frames 0, 23, 47, 70, etc.
+        # Build an energy signal where bars 0, 4, 8, 12 (every 4th) are 80, others 20.
+        energy = [20] * 20000
+        for i, bar_t in enumerate(bar_times):
+            is_phrase_start = (i % 4) == 0
+            peak = 80 if is_phrase_start else 20
+            frame = int(bar_t * 47 / 1000)
+            # set a small window around each bar onset
+            for f in range(frame, min(frame + 5, len(energy))):
+                energy[f] = peak
+        section = SectionEnergy(label="verse", start_ms=0, end_ms=16 * 500,
+                                energy_score=50, mood_tier="structural", impact_count=0)
+        hierarchy = _hierarchy_with_bars_and_curve(bar_times, energy_values=energy)
+        assert _compute_active_tiers(section, 0, hierarchy) == frozenset({2, 8})
+
+
+class TestHasStrongPhraseStructure:
+    """_has_strong_phrase_structure detects periodicity at phrase length."""
+
+    def test_no_energy_curve_returns_false(self) -> None:
+        from src.generator.effect_placer import _has_strong_phrase_structure
+        section = SectionEnergy(label="v", start_ms=0, end_ms=10000,
+                                energy_score=50, mood_tier="structural", impact_count=0)
+        hierarchy = _make_hierarchy()  # no curves
+        assert _has_strong_phrase_structure(section, hierarchy) is False
+
+    def test_no_bars_returns_false(self) -> None:
+        from src.generator.effect_placer import _has_strong_phrase_structure
+        section = SectionEnergy(label="v", start_ms=0, end_ms=10000,
+                                energy_score=50, mood_tier="structural", impact_count=0)
+        # Hierarchy with energy curve but no bars
+        hierarchy = HierarchyResult(
+            schema_version="2.0.0", source_file="t.mp3", source_hash="a",
+            duration_ms=10000, estimated_bpm=120.0,
+            energy_curves={"full_mix": ValueCurve(name="full_mix", stem_source="full_mix", fps=47, values=[50] * 500)},
+        )
+        assert _has_strong_phrase_structure(section, hierarchy) is False
+
+    def test_too_few_bars_returns_false(self) -> None:
+        from src.generator.effect_placer import _has_strong_phrase_structure
+        section = SectionEnergy(label="v", start_ms=0, end_ms=10000,
+                                energy_score=50, mood_tier="structural", impact_count=0)
+        # Only 4 bars — less than 2 * phrase_len_bars
+        hierarchy = _hierarchy_with_bars_and_curve([0, 500, 1000, 1500], energy_values=[50] * 500)
+        assert _has_strong_phrase_structure(section, hierarchy) is False
+
+    def test_flat_energy_returns_false(self) -> None:
+        """Constant energy across 16 bars → zero variance → correlation 0 → False."""
+        from src.generator.effect_placer import _has_strong_phrase_structure
+        bar_times = list(range(0, 8000, 500))  # 16 bars
+        energy = [50] * 1000
+        section = SectionEnergy(label="v", start_ms=0, end_ms=8000,
+                                energy_score=50, mood_tier="structural", impact_count=0)
+        hierarchy = _hierarchy_with_bars_and_curve(bar_times, energy_values=energy)
+        assert _has_strong_phrase_structure(section, hierarchy) is False
+
+    def test_periodic_energy_returns_true(self) -> None:
+        """Every 4th bar loud, others quiet → high lag-4 correlation → True."""
+        from src.generator.effect_placer import _has_strong_phrase_structure
+        bar_times = list(range(0, 16 * 500, 500))
+        energy = [20] * 2000
+        for i, bar_t in enumerate(bar_times):
+            peak = 80 if (i % 4) == 0 else 20
+            frame = int(bar_t * 47 / 1000)
+            for f in range(frame, min(frame + 5, len(energy))):
+                energy[f] = peak
+        section = SectionEnergy(label="v", start_ms=0, end_ms=16 * 500,
+                                energy_score=50, mood_tier="structural", impact_count=0)
+        hierarchy = _hierarchy_with_bars_and_curve(bar_times, energy_values=energy)
+        assert _has_strong_phrase_structure(section, hierarchy) is True
+
+
+class TestPlaceCallResponse:
+    """_place_call_response alternates GEO zones between phrases."""
+
+    def _geo_groups(self) -> list[PowerGroup]:
+        return [
+            PowerGroup(name="02_GEO_Left", tier=2, members=["Model_A"]),
+            PowerGroup(name="02_GEO_Top", tier=2, members=["Model_B"]),
+            PowerGroup(name="02_GEO_Right", tier=2, members=["Model_C"]),
+            PowerGroup(name="02_GEO_Bot", tier=2, members=["Model_D"]),
+        ]
+
+    def test_phrase_1_places_on_call_side_only(self) -> None:
+        from src.generator.effect_placer import _place_call_response
+        # 4 bars = exactly one phrase
+        bar_times = [0, 500, 1000, 1500]
+        section = SectionEnergy(label="v", start_ms=0, end_ms=2000,
+                                energy_score=50, mood_tier="structural", impact_count=0)
+        hierarchy = _hierarchy_with_bars_and_curve(bar_times, duration_ms=2000)
+        result = _place_call_response(
+            _make_effect("Color Wash"),
+            EffectLayer(variant="Color Wash"),
+            self._geo_groups(), section, hierarchy,
+            palette=["#ff0000"],
+        )
+        assert "02_GEO_Left" in result
+        assert "02_GEO_Top" in result
+        assert "02_GEO_Right" not in result
+        assert "02_GEO_Bot" not in result
+
+    def test_phrase_2_places_on_answer_side_only(self) -> None:
+        from src.generator.effect_placer import _place_call_response
+        # 8 bars = two phrases
+        bar_times = list(range(0, 4000, 500))
+        section = SectionEnergy(label="v", start_ms=0, end_ms=4000,
+                                energy_score=50, mood_tier="structural", impact_count=0)
+        hierarchy = _hierarchy_with_bars_and_curve(bar_times, duration_ms=4000)
+        result = _place_call_response(
+            _make_effect("Color Wash"),
+            EffectLayer(variant="Color Wash"),
+            self._geo_groups(), section, hierarchy,
+            palette=["#ff0000"],
+        )
+        # Phrase 0 bars 0-3 → call side, phrase 1 bars 4-7 → answer side
+        call_placements = result.get("02_GEO_Left", []) + result.get("02_GEO_Top", [])
+        answer_placements = result.get("02_GEO_Right", []) + result.get("02_GEO_Bot", [])
+        assert len(call_placements) >= 2                            # left + top, one each
+        assert len(answer_placements) >= 2                          # right + bot, one each
+
+        # Call-side placements should end at the phrase-1 boundary (bar 4 = 2000ms)
+        for p in call_placements:
+            assert p.end_ms <= 2000 + FRAME_INTERVAL_MS
+        # Answer-side placements should start at the phrase-1 boundary
+        for p in answer_placements:
+            assert p.start_ms >= 2000 - FRAME_INTERVAL_MS
+
+    def test_center_and_mid_zones_are_excluded(self) -> None:
+        """Groups outside the call/answer sides (Center/Mid) never receive placements."""
+        from src.generator.effect_placer import _place_call_response
+        bar_times = [0, 500, 1000, 1500]
+        section = SectionEnergy(label="v", start_ms=0, end_ms=2000,
+                                energy_score=50, mood_tier="structural", impact_count=0)
+        hierarchy = _hierarchy_with_bars_and_curve(bar_times, duration_ms=2000)
+        groups = self._geo_groups() + [
+            PowerGroup(name="02_GEO_Center", tier=2, members=["Model_X"]),
+            PowerGroup(name="02_GEO_Mid", tier=2, members=["Model_Y"]),
+        ]
+        result = _place_call_response(
+            _make_effect("Color Wash"),
+            EffectLayer(variant="Color Wash"),
+            groups, section, hierarchy,
+            palette=["#ff0000"],
+        )
+        assert "02_GEO_Center" not in result
+        assert "02_GEO_Mid" not in result

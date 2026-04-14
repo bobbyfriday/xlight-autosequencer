@@ -27,6 +27,7 @@ from src.generator.models import (
     frame_align,
 )
 from src.grouper.grouper import PowerGroup
+from src.grouper.layout import prop_type_for_display_as
 from src.themes.models import EffectLayer
 
 logger = logging.getLogger(__name__)
@@ -47,6 +48,24 @@ _TIER_BRIGHTNESS: dict[int, float] = {
 # so only one axis should be active at a time to avoid overrides.
 _GEO_HORIZONTAL = {"02_GEO_Top", "02_GEO_Mid", "02_GEO_Bot"}
 _GEO_VERTICAL = {"02_GEO_Left", "02_GEO_Center", "02_GEO_Right"}
+
+# GEO call-and-response partitioning.  When Tier 2 is active, phrases alternate
+# between the "call" side (Left + Top quadrants) and the "answer" side
+# (Right + Bottom quadrants).  Center/Mid zones are excluded — they overlap
+# with both sides spatially, so keeping them quiet yields a cleaner
+# call/response read.
+_GEO_CALL_SIDE = frozenset({"02_GEO_Left", "02_GEO_Top"})
+_GEO_ANSWER_SIDE = frozenset({"02_GEO_Right", "02_GEO_Bot"})
+
+# Phrase length in bars for call-response alternation and phrase-structure
+# detection.  4 bars is the standard pop/orchestral phrase length.
+_PHRASE_LEN_BARS = 4
+
+# Pearson-correlation threshold on bar-sampled energy at lag = phrase length.
+# Above this, the section is considered to have strong periodic phrase structure
+# (the pre-condition for GEO call-response to feel musically grounded).
+# 0.5 is a starting value; tune after visual inspection.
+_MIN_PHRASE_CORRELATION = 0.5
 
 
 def _dim_palette(palette: list[str], multiplier: float) -> list[str]:
@@ -135,6 +154,47 @@ _PROP_EFFECT_POOL: list[str] = [
     "Meteors", "Single Strand", "Ripple", "Spirals", "Bars",
     "Curtain", "Shockwave", "Fire", "Strobe", "Galaxy",
 ]
+
+# ---------------------------------------------------------------------------
+# Beat accent constants (spec 042)
+# ---------------------------------------------------------------------------
+
+# 042A: Drum-hit Shockwave on small radial props
+_DRUM_HIT_ENERGY_GATE = 15       # per-hit drum stem energy threshold (0-100 scale).
+                                  # MRC data: p25=13, p50=18. At 15, ~70% of hits fire —
+                                  # "if you can hear the drum, fire the accent."
+                                  # Falls back to full_mix curve if drums curve absent;
+                                  # allows all hits through if no curve is available at all.
+_DRUM_ONSET_SAMPLE_OFFSET_MS = 25  # Sample the energy curve this many ms AFTER the onset.
+                                    # Drum energy peaks slightly after the attack transient;
+                                    # one frame at ~47fps captures the ring, not the pre-hit.
+_DRUM_ACCENT_DURATION_MS = 275   # midpoint of 200-350ms spec range
+_DRUM_ACCENT_MIN_SPACING_MS = 150  # minimum ms between consecutive placements
+_SMALL_RADIAL_THRESHOLD = 200    # pixel count threshold for "small" radial props
+
+# Name keywords that identify radial-style props even when DisplayAs='Custom'.
+# Custom-modeled spinners, flakes, and similar shapes are classified as "outline"
+# by prop_type_for_display_as(), so we fall back to name matching.
+_RADIAL_NAME_KEYWORDS: frozenset[str] = frozenset({
+    "spinner", "flake", "snowflake", "wreath", "star", "circle",
+})
+
+_DRUM_VARIANT_MAP: dict[str, str] = {
+    "kick":  "Shockwave Full Fast",
+    "snare": "Shockwave Medium Fast",
+    "hihat": "Shockwave Small Thin",
+}
+_DRUM_ACCENT_DEFAULT_VARIANT = "Shockwave Full Fast"
+_DRUM_ACCENT_ALTERNATING = ("Shockwave Full Fast", "Shockwave Medium Fast")
+_DRUM_BIAS_THRESHOLD = 0.80  # >80% same label → use alternating kick/snare fallback
+
+# 042B: Whole-house impact accent at section peaks
+_IMPACT_ENERGY_GATE = 80
+_IMPACT_QUALIFYING_ROLES = frozenset({"chorus", "drop", "climax", "build_peak"})
+_IMPACT_MIN_DURATION_MS = 4000
+_IMPACT_ACCENT_DURATION_MS = 800
+_IMPACT_ACCENT_PALETTE = ["#FFFFFF"]
+_IMPACT_ACCENT_TIERS = frozenset({4, 5, 6, 7, 8})
 
 
 def restrain_palette(palette: list[str], energy_score: int, tier: int) -> list[str]:
@@ -435,10 +495,20 @@ def place_effects(
     # Map layers to tier sets
     layer_tier_map = _assign_layers_to_tiers(layers)
 
-    # Group groups by tier, filtering to requested tiers if specified
+    # Compute which tiers should run this section.  Tiers 2/4/6/7 are
+    # alternative partition schemes of the same props, so activating multiple
+    # causes silent overrides — we pick exactly one partition tier per section
+    # based on mood and (for structural) phrase structure.  An explicit
+    # `tiers` argument overrides the selection (used for testing and when the
+    # user sets `GenerationConfig.tiers` or disables `tier_selection`).
+    if tiers is not None:
+        effective_tiers: frozenset[int] = frozenset(tiers)
+    else:
+        effective_tiers = _compute_active_tiers(section, section_index, hierarchy)
+
     tier_groups: dict[int, list[PowerGroup]] = {}
     for g in groups:
-        if tiers is not None and g.tier not in tiers:
+        if g.tier not in effective_tiers:
             continue
         tier_groups.setdefault(g.tier, []).append(g)
 
@@ -605,43 +675,28 @@ def place_effects(
                     result.setdefault(gname, []).extend(placements)
                 continue
 
-            # Tier 1-2 (BASE, GEO): energy-based exclusive activation.
-            #
-            # GEO zones overlap: Top/Mid/Bot (horizontal) and Left/Center/Right
-            # (vertical) share models, so running all 6 creates overrides.
-            #
-            # Strategy:
-            #   ethereal  → tier 1 only (BASE_All — unified wash)
-            #   structural → tier 2, one GEO axis (consistent per section)
-            #   aggressive → tier 2, GEO axes alternate per bar (swirl effect)
-            #
-            # Tier 1 is skipped when tier 2 is active (GEO covers the whole house).
-            mood = section.mood_tier
-
-            if tier == 1 and mood != "ethereal":
-                # Skip BASE_All in structural/aggressive — GEO zones handle it
-                continue
-            if tier == 2 and mood == "ethereal":
-                # Skip GEO zones in ethereal — BASE_All handles it
+            # Tier 2 (GEO): phrase-paired call-and-response.
+            # Alternate active zones between call side (Left + Top) and answer
+            # side (Right + Bot) every _PHRASE_LEN_BARS bars, creating a natural
+            # back-and-forth that aligns to musical phrase structure.  Gated
+            # upstream by _compute_active_tiers — only reached when the
+            # section has strong phrase periodicity.
+            if tier == 2 and groups_for_tier:
+                cr_result = _place_call_response(
+                    effect_def, layer, groups_for_tier,
+                    assignment.section, hierarchy, tier_palette,
+                    variant_library=variant_library,
+                    phrase_len_bars=_PHRASE_LEN_BARS,
+                )
+                for gname, placements in cr_result.items():
+                    result.setdefault(gname, []).extend(placements)
                 continue
 
+            # Default placement: one effect per group spanning the whole section.
+            # Used by Tier 1 (BASE_All — ethereal only), Tier 6 (PROP), Tier 7
+            # (COMP), and Tier 8 (HERO).  _compute_active_tiers guarantees only
+            # one partition tier from {2, 4, 6, 7} is present, plus 1 and/or 8.
             for group in groups_for_tier:
-                # Determine GEO axis filtering
-                bar_parity: int | None = None
-                if tier == 2:
-                    is_h = group.name in _GEO_HORIZONTAL
-                    is_v = group.name in _GEO_VERTICAL
-                    if mood == "aggressive":
-                        # Alternate axes per bar: horizontal=even, vertical=odd
-                        if is_h:
-                            bar_parity = 0
-                        elif is_v:
-                            bar_parity = 1
-                    else:
-                        # Structural: use horizontal axis only, skip vertical
-                        if is_v:
-                            continue
-
                 placements = _place_effect_on_group(
                     effect_def=effect_def,
                     layer=layer,
@@ -655,7 +710,7 @@ def place_effects(
                     danceability=danceability,
                     chord_weight=chord_weight,
                     variant_library=variant_library,
-                    bar_parity=bar_parity,
+                    bar_parity=None,
                     duration_scaling=duration_scaling,
                     bpm=bpm,
                 )
@@ -928,6 +983,84 @@ def _place_chase_across_groups(
             instance_index=i,
         )
         result.setdefault(group.name, []).append(placement)
+
+    return result
+
+
+def _place_call_response(
+    effect_def: EffectDefinition,
+    layer: EffectLayer,
+    groups: list[PowerGroup],
+    section: SectionEnergy,
+    hierarchy: HierarchyResult,
+    palette: list[str],
+    variant_library=None,
+    phrase_len_bars: int = _PHRASE_LEN_BARS,
+) -> dict[str, list[EffectPlacement]]:
+    """Place effects on GEO zones in phrase-paired call/answer alternation.
+
+    Splits the section into `phrase_len_bars`-bar phrases and alternates which
+    GEO zones play: even phrases → call side (Left + Top), odd phrases →
+    answer side (Right + Bot).  This creates a natural back-and-forth that
+    aligns to musical phrase structure.
+
+    Falls back to whole-section placement on every supplied group if bar data
+    is insufficient for phrase-level splitting — this shouldn't normally be
+    reached because the caller gates on `_has_strong_phrase_structure`, but
+    the fallback keeps the function safe to call in isolation (tests, future
+    direct invocation).
+    """
+    result: dict[str, list[EffectPlacement]] = {}
+    params: dict[str, Any] = {}
+    if variant_library is not None:
+        variant = variant_library.get(layer.variant)
+        if variant is not None:
+            params = dict(variant.parameter_overrides)
+
+    bars = getattr(hierarchy, "bars", None)
+    bar_marks = (
+        _marks_in_range(bars.marks, section.start_ms, section.end_ms)
+        if bars is not None else []
+    )
+
+    # Partition supplied groups into call / answer sides.  Groups outside both
+    # sets (Center/Mid, or anything that somehow slipped through) are dropped
+    # so the call/response pairing stays clean.
+    call_groups = [g for g in groups if g.name in _GEO_CALL_SIDE]
+    answer_groups = [g for g in groups if g.name in _GEO_ANSWER_SIDE]
+
+    if not call_groups and not answer_groups:
+        return result                              # no usable GEO sides
+
+    if len(bar_marks) < phrase_len_bars:
+        # Not enough bars for a single phrase — place once on each side for
+        # the whole section.  Better than nothing when bar data is sparse.
+        for group in call_groups + answer_groups:
+            placement = _make_placement(
+                effect_def, group.name, section.start_ms, section.end_ms,
+                params, palette, layer.blend_mode, "section",
+            )
+            result.setdefault(group.name, []).append(placement)
+        return result
+
+    for phrase_idx in range(0, len(bar_marks), phrase_len_bars):
+        phrase_start = bar_marks[phrase_idx].time_ms
+        end_idx = phrase_idx + phrase_len_bars
+        phrase_end = (
+            bar_marks[end_idx].time_ms if end_idx < len(bar_marks) else section.end_ms
+        )
+        if phrase_end <= phrase_start:
+            continue
+
+        phrase_num = phrase_idx // phrase_len_bars
+        active = call_groups if phrase_num % 2 == 0 else answer_groups
+        for group in active:
+            placement = _make_placement(
+                effect_def, group.name, phrase_start, phrase_end,
+                params, palette, layer.blend_mode, "section",
+                instance_index=phrase_num,
+            )
+            result.setdefault(group.name, []).append(placement)
 
     return result
 
@@ -1320,4 +1453,290 @@ def _flat_model_fallback(
         effect_def.duration_type,
     )
     result["ALL_MODELS"] = [placement]
+    return result
+
+
+def _sample_energy_curve(curve: Any, t_ms: int) -> int:
+    """Sample a ValueCurve (or duck-typed equivalent) at the given millisecond.
+
+    Returns an integer in 0-100.  Safe to call when the curve object has unexpected
+    shape — returns 0 on any out-of-bounds or missing attribute access.
+    """
+    fps = getattr(curve, "fps", 47)
+    values = getattr(curve, "values", [])
+    frame = int(t_ms * fps / 1000)
+    if frame < len(values):
+        return int(values[frame])
+    return 0
+
+
+def _pearson(a: list[float], b: list[float]) -> float:
+    """Pearson correlation coefficient of two equal-length sequences.
+
+    Returns 0.0 on degenerate input (length mismatch, fewer than 2 points, or
+    zero variance in either sequence).  No external dependency — uses stdlib
+    `statistics` for the means.
+    """
+    import statistics
+    if len(a) != len(b) or len(a) < 2:
+        return 0.0
+    mean_a = statistics.mean(a)
+    mean_b = statistics.mean(b)
+    num = sum((x - mean_a) * (y - mean_b) for x, y in zip(a, b))
+    den_a = sum((x - mean_a) ** 2 for x in a) ** 0.5
+    den_b = sum((y - mean_b) ** 2 for y in b) ** 0.5
+    if den_a == 0.0 or den_b == 0.0:
+        return 0.0
+    return num / (den_a * den_b)
+
+
+def _has_strong_phrase_structure(
+    section: SectionEnergy,
+    hierarchy: HierarchyResult,
+    phrase_len_bars: int = _PHRASE_LEN_BARS,
+    min_correlation: float = _MIN_PHRASE_CORRELATION,
+) -> bool:
+    """True if the section's energy curve repeats periodically at phrase length.
+
+    Samples full_mix energy at each bar onset within the section, then computes
+    the Pearson correlation between the bar-energy signal and itself shifted by
+    `phrase_len_bars`.  High correlation means every Nth bar has the same
+    relative energy — the acoustic signature of phrase structure that supports
+    call-and-response.
+
+    Returns False safely when bar data or energy curves are unavailable, or
+    when there are fewer than two phrases' worth of bars to compare.
+    """
+    curves = getattr(hierarchy, "energy_curves", None) or {}
+    curve = curves.get("full_mix")
+    bars = getattr(hierarchy, "bars", None)
+    if curve is None or bars is None:
+        return False
+
+    bar_marks = _marks_in_range(bars.marks, section.start_ms, section.end_ms)
+    if len(bar_marks) < 2 * phrase_len_bars:
+        return False
+
+    bar_energies = [float(_sample_energy_curve(curve, b.time_ms)) for b in bar_marks]
+    lead = bar_energies[:-phrase_len_bars]
+    lag = bar_energies[phrase_len_bars:]
+    return _pearson(lead, lag) >= min_correlation
+
+
+def _compute_active_tiers(
+    section: SectionEnergy,
+    section_index: int,
+    hierarchy: HierarchyResult,
+) -> frozenset[int]:
+    """Return the tier set that should be active for this section.
+
+    Tiers 2, 4, 6, 7 are alternative partition schemes of the same physical
+    props — activating multiple simultaneously causes the higher-numbered
+    tier to silently overwrite the lower one on every shared prop.  To keep
+    each section visually intentional, we activate exactly ONE partition
+    tier at a time, chosen by mood and (for structural) phrase structure.
+
+    Tier 8 (HERO) always runs independently — hero props don't appear in
+    partition tiers by design.  Tier 1 (BASE_All) is only meaningful for
+    ethereal sections; in other moods a partition tier covers every prop
+    and BASE would be immediately overridden.
+    """
+    if section.mood_tier == "ethereal":
+        return frozenset({1, 8})
+    if section.mood_tier == "structural":
+        if _has_strong_phrase_structure(section, hierarchy):
+            return frozenset({2, 8})                # GEO call-response
+        return frozenset({6, 8})                    # Prop-type variety
+    return frozenset({4, 8})                        # aggressive: beat chase
+
+
+def _place_drum_accents(
+    groups: list[PowerGroup],
+    hierarchy: HierarchyResult,
+    assignment: SectionAssignment,
+    variant_library: Any,
+    props_by_name: dict[str, Any],
+    small_radial_threshold: int = _SMALL_RADIAL_THRESHOLD,
+) -> dict[str, list[EffectPlacement]]:
+    """Place Shockwave accents on small radial props at every drum hit (spec 042A).
+
+    Each hit is gated individually by sampling `hierarchy.energy_curves["drums"]` at
+    the hit's timestamp. A hit fires only if the drum stem energy at that moment is
+    >= _DRUM_HIT_ENERGY_GATE (15/100). Falls back to the full_mix curve if the drums
+    curve is absent; allows all hits through if no energy curve is available at all.
+
+    Shockwave variant is chosen from the hit's label (kick/snare/hihat). When the
+    classifier is biased (>80% single label in the section), alternates kick/snare
+    variants by beat index for visual variety. Minimum 150ms spacing between
+    placements on the same group prevents overlap on dense drum tracks.
+    """
+    result: dict[str, list[EffectPlacement]] = {}
+    section = assignment.section
+
+    drum_track = hierarchy.events.get("drums")
+    if drum_track is None:
+        logger.debug(
+            "drum_accents: skip section '%s' — no 'drums' event track (available: %s)",
+            section.label, list(hierarchy.events.keys()),
+        )
+        return result
+
+    # Identify small radial props directly from props_by_name.
+    # Tier-6 groups for radial props often don't form (when only 1-2 exist with
+    # different name prefixes), so we scan individual props instead of groups.
+    # Each qualifying prop becomes its own placement target (model name, not group name).
+    small_radial_model_names: list[str] = []
+    for model_name, prop in props_by_name.items():
+        display_as = getattr(prop, "display_as", "")
+        is_radial = prop_type_for_display_as(display_as) == "radial"
+
+        # Secondary check: Custom-modeled spinners/flakes/etc. map to "outline" via
+        # prop_type_for_display_as, so fall back to name-keyword matching when the
+        # primary DisplayAs classification doesn't identify the prop as radial.
+        if not is_radial:
+            name_lower = model_name.lower()
+            is_radial = any(kw in name_lower for kw in _RADIAL_NAME_KEYWORDS)
+
+        if not is_radial:
+            continue
+
+        px = getattr(prop, "pixel_count", 0)
+        if px <= 0:
+            continue  # pixel count not populated
+        if px <= small_radial_threshold:
+            small_radial_model_names.append(model_name)
+        else:
+            logger.debug(
+                "drum_accents: prop '%s' — pixel_count %d > threshold %d, skipping",
+                model_name, px, small_radial_threshold,
+            )
+
+    if not small_radial_model_names:
+        radial_by_display = [
+            n for n, p in props_by_name.items()
+            if prop_type_for_display_as(getattr(p, "display_as", "")) == "radial"
+        ]
+        radial_by_name = [
+            n for n in props_by_name
+            if any(kw in n.lower() for kw in _RADIAL_NAME_KEYWORDS)
+        ]
+        logger.debug(
+            "drum_accents: section '%s' — no small radial props "
+            "(radial by DisplayAs: %s; radial by name keyword: %s)",
+            section.label, radial_by_display, radial_by_name,
+        )
+        return result
+
+    hits = [
+        m for m in drum_track.marks
+        if section.start_ms <= m.time_ms < section.end_ms
+    ]
+    if not hits:
+        return result
+
+    # Resolve the energy curve used for per-hit gating.
+    # Preference: drums stem → full_mix → None (no gate, all hits allowed).
+    _active_curve = (
+        hierarchy.energy_curves.get("drums")
+        or hierarchy.energy_curves.get("full_mix")
+    )
+
+    # Classifier bias check: >80% single label → alternate kick/snare variants
+    labeled_hits = [h for h in hits if h.label in _DRUM_VARIANT_MAP]
+    use_alternating = False
+    if labeled_hits:
+        from collections import Counter
+        counts = Counter(h.label for h in labeled_hits)
+        top_ratio = counts.most_common(1)[0][1] / len(labeled_hits)
+        if top_ratio > _DRUM_BIAS_THRESHOLD:
+            use_alternating = True
+
+    for model_name in small_radial_model_names:
+        last_ms: int = -_DRUM_ACCENT_MIN_SPACING_MS
+        for beat_idx, hit in enumerate(hits):
+            if hit.time_ms - last_ms < _DRUM_ACCENT_MIN_SPACING_MS:
+                continue
+
+            # Per-hit energy gate: skip low-energy hits that are bleed or noise.
+            # Sample slightly after the onset so we capture the ring energy, not the
+            # pre-attack window that the energy curve may have already averaged in.
+            if _active_curve is not None:
+                hit_energy = _sample_energy_curve(
+                    _active_curve, hit.time_ms + _DRUM_ONSET_SAMPLE_OFFSET_MS
+                )
+                if hit_energy < _DRUM_HIT_ENERGY_GATE:
+                    continue
+
+            if use_alternating:
+                variant_name = _DRUM_ACCENT_ALTERNATING[beat_idx % 2]
+            else:
+                variant_name = _DRUM_VARIANT_MAP.get(
+                    hit.label or "", _DRUM_ACCENT_DEFAULT_VARIANT
+                )
+
+            variant = variant_library.get(variant_name) if variant_library is not None else None
+            params = dict(variant.parameter_overrides) if variant is not None else {}
+
+            start_ms = frame_align(hit.time_ms)
+            end_ms = frame_align(hit.time_ms + _DRUM_ACCENT_DURATION_MS)
+            placement = EffectPlacement(
+                effect_name="Shockwave",
+                xlights_id="Shockwave",
+                model_or_group=model_name,
+                start_ms=start_ms,
+                end_ms=end_ms,
+                parameters=params,
+                color_palette=list(assignment.theme.palette[:2]),
+                layer=1,
+            )
+            result.setdefault(model_name, []).append(placement)
+            last_ms = hit.time_ms
+
+    return result
+
+
+def _place_impact_accent(
+    groups: list[PowerGroup],
+    assignment: SectionAssignment,
+    variant_library: Any,
+) -> dict[str, list[EffectPlacement]]:
+    """Place a whole-house white Shockwave at the start of high-energy peaks (spec 042B).
+
+    Fires when energy_score > 80 AND section duration >= 4s AND section_role is one of
+    chorus/drop/climax/build_peak (or unknown/empty, where energy gate alone qualifies).
+    Places a single 800ms Shockwave on all tier 4-8 groups with pure white palette.
+    """
+    result: dict[str, list[EffectPlacement]] = {}
+
+    section = assignment.section
+    if section.energy_score <= _IMPACT_ENERGY_GATE:
+        return result
+    if section.end_ms - section.start_ms < _IMPACT_MIN_DURATION_MS:
+        return result
+
+    role = (section.label or "").lower()
+    if role and role not in _IMPACT_QUALIFYING_ROLES:
+        return result
+
+    variant = variant_library.get("Shockwave Full Fast") if variant_library is not None else None
+    params = dict(variant.parameter_overrides) if variant is not None else {}
+
+    start_ms = frame_align(section.start_ms)
+    end_ms = frame_align(section.start_ms + _IMPACT_ACCENT_DURATION_MS)
+
+    for group in groups:
+        if group.tier not in _IMPACT_ACCENT_TIERS:
+            continue
+        placement = EffectPlacement(
+            effect_name="Shockwave",
+            xlights_id="Shockwave",
+            model_or_group=group.name,
+            start_ms=start_ms,
+            end_ms=end_ms,
+            parameters=dict(params),  # copy per group
+            color_palette=list(_IMPACT_ACCENT_PALETTE),
+            layer=1,
+        )
+        result.setdefault(group.name, []).append(placement)
+
     return result
