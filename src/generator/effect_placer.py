@@ -141,12 +141,20 @@ def restrain_palette(palette: list[str], energy_score: int, tier: int) -> list[s
     """Trim palette to 2-4 active colors based on section energy and group tier.
 
     Algorithm: target = min(2 + energy // 33, _TIER_PALETTE_CAP[tier], len(palette))
-    Returns palette[:max(1, target)] — never fewer than 1 color.
+    Colors are selected using spread-based indexing (evenly spaced across the full
+    palette range) rather than a linear slice from the start, so that gradients produce
+    contrasting colors instead of similar adjacent shades.
     """
     base_count = 2 + energy_score // 33
     tier_cap = _TIER_PALETTE_CAP.get(tier, 4)
-    target = min(base_count, tier_cap, len(palette))
-    return palette[:max(1, target)]
+    target = max(1, min(base_count, tier_cap, len(palette)))
+    if target >= len(palette):
+        return list(palette)
+    if target == 1:
+        return [palette[0]]
+    # Spread evenly across palette — picks first, last, and intermediates for contrast
+    indices = [round(i * (len(palette) - 1) / (target - 1)) for i in range(target)]
+    return [palette[i] for i in indices]
 
 
 def compute_music_sparkles(energy_score: int, effect_name: str, rng: random.Random) -> int:

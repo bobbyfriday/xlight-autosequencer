@@ -4104,12 +4104,12 @@
         }
       ],
       "prop_suitability": {
-        "matrix": "good",
+        "matrix": "possible",
         "outline": "ideal",
         "arch": "ideal",
         "vertical": "ideal",
-        "tree": "ideal",
-        "radial": "good"
+        "tree": "good",
+        "radial": "possible"
       },
       "analysis_mappings": [
         {
