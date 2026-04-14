@@ -201,7 +201,7 @@ _XLIGHTS_EFFECT_DEFAULTS: dict[str, dict[str, str]] = {
         "E_SLIDER_Number_Waves": "180",
         "E_SLIDER_Thickness_Percentage": "25",
         "E_SLIDER_Wave_Height": "50",
-        "E_TEXTCTRL_Wave_Speed": "10",
+        "E_SLIDER_Wave_Speed": "10",
         "T_CHECKBOX_Canvas": "1",
     },
 }
