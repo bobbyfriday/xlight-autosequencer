@@ -110,8 +110,25 @@ def build_plan(
 
     if story is not None:
         section_energies = _section_energies_from_story(story)
-        inferred_genre = story["preferences"].get("genre") or config.genre
-        inferred_occasion = story["preferences"].get("occasion") or config.occasion
+        # UI-selected config values should win over story defaults.  The story's
+        # preferences may contain literal defaults ("general" occasion, "pop"/
+        # "any" genre) that don't reflect an explicit user choice — those
+        # defaults should never override what the user picked at generation
+        # time.  Use the story value only when (a) it's non-empty and (b)
+        # either the config is at its own default or matches the story value.
+        prefs = story.get("preferences", {})
+        story_genre = prefs.get("genre")
+        story_occasion = prefs.get("occasion")
+
+        if config.occasion and config.occasion != "general":
+            inferred_occasion = config.occasion
+        else:
+            inferred_occasion = story_occasion or config.occasion
+
+        if config.genre and config.genre not in ("any", "pop"):
+            inferred_genre = config.genre
+        else:
+            inferred_genre = story_genre or config.genre
         scale = None  # story handles mood directly
     else:
         ef = hierarchy.essentia_features or {}

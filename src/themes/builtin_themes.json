@@ -41,6 +41,22 @@
               "blend_mode": "Normal"
             }
           ]
+        },
+        {
+          "layers": [
+            {
+              "variant": "Butterfly Classic Reverse",
+              "blend_mode": "Normal"
+            }
+          ]
+        },
+        {
+          "layers": [
+            {
+              "variant": "Butterfly Lines",
+              "blend_mode": "Normal"
+            }
+          ]
         }
       ],
       "palette": [
@@ -64,7 +80,7 @@
       "intent": "Shimmering, vertical curtains of the Northern Lights that breathe with the music",
       "layers": [
         {
-          "variant": "Color Wash Shimmer Cycles",
+          "variant": "Color Wash Smooth",
           "blend_mode": "Normal"
         },
         {
@@ -333,6 +349,22 @@
               "blend_mode": "Normal"
             }
           ]
+        },
+        {
+          "layers": [
+            {
+              "variant": "Butterfly Moebius",
+              "blend_mode": "Normal"
+            }
+          ]
+        },
+        {
+          "layers": [
+            {
+              "variant": "Butterfly Geometric Reverse",
+              "blend_mode": "Normal"
+            }
+          ]
         }
       ],
       "palette": [
@@ -522,7 +554,7 @@
         {
           "layers": [
             {
-              "variant": "Fill Center Band",
+              "variant": "Spirals Directed Medium",
               "blend_mode": "Normal"
             }
           ]
@@ -569,7 +601,7 @@
         {
           "layers": [
             {
-              "variant": "Color Wash Shimmer Cycles",
+              "variant": "Color Wash Smooth",
               "blend_mode": "Normal"
             }
           ]
@@ -624,6 +656,22 @@
               "blend_mode": "Normal"
             }
           ]
+        },
+        {
+          "layers": [
+            {
+              "variant": "Butterfly Lines",
+              "blend_mode": "Normal"
+            }
+          ]
+        },
+        {
+          "layers": [
+            {
+              "variant": "Butterfly Classic Reverse",
+              "blend_mode": "Normal"
+            }
+          ]
         }
       ],
       "palette": [
@@ -637,7 +685,8 @@
         "#FFAA33",
         "#CC8800",
         "#FFE066"
-      ]
+      ],
+      "background_accent_variant": "Snowflakes Driving Few"
     },
     "Candy Cane Chase": {
       "name": "Candy Cane Chase",
@@ -684,7 +733,8 @@
         "#FFD700",
         "#008800",
         "#CCAA00"
-      ]
+      ],
+      "background_accent_variant": "Snowflakes Driving Few"
     },
     "Warm Glow": {
       "name": "Warm Glow",
@@ -706,7 +756,7 @@
         {
           "layers": [
             {
-              "variant": "Color Wash Shimmer",
+              "variant": "Color Wash Smooth",
               "blend_mode": "Normal"
             }
           ]
@@ -731,7 +781,8 @@
         "#228844",
         "#004422",
         "#33AA66"
-      ]
+      ],
+      "background_accent_variant": "Snowflakes Driving Few"
     },
     "North Star": {
       "name": "North Star",
@@ -778,7 +829,8 @@
         "#3333CC",
         "#0A0A66",
         "#4444AA"
-      ]
+      ],
+      "background_accent_variant": "Snowflakes Driving Few"
     },
     "Festive Flash": {
       "name": "Festive Flash",
@@ -859,6 +911,22 @@
               "blend_mode": "Normal"
             }
           ]
+        },
+        {
+          "layers": [
+            {
+              "variant": "Butterfly Lines",
+              "blend_mode": "Normal"
+            }
+          ]
+        },
+        {
+          "layers": [
+            {
+              "variant": "Butterfly Moebius",
+              "blend_mode": "Normal"
+            }
+          ]
         }
       ],
       "palette": [
@@ -872,7 +940,8 @@
         "#FFAA33",
         "#CC8800",
         "#FFE066"
-      ]
+      ],
+      "background_accent_variant": "Snowflakes Driving Few"
     },
     "Haunted Pulse": {
       "name": "Haunted Pulse",

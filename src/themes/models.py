@@ -67,6 +67,11 @@ class Theme:
     accent_palette: list[str] = field(default_factory=list)
     alternates: list[ThemeAlternate] = field(default_factory=list)
     transition_mode: str | None = None
+    # Optional variant name (from VariantLibrary) to place on layer 1 of
+    # Tier 1 (BASE_All) groups as an ambient overlay — e.g. "Snowflakes
+    # Driving Few" for Christmas themes.  None disables the overlay (the
+    # default for non-winter themes like Halloween).
+    background_accent_variant: str | None = None
 
     def __post_init__(self) -> None:
         if self.transition_mode is not None:
@@ -90,6 +95,7 @@ class Theme:
             accent_palette=data.get("accent_palette", []),
             alternates=[ThemeAlternate.from_dict(a) for a in data.get("alternates", [])],
             transition_mode=data.get("transition_mode", None),
+            background_accent_variant=data.get("background_accent_variant", None),
         )
 
     def to_dict(self) -> dict:
@@ -106,4 +112,6 @@ class Theme:
         }
         if self.transition_mode is not None:
             d["transition_mode"] = self.transition_mode
+        if self.background_accent_variant is not None:
+            d["background_accent_variant"] = self.background_accent_variant
         return d
