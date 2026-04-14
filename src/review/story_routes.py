@@ -1025,7 +1025,8 @@ def story_preferences():
     """Update song-wide preferences.
 
     Body: ``{"mood": "aggressive", "intensity": 1.2, "occasion": "christmas",
-             "focus_stem": "guitar", "theme": null, "genre": null}``
+             "focus_stem": "guitar", "theme": null, "genre": null,
+             "transition_mode": "subtle"}``
     Returns: ``{"preferences": updated_preferences}``
     """
     story = _session.get("story")
@@ -1036,7 +1037,10 @@ def story_preferences():
 
     # Only update keys that are explicitly present in body (allow null to clear a field)
     prefs = story.setdefault("preferences", {})
-    allowed_keys = {"mood", "theme", "focus_stem", "intensity", "occasion", "genre"}
+    allowed_keys = {
+        "mood", "theme", "focus_stem", "intensity",
+        "occasion", "genre", "transition_mode",
+    }
     for key in allowed_keys:
         if key in body:
             prefs[key] = body[key]

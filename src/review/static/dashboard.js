@@ -317,32 +317,17 @@
           return;
         }
 
-        var knownGenres = ['any', 'pop', 'rock', 'classical'];
-        var songGenre = entry.genre && knownGenres.indexOf(entry.genre.toLowerCase()) >= 0
-          ? entry.genre.toLowerCase() : 'any';
-
-        function opt(val, label, sel) {
-          return '<option value="' + val + '"' + (sel === val ? ' selected' : '') + '>' + label + '</option>';
-        }
-
+        // Preferences (occasion, genre, transitions, mood, intensity, focus_stem,
+        // theme lock) live in the Song Story review page — there's a single
+        // editable preferences panel there.  Dashboard just triggers generation
+        // using whatever the story currently has.
+        var reviewUrl = '/story-review?hash=' + encodeURIComponent(entry.source_hash);
         panel.innerHTML =
           '<div class="gen-inline-form">' +
-            '<label>Genre <select class="gen-inline-select" id="gi-genre-' + esc(entry.source_hash) + '">' +
-              opt('any', 'Any', songGenre) +
-              opt('pop', 'Pop', songGenre) +
-              opt('rock', 'Rock', songGenre) +
-              opt('classical', 'Classical', songGenre) +
-            '</select></label>' +
-            '<label>Occasion <select class="gen-inline-select" id="gi-occasion-' + esc(entry.source_hash) + '">' +
-              opt('general', 'General', 'general') +
-              opt('christmas', 'Christmas', 'general') +
-              opt('halloween', 'Halloween', 'general') +
-            '</select></label>' +
-            '<label>Transitions <select class="gen-inline-select" id="gi-transition-' + esc(entry.source_hash) + '">' +
-              opt('subtle', 'Subtle', 'subtle') +
-              opt('none', 'None', 'subtle') +
-              opt('dramatic', 'Dramatic', 'subtle') +
-            '</select></label>' +
+            '<span class="gen-inline-note">' +
+              'Preferences (occasion, genre, transitions, mood) are set in ' +
+              '<a href="' + reviewUrl + '" target="_blank">Song Story review</a>.' +
+            '</span>' +
             '<button class="btn btn-small gen-inline-btn" id="gi-btn-' + esc(entry.source_hash) + '">Generate</button>' +
             '<span class="gen-inline-status" id="gi-status-' + esc(entry.source_hash) + '"></span>' +
           '</div>' +
@@ -364,18 +349,16 @@
     var statusEl = document.getElementById('gi-status-' + hash);
     if (!btn || !statusEl) return;
 
-    var genre = (document.getElementById('gi-genre-' + hash) || {}).value || 'any';
-    var occasion = (document.getElementById('gi-occasion-' + hash) || {}).value || 'general';
-    var transition = (document.getElementById('gi-transition-' + hash) || {}).value || 'subtle';
-
     btn.disabled = true;
     statusEl.textContent = 'Starting…';
     statusEl.className = 'gen-inline-status gen-inline-status--running';
 
+    // Dashboard no longer forwards genre/occasion/transition_mode — the
+    // backend reads those from the song's story preferences.  Empty body.
     fetch('/generate/' + hash, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ genre: genre, occasion: occasion, transition_mode: transition })
+      body: JSON.stringify({})
     })
       .then(function (r) { return r.json().then(function (d) { return { status: r.status, data: d }; }); })
       .then(function (res) {

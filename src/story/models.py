@@ -398,13 +398,19 @@ class GlobalProperties:
 
 @dataclass
 class Preferences:
-    """Song-wide creative direction set by user during review."""
+    """Song-wide creative direction set by user during review.
+
+    Every field that influences generation lives here — occasion, genre, and
+    transition_mode moved out of the dashboard Generate panel into this
+    single source of truth (feature 045).
+    """
     mood: Optional[str] = None          # "ethereal", "structural", "aggressive", "dark"
     theme: Optional[str] = None         # Force one theme for whole song
     focus_stem: Optional[str] = None    # "drums", "bass", "vocals", "guitar", "piano", "other"
     intensity: float = 1.0              # 0.0-2.0 scaler (default 1.0)
     occasion: str = "general"           # "general", "christmas", "halloween"
     genre: Optional[str] = None         # Genre hint; null = auto from ID3
+    transition_mode: str = "subtle"     # "none", "subtle", "dramatic"
 
     def to_dict(self) -> dict:
         return {
@@ -414,6 +420,7 @@ class Preferences:
             "intensity": round(self.intensity, 4),
             "occasion": self.occasion,
             "genre": self.genre,
+            "transition_mode": self.transition_mode,
         }
 
     @classmethod
@@ -425,6 +432,7 @@ class Preferences:
             intensity=d.get("intensity", 1.0),
             occasion=d.get("occasion", "general"),
             genre=d.get("genre"),
+            transition_mode=d.get("transition_mode", "subtle"),
         )
 
 

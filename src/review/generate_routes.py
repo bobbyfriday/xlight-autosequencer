@@ -47,6 +47,32 @@ class GenerationJob:
 # Internal helpers
 # ---------------------------------------------------------------------------
 
+def _load_prefs_from_story(
+    story_path: Optional[Path],
+) -> tuple[str, str, str]:
+    """Return (genre, occasion, transition_mode) from the story preferences.
+
+    When no story exists yet, or when a preference is unset (null), fall
+    back to hardcoded defaults: ``pop`` / ``general`` / ``subtle``.  This
+    lets generation succeed for songs that haven't been through story
+    review — the user gets a reasonable baseline and can re-generate
+    with custom preferences after editing the story.
+    """
+    if story_path is None or not story_path.exists():
+        return "pop", "general", "subtle"
+    try:
+        import json as _json
+        with open(story_path, encoding="utf-8") as f:
+            data = _json.load(f)
+        prefs = data.get("preferences") or {}
+    except (OSError, ValueError):
+        return "pop", "general", "subtle"
+    genre = prefs.get("genre") or "pop"
+    occasion = prefs.get("occasion") or "general"
+    transition_mode = prefs.get("transition_mode") or "subtle"
+    return genre, occasion, transition_mode
+
+
 def _sanitize_error(e: Exception) -> str:
     """Convert an exception to a user-readable error string (no raw traceback)."""
     if isinstance(e, FileNotFoundError):
@@ -107,18 +133,25 @@ def start_generation(source_hash: str):
             "setup_required": True,
         }), 409
 
-    # Parse and validate request options
-    body = request.get_json(silent=True) or {}
-    genre = body.get("genre", "pop")
-    occasion = body.get("occasion", "general")
-    transition_mode = body.get("transition_mode", "subtle")
+    # Generation preferences (occasion, genre, transitions, mood, intensity)
+    # are sourced from the song's story preferences — a single source of
+    # truth edited in the Story Review page.  Dashboard no longer forwards
+    # these values.  When no story exists for this song yet, fall back to
+    # hardcoded defaults so generation still works out of the box.
+    audio_path = Path(entry.source_file)
+    reviewed_path = audio_path.parent / (audio_path.stem + "_story_reviewed.json")
+    story_path = reviewed_path if reviewed_path.exists() else audio_path.parent / (audio_path.stem + "_story.json")
+    if not story_path.exists():
+        story_path = None
+
+    genre, occasion, transition_mode = _load_prefs_from_story(story_path)
 
     if genre not in _VALID_GENRES:
-        return jsonify({"error": f"Invalid genre: {genre!r}"}), 400
+        return jsonify({"error": f"Invalid genre in story preferences: {genre!r}"}), 400
     if occasion not in _VALID_OCCASIONS:
-        return jsonify({"error": f"Invalid occasion: {occasion!r}"}), 400
+        return jsonify({"error": f"Invalid occasion in story preferences: {occasion!r}"}), 400
     if transition_mode not in _VALID_TRANSITIONS:
-        return jsonify({"error": f"Invalid transition_mode: {transition_mode!r}"}), 400
+        return jsonify({"error": f"Invalid transition_mode in story preferences: {transition_mode!r}"}), 400
 
     # Create job
     job_id = str(uuid.uuid4())
@@ -134,12 +167,6 @@ def start_generation(source_hash: str):
         created_at=time.time(),
     )
     _jobs[job_id] = job
-
-    # Resolve story path — use reviewed story if available
-    audio_path = Path(entry.source_file)
-    story_path = audio_path.parent / (audio_path.stem + "_story.json")
-    if not story_path.exists():
-        story_path = None
 
     # Build config and start background thread
     config = GenerationConfig(

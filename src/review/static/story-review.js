@@ -1708,6 +1708,8 @@ function toggleMomentDismiss(momentId, dismissed) {
 const MOOD_OPTIONS = ["", "ethereal", "structural", "aggressive", "dark"];
 const OCCASION_OPTIONS = ["general", "christmas", "halloween"];
 const STEM_OPTIONS = ["", "drums", "bass", "vocals", "guitar", "piano", "other"];
+const GENRE_OPTIONS = ["", "pop", "rock", "classical", "any"];
+const TRANSITION_OPTIONS = ["subtle", "none", "dramatic"];
 
 function renderPreferencesPanel() {
   const panel = document.getElementById("prefs-panel");
@@ -1719,15 +1721,27 @@ function renderPreferencesPanel() {
     <h4>Song Preferences</h4>
     <div class="pref-form">
       <div class="pref-row">
-        <label class="pref-label">Mood</label>
-        <select id="pref-mood">
-          ${MOOD_OPTIONS.map(o => `<option value="${o}"${o === (prefs.mood || "") ? " selected" : ""}>${o || "(auto)"}</option>`).join("")}
-        </select>
-      </div>
-      <div class="pref-row">
         <label class="pref-label">Occasion</label>
         <select id="pref-occasion">
           ${OCCASION_OPTIONS.map(o => `<option value="${o}"${o === (prefs.occasion || "general") ? " selected" : ""}>${o}</option>`).join("")}
+        </select>
+      </div>
+      <div class="pref-row">
+        <label class="pref-label">Genre</label>
+        <select id="pref-genre">
+          ${GENRE_OPTIONS.map(o => `<option value="${o}"${o === (prefs.genre || "") ? " selected" : ""}>${o || "(auto)"}</option>`).join("")}
+        </select>
+      </div>
+      <div class="pref-row">
+        <label class="pref-label">Transitions</label>
+        <select id="pref-transition-mode">
+          ${TRANSITION_OPTIONS.map(o => `<option value="${o}"${o === (prefs.transition_mode || "subtle") ? " selected" : ""}>${o}</option>`).join("")}
+        </select>
+      </div>
+      <div class="pref-row">
+        <label class="pref-label">Mood</label>
+        <select id="pref-mood">
+          ${MOOD_OPTIONS.map(o => `<option value="${o}"${o === (prefs.mood || "") ? " selected" : ""}>${o || "(auto)"}</option>`).join("")}
         </select>
       </div>
       <div class="pref-row">
@@ -1780,6 +1794,8 @@ function renderPreferencesPanel() {
     const payload = {
       mood: document.getElementById("pref-mood").value || null,
       occasion: document.getElementById("pref-occasion").value || "general",
+      genre: document.getElementById("pref-genre").value || null,
+      transition_mode: document.getElementById("pref-transition-mode").value || "subtle",
       focus_stem: document.getElementById("pref-focus-stem").value || null,
       intensity: parseFloat(document.getElementById("pref-intensity").value),
       theme: document.getElementById("pref-theme").value.trim() || null,
