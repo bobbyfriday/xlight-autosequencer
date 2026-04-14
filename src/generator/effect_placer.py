@@ -136,6 +136,33 @@ _PROP_EFFECT_POOL: list[str] = [
     "Curtain", "Shockwave", "Fire", "Strobe", "Galaxy",
 ]
 
+# ---------------------------------------------------------------------------
+# Beat accent constants (spec 042)
+# ---------------------------------------------------------------------------
+
+# 042A: Drum-hit Shockwave on small radial props
+_DRUM_ENERGY_GATE = 60           # minimum section energy_score
+_DRUM_ACCENT_DURATION_MS = 275   # midpoint of 200-350ms spec range
+_DRUM_ACCENT_MIN_SPACING_MS = 150  # minimum ms between consecutive placements
+_SMALL_RADIAL_THRESHOLD = 150    # pixel count threshold for "small" radial props
+
+_DRUM_VARIANT_MAP: dict[str, str] = {
+    "kick":  "Shockwave Full Fast",
+    "snare": "Shockwave Medium Fast",
+    "hihat": "Shockwave Small Thin",
+}
+_DRUM_ACCENT_DEFAULT_VARIANT = "Shockwave Full Fast"
+_DRUM_ACCENT_ALTERNATING = ("Shockwave Full Fast", "Shockwave Medium Fast")
+_DRUM_BIAS_THRESHOLD = 0.80  # >80% same label → use alternating kick/snare fallback
+
+# 042B: Whole-house impact accent at section peaks
+_IMPACT_ENERGY_GATE = 80
+_IMPACT_QUALIFYING_ROLES = frozenset({"chorus", "drop", "climax", "build_peak"})
+_IMPACT_MIN_DURATION_MS = 4000
+_IMPACT_ACCENT_DURATION_MS = 800
+_IMPACT_ACCENT_PALETTE = ["#FFFFFF"]
+_IMPACT_ACCENT_TIERS = frozenset({4, 5, 6, 7, 8})
+
 
 def restrain_palette(palette: list[str], energy_score: int, tier: int) -> list[str]:
     """Trim palette to 2-4 active colors based on section energy and group tier.
@@ -1320,4 +1347,144 @@ def _flat_model_fallback(
         effect_def.duration_type,
     )
     result["ALL_MODELS"] = [placement]
+    return result
+
+
+def _place_drum_accents(
+    groups: list[PowerGroup],
+    hierarchy: HierarchyResult,
+    assignment: SectionAssignment,
+    variant_library: Any,
+    props_by_name: dict[str, Any],
+    small_radial_threshold: int = _SMALL_RADIAL_THRESHOLD,
+) -> dict[str, list[EffectPlacement]]:
+    """Place Shockwave accents on small radial props at every drum hit (spec 042A).
+
+    Only fires in sections where energy_score >= _DRUM_ENERGY_GATE (60). Shockwave
+    variant is chosen from the hit's label (kick/snare/hihat). When the classifier
+    is biased (>80% single label in the section), alternates kick/snare variants
+    by beat index for visual variety. Minimum 150ms spacing between placements on
+    the same group prevents overlap on dense drum tracks.
+    """
+    result: dict[str, list[EffectPlacement]] = {}
+
+    if assignment.section.energy_score < _DRUM_ENERGY_GATE:
+        return result
+
+    drum_track = hierarchy.events.get("drums")
+    if drum_track is None:
+        return result
+
+    # Identify small radial groups: prop_type="radial" AND avg pixel count <= threshold
+    small_radial_groups: list[PowerGroup] = []
+    for group in groups:
+        if group.prop_type != "radial" or not group.members:
+            continue
+        member_pixels = [
+            props_by_name[m].pixel_count for m in group.members
+            if m in props_by_name and props_by_name[m].pixel_count > 0
+        ]
+        if not member_pixels:
+            continue
+        avg_pixels = sum(member_pixels) / len(member_pixels)
+        if avg_pixels <= small_radial_threshold:
+            small_radial_groups.append(group)
+
+    if not small_radial_groups:
+        return result
+
+    section = assignment.section
+    hits = [
+        m for m in drum_track.marks
+        if section.start_ms <= m.time_ms < section.end_ms
+    ]
+    if not hits:
+        return result
+
+    # Classifier bias check: >80% single label → alternate kick/snare variants
+    labeled_hits = [h for h in hits if h.label in _DRUM_VARIANT_MAP]
+    use_alternating = False
+    if labeled_hits:
+        from collections import Counter
+        counts = Counter(h.label for h in labeled_hits)
+        top_ratio = counts.most_common(1)[0][1] / len(labeled_hits)
+        if top_ratio > _DRUM_BIAS_THRESHOLD:
+            use_alternating = True
+
+    for group in small_radial_groups:
+        last_ms: int = -_DRUM_ACCENT_MIN_SPACING_MS
+        for beat_idx, hit in enumerate(hits):
+            if hit.time_ms - last_ms < _DRUM_ACCENT_MIN_SPACING_MS:
+                continue
+
+            if use_alternating:
+                variant_name = _DRUM_ACCENT_ALTERNATING[beat_idx % 2]
+            else:
+                variant_name = _DRUM_VARIANT_MAP.get(
+                    hit.label or "", _DRUM_ACCENT_DEFAULT_VARIANT
+                )
+
+            variant = variant_library.get(variant_name) if variant_library is not None else None
+            params = dict(variant.parameter_overrides) if variant is not None else {}
+
+            start_ms = frame_align(hit.time_ms)
+            end_ms = frame_align(hit.time_ms + _DRUM_ACCENT_DURATION_MS)
+            placement = EffectPlacement(
+                effect_name="Shockwave",
+                xlights_id="Shockwave",
+                model_or_group=group.name,
+                start_ms=start_ms,
+                end_ms=end_ms,
+                parameters=params,
+                color_palette=list(assignment.theme.palette[:2]),
+            )
+            result.setdefault(group.name, []).append(placement)
+            last_ms = hit.time_ms
+
+    return result
+
+
+def _place_impact_accent(
+    groups: list[PowerGroup],
+    assignment: SectionAssignment,
+    variant_library: Any,
+) -> dict[str, list[EffectPlacement]]:
+    """Place a whole-house white Shockwave at the start of high-energy peaks (spec 042B).
+
+    Fires when energy_score > 80 AND section duration >= 4s AND section_role is one of
+    chorus/drop/climax/build_peak (or unknown/empty, where energy gate alone qualifies).
+    Places a single 800ms Shockwave on all tier 4-8 groups with pure white palette.
+    """
+    result: dict[str, list[EffectPlacement]] = {}
+
+    section = assignment.section
+    if section.energy_score <= _IMPACT_ENERGY_GATE:
+        return result
+    if section.end_ms - section.start_ms < _IMPACT_MIN_DURATION_MS:
+        return result
+
+    role = (section.label or "").lower()
+    if role and role not in _IMPACT_QUALIFYING_ROLES:
+        return result
+
+    variant = variant_library.get("Shockwave Full Fast") if variant_library is not None else None
+    params = dict(variant.parameter_overrides) if variant is not None else {}
+
+    start_ms = frame_align(section.start_ms)
+    end_ms = frame_align(section.start_ms + _IMPACT_ACCENT_DURATION_MS)
+
+    for group in groups:
+        if group.tier not in _IMPACT_ACCENT_TIERS:
+            continue
+        placement = EffectPlacement(
+            effect_name="Shockwave",
+            xlights_id="Shockwave",
+            model_or_group=group.name,
+            start_ms=start_ms,
+            end_ms=end_ms,
+            parameters=dict(params),  # copy per group
+            color_palette=list(_IMPACT_ACCENT_PALETTE),
+        )
+        result.setdefault(group.name, []).append(placement)
+
     return result

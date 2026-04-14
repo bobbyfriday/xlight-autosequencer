@@ -164,6 +164,7 @@ class GenerationConfig:
     embrace_repetition: bool = True     # Remove intra-section dedup, relax cross-section penalty (Phase 1)
     palette_restraint: bool = True      # Trim active palette colors to 2-4 based on energy/tier
     duration_scaling: bool = True       # Scale effect durations by BPM and section energy
+    beat_accent_effects: bool = True    # Drum-hit Shockwave on small radials + whole-house impact accents
 
     _VALID_CURVES_MODES = frozenset({"all", "brightness", "speed", "color", "none"})
 

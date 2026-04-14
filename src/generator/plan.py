@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 from src.analyzer.result import HierarchyResult
 from src.effects.library import EffectLibrary, load_effect_library
-from src.generator.effect_placer import place_effects
+from src.generator.effect_placer import place_effects, _place_drum_accents, _place_impact_accent
 from src.generator.energy import derive_section_energies
 from src.generator.rotation import RotationEngine
 from src.generator.transitions import TransitionConfig, apply_transitions
@@ -169,6 +169,7 @@ def build_plan(
 
     # 4. Place effects for each section
     model_names = [p.name for p in props]
+    props_by_name = {p.name: p for p in props}
     for idx, assignment in enumerate(assignments):
         theme_name = assignment.theme.name
         section_working_set = working_sets.get(theme_name) if config.focused_vocabulary else None
@@ -185,6 +186,28 @@ def build_plan(
             bpm=hierarchy.estimated_bpm,
         )
         assignment.group_effects = group_effects
+
+        # Beat accent effects (spec 042)
+        if config.beat_accent_effects:
+            # 042A: Drum-hit Shockwave on small radial props
+            drum_accents = _place_drum_accents(
+                groups=groups,
+                hierarchy=hierarchy,
+                assignment=assignment,
+                variant_library=variant_library,
+                props_by_name=props_by_name,
+            )
+            for gname, placements in drum_accents.items():
+                assignment.group_effects.setdefault(gname, []).extend(placements)
+
+            # 042B: Whole-house white Shockwave at high-energy section peaks
+            impact_accents = _place_impact_accent(
+                groups=groups,
+                assignment=assignment,
+                variant_library=variant_library,
+            )
+            for gname, placements in impact_accents.items():
+                assignment.group_effects.setdefault(gname, []).extend(placements)
 
     # 5. Value curves — generate for each placement when curves are enabled
     if config.curves_mode != "none":
