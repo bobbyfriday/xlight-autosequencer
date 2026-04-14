@@ -74,6 +74,7 @@ class EffectPlacement:
     #   list[tuple[float, float]]  — legacy (points only, assumes 0-100 range)
     #   tuple[list[tuple[float,float]], float, float] — (points, min, max)
     music_sparkles: int = 0  # 0=off, 1-100=sparkle frequency
+    layer: int = 0            # 0=primary effect layer, 1=accent overlay (Per Model Default)
 
     def __post_init__(self) -> None:
         self.start_ms = frame_align(self.start_ms)

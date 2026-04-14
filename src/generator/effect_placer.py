@@ -1437,6 +1437,7 @@ def _place_drum_accents(
                 end_ms=end_ms,
                 parameters=params,
                 color_palette=list(assignment.theme.palette[:2]),
+                layer=1,
             )
             result.setdefault(group.name, []).append(placement)
             last_ms = hit.time_ms
@@ -1484,6 +1485,7 @@ def _place_impact_accent(
             end_ms=end_ms,
             parameters=dict(params),  # copy per group
             color_palette=list(_IMPACT_ACCENT_PALETTE),
+            layer=1,
         )
         result.setdefault(group.name, []).append(placement)
 

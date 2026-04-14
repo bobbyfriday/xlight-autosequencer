@@ -335,21 +335,28 @@ def write_xsq(plan: SequencePlan, output_path: Path, hierarchy: HierarchyResult 
         model_el.set("type", "model")
         model_el.set("name", group_name)
 
-        layer_el = ET.SubElement(model_el, "EffectLayer")
-        # Per-model rendering for tier 3+ groups (group name starts with 2-digit tier)
-        if group_name[:2].isdigit() and int(group_name[:2]) >= 3:
-            layer_el.set("settings", "B_CHOICE_BufferStyle=Per Model Default")
-        for p in sorted(placements, key=lambda p: p.start_ms):
-            effect_el = ET.SubElement(layer_el, "Effect")
+        # Group placements by layer index.  Layer 0 = primary effect; layer 1+ = accent overlays.
+        layers_map: dict[int, list] = {}
+        for p in placements:
+            layers_map.setdefault(getattr(p, "layer", 0), []).append(p)
 
-            ref_idx, palette_idx = placement_cache.get(id(p), (0, 0))
+        is_tier3_plus = group_name[:2].isdigit() and int(group_name[:2]) >= 3
+        for layer_idx in sorted(layers_map.keys()):
+            layer_el = ET.SubElement(model_el, "EffectLayer")
+            # Per-model rendering: tier 3+ primary layer, or any accent layer (layer >= 1)
+            if is_tier3_plus or layer_idx >= 1:
+                layer_el.set("settings", "B_CHOICE_BufferStyle=Per Model Default")
+            for p in sorted(layers_map[layer_idx], key=lambda p: p.start_ms):
+                effect_el = ET.SubElement(layer_el, "Effect")
 
-            effect_el.set("ref", str(ref_idx))
-            effect_el.set("name", p.effect_name)
-            effect_el.set("startTime", str(p.start_ms))
-            effect_el.set("endTime", str(p.end_ms))
-            effect_el.set("palette", str(palette_idx))
-            effect_el.set("selected", "0")
+                ref_idx, palette_idx = placement_cache.get(id(p), (0, 0))
+
+                effect_el.set("ref", str(ref_idx))
+                effect_el.set("name", p.effect_name)
+                effect_el.set("startTime", str(p.start_ms))
+                effect_el.set("endTime", str(p.end_ms))
+                effect_el.set("palette", str(palette_idx))
+                effect_el.set("selected", "0")
 
     # Add timing tracks to ElementEffects
     for track_name, marks in timing_tracks.items():
