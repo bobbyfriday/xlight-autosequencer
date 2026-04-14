@@ -12,7 +12,8 @@ from src.analyzer.result import HierarchyResult, TimingMark, TimingTrack
 from src.generator.effect_placer import (
     _DRUM_ACCENT_ALTERNATING,
     _DRUM_ACCENT_MIN_SPACING_MS,
-    _DRUM_ENERGY_GATE,
+    _DRUM_HIT_ENERGY_GATE,
+    _DRUM_ONSET_SAMPLE_OFFSET_MS,
     _DRUM_VARIANT_MAP,
     _IMPACT_ACCENT_DURATION_MS,
     _IMPACT_ACCENT_PALETTE,
@@ -20,6 +21,7 @@ from src.generator.effect_placer import (
     _IMPACT_ENERGY_GATE,
     _IMPACT_MIN_DURATION_MS,
     _IMPACT_QUALIFYING_ROLES,
+    _RADIAL_NAME_KEYWORDS,
     _SMALL_RADIAL_THRESHOLD,
     _place_drum_accents,
     _place_impact_accent,
@@ -88,8 +90,21 @@ def _make_drum_track(hits: list[tuple[int, str]]) -> TimingTrack:
     )
 
 
-def _make_hierarchy(drum_hits: list[tuple[int, str]] | None = None) -> HierarchyResult:
-    """Build a minimal HierarchyResult, optionally with a drum track."""
+def _make_energy_curve(constant_value: int, duration_ms: int = 30_000, fps: float = 47.0) -> Any:
+    """Build a mock energy curve (duck-typed ValueCurve) with a constant value."""
+    n_frames = int(duration_ms * fps / 1000) + 1
+    curve = MagicMock()
+    curve.fps = fps
+    curve.values = [constant_value] * n_frames
+    return curve
+
+
+def _make_hierarchy(
+    drum_hits: list[tuple[int, str]] | None = None,
+    drum_curve_value: int | None = None,
+    fullmix_curve_value: int | None = None,
+) -> HierarchyResult:
+    """Build a minimal HierarchyResult, optionally with a drum track and/or energy curves."""
     h = HierarchyResult(
         schema_version="1.0",
         source_file="test.mp3",
@@ -99,6 +114,10 @@ def _make_hierarchy(drum_hits: list[tuple[int, str]] | None = None) -> Hierarchy
     )
     if drum_hits is not None:
         h.events["drums"] = _make_drum_track(drum_hits)
+    if drum_curve_value is not None:
+        h.energy_curves["drums"] = _make_energy_curve(drum_curve_value)
+    if fullmix_curve_value is not None:
+        h.energy_curves["full_mix"] = _make_energy_curve(fullmix_curve_value)
     return h
 
 
@@ -146,15 +165,16 @@ def _make_variant_library(overrides: dict[str, dict] | None = None) -> Any:
 
 
 # ---------------------------------------------------------------------------
-# 042A: _place_drum_accents — energy gate
+# 042A: _place_drum_accents — per-hit drum energy gate
 # ---------------------------------------------------------------------------
 
-class TestDrumAccentEnergyGate:
-    def test_no_placements_below_energy_gate(self):
-        """No Shockwave placements when energy_score < 60."""
+class TestDrumAccentHitEnergyGate:
+    def test_no_placements_when_drum_energy_below_gate(self):
+        """No Shockwave placements when per-hit drum energy < _DRUM_HIT_ENERGY_GATE."""
         hits = [(1000, "kick"), (2000, "snare"), (3000, "kick")]
-        hierarchy = _make_hierarchy(drum_hits=hits)
-        assignment = _make_assignment(energy_score=_DRUM_ENERGY_GATE - 1)
+        # Drum curve is flat at 5 — below threshold
+        hierarchy = _make_hierarchy(drum_hits=hits, drum_curve_value=5)
+        assignment = _make_assignment(energy_score=80)
         group = _make_radial_group()
         props_by_name = _make_props_by_name(group.members, pixel_count=50)
 
@@ -167,11 +187,12 @@ class TestDrumAccentEnergyGate:
         )
         assert result == {}
 
-    def test_placements_at_energy_gate(self):
-        """Placements fire exactly at the gate threshold (energy = 60)."""
+    def test_placements_fire_at_threshold(self):
+        """Placements fire when drum energy equals _DRUM_HIT_ENERGY_GATE."""
         hits = [(1000, "kick"), (2000, "snare")]
-        hierarchy = _make_hierarchy(drum_hits=hits)
-        assignment = _make_assignment(energy_score=_DRUM_ENERGY_GATE)
+        # Drum curve exactly at threshold
+        hierarchy = _make_hierarchy(drum_hits=hits, drum_curve_value=_DRUM_HIT_ENERGY_GATE)
+        assignment = _make_assignment(energy_score=80)
         group = _make_radial_group()
         props_by_name = _make_props_by_name(group.members, pixel_count=50)
 
@@ -179,9 +200,59 @@ class TestDrumAccentEnergyGate:
             groups=[group], hierarchy=hierarchy, assignment=assignment,
             variant_library=_make_variant_library(), props_by_name=props_by_name,
         )
-        # Placements keyed by individual model names from props_by_name
         assert len(result) > 0
         assert any(len(ps) > 0 for ps in result.values())
+
+    def test_no_curve_allows_all_hits(self):
+        """When no energy curves are present, all hits fire (permissive fallback)."""
+        hits = [(1000, "kick"), (2000, "snare")]
+        hierarchy = _make_hierarchy(drum_hits=hits)  # no energy curves
+        assignment = _make_assignment(energy_score=30)
+        group = _make_radial_group()
+        props_by_name = _make_props_by_name(group.members, pixel_count=50)
+
+        result = _place_drum_accents(
+            groups=[group], hierarchy=hierarchy, assignment=assignment,
+            variant_library=_make_variant_library(), props_by_name=props_by_name,
+        )
+        assert len(result) > 0
+        all_placements = [p for ps in result.values() for p in ps]
+        # 2 members × 2 hits = 4 placements; confirm both hits fired (not just 1)
+        assert len(all_placements) == 4
+
+    def test_fullmix_fallback_when_no_drum_curve(self):
+        """When only full_mix curve exists, it gates hits instead of drums curve."""
+        hits = [(1000, "kick"), (2000, "snare")]
+        # full_mix at 5 (below gate) — should suppress both hits
+        hierarchy = _make_hierarchy(drum_hits=hits, fullmix_curve_value=5)
+        assignment = _make_assignment(energy_score=80)
+        group = _make_radial_group()
+        props_by_name = _make_props_by_name(group.members, pixel_count=50)
+
+        result = _place_drum_accents(
+            groups=[group], hierarchy=hierarchy, assignment=assignment,
+            variant_library=_make_variant_library(), props_by_name=props_by_name,
+        )
+        assert result == {}
+
+    def test_drum_curve_takes_priority_over_fullmix(self):
+        """When both curves exist, drum curve gates hits (not full_mix)."""
+        hits = [(1000, "kick"), (2000, "snare")]
+        # drums curve high (50), full_mix curve low (5) — drums should win → hits fire
+        hierarchy = _make_hierarchy(drum_hits=hits, drum_curve_value=50, fullmix_curve_value=5)
+        assignment = _make_assignment(energy_score=80)
+        group = _make_radial_group()
+        props_by_name = _make_props_by_name(group.members, pixel_count=50)
+
+        result = _place_drum_accents(
+            groups=[group], hierarchy=hierarchy, assignment=assignment,
+            variant_library=_make_variant_library(), props_by_name=props_by_name,
+        )
+        assert len(result) > 0
+
+    def test_sample_offset_constant_is_positive(self):
+        """_DRUM_ONSET_SAMPLE_OFFSET_MS is a small positive value (captures ring, not pre-hit)."""
+        assert 0 < _DRUM_ONSET_SAMPLE_OFFSET_MS <= 100
 
 
 # ---------------------------------------------------------------------------
@@ -256,6 +327,99 @@ class TestSmallRadialThreshold:
             variant_library=_make_variant_library(), props_by_name=props_by_name,
         )
         assert result == {}
+
+
+# ---------------------------------------------------------------------------
+# 042A: name-keyword fallback for Custom display_as props
+# ---------------------------------------------------------------------------
+
+class TestRadialNameKeywordFallback:
+    def test_spinner_name_gets_accents(self):
+        """Props named 'Spinner ...' with DisplayAs='Custom' receive drum accents."""
+        hits = [(1000, "kick"), (2000, "snare")]
+        hierarchy = _make_hierarchy(drum_hits=hits)
+        assignment = _make_assignment(energy_score=80)
+        group = _make_radial_group(members=["Spinner 23 inch Right"])
+        # DisplayAs='Custom' maps to 'outline', not 'radial' — name keyword must catch it
+        props_by_name = _make_props_by_name(
+            ["Spinner 23 inch Right"], pixel_count=85, display_as="Custom"
+        )
+
+        result = _place_drum_accents(
+            groups=[group], hierarchy=hierarchy, assignment=assignment,
+            variant_library=_make_variant_library(), props_by_name=props_by_name,
+        )
+        assert "Spinner 23 inch Right" in result
+        assert len(result["Spinner 23 inch Right"]) > 0
+
+    def test_flake_name_gets_accents(self):
+        """Props named 'GE Flake ...' with DisplayAs='Custom' receive drum accents."""
+        hits = [(1000, "kick"), (2000, "snare")]
+        hierarchy = _make_hierarchy(drum_hits=hits)
+        assignment = _make_assignment(energy_score=80)
+        group = _make_radial_group(members=["GE Flake I"])
+        props_by_name = _make_props_by_name(
+            ["GE Flake I"], pixel_count=96, display_as="Custom"
+        )
+
+        result = _place_drum_accents(
+            groups=[group], hierarchy=hierarchy, assignment=assignment,
+            variant_library=_make_variant_library(), props_by_name=props_by_name,
+        )
+        assert "GE Flake I" in result
+
+    def test_snowflake_name_gets_accents(self):
+        """Props with 'snowflake' in the name get accents via name keyword."""
+        hits = [(1000, "kick")]
+        hierarchy = _make_hierarchy(drum_hits=hits)
+        assignment = _make_assignment(energy_score=80)
+        props_by_name = _make_props_by_name(
+            ["Large Snowflake Left"], pixel_count=120, display_as="Custom"
+        )
+
+        result = _place_drum_accents(
+            groups=[], hierarchy=hierarchy, assignment=assignment,
+            variant_library=_make_variant_library(), props_by_name=props_by_name,
+        )
+        assert "Large Snowflake Left" in result
+
+    def test_arch_name_not_matched_by_keyword(self):
+        """Non-radial prop names (e.g. 'Left Arch') don't get accents via name keyword."""
+        hits = [(1000, "kick"), (2000, "snare")]
+        hierarchy = _make_hierarchy(drum_hits=hits)
+        assignment = _make_assignment(energy_score=80)
+        props_by_name = _make_props_by_name(
+            ["Left Arch Section 1"], pixel_count=50, display_as="Arches"
+        )
+
+        result = _place_drum_accents(
+            groups=[], hierarchy=hierarchy, assignment=assignment,
+            variant_library=_make_variant_library(), props_by_name=props_by_name,
+        )
+        assert result == {}
+
+    def test_custom_large_prop_excluded_by_threshold(self):
+        """Custom-named radial props above pixel threshold are excluded."""
+        hits = [(1000, "kick"), (2000, "snare")]
+        hierarchy = _make_hierarchy(drum_hits=hits)
+        assignment = _make_assignment(energy_score=80)
+        # 'wreath' keyword matches, but pixel_count > threshold
+        props_by_name = _make_props_by_name(
+            ["Large Wreath"], pixel_count=_SMALL_RADIAL_THRESHOLD + 50, display_as="Custom"
+        )
+
+        result = _place_drum_accents(
+            groups=[], hierarchy=hierarchy, assignment=assignment,
+            variant_library=_make_variant_library(), props_by_name=props_by_name,
+        )
+        assert result == {}
+
+    def test_radial_name_keywords_constant_has_expected_entries(self):
+        """_RADIAL_NAME_KEYWORDS includes the key terms for spinner/flake detection."""
+        assert "spinner" in _RADIAL_NAME_KEYWORDS
+        assert "flake" in _RADIAL_NAME_KEYWORDS
+        assert "snowflake" in _RADIAL_NAME_KEYWORDS
+        assert "star" in _RADIAL_NAME_KEYWORDS
 
 
 # ---------------------------------------------------------------------------

@@ -142,10 +142,24 @@ _PROP_EFFECT_POOL: list[str] = [
 # ---------------------------------------------------------------------------
 
 # 042A: Drum-hit Shockwave on small radial props
-_DRUM_ENERGY_GATE = 60           # minimum section energy_score
+_DRUM_HIT_ENERGY_GATE = 15       # per-hit drum stem energy threshold (0-100 scale).
+                                  # MRC data: p25=13, p50=18. At 15, ~70% of hits fire —
+                                  # "if you can hear the drum, fire the accent."
+                                  # Falls back to full_mix curve if drums curve absent;
+                                  # allows all hits through if no curve is available at all.
+_DRUM_ONSET_SAMPLE_OFFSET_MS = 25  # Sample the energy curve this many ms AFTER the onset.
+                                    # Drum energy peaks slightly after the attack transient;
+                                    # one frame at ~47fps captures the ring, not the pre-hit.
 _DRUM_ACCENT_DURATION_MS = 275   # midpoint of 200-350ms spec range
 _DRUM_ACCENT_MIN_SPACING_MS = 150  # minimum ms between consecutive placements
-_SMALL_RADIAL_THRESHOLD = 150    # pixel count threshold for "small" radial props
+_SMALL_RADIAL_THRESHOLD = 200    # pixel count threshold for "small" radial props
+
+# Name keywords that identify radial-style props even when DisplayAs='Custom'.
+# Custom-modeled spinners, flakes, and similar shapes are classified as "outline"
+# by prop_type_for_display_as(), so we fall back to name matching.
+_RADIAL_NAME_KEYWORDS: frozenset[str] = frozenset({
+    "spinner", "flake", "snowflake", "wreath", "star", "circle",
+})
 
 _DRUM_VARIANT_MAP: dict[str, str] = {
     "kick":  "Shockwave Full Fast",
@@ -1351,6 +1365,20 @@ def _flat_model_fallback(
     return result
 
 
+def _sample_energy_curve(curve: Any, t_ms: int) -> int:
+    """Sample a ValueCurve (or duck-typed equivalent) at the given millisecond.
+
+    Returns an integer in 0-100.  Safe to call when the curve object has unexpected
+    shape — returns 0 on any out-of-bounds or missing attribute access.
+    """
+    fps = getattr(curve, "fps", 47)
+    values = getattr(curve, "values", [])
+    frame = int(t_ms * fps / 1000)
+    if frame < len(values):
+        return int(values[frame])
+    return 0
+
+
 def _place_drum_accents(
     groups: list[PowerGroup],
     hierarchy: HierarchyResult,
@@ -1361,21 +1389,18 @@ def _place_drum_accents(
 ) -> dict[str, list[EffectPlacement]]:
     """Place Shockwave accents on small radial props at every drum hit (spec 042A).
 
-    Only fires in sections where energy_score >= _DRUM_ENERGY_GATE (60). Shockwave
-    variant is chosen from the hit's label (kick/snare/hihat). When the classifier
-    is biased (>80% single label in the section), alternates kick/snare variants
-    by beat index for visual variety. Minimum 150ms spacing between placements on
-    the same group prevents overlap on dense drum tracks.
+    Each hit is gated individually by sampling `hierarchy.energy_curves["drums"]` at
+    the hit's timestamp. A hit fires only if the drum stem energy at that moment is
+    >= _DRUM_HIT_ENERGY_GATE (15/100). Falls back to the full_mix curve if the drums
+    curve is absent; allows all hits through if no energy curve is available at all.
+
+    Shockwave variant is chosen from the hit's label (kick/snare/hihat). When the
+    classifier is biased (>80% single label in the section), alternates kick/snare
+    variants by beat index for visual variety. Minimum 150ms spacing between
+    placements on the same group prevents overlap on dense drum tracks.
     """
     result: dict[str, list[EffectPlacement]] = {}
     section = assignment.section
-
-    if section.energy_score < _DRUM_ENERGY_GATE:
-        logger.debug(
-            "drum_accents: skip section '%s' — energy %d < gate %d",
-            section.label, section.energy_score, _DRUM_ENERGY_GATE,
-        )
-        return result
 
     drum_track = hierarchy.events.get("drums")
     if drum_track is None:
@@ -1391,8 +1416,19 @@ def _place_drum_accents(
     # Each qualifying prop becomes its own placement target (model name, not group name).
     small_radial_model_names: list[str] = []
     for model_name, prop in props_by_name.items():
-        if prop_type_for_display_as(getattr(prop, "display_as", "")) != "radial":
+        display_as = getattr(prop, "display_as", "")
+        is_radial = prop_type_for_display_as(display_as) == "radial"
+
+        # Secondary check: Custom-modeled spinners/flakes/etc. map to "outline" via
+        # prop_type_for_display_as, so fall back to name-keyword matching when the
+        # primary DisplayAs classification doesn't identify the prop as radial.
+        if not is_radial:
+            name_lower = model_name.lower()
+            is_radial = any(kw in name_lower for kw in _RADIAL_NAME_KEYWORDS)
+
+        if not is_radial:
             continue
+
         px = getattr(prop, "pixel_count", 0)
         if px <= 0:
             continue  # pixel count not populated
@@ -1405,14 +1441,18 @@ def _place_drum_accents(
             )
 
     if not small_radial_model_names:
-        radial_props = [
+        radial_by_display = [
             n for n, p in props_by_name.items()
             if prop_type_for_display_as(getattr(p, "display_as", "")) == "radial"
         ]
+        radial_by_name = [
+            n for n in props_by_name
+            if any(kw in n.lower() for kw in _RADIAL_NAME_KEYWORDS)
+        ]
         logger.debug(
             "drum_accents: section '%s' — no small radial props "
-            "(radial props found: %s)",
-            section.label, radial_props,
+            "(radial by DisplayAs: %s; radial by name keyword: %s)",
+            section.label, radial_by_display, radial_by_name,
         )
         return result
 
@@ -1422,6 +1462,13 @@ def _place_drum_accents(
     ]
     if not hits:
         return result
+
+    # Resolve the energy curve used for per-hit gating.
+    # Preference: drums stem → full_mix → None (no gate, all hits allowed).
+    _active_curve = (
+        hierarchy.energy_curves.get("drums")
+        or hierarchy.energy_curves.get("full_mix")
+    )
 
     # Classifier bias check: >80% single label → alternate kick/snare variants
     labeled_hits = [h for h in hits if h.label in _DRUM_VARIANT_MAP]
@@ -1438,6 +1485,16 @@ def _place_drum_accents(
         for beat_idx, hit in enumerate(hits):
             if hit.time_ms - last_ms < _DRUM_ACCENT_MIN_SPACING_MS:
                 continue
+
+            # Per-hit energy gate: skip low-energy hits that are bleed or noise.
+            # Sample slightly after the onset so we capture the ring energy, not the
+            # pre-attack window that the energy curve may have already averaged in.
+            if _active_curve is not None:
+                hit_energy = _sample_energy_curve(
+                    _active_curve, hit.time_ms + _DRUM_ONSET_SAMPLE_OFFSET_MS
+                )
+                if hit_energy < _DRUM_HIT_ENERGY_GATE:
+                    continue
 
             if use_alternating:
                 variant_name = _DRUM_ACCENT_ALTERNATING[beat_idx % 2]

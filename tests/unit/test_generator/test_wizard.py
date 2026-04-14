@@ -46,13 +46,32 @@ class TestGenerationWizard:
         assert config.genre == "pop"
         assert config.occasion == "general"
 
-    def test_output_dir_defaults_to_audio_parent(self, tmp_path: Path):
-        """Output directory defaults to the audio file's parent."""
+    def test_output_dir_defaults_to_show_dir_when_available(self, tmp_path: Path, monkeypatch):
+        """Output dir defaults to the xLights show directory when one is resolvable."""
         audio = tmp_path / "music" / "song.mp3"
         audio.parent.mkdir(parents=True)
         audio.touch()
         layout = tmp_path / "layout.xml"
         layout.write_text("<xlights_rgbeffects/>")
+        show_dir = tmp_path / "xlights_show"
+        show_dir.mkdir()
+
+        monkeypatch.setattr("src.paths.get_show_dir", lambda: show_dir)
+
+        wizard = GenerationWizard()
+        config = wizard.build_config(audio_path=audio, layout_path=layout)
+
+        assert config.output_dir == show_dir
+
+    def test_output_dir_falls_back_to_audio_parent(self, tmp_path: Path, monkeypatch):
+        """Output dir falls back to the audio file's parent when no show dir is available."""
+        audio = tmp_path / "music" / "song.mp3"
+        audio.parent.mkdir(parents=True)
+        audio.touch()
+        layout = tmp_path / "layout.xml"
+        layout.write_text("<xlights_rgbeffects/>")
+
+        monkeypatch.setattr("src.paths.get_show_dir", lambda: None)
 
         wizard = GenerationWizard()
         config = wizard.build_config(audio_path=audio, layout_path=layout)

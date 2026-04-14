@@ -173,7 +173,9 @@ class GenerationConfig:
         self.audio_path = Path(self.audio_path)
         self.layout_path = Path(self.layout_path)
         if self.output_dir is None:
-            self.output_dir = self.audio_path.parent
+            from src.paths import get_show_dir as _get_show_dir
+            show_dir = _get_show_dir()
+            self.output_dir = show_dir if show_dir is not None else self.audio_path.parent
         else:
             self.output_dir = Path(self.output_dir)
         if self.curves_mode not in self._VALID_CURVES_MODES:
