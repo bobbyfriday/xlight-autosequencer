@@ -49,6 +49,24 @@ _TIER_BRIGHTNESS: dict[int, float] = {
 _GEO_HORIZONTAL = {"02_GEO_Top", "02_GEO_Mid", "02_GEO_Bot"}
 _GEO_VERTICAL = {"02_GEO_Left", "02_GEO_Center", "02_GEO_Right"}
 
+# GEO call-and-response partitioning.  When Tier 2 is active, phrases alternate
+# between the "call" side (Left + Top quadrants) and the "answer" side
+# (Right + Bottom quadrants).  Center/Mid zones are excluded — they overlap
+# with both sides spatially, so keeping them quiet yields a cleaner
+# call/response read.
+_GEO_CALL_SIDE = frozenset({"02_GEO_Left", "02_GEO_Top"})
+_GEO_ANSWER_SIDE = frozenset({"02_GEO_Right", "02_GEO_Bot"})
+
+# Phrase length in bars for call-response alternation and phrase-structure
+# detection.  4 bars is the standard pop/orchestral phrase length.
+_PHRASE_LEN_BARS = 4
+
+# Pearson-correlation threshold on bar-sampled energy at lag = phrase length.
+# Above this, the section is considered to have strong periodic phrase structure
+# (the pre-condition for GEO call-response to feel musically grounded).
+# 0.5 is a starting value; tune after visual inspection.
+_MIN_PHRASE_CORRELATION = 0.5
+
 
 def _dim_palette(palette: list[str], multiplier: float) -> list[str]:
     """Scale hex color brightness by multiplier (0.0-1.0)."""
@@ -477,10 +495,20 @@ def place_effects(
     # Map layers to tier sets
     layer_tier_map = _assign_layers_to_tiers(layers)
 
-    # Group groups by tier, filtering to requested tiers if specified
+    # Compute which tiers should run this section.  Tiers 2/4/6/7 are
+    # alternative partition schemes of the same props, so activating multiple
+    # causes silent overrides — we pick exactly one partition tier per section
+    # based on mood and (for structural) phrase structure.  An explicit
+    # `tiers` argument overrides the selection (used for testing and when the
+    # user sets `GenerationConfig.tiers` or disables `tier_selection`).
+    if tiers is not None:
+        effective_tiers: frozenset[int] = frozenset(tiers)
+    else:
+        effective_tiers = _compute_active_tiers(section, section_index, hierarchy)
+
     tier_groups: dict[int, list[PowerGroup]] = {}
     for g in groups:
-        if tiers is not None and g.tier not in tiers:
+        if g.tier not in effective_tiers:
             continue
         tier_groups.setdefault(g.tier, []).append(g)
 
@@ -647,43 +675,28 @@ def place_effects(
                     result.setdefault(gname, []).extend(placements)
                 continue
 
-            # Tier 1-2 (BASE, GEO): energy-based exclusive activation.
-            #
-            # GEO zones overlap: Top/Mid/Bot (horizontal) and Left/Center/Right
-            # (vertical) share models, so running all 6 creates overrides.
-            #
-            # Strategy:
-            #   ethereal  → tier 1 only (BASE_All — unified wash)
-            #   structural → tier 2, one GEO axis (consistent per section)
-            #   aggressive → tier 2, GEO axes alternate per bar (swirl effect)
-            #
-            # Tier 1 is skipped when tier 2 is active (GEO covers the whole house).
-            mood = section.mood_tier
-
-            if tier == 1 and mood != "ethereal":
-                # Skip BASE_All in structural/aggressive — GEO zones handle it
-                continue
-            if tier == 2 and mood == "ethereal":
-                # Skip GEO zones in ethereal — BASE_All handles it
+            # Tier 2 (GEO): phrase-paired call-and-response.
+            # Alternate active zones between call side (Left + Top) and answer
+            # side (Right + Bot) every _PHRASE_LEN_BARS bars, creating a natural
+            # back-and-forth that aligns to musical phrase structure.  Gated
+            # upstream by _compute_active_tiers — only reached when the
+            # section has strong phrase periodicity.
+            if tier == 2 and groups_for_tier:
+                cr_result = _place_call_response(
+                    effect_def, layer, groups_for_tier,
+                    assignment.section, hierarchy, tier_palette,
+                    variant_library=variant_library,
+                    phrase_len_bars=_PHRASE_LEN_BARS,
+                )
+                for gname, placements in cr_result.items():
+                    result.setdefault(gname, []).extend(placements)
                 continue
 
+            # Default placement: one effect per group spanning the whole section.
+            # Used by Tier 1 (BASE_All — ethereal only), Tier 6 (PROP), Tier 7
+            # (COMP), and Tier 8 (HERO).  _compute_active_tiers guarantees only
+            # one partition tier from {2, 4, 6, 7} is present, plus 1 and/or 8.
             for group in groups_for_tier:
-                # Determine GEO axis filtering
-                bar_parity: int | None = None
-                if tier == 2:
-                    is_h = group.name in _GEO_HORIZONTAL
-                    is_v = group.name in _GEO_VERTICAL
-                    if mood == "aggressive":
-                        # Alternate axes per bar: horizontal=even, vertical=odd
-                        if is_h:
-                            bar_parity = 0
-                        elif is_v:
-                            bar_parity = 1
-                    else:
-                        # Structural: use horizontal axis only, skip vertical
-                        if is_v:
-                            continue
-
                 placements = _place_effect_on_group(
                     effect_def=effect_def,
                     layer=layer,
@@ -697,7 +710,7 @@ def place_effects(
                     danceability=danceability,
                     chord_weight=chord_weight,
                     variant_library=variant_library,
-                    bar_parity=bar_parity,
+                    bar_parity=None,
                     duration_scaling=duration_scaling,
                     bpm=bpm,
                 )
@@ -970,6 +983,84 @@ def _place_chase_across_groups(
             instance_index=i,
         )
         result.setdefault(group.name, []).append(placement)
+
+    return result
+
+
+def _place_call_response(
+    effect_def: EffectDefinition,
+    layer: EffectLayer,
+    groups: list[PowerGroup],
+    section: SectionEnergy,
+    hierarchy: HierarchyResult,
+    palette: list[str],
+    variant_library=None,
+    phrase_len_bars: int = _PHRASE_LEN_BARS,
+) -> dict[str, list[EffectPlacement]]:
+    """Place effects on GEO zones in phrase-paired call/answer alternation.
+
+    Splits the section into `phrase_len_bars`-bar phrases and alternates which
+    GEO zones play: even phrases → call side (Left + Top), odd phrases →
+    answer side (Right + Bot).  This creates a natural back-and-forth that
+    aligns to musical phrase structure.
+
+    Falls back to whole-section placement on every supplied group if bar data
+    is insufficient for phrase-level splitting — this shouldn't normally be
+    reached because the caller gates on `_has_strong_phrase_structure`, but
+    the fallback keeps the function safe to call in isolation (tests, future
+    direct invocation).
+    """
+    result: dict[str, list[EffectPlacement]] = {}
+    params: dict[str, Any] = {}
+    if variant_library is not None:
+        variant = variant_library.get(layer.variant)
+        if variant is not None:
+            params = dict(variant.parameter_overrides)
+
+    bars = getattr(hierarchy, "bars", None)
+    bar_marks = (
+        _marks_in_range(bars.marks, section.start_ms, section.end_ms)
+        if bars is not None else []
+    )
+
+    # Partition supplied groups into call / answer sides.  Groups outside both
+    # sets (Center/Mid, or anything that somehow slipped through) are dropped
+    # so the call/response pairing stays clean.
+    call_groups = [g for g in groups if g.name in _GEO_CALL_SIDE]
+    answer_groups = [g for g in groups if g.name in _GEO_ANSWER_SIDE]
+
+    if not call_groups and not answer_groups:
+        return result                              # no usable GEO sides
+
+    if len(bar_marks) < phrase_len_bars:
+        # Not enough bars for a single phrase — place once on each side for
+        # the whole section.  Better than nothing when bar data is sparse.
+        for group in call_groups + answer_groups:
+            placement = _make_placement(
+                effect_def, group.name, section.start_ms, section.end_ms,
+                params, palette, layer.blend_mode, "section",
+            )
+            result.setdefault(group.name, []).append(placement)
+        return result
+
+    for phrase_idx in range(0, len(bar_marks), phrase_len_bars):
+        phrase_start = bar_marks[phrase_idx].time_ms
+        end_idx = phrase_idx + phrase_len_bars
+        phrase_end = (
+            bar_marks[end_idx].time_ms if end_idx < len(bar_marks) else section.end_ms
+        )
+        if phrase_end <= phrase_start:
+            continue
+
+        phrase_num = phrase_idx // phrase_len_bars
+        active = call_groups if phrase_num % 2 == 0 else answer_groups
+        for group in active:
+            placement = _make_placement(
+                effect_def, group.name, phrase_start, phrase_end,
+                params, palette, layer.blend_mode, "section",
+                instance_index=phrase_num,
+            )
+            result.setdefault(group.name, []).append(placement)
 
     return result
 
@@ -1377,6 +1468,86 @@ def _sample_energy_curve(curve: Any, t_ms: int) -> int:
     if frame < len(values):
         return int(values[frame])
     return 0
+
+
+def _pearson(a: list[float], b: list[float]) -> float:
+    """Pearson correlation coefficient of two equal-length sequences.
+
+    Returns 0.0 on degenerate input (length mismatch, fewer than 2 points, or
+    zero variance in either sequence).  No external dependency — uses stdlib
+    `statistics` for the means.
+    """
+    import statistics
+    if len(a) != len(b) or len(a) < 2:
+        return 0.0
+    mean_a = statistics.mean(a)
+    mean_b = statistics.mean(b)
+    num = sum((x - mean_a) * (y - mean_b) for x, y in zip(a, b))
+    den_a = sum((x - mean_a) ** 2 for x in a) ** 0.5
+    den_b = sum((y - mean_b) ** 2 for y in b) ** 0.5
+    if den_a == 0.0 or den_b == 0.0:
+        return 0.0
+    return num / (den_a * den_b)
+
+
+def _has_strong_phrase_structure(
+    section: SectionEnergy,
+    hierarchy: HierarchyResult,
+    phrase_len_bars: int = _PHRASE_LEN_BARS,
+    min_correlation: float = _MIN_PHRASE_CORRELATION,
+) -> bool:
+    """True if the section's energy curve repeats periodically at phrase length.
+
+    Samples full_mix energy at each bar onset within the section, then computes
+    the Pearson correlation between the bar-energy signal and itself shifted by
+    `phrase_len_bars`.  High correlation means every Nth bar has the same
+    relative energy — the acoustic signature of phrase structure that supports
+    call-and-response.
+
+    Returns False safely when bar data or energy curves are unavailable, or
+    when there are fewer than two phrases' worth of bars to compare.
+    """
+    curves = getattr(hierarchy, "energy_curves", None) or {}
+    curve = curves.get("full_mix")
+    bars = getattr(hierarchy, "bars", None)
+    if curve is None or bars is None:
+        return False
+
+    bar_marks = _marks_in_range(bars.marks, section.start_ms, section.end_ms)
+    if len(bar_marks) < 2 * phrase_len_bars:
+        return False
+
+    bar_energies = [float(_sample_energy_curve(curve, b.time_ms)) for b in bar_marks]
+    lead = bar_energies[:-phrase_len_bars]
+    lag = bar_energies[phrase_len_bars:]
+    return _pearson(lead, lag) >= min_correlation
+
+
+def _compute_active_tiers(
+    section: SectionEnergy,
+    section_index: int,
+    hierarchy: HierarchyResult,
+) -> frozenset[int]:
+    """Return the tier set that should be active for this section.
+
+    Tiers 2, 4, 6, 7 are alternative partition schemes of the same physical
+    props — activating multiple simultaneously causes the higher-numbered
+    tier to silently overwrite the lower one on every shared prop.  To keep
+    each section visually intentional, we activate exactly ONE partition
+    tier at a time, chosen by mood and (for structural) phrase structure.
+
+    Tier 8 (HERO) always runs independently — hero props don't appear in
+    partition tiers by design.  Tier 1 (BASE_All) is only meaningful for
+    ethereal sections; in other moods a partition tier covers every prop
+    and BASE would be immediately overridden.
+    """
+    if section.mood_tier == "ethereal":
+        return frozenset({1, 8})
+    if section.mood_tier == "structural":
+        if _has_strong_phrase_structure(section, hierarchy):
+            return frozenset({2, 8})                # GEO call-response
+        return frozenset({6, 8})                    # Prop-type variety
+    return frozenset({4, 8})                        # aggressive: beat chase
 
 
 def _place_drum_accents(

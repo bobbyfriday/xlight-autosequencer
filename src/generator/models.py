@@ -166,6 +166,7 @@ class GenerationConfig:
     palette_restraint: bool = True      # Trim active palette colors to 2-4 based on energy/tier
     duration_scaling: bool = True       # Scale effect durations by BPM and section energy
     beat_accent_effects: bool = True    # Drum-hit Shockwave on small radials + whole-house impact accents
+    tier_selection: bool = True         # Energy/mood-driven single partition tier per section
 
     _VALID_CURVES_MODES = frozenset({"all", "brightness", "speed", "color", "none"})
 
