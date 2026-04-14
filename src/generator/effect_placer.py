@@ -104,8 +104,8 @@ _FORCE_PALETTE_PARAMS: dict[str, dict[str, str]] = {
     "Wave": {"E_CHOICE_Fill_Colors": "Color 1", "E_CHOICE_Wave_Direction": "Right to Left"},
     "Bars": {"E_CHOICE_Bars_Direction": "Left"},
     "Fire": {"E_CHECKBOX_Fire_GrowWithMusic": "0"},
-    "Garlands": {"E_CHOICE_Garlands_Type": "Palette"},
-    "Spirals": {"E_CHOICE_Spirals_Direction": "Up"},
+    "Garlands": {},
+    "Spirals": {},
     "Curtain": {"E_CHOICE_Curtain_Effect": "open"},
     "Liquid": {"E_CHOICE_ParticleType": "Elastic"},
 }
@@ -114,7 +114,7 @@ _FORCE_PALETTE_PARAMS: dict[str, dict[str, str]] = {
 # Maps storage_name -> [even_value, odd_value]
 _ALTERNATING_DIRECTIONS: dict[str, list[str]] = {
     "E_CHOICE_Bars_Direction": ["Left", "Right", "expand", "compress"],
-    "E_CHOICE_Spirals_Direction": ["Up", "Down"],
+    "E_SLIDER_Spirals_Rotation": ["20", "-20"],
     "E_CHOICE_Meteors_Effect": ["Down", "Up", "Left", "Right"],
     "E_CHOICE_Curtain_Effect": ["open", "close", "open then close", "close then open"],
     "E_CHOICE_Curtain_Edge": ["center", "left", "right", "bottom", "top"],
