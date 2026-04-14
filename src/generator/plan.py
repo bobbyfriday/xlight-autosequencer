@@ -170,12 +170,15 @@ def build_plan(
     # 4. Place effects for each section
     model_names = [p.name for p in props]
     props_by_name = {p.name: p for p in props}
+    # When tier_selection is disabled, pass all tiers explicitly so place_effects
+    # treats it as a user override and bypasses the energy/mood-driven selection.
+    tiers_arg = config.tiers if config.tier_selection else frozenset(range(1, 9))
     for idx, assignment in enumerate(assignments):
         theme_name = assignment.theme.name
         section_working_set = working_sets.get(theme_name) if config.focused_vocabulary else None
         group_effects = place_effects(
             assignment, groups, effect_library, hierarchy,
-            tiers=config.tiers,
+            tiers=tiers_arg,
             variant_library=variant_library,
             rotation_plan=rotation_plan,
             section_index=idx,
@@ -424,9 +427,17 @@ def regenerate_sections(config: GenerationConfig, existing_xsq: Path) -> Path:
     except Exception:
         logger.debug("Variant library unavailable — falling back to pool rotation")
 
+    # When tier_selection is disabled, pass all tiers explicitly so place_effects
+    # treats it as a user override and bypasses the energy/mood-driven selection.
+    tiers_arg = (
+        getattr(config, "tiers", None)
+        if getattr(config, "tier_selection", True)
+        else frozenset(range(1, 9))
+    )
     for idx, assignment in enumerate(assignments):
         group_effects = place_effects(
             assignment, groups, effect_library, hierarchy,
+            tiers=tiers_arg,
             variant_library=variant_library,
             rotation_plan=rotation_plan,
             section_index=idx,
