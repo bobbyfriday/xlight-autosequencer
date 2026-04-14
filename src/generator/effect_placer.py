@@ -27,6 +27,7 @@ from src.generator.models import (
     frame_align,
 )
 from src.grouper.grouper import PowerGroup
+from src.grouper.layout import prop_type_for_display_as
 from src.themes.models import EffectLayer
 
 logger = logging.getLogger(__name__)
@@ -1367,33 +1368,54 @@ def _place_drum_accents(
     the same group prevents overlap on dense drum tracks.
     """
     result: dict[str, list[EffectPlacement]] = {}
+    section = assignment.section
 
-    if assignment.section.energy_score < _DRUM_ENERGY_GATE:
+    if section.energy_score < _DRUM_ENERGY_GATE:
+        logger.debug(
+            "drum_accents: skip section '%s' — energy %d < gate %d",
+            section.label, section.energy_score, _DRUM_ENERGY_GATE,
+        )
         return result
 
     drum_track = hierarchy.events.get("drums")
     if drum_track is None:
+        logger.debug(
+            "drum_accents: skip section '%s' — no 'drums' event track (available: %s)",
+            section.label, list(hierarchy.events.keys()),
+        )
         return result
 
-    # Identify small radial groups: prop_type="radial" AND avg pixel count <= threshold
-    small_radial_groups: list[PowerGroup] = []
-    for group in groups:
-        if group.prop_type != "radial" or not group.members:
+    # Identify small radial props directly from props_by_name.
+    # Tier-6 groups for radial props often don't form (when only 1-2 exist with
+    # different name prefixes), so we scan individual props instead of groups.
+    # Each qualifying prop becomes its own placement target (model name, not group name).
+    small_radial_model_names: list[str] = []
+    for model_name, prop in props_by_name.items():
+        if prop_type_for_display_as(getattr(prop, "display_as", "")) != "radial":
             continue
-        member_pixels = [
-            props_by_name[m].pixel_count for m in group.members
-            if m in props_by_name and props_by_name[m].pixel_count > 0
+        px = getattr(prop, "pixel_count", 0)
+        if px <= 0:
+            continue  # pixel count not populated
+        if px <= small_radial_threshold:
+            small_radial_model_names.append(model_name)
+        else:
+            logger.debug(
+                "drum_accents: prop '%s' — pixel_count %d > threshold %d, skipping",
+                model_name, px, small_radial_threshold,
+            )
+
+    if not small_radial_model_names:
+        radial_props = [
+            n for n, p in props_by_name.items()
+            if prop_type_for_display_as(getattr(p, "display_as", "")) == "radial"
         ]
-        if not member_pixels:
-            continue
-        avg_pixels = sum(member_pixels) / len(member_pixels)
-        if avg_pixels <= small_radial_threshold:
-            small_radial_groups.append(group)
-
-    if not small_radial_groups:
+        logger.debug(
+            "drum_accents: section '%s' — no small radial props "
+            "(radial props found: %s)",
+            section.label, radial_props,
+        )
         return result
 
-    section = assignment.section
     hits = [
         m for m in drum_track.marks
         if section.start_ms <= m.time_ms < section.end_ms
@@ -1411,7 +1433,7 @@ def _place_drum_accents(
         if top_ratio > _DRUM_BIAS_THRESHOLD:
             use_alternating = True
 
-    for group in small_radial_groups:
+    for model_name in small_radial_model_names:
         last_ms: int = -_DRUM_ACCENT_MIN_SPACING_MS
         for beat_idx, hit in enumerate(hits):
             if hit.time_ms - last_ms < _DRUM_ACCENT_MIN_SPACING_MS:
@@ -1432,14 +1454,14 @@ def _place_drum_accents(
             placement = EffectPlacement(
                 effect_name="Shockwave",
                 xlights_id="Shockwave",
-                model_or_group=group.name,
+                model_or_group=model_name,
                 start_ms=start_ms,
                 end_ms=end_ms,
                 parameters=params,
                 color_palette=list(assignment.theme.palette[:2]),
                 layer=1,
             )
-            result.setdefault(group.name, []).append(placement)
+            result.setdefault(model_name, []).append(placement)
             last_ms = hit.time_ms
 
     return result

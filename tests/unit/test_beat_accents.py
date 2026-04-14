@@ -119,13 +119,14 @@ def _make_arch_group(name: str = "06_PROP_Arch") -> PowerGroup:
 
 
 def _make_props_by_name(
-    names: list[str], pixel_count: int = 50
+    names: list[str], pixel_count: int = 50, display_as: str = "Star"
 ) -> dict[str, Any]:
-    """Stub props_by_name dict with .pixel_count attribute."""
+    """Stub props_by_name dict with .pixel_count and .display_as attributes."""
     props = {}
     for name in names:
         m = MagicMock()
         m.pixel_count = pixel_count
+        m.display_as = display_as
         props[name] = m
     return props
 
@@ -178,8 +179,9 @@ class TestDrumAccentEnergyGate:
             groups=[group], hierarchy=hierarchy, assignment=assignment,
             variant_library=_make_variant_library(), props_by_name=props_by_name,
         )
-        assert group.name in result
-        assert len(result[group.name]) > 0
+        # Placements keyed by individual model names from props_by_name
+        assert len(result) > 0
+        assert any(len(ps) > 0 for ps in result.values())
 
 
 # ---------------------------------------------------------------------------
@@ -218,16 +220,20 @@ class TestSmallRadialThreshold:
             groups=[group], hierarchy=hierarchy, assignment=assignment,
             variant_library=_make_variant_library(), props_by_name=props_by_name,
         )
-        assert group.name in result
+        # Each member model name should appear as a key
+        for model_name in group.members:
+            assert model_name in result
 
     def test_large_radials_excluded(self):
-        """Groups with avg pixel_count > threshold are treated normally (no accents)."""
+        """Radial props with pixel_count > threshold receive no drum accents."""
         hits = [(1000, "kick"), (2000, "snare")]
         hierarchy = _make_hierarchy(drum_hits=hits)
         assignment = _make_assignment(energy_score=80)
         group = _make_radial_group()
         props_by_name = _make_props_by_name(
-            group.members, pixel_count=_SMALL_RADIAL_THRESHOLD + 1
+            group.members,
+            pixel_count=_SMALL_RADIAL_THRESHOLD + 1,
+            display_as="Star",
         )
 
         result = _place_drum_accents(
@@ -237,12 +243,13 @@ class TestSmallRadialThreshold:
         assert result == {}
 
     def test_non_radial_groups_excluded(self):
-        """Non-radial prop types receive no drum accents even in high-energy sections."""
+        """Non-radial display types (Arches, Single Line, etc.) receive no drum accents."""
         hits = [(1000, "kick"), (2000, "snare")]
         hierarchy = _make_hierarchy(drum_hits=hits)
         assignment = _make_assignment(energy_score=80)
         arch_group = _make_arch_group()
-        props_by_name = _make_props_by_name(arch_group.members, pixel_count=50)
+        # display_as="Arches" maps to prop_type="arch", not "radial"
+        props_by_name = _make_props_by_name(arch_group.members, pixel_count=50, display_as="Arches")
 
         result = _place_drum_accents(
             groups=[arch_group], hierarchy=hierarchy, assignment=assignment,
@@ -388,8 +395,8 @@ class TestMinimumSpacing:
             groups=[group], hierarchy=hierarchy, assignment=assignment,
             variant_library=_make_variant_library(), props_by_name=props_by_name,
         )
-        # Only hits at 0ms and 300ms should make it through
-        placements = result.get(group.name, [])
+        # Only hits at 0ms and 300ms should make it through (per model)
+        placements = result.get(group.members[0], [])
         assert len(placements) == 2
 
     def test_hits_at_boundary_spacing_pass(self):
@@ -405,7 +412,7 @@ class TestMinimumSpacing:
             groups=[group], hierarchy=hierarchy, assignment=assignment,
             variant_library=_make_variant_library(), props_by_name=props_by_name,
         )
-        placements = result.get(group.name, [])
+        placements = result.get(group.members[0], [])
         assert len(placements) == 3
 
 
@@ -426,8 +433,9 @@ class TestDrumAccentTiming:
             groups=[group], hierarchy=hierarchy, assignment=assignment,
             variant_library=_make_variant_library(), props_by_name=props_by_name,
         )
-        placements = result[group.name]
-        start_times = sorted(p.start_ms for p in placements)
+        # Placements keyed by individual model name, not group name
+        all_placements = [p for ps in result.values() for p in ps]
+        start_times = sorted(p.start_ms for p in all_placements)
         assert 1000 in start_times
         assert 2500 in start_times
 
@@ -443,7 +451,8 @@ class TestDrumAccentTiming:
             groups=[group], hierarchy=hierarchy, assignment=assignment,
             variant_library=_make_variant_library(), props_by_name=props_by_name,
         )
-        for p in result[group.name]:
+        all_placements = [p for ps in result.values() for p in ps]
+        for p in all_placements:
             duration = p.end_ms - p.start_ms
             assert 200 <= duration <= 350, f"Duration {duration}ms outside [200, 350]"
 
@@ -480,7 +489,9 @@ class TestDrumAccentPalette:
             groups=[group], hierarchy=hierarchy, assignment=assignment,
             variant_library=_make_variant_library(), props_by_name=props_by_name,
         )
-        for p in result[group.name]:
+        all_placements = [p for ps in result.values() for p in ps]
+        assert len(all_placements) > 0
+        for p in all_placements:
             assert p.color_palette != ["#FFFFFF"]
             assert len(p.color_palette) > 0
 
