@@ -132,8 +132,8 @@
 
 ### Implementation for User Story 4
 
-- [ ] T050 [US4] Add the Brief panel placeholder markup inside `#panel-brief` in `src/review/static/song-workspace.html` — copy: "Coming soon — the Brief tab will be filled in by feature 047 (creative brief form)." Reference the strategy doc if useful
-- [ ] T051 [US4] Confirm no JS in `src/review/static/song-workspace.js` touches `#panel-brief` beyond tab-switch visibility toggling — the panel is pure static HTML per FR-004 and SC-007
+- [X] T050 [US4] Add the Brief panel placeholder markup inside `#panel-brief` in `src/review/static/song-workspace.html` — copy: "Coming soon — the Brief tab will be filled in by feature 047 (creative brief form)." Reference the strategy doc if useful
+- [X] T051 [US4] Confirm no JS in `src/review/static/song-workspace.js` touches `#panel-brief` beyond tab-switch visibility toggling — the panel is pure static HTML per FR-004 and SC-007
 
 **Checkpoint**: Brief tab renders a clean placeholder. SC-007 structural contract preserved.
 
@@ -147,8 +147,8 @@
 
 ### Implementation for User Story 5
 
-- [ ] T052 [US5] Add the Preview panel placeholder markup inside `#panel-preview` in `src/review/static/song-workspace.html` — copy: "Coming soon — feature 049 will render short-section previews here." Name the intended capability briefly
-- [ ] T053 [US5] Confirm no JS in `src/review/static/song-workspace.js` touches `#panel-preview` beyond tab-switch visibility toggling — no audio element, no polling, per FR-005 and SC-008
+- [X] T052 [US5] Add the Preview panel placeholder markup inside `#panel-preview` in `src/review/static/song-workspace.html` — copy: "Coming soon — feature 049 will render short-section previews here." Name the intended capability briefly
+- [X] T053 [US5] Confirm no JS in `src/review/static/song-workspace.js` touches `#panel-preview` beyond tab-switch visibility toggling — no audio element, no polling, per FR-005 and SC-008
 
 **Checkpoint**: Preview tab renders a clean placeholder. SC-008 structural contract preserved.
 
@@ -158,8 +158,8 @@
 
 **Goal**: The Phase 1 "Open" button always lands users on `/song/<source_hash>`.
 
-- [ ] T054 Update `openSong()` in `src/review/static/dashboard.js` (around lines 434–446 per plan.md Change 5) — replace the three-branch switch with unconditional `window.location.href = '/song/' + encodeURIComponent(hash)`
-- [ ] T055 Leave the `openSong()` signature intact (keep `tool` and `storyPath` parameters) so existing call sites in `src/review/static/dashboard.js` (around lines 165, 273–276, 549) keep working — parameter cleanup is a documented follow-up, not Phase 2 scope
+- [X] T054 Update `openSong()` in `src/review/static/dashboard.js` (around lines 434–446 per plan.md Change 5) — replace the three-branch switch with unconditional `window.location.href = '/song/' + encodeURIComponent(hash)`
+- [X] T055 Leave the `openSong()` signature intact (keep `tool` and `storyPath` parameters) so existing call sites in `src/review/static/dashboard.js` (around lines 165, 273–276, 549) keep working — parameter cleanup is a documented follow-up, not Phase 2 scope
 
 ---
 
@@ -167,17 +167,17 @@
 
 **Goal**: `/timeline`, `/phonemes-view`, `/story-review` continue to work; when the source_hash is resolvable, a small "Open in workspace" link points back to `/song/<hash>#analysis`.
 
-- [ ] T056 [P] Confirm/add the "Open in workspace" link in `src/review/static/index.html` (done in T031 — verify)
-- [ ] T057 [P] Add the "Open in workspace" link to the phonemes view HTML (`src/review/static/phonemes.html` or equivalent) when the `hash` URL param resolves via `/library` — link targets `/song/<hash>#analysis`
-- [ ] T058 [P] Add the "Open in workspace" link to the story-review view HTML when the story's `source_hash` resolves — link targets `/song/<hash>#analysis`
+- [X] T056 [P] Confirm/add the "Open in workspace" link in `src/review/static/index.html` (done in T031 — verify)
+- [X] T057 [P] Add the "Open in workspace" link to the phonemes view HTML (`src/review/static/phonemes.html` or equivalent) when the `hash` URL param resolves via `/library` — link targets `/song/<hash>#analysis`
+- [X] T058 [P] Add the "Open in workspace" link to the story-review view HTML when the story's `source_hash` resolves — link targets `/song/<hash>#analysis`
 
 ---
 
 ## Phase 10: Polish & Cross-Cutting Concerns
 
-- [ ] T059 Run the full test suite: `python3 -m pytest tests/ -v` and verify no regressions in analysis, generation, or existing review routes (SC-009)
-- [ ] T060 Execute `specs/046-song-workspace-shell/quickstart.md` steps 1–12 manually against a dev server with an analyzed song — confirm all twelve steps produce the expected result
-- [ ] T061 Smoke-check the browser console on `/song/<hash>` and `/timeline?hash=<hash>` — no errors from the `app.js` factory refactor (verifies research.md §6 risk mitigation: no lingering `document.`-rooted lookups)
+- [X] T059 Run the full test suite: `python3 -m pytest tests/ -v` and verify no regressions in analysis, generation, or existing review routes (SC-009)
+- [X] T060 Execute `specs/046-song-workspace-shell/quickstart.md` steps 1–12 manually against a dev server with an analyzed song — confirm all twelve steps produce the expected result
+- [X] T061 Smoke-check the browser console on `/song/<hash>` and `/timeline?hash=<hash>` — no errors from the `app.js` factory refactor (verifies research.md §6 risk mitigation: no lingering `document.`-rooted lookups)
 
 ---
 
