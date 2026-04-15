@@ -194,22 +194,31 @@ def download_sequence(source_hash: str, job_id: str):
 
 @generate_bp.route("/<source_hash>/history", methods=["GET"])
 def generation_history(source_hash: str):
-    """List all completed generation jobs for a song, newest-first."""
-    completed = [
-        j for j in _jobs.values()
-        if j.source_hash == source_hash and j.status == "complete"
-    ]
-    completed.sort(key=lambda j: j.created_at, reverse=True)
-    return jsonify({
-        "jobs": [
-            {
-                "job_id": j.job_id,
-                "status": j.status,
-                "genre": j.genre,
-                "occasion": j.occasion,
-                "transition_mode": j.transition_mode,
-                "created_at": j.created_at,
-            }
-            for j in completed
-        ]
-    })
+    """List all generation jobs for a song, newest-first.
+
+    Spec 046: includes in-flight jobs (pending/running) so the workspace
+    Generate tab can re-attach to a job that started before a page reload.
+    Completed jobs carry a ``download_url``; failed jobs carry an ``error``.
+    """
+    jobs = [j for j in _jobs.values() if j.source_hash == source_hash]
+    jobs.sort(key=lambda j: j.created_at, reverse=True)
+
+    payload = []
+    for j in jobs:
+        entry = {
+            "job_id": j.job_id,
+            "status": j.status,
+            "genre": j.genre,
+            "occasion": j.occasion,
+            "transition_mode": j.transition_mode,
+            "created_at": j.created_at,
+        }
+        if j.status == "complete":
+            entry["download_url"] = (
+                f"/generate/{source_hash}/download/{j.job_id}"
+            )
+        if j.status == "failed":
+            entry["error"] = j.error_message or "Generation failed"
+        payload.append(entry)
+
+    return jsonify({"jobs": payload})

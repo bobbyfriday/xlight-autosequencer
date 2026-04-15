@@ -645,13 +645,12 @@
   }
 
   // ── Navigation helpers ─────────────────────────────────────────────────────
-  // Spec 045 US3: canonical entry point for the "Open" primary action.
-  // Phase 1 destination is the timeline; spec 046 retargets this helper to
-  // /song/<hash> in one place (SC-004, SC-008) without touching callers.
+  // Spec 045 centralized the "Open" action; spec 046 retargets it to
+  // /song/<hash> — the single per-song workspace — without touching callers.
   function openSong(hash) {
     fetch('/open-from-library?hash=' + hash, { method: 'POST' })
       .then(function () {
-        window.location.href = '/timeline?hash=' + hash;
+        window.location.href = '/song/' + encodeURIComponent(hash);
       });
   }
 

@@ -454,6 +454,20 @@ def create_app(analysis_path: str | None = None, audio_path: str | None = None,
     def phonemes_view():
         return send_from_directory(app.static_folder, "phonemes.html")
 
+    # Spec 046: per-song workspace shell served at /song/<source_hash>.
+    # Resolves via Library().find_by_hash and gates 404 before serving the
+    # static HTML; client-side JS re-reads the hash from location.pathname.
+    @app.route("/song/<source_hash>")
+    def song_workspace(source_hash):
+        from src.library import Library
+        if Library().find_by_hash(source_hash) is None:
+            return (
+                "Song not found in library. "
+                "<a href=\"/\">Return to the library view.</a>",
+                404,
+            )
+        return send_from_directory(app.static_folder, "song-workspace.html")
+
     @app.route("/library")
     def library_index():
         from datetime import datetime, timezone
