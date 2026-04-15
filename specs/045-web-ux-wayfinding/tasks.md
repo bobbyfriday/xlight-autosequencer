@@ -160,14 +160,14 @@
 
 ### Tests for User Story 5
 
-- [ ] T051 [P] [US5] Add a quickstart-style route-reachability check to tests/ui/strip_states_README.md: the six routes (`/timeline`, `/story-review`, `/phonemes-view`, `/grouper`, `/themes/`, `/variants/`) must all return 200 OK (SC-005)
+- [X] T051 [P] [US5] Add a quickstart-style route-reachability check to tests/ui/strip_states_README.md: the six routes (`/timeline`, `/story-review`, `/phonemes-view`, `/grouper`, `/themes/`, `/variants/`) must all return 200 OK (SC-005)
 
 ### Implementation for User Story 5
 
-- [ ] T052 [US5] Extend `SONG_TOOL_PAGES` in src/review/static/navbar.js (lines 16–21) to include `/grouper`, `/themes/`, and `/variants/`
-- [ ] T053 [US5] Update `buildNav()` in src/review/static/navbar.js (lines 68–100) to render the breadcrumb with an omitted song-name segment when the page has no song context (grouper/themes/variants) — collapses to `Song Library › <Tool>`
-- [ ] T054 [P] [US5] Verify the breadcrumb "Song Library" anchor already links to `/` in src/review/static/navbar.js (no change expected — read-only confirmation)
-- [ ] T055 [US5] Manually walk quickstart.md section 5 "Back to Library from deep pages" — visit all six deep pages and confirm the breadcrumb link works
+- [X] T052 [US5] Extend `SONG_TOOL_PAGES` in src/review/static/navbar.js (lines 16–21) to include `/grouper`, `/themes/`, and `/variants/`
+- [X] T053 [US5] Update `buildNav()` in src/review/static/navbar.js (lines 68–100) to render the breadcrumb with an omitted song-name segment when the page has no song context (grouper/themes/variants) — collapses to `Song Library › <Tool>`
+- [X] T054 [P] [US5] Verify the breadcrumb "Song Library" anchor already links to `/` in src/review/static/navbar.js (no change expected — read-only confirmation)
+- [X] T055 [US5] Manually walk quickstart.md section 5 "Back to Library from deep pages" — visit all six deep pages and confirm the breadcrumb link works
 
 **Checkpoint**: Deep pages consistently expose a return path. FR-012 met.
 
