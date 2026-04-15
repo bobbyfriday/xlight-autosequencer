@@ -42,23 +42,23 @@
 
 ### Tests for User Story 1
 
-- [ ] T008 [P] [US1] Write route test: GET `/song/<known_hash>` returns 200 with the `song-workspace.html` body in `tests/unit/test_song_workspace_route.py`
-- [ ] T009 [P] [US1] Write route test: GET `/song/bogus-hash-1234` returns 404 with a message pointing back to the library view in `tests/unit/test_song_workspace_route.py`
-- [ ] T010 [P] [US1] Write route test: existing `/timeline` route still serves `index.html` unchanged (no regression) in `tests/unit/test_song_workspace_route.py`
-- [ ] T011 [P] [US1] Write route test: existing `/phonemes-view` and `/story-review` routes still return their original static files unchanged in `tests/unit/test_song_workspace_route.py`
+- [X] T008 [P] [US1] Write route test: GET `/song/<known_hash>` returns 200 with the `song-workspace.html` body in `tests/unit/test_song_workspace_route.py`
+- [X] T009 [P] [US1] Write route test: GET `/song/bogus-hash-1234` returns 404 with a message pointing back to the library view in `tests/unit/test_song_workspace_route.py`
+- [X] T010 [P] [US1] Write route test: existing `/timeline` route still serves `index.html` unchanged (no regression) in `tests/unit/test_song_workspace_route.py`
+- [X] T011 [P] [US1] Write route test: existing `/phonemes-view` and `/story-review` routes still return their original static files unchanged in `tests/unit/test_song_workspace_route.py`
 
 ### Implementation for User Story 1
 
-- [ ] T012 [US1] Add the `/song/<source_hash>` route to `src/review/server.py` beside `/library-view` / `/timeline` — resolve via `Library().find_by_hash(source_hash)`, `abort(404, description="Song not found in library")` on miss, else `send_from_directory(app.static_folder, "song-workspace.html")`
-- [ ] T013 [US1] Build the workspace HTML shell in `src/review/static/song-workspace.html` — navbar include, header region (title, duration, analysis status, layout-ready banner slot), `<nav role="tablist">` with four tab buttons, and four `<section role="tabpanel">` panels with stable ids `#panel-analysis`, `#panel-brief`, `#panel-preview`, `#panel-generate`
-- [ ] T014 [US1] Link `/navbar.js`, `/song-workspace.css`, `/song-workspace.js` from `song-workspace.html` — do NOT include `/app.js` in the initial HTML (the timeline factory script loads separately on Analysis-tab first activation)
-- [ ] T015 [US1] Add tab-strip + panel layout styles to `src/review/static/song-workspace.css` — tab buttons, active-tab indicator, hidden panels (use `[hidden]` attribute), reuse navbar/theme tokens from existing stylesheets
-- [ ] T016 [US1] In `src/review/static/song-workspace.js`, on `DOMContentLoaded` parse `source_hash` from `location.pathname.split('/').pop()` and stash it for later consumers
-- [ ] T017 [US1] In `src/review/static/song-workspace.js`, implement tab switching: click handler toggles `hidden` on panels, updates ARIA `aria-selected`, and updates the URL fragment via `history.replaceState(null, '', '#' + tabId)` (NOT `pushState` — browser Back must exit the workspace, edge case in spec)
-- [ ] T018 [US1] On page load, in `src/review/static/song-workspace.js`, honor `location.hash` — activate the matching tab on first paint (`#analysis`, `#brief`, `#preview`, `#generate`); fallback to Analysis for unknown fragments (per edge case: `#bogus` falls back to default)
-- [ ] T019 [US1] In `src/review/static/song-workspace.js`, fetch the library entry (e.g. `GET /library` and find the matching `source_hash`, or reuse existing helper) and populate the header: title, duration, analysis status
-- [ ] T020 [US1] Ensure tab state preservation in `src/review/static/song-workspace.js` — panels use `hidden` attribute only (no innerHTML swap, no detach/reattach), so scroll position and DOM state persist across switches for the lifetime of the page load
-- [ ] T021 [US1] Run route tests: `python3 -m pytest tests/unit/test_song_workspace_route.py -v`
+- [X] T012 [US1] Add the `/song/<source_hash>` route to `src/review/server.py` beside `/library-view` / `/timeline` — resolve via `Library().find_by_hash(source_hash)`, `abort(404, description="Song not found in library")` on miss, else `send_from_directory(app.static_folder, "song-workspace.html")`
+- [X] T013 [US1] Build the workspace HTML shell in `src/review/static/song-workspace.html` — navbar include, header region (title, duration, analysis status, layout-ready banner slot), `<nav role="tablist">` with four tab buttons, and four `<section role="tabpanel">` panels with stable ids `#panel-analysis`, `#panel-brief`, `#panel-preview`, `#panel-generate`
+- [X] T014 [US1] Link `/navbar.js`, `/song-workspace.css`, `/song-workspace.js` from `song-workspace.html` — do NOT include `/app.js` in the initial HTML (the timeline factory script loads separately on Analysis-tab first activation)
+- [X] T015 [US1] Add tab-strip + panel layout styles to `src/review/static/song-workspace.css` — tab buttons, active-tab indicator, hidden panels (use `[hidden]` attribute), reuse navbar/theme tokens from existing stylesheets
+- [X] T016 [US1] In `src/review/static/song-workspace.js`, on `DOMContentLoaded` parse `source_hash` from `location.pathname.split('/').pop()` and stash it for later consumers
+- [X] T017 [US1] In `src/review/static/song-workspace.js`, implement tab switching: click handler toggles `hidden` on panels, updates ARIA `aria-selected`, and updates the URL fragment via `history.replaceState(null, '', '#' + tabId)` (NOT `pushState` — browser Back must exit the workspace, edge case in spec)
+- [X] T018 [US1] On page load, in `src/review/static/song-workspace.js`, honor `location.hash` — activate the matching tab on first paint (`#analysis`, `#brief`, `#preview`, `#generate`); fallback to Analysis for unknown fragments (per edge case: `#bogus` falls back to default)
+- [X] T019 [US1] In `src/review/static/song-workspace.js`, fetch the library entry (e.g. `GET /library` and find the matching `source_hash`, or reuse existing helper) and populate the header: title, duration, analysis status
+- [X] T020 [US1] Ensure tab state preservation in `src/review/static/song-workspace.js` — panels use `hidden` attribute only (no innerHTML swap, no detach/reattach), so scroll position and DOM state persist across switches for the lifetime of the page load
+- [X] T021 [US1] Run route tests: `python3 -m pytest tests/unit/test_song_workspace_route.py -v`
 
 **Checkpoint**: Workspace shell loads, four tabs switch cleanly, URL fragment syncs, deep links work. SC-001 and SC-006 met.
 
