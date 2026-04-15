@@ -121,19 +121,19 @@
 
 ### Tests for User Story 3
 
-- [ ] T040 [P] [US3] In `tests/unit/test_section_assignment.py`, test: with `accent_policy.drum_hits=False` set manually on an assignment that would otherwise pass the drum gate, `_place_drum_accents` returns an empty dict (Acceptance Scenario 4, FR-022)
-- [ ] T041 [P] [US3] In `tests/unit/test_section_assignment.py`, test: with `accent_policy.impact=False` set manually on an assignment that would otherwise pass the impact gate, `_place_impact_accent` returns an empty dict (FR-022)
-- [ ] T042 [P] [US3] In `tests/unit/test_section_assignment.py`, test: accent helper functions (`_place_drum_accents`, `_place_impact_accent`) contain NO reference to `section.energy_score`, `section.end_ms`, `_IMPACT_ENERGY_GATE`, `_IMPACT_QUALIFYING_ROLES`, `_IMPACT_MIN_DURATION_MS` as gates — verified by reading the function source with `inspect.getsource` and regex (SC-005). The per-hit `_DRUM_HIT_ENERGY_GATE` sample is permitted and expected.
+- [X] T040 [P] [US3] In `tests/unit/test_section_assignment.py`, test: with `accent_policy.drum_hits=False` set manually on an assignment that would otherwise pass the drum gate, `_place_drum_accents` returns an empty dict (Acceptance Scenario 4, FR-022)
+- [X] T041 [P] [US3] In `tests/unit/test_section_assignment.py`, test: with `accent_policy.impact=False` set manually on an assignment that would otherwise pass the impact gate, `_place_impact_accent` returns an empty dict (FR-022)
+- [X] T042 [P] [US3] In `tests/unit/test_section_assignment.py`, test: accent helper functions (`_place_drum_accents`, `_place_impact_accent`) contain NO reference to `section.energy_score`, `section.end_ms`, `_IMPACT_ENERGY_GATE`, `_IMPACT_QUALIFYING_ROLES`, `_IMPACT_MIN_DURATION_MS` as gates — verified by reading the function source with `inspect.getsource` and regex (SC-005). The per-hit `_DRUM_HIT_ENERGY_GATE` sample is permitted and expected.
 
 ### Implementation for User Story 3
 
-- [ ] T043 [US3] In `src/generator/effect_placer.py` `_place_drum_accents()`, add `if not assignment.accent_policy.drum_hits: return {}` as the first statement of the function body (plan.md Phase D)
-- [ ] T044 [US3] In `src/generator/effect_placer.py` `_place_drum_accents()`, remove the drum-event-track presence check and any section-energy threshold — those gates are now carried by `accent_policy.drum_hits`. Keep the per-hit `_DRUM_HIT_ENERGY_GATE` sampling from `energy_curves["drums"]` at each hit's `time_ms` (research.md §2 "Not moved upstream")
-- [ ] T045 [US3] In `src/generator/effect_placer.py` `_place_impact_accent()`, replace the energy/duration/role gate trio (around lines 1820–1828) with `if not assignment.accent_policy.impact: return {}` (plan.md Phase D)
-- [ ] T046 [US3] In `src/generator/plan.py` where `_place_drum_accents` and `_place_impact_accent` are called in the post-pass after `place_effects`, REMOVE the outer `if config.beat_accent_effects:` guard (around line 199) — the policy flags now gate unconditionally (FR-013, FR-022)
-- [ ] T047 [US3] Run US3 tests: `pytest tests/unit/test_section_assignment.py -v`
-- [ ] T048 [US3] Run equivalence gate: `pytest tests/integration/test_generator_equivalence.py -v` — MUST remain green across all four permutations, especially `no_accents` (FR-031)
-- [ ] T049 [US3] Run full test suite: `pytest tests/ -v` — confirm no regression elsewhere (SC-006)
+- [X] T043 [US3] In `src/generator/effect_placer.py` `_place_drum_accents()`, add `if not assignment.accent_policy.drum_hits: return {}` as the first statement of the function body (plan.md Phase D)
+- [X] T044 [US3] In `src/generator/effect_placer.py` `_place_drum_accents()`, remove the drum-event-track presence check and any section-energy threshold — those gates are now carried by `accent_policy.drum_hits`. Keep the per-hit `_DRUM_HIT_ENERGY_GATE` sampling from `energy_curves["drums"]` at each hit's `time_ms` (research.md §2 "Not moved upstream")
+- [X] T045 [US3] In `src/generator/effect_placer.py` `_place_impact_accent()`, replace the energy/duration/role gate trio (around lines 1820–1828) with `if not assignment.accent_policy.impact: return {}` (plan.md Phase D)
+- [X] T046 [US3] In `src/generator/plan.py` where `_place_drum_accents` and `_place_impact_accent` are called in the post-pass after `place_effects`, REMOVE the outer `if config.beat_accent_effects:` guard (around line 199) — the policy flags now gate unconditionally (FR-013, FR-022)
+- [X] T047 [US3] Run US3 tests: `pytest tests/unit/test_section_assignment.py -v`
+- [X] T048 [US3] Run equivalence gate: `pytest tests/integration/test_generator_equivalence.py -v` — MUST remain green across all four permutations, especially `no_accents` (FR-031)
+- [X] T049 [US3] Run full test suite: `pytest tests/ -v` — confirm no regression elsewhere (SC-006)
 
 **Checkpoint**: Accent helpers are mechanical. `accent_policy` is the single source of truth for section-level accent gating. SC-005 met. Canonical equivalence proven across four permutations. SC-001 met.
 

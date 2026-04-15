@@ -1573,6 +1573,10 @@ def _place_drum_accents(
 ) -> dict[str, list[EffectPlacement]]:
     """Place Shockwave accents on small radial props at every drum hit (spec 042A).
 
+    Section-level gating — drum-track presence, section energy, `beat_accent_effects`
+    config — lives on ``assignment.accent_policy.drum_hits`` after spec 048.  This
+    function trusts the policy flag and applies only the per-hit energy gate.
+
     Each hit is gated individually by sampling `hierarchy.energy_curves["drums"]` at
     the hit's timestamp. A hit fires only if the drum stem energy at that moment is
     >= _DRUM_HIT_ENERGY_GATE (15/100). Falls back to the full_mix curve if the drums
@@ -1584,14 +1588,12 @@ def _place_drum_accents(
     placements on the same group prevents overlap on dense drum tracks.
     """
     result: dict[str, list[EffectPlacement]] = {}
-    section = assignment.section
+    if not assignment.accent_policy.drum_hits:
+        return result
 
+    section = assignment.section
     drum_track = hierarchy.events.get("drums")
     if drum_track is None:
-        logger.debug(
-            "drum_accents: skip section '%s' — no 'drums' event track (available: %s)",
-            section.label, list(hierarchy.events.keys()),
-        )
         return result
 
     # Identify small radial props directly from props_by_name.
@@ -1715,22 +1717,17 @@ def _place_impact_accent(
 ) -> dict[str, list[EffectPlacement]]:
     """Place a whole-house white Shockwave at the start of high-energy peaks (spec 042B).
 
-    Fires when energy_score > 80 AND section duration >= 4s AND section_role is one of
-    chorus/drop/climax/build_peak (or unknown/empty, where energy gate alone qualifies).
-    Places a single 800ms Shockwave on all tier 4-8 groups with pure white palette.
+    Section-level gates (energy, role, duration, ``beat_accent_effects`` config) were
+    hoisted to ``build_plan``'s precompute pass in spec 048 and now live on
+    ``assignment.accent_policy.impact``.  This helper is mechanical — it trusts the
+    policy flag and places a single 800ms Shockwave on all tier 4–8 groups with
+    pure white palette.
     """
     result: dict[str, list[EffectPlacement]] = {}
+    if not assignment.accent_policy.impact:
+        return result
 
     section = assignment.section
-    if section.energy_score <= _IMPACT_ENERGY_GATE:
-        return result
-    if section.end_ms - section.start_ms < _IMPACT_MIN_DURATION_MS:
-        return result
-
-    role = (section.label or "").lower()
-    if role and role not in _IMPACT_QUALIFYING_ROLES:
-        return result
-
     variant = variant_library.get("Shockwave Full Fast") if variant_library is not None else None
     params = dict(variant.parameter_overrides) if variant is not None else {}
 

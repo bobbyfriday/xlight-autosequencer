@@ -197,27 +197,26 @@ def build_plan(
         )
         assignment.group_effects = group_effects
 
-        # Beat accent effects (spec 042)
-        if config.beat_accent_effects:
-            # 042A: Drum-hit Shockwave on small radial props
-            drum_accents = _place_drum_accents(
-                groups=groups,
-                hierarchy=hierarchy,
-                assignment=assignment,
-                variant_library=variant_library,
-                props_by_name=props_by_name,
-            )
-            for gname, placements in drum_accents.items():
-                assignment.group_effects.setdefault(gname, []).extend(placements)
+        # Beat accent effects (spec 042).  The helpers early-return when
+        # `assignment.accent_policy` has the corresponding flag unset, so we
+        # call unconditionally — policy is the single source of truth.
+        drum_accents = _place_drum_accents(
+            groups=groups,
+            hierarchy=hierarchy,
+            assignment=assignment,
+            variant_library=variant_library,
+            props_by_name=props_by_name,
+        )
+        for gname, placements in drum_accents.items():
+            assignment.group_effects.setdefault(gname, []).extend(placements)
 
-            # 042B: Whole-house white Shockwave at high-energy section peaks
-            impact_accents = _place_impact_accent(
-                groups=groups,
-                assignment=assignment,
-                variant_library=variant_library,
-            )
-            for gname, placements in impact_accents.items():
-                assignment.group_effects.setdefault(gname, []).extend(placements)
+        impact_accents = _place_impact_accent(
+            groups=groups,
+            assignment=assignment,
+            variant_library=variant_library,
+        )
+        for gname, placements in impact_accents.items():
+            assignment.group_effects.setdefault(gname, []).extend(placements)
 
     # 5. Value curves — generate for each placement when curves are enabled
     if config.curves_mode != "none":
