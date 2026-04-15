@@ -54,6 +54,10 @@
       mountAnalysisTab();
       mounted.analysis = true;
     }
+    if (tabId === 'brief' && !mounted.brief) {
+      mountBriefTabInWorkspace();
+      mounted.brief = true;
+    }
     if (tabId === 'generate' && !mounted.generate) {
       mountGenerateTab();
       mounted.generate = true;
@@ -394,6 +398,87 @@
     box.hidden = false;
     box.textContent = msg;
   }
+
+  // --- Brief tab: lazy-load brief-tab.js + brief-tab.css, then mount -----
+  //
+  // brief-presets.js is loaded first (it attaches BRIEF_PRESETS to window).
+  // brief-tab.js is loaded second (it attaches mountBriefTab to window).
+  // brief-tab.css is injected once.
+
+  async function mountBriefTabInWorkspace() {
+    const panel = document.getElementById('panel-brief');
+    if (!panel) return;
+
+    // Inject CSS once
+    if (!document.querySelector('link[data-xo-brief-css]')) {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = '/brief-tab.css';
+      link.dataset.xoBriefCss = 'true';
+      document.head.appendChild(link);
+    }
+
+    // Load brief-tab.html fragment into the panel
+    try {
+      const resp = await fetch('/brief-tab.html');
+      if (resp.ok) {
+        panel.innerHTML = await resp.text();
+      }
+    } catch (e) {
+      // HTML may already be inline from server-side render
+    }
+
+    // Helper to load a script and resolve when loaded
+    function _loadScript(src, dataAttr) {
+      return new Promise((resolve) => {
+        if (document.querySelector(`script[${dataAttr}]`)) {
+          resolve();
+          return;
+        }
+        const s = document.createElement('script');
+        s.src = src;
+        s.setAttribute(dataAttr, 'true');
+        s.addEventListener('load', resolve, { once: true });
+        s.addEventListener('error', resolve, { once: true }); // degrade gracefully
+        document.head.appendChild(s);
+      });
+    }
+
+    await _loadScript('/brief-presets.js', 'data-xo-brief-presets');
+    await _loadScript('/brief-tab.js', 'data-xo-brief-tab');
+
+    if (typeof window.mountBriefTab === 'function') {
+      window.mountBriefTab(panel, sourceHash);
+    }
+  }
+
+  // --- Brief tab badge (dirty/clean indicator) ---------------------------
+
+  function _setBriefTabBadge(dirty) {
+    const tabBtn = document.querySelector('[data-tab="brief"]');
+    if (!tabBtn) return;
+    if (dirty) {
+      tabBtn.dataset.briefDirty = 'true';
+      if (!tabBtn.querySelector('.brief-dirty-dot')) {
+        const dot = document.createElement('span');
+        dot.className = 'brief-dirty-dot';
+        dot.setAttribute('aria-label', 'Unsaved changes');
+        tabBtn.appendChild(dot);
+      }
+    } else {
+      delete tabBtn.dataset.briefDirty;
+      const dot = tabBtn.querySelector('.brief-dirty-dot');
+      if (dot) dot.remove();
+    }
+  }
+
+  document.addEventListener('brief:dirty', () => _setBriefTabBadge(true));
+  document.addEventListener('brief:clean', () => _setBriefTabBadge(false));
+
+  // Allow brief-tab.js to switch the workspace to a different tab
+  document.addEventListener('workspace:activateTab', (e) => {
+    if (e.detail && e.detail.tab) activateTab(e.detail.tab);
+  });
 
   // --- Boot --------------------------------------------------------------
   document.addEventListener('DOMContentLoaded', () => {

@@ -428,6 +428,10 @@ def create_app(analysis_path: str | None = None, audio_path: str | None = None,
     from src.review.generate_routes import generate_bp  # noqa: PLC0415
     app.register_blueprint(generate_bp, url_prefix="/generate")
 
+    # ── Register the creative brief blueprint (spec 047) ─────────────────────
+    from src.review.brief_routes import brief_bp  # noqa: PLC0415
+    app.register_blueprint(brief_bp)
+
     # ── Story review SPA route (always available) ─────────────────────────────
     @app.route("/story-review")
     def story_review_spa():
@@ -467,6 +471,46 @@ def create_app(analysis_path: str | None = None, audio_path: str | None = None,
                 404,
             )
         return send_from_directory(app.static_folder, "song-workspace.html")
+
+    @app.route("/song/<source_hash>/sections")
+    def song_sections(source_hash):
+        """Return the detected section list for a song (for the Brief per-section table).
+
+        Reads sections from ``_story.json`` or ``_analysis.json`` (whichever
+        contains a ``sections`` list).  Returns an empty list when neither
+        exists rather than a 404, so the Brief tab degrades gracefully.
+        """
+        import json as _json
+        entry = Library().find_by_hash(source_hash)
+        if entry is None:
+            return jsonify({"error": "Song not found"}), 404
+
+        audio_path = Path(entry.source_file)
+        sections = []
+
+        # Try story JSON first — it carries richer section metadata
+        for stem in ("_story.json", "_hierarchy.json", "_analysis.json"):
+            candidate = audio_path.parent / (audio_path.stem + stem)
+            if not candidate.exists():
+                continue
+            try:
+                with open(candidate, "r", encoding="utf-8") as f:
+                    data = _json.load(f)
+                raw_sections = data.get("sections") or []
+                if raw_sections:
+                    for i, sec in enumerate(raw_sections):
+                        sections.append({
+                            "section_index": sec.get("section_index", i),
+                            "label": sec.get("label", sec.get("role", f"Section {i}")),
+                            "start_ms": sec.get("start_ms", 0),
+                            "end_ms": sec.get("end_ms", 0),
+                            "energy_score": sec.get("energy_score", sec.get("energy", 0)),
+                        })
+                    break
+            except (OSError, _json.JSONDecodeError, KeyError):
+                continue
+
+        return jsonify({"sections": sections})
 
     @app.route("/library")
     def library_index():

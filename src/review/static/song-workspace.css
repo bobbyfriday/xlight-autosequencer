@@ -249,3 +249,14 @@ body {
 .open-in-workspace:hover {
   opacity: 0.9;
 }
+
+/* spec 047: Brief tab dirty indicator */
+.workspace-tab .brief-dirty-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-left: 5px;
+  background: var(--xo-warn, #f0a500);
+  border-radius: 50%;
+  vertical-align: middle;
+}
