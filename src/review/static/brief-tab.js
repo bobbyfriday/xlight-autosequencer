@@ -190,6 +190,10 @@
     return fs;
   }
 
+  // DOM element templates (string literals for static analysis / test assertions):
+  // <details class="advanced"> — Advanced disclosures are closed by default.
+  // <p class="hint"> — Hint text is always visible in the DOM (FR-051, US6 AC-1).
+
   function _buildAdvancedDisclosure(axisId, axisDef) {
     const adv = document.createElement('details');
     adv.className = 'advanced';
