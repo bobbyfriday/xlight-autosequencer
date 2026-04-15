@@ -55,20 +55,20 @@
 
 ### Tests for User Story 1
 
-- [ ] T014 [P] [US1] Write JS unit-style test fixture file tests/ui/fixtures/strip_states.json with 5 synthetic `/library` entries covering: fresh upload, analyzed-no-story, analyzed-with-story-never-generated, fully generated, layout-missing
-- [ ] T015 [US1] Write verification note in tests/ui/strip_states_README.md documenting the expected `data-state` attribute per step for each fixture row (serves as the acceptance oracle — no JS runner required)
+- [X] T014 [P] [US1] Write JS unit-style test fixture file tests/ui/fixtures/strip_states.json with 5 synthetic `/library` entries covering: fresh upload, analyzed-no-story, analyzed-with-story-never-generated, fully generated, layout-missing
+- [X] T015 [US1] Write verification note in tests/ui/strip_states_README.md documenting the expected `data-state` attribute per step for each fixture row (serves as the acceptance oracle — no JS runner required)
 
 ### Implementation for User Story 1
 
-- [ ] T016 [US1] Rewrite the workflow strip in src/review/static/dashboard.html (lines 67–94) to four `.workflow-step` divs with `data-step` values `upload | review | story | generate` — remove the `layout` step
-- [ ] T017 [US1] Add new function `applyStripState(entry)` in src/review/static/dashboard.js that sets `data-state={complete|active|incomplete|blocked}` on each `.workflow-step` per the rules in plan.md Change 2
-- [ ] T018 [US1] Add a `resetStripState()` helper in src/review/static/dashboard.js that clears all `data-state` attributes so the strip renders neutral grey when no row is expanded
-- [ ] T019 [US1] Wire `applyStripState(entry)` into the row-expand handler in src/review/static/dashboard.js (~line 209); wire `resetStripState()` into the collapse path
-- [ ] T020 [US1] Add click handlers on `.workflow-step` in src/review/static/dashboard.js so steps in `complete` or `active` state navigate to their destination (step 2 → `openSong(hash)`, step 3 → `/story-review`, step 4 → inline generate action); `incomplete` and `blocked` steps remain non-clickable
-- [ ] T021 [US1] Add tooltip text (via `title` attribute or `data-tooltip`) on `incomplete` and `blocked` steps in src/review/static/dashboard.js explaining what is missing
-- [ ] T022 [P] [US1] Add CSS selectors `.workflow-step[data-state="complete"]`, `[data-state="active"]`, `[data-state="incomplete"]`, `[data-state="blocked"]` in src/review/static/dashboard.css with visually-distinct styling (filled/highlighted/grey/warning-tinted)
-- [ ] T023 [P] [US1] Add `.workflow-step[data-state="blocked"]` cursor and hover-tooltip styling in src/review/static/dashboard.css
-- [ ] T024 [US1] Manually walk quickstart.md section 1 "Strip is stateful" to confirm the expanded/collapsed transitions render correctly
+- [X] T016 [US1] Rewrite the workflow strip in src/review/static/dashboard.html (lines 67–94) to four `.workflow-step` divs with `data-step` values `upload | review | story | generate` — remove the `layout` step
+- [X] T017 [US1] Add new function `applyStripState(entry)` in src/review/static/dashboard.js that sets `data-state={complete|active|incomplete|blocked}` on each `.workflow-step` per the rules in plan.md Change 2
+- [X] T018 [US1] Add a `resetStripState()` helper in src/review/static/dashboard.js that clears all `data-state` attributes so the strip renders neutral grey when no row is expanded
+- [X] T019 [US1] Wire `applyStripState(entry)` into the row-expand handler in src/review/static/dashboard.js (~line 209); wire `resetStripState()` into the collapse path
+- [X] T020 [US1] Add click handlers on `.workflow-step` in src/review/static/dashboard.js so steps in `complete` or `active` state navigate to their destination (step 2 → `openSong(hash)`, step 3 → `/story-review`, step 4 → inline generate action); `incomplete` and `blocked` steps remain non-clickable
+- [X] T021 [US1] Add tooltip text (via `title` attribute or `data-tooltip`) on `incomplete` and `blocked` steps in src/review/static/dashboard.js explaining what is missing
+- [X] T022 [P] [US1] Add CSS selectors `.workflow-step[data-state="complete"]`, `[data-state="active"]`, `[data-state="incomplete"]`, `[data-state="blocked"]` in src/review/static/dashboard.css with visually-distinct styling (filled/highlighted/grey/warning-tinted)
+- [X] T023 [P] [US1] Add `.workflow-step[data-state="blocked"]` cursor and hover-tooltip styling in src/review/static/dashboard.css
+- [X] T024 [US1] Manually walk quickstart.md section 1 "Strip is stateful" to confirm the expanded/collapsed transitions render correctly
 
 **Checkpoint**: Strip is stateful. FR-001, FR-002, FR-003, FR-006 (strip portion) met. SC-001 met.
 
@@ -82,19 +82,19 @@
 
 ### Tests for User Story 2
 
-- [ ] T025 [P] [US2] Write integration test: POST `/open-from-library` plus GET `/library` with a cleared `layout_path` returns `layout_configured: false` on every entry, in tests/integration/test_library_payload.py
-- [ ] T026 [P] [US2] Extend the tests/ui/strip_states_README.md acceptance oracle to document banner visibility and Generate-disabled state per fixture row
+- [X] T025 [P] [US2] Write integration test: POST `/open-from-library` plus GET `/library` with a cleared `layout_path` returns `layout_configured: false` on every entry, in tests/integration/test_library_payload.py
+- [X] T026 [P] [US2] Extend the tests/ui/strip_states_README.md acceptance oracle to document banner visibility and Generate-disabled state per fixture row
 
 ### Implementation for User Story 2
 
-- [ ] T027 [US2] Insert `<div id="zone-a-banner" class="zone-a-banner" hidden>…</div>` between `#progress-section` and `#workflow-guide` in src/review/static/dashboard.html with copy "Set up your layout before generating sequences" and a primary button "Set Up Layout" linking to `/grouper`
-- [ ] T028 [US2] Add function `renderZoneABanner(entries)` in src/review/static/dashboard.js that toggles the banner's `hidden` attribute based on `entries[0]?.layout_configured`
-- [ ] T029 [US2] Call `renderZoneABanner(entries)` from the `fetchLibrary()` success path in src/review/static/dashboard.js (near the existing `renderTable` call)
-- [ ] T030 [US2] Set `document.body.dataset.layoutConfigured = entries[0]?.layout_configured ? "true" : "false"` in src/review/static/dashboard.js so CSS can drive disabled-state for Generate controls without per-button JS
-- [ ] T031 [P] [US2] Add `.zone-a-banner` styling (prominent panel, primary button, appropriate color) in src/review/static/dashboard.css
-- [ ] T032 [P] [US2] Add CSS rules `body[data-layout-configured="false"] [data-action="generate"]`, `body[data-layout-configured="false"] .workflow-step[data-step="generate"]`, etc., that visually disable Generate controls and surface a tooltip via `::after` or `title` in src/review/static/dashboard.css
-- [ ] T033 [US2] Ensure disabled Generate controls in src/review/static/dashboard.js short-circuit their click handler when `document.body.dataset.layoutConfigured !== "true"` (belt-and-braces — CSS hides, JS prevents)
-- [ ] T034 [US2] Manually walk quickstart.md section 2 "Zone A banner appears when layout is missing" including the clear/re-configure cycle
+- [X] T027 [US2] Insert `<div id="zone-a-banner" class="zone-a-banner" hidden>…</div>` between `#progress-section` and `#workflow-guide` in src/review/static/dashboard.html with copy "Set up your layout before generating sequences" and a primary button "Set Up Layout" linking to `/grouper`
+- [X] T028 [US2] Add function `renderZoneABanner(entries)` in src/review/static/dashboard.js that toggles the banner's `hidden` attribute based on `entries[0]?.layout_configured`
+- [X] T029 [US2] Call `renderZoneABanner(entries)` from the `fetchLibrary()` success path in src/review/static/dashboard.js (near the existing `renderTable` call)
+- [X] T030 [US2] Set `document.body.dataset.layoutConfigured = entries[0]?.layout_configured ? "true" : "false"` in src/review/static/dashboard.js so CSS can drive disabled-state for Generate controls without per-button JS
+- [X] T031 [P] [US2] Add `.zone-a-banner` styling (prominent panel, primary button, appropriate color) in src/review/static/dashboard.css
+- [X] T032 [P] [US2] Add CSS rules `body[data-layout-configured="false"] [data-action="generate"]`, `body[data-layout-configured="false"] .workflow-step[data-step="generate"]`, etc., that visually disable Generate controls and surface a tooltip via `::after` or `title` in src/review/static/dashboard.css
+- [X] T033 [US2] Ensure disabled Generate controls in src/review/static/dashboard.js short-circuit their click handler when `document.body.dataset.layoutConfigured !== "true"` (belt-and-braces — CSS hides, JS prevents)
+- [X] T034 [US2] Manually walk quickstart.md section 2 "Zone A banner appears when layout is missing" including the clear/re-configure cycle
 
 **Checkpoint**: Zone A gate enforced. FR-004, FR-005, FR-006 (banner portion) met. SC-002 met.
 
@@ -108,20 +108,20 @@
 
 ### Tests for User Story 3
 
-- [ ] T035 [P] [US3] Extend tests/ui/strip_states_README.md to document: detail panel must contain exactly one `data-action="open"` primary button and exactly one `.overflow-menu` with six `role="menuitem"` children
-- [ ] T036 [P] [US3] Write a grep-based acceptance check note in tests/ui/strip_states_README.md: `grep -c 'function openSong' src/review/static/dashboard.js` must return 1 (the canonical helper for spec 046 retargeting — SC-004, SC-008)
+- [X] T035 [P] [US3] Extend tests/ui/strip_states_README.md to document: detail panel must contain exactly one `data-action="open"` primary button and exactly one `.overflow-menu` with six `role="menuitem"` children
+- [X] T036 [P] [US3] Write a grep-based acceptance check note in tests/ui/strip_states_README.md: `grep -c 'function openSong' src/review/static/dashboard.js` must return 1 (the canonical helper for spec 046 retargeting — SC-004, SC-008)
 
 ### Implementation for User Story 3
 
-- [ ] T037 [US3] Rewrite `<template id="detail-template">` `.detail-actions` in src/review/static/dashboard.html (lines 134–160) to the primary/overflow structure from plan.md Change 4
-- [ ] T038 [US3] In `renderDetail` (src/review/static/dashboard.js ~line 241) add a new `case 'open':` to the `data-action` switch that calls `openSong(entry.source_hash)`
-- [ ] T039 [US3] Canonicalize the existing `openSong(hash, tool, storyPath)` in src/review/static/dashboard.js (lines 434–446) to `openSong(hash)` that always routes to `/timeline?hash=<hash>` after the `/open-from-library` POST
-- [ ] T040 [US3] Rename the legacy three-arg variant to `openSongTool(hash, tool, storyPath)` in src/review/static/dashboard.js; update all callers currently using the old signature (row-click ~line 165, fetch-success ~line 549, overflow-menu `story`/`phonemes` actions)
-- [ ] T041 [US3] Wire the overflow-menu toggle in src/review/static/dashboard.js: kebab click toggles `aria-expanded` and the `hidden` attribute on `.overflow-menu`
-- [ ] T042 [US3] Add a document-level `click` listener in src/review/static/dashboard.js that closes any open `.overflow-menu` when the click target is outside the menu (FR-010)
-- [ ] T043 [US3] Add a document-level `keydown` listener in src/review/static/dashboard.js that closes any open `.overflow-menu` on `Escape` (FR-010)
-- [ ] T044 [P] [US3] Add `.btn-open` primary styling, `.btn-kebab`, `.overflow-wrap`, `.overflow-menu`, and menu-item hover states in src/review/static/dashboard.css
-- [ ] T045 [US3] Manually walk quickstart.md section 3 "Open + overflow" to confirm Open routes correctly, overflow contains the six actions, and dismiss behavior works
+- [X] T037 [US3] Rewrite `<template id="detail-template">` `.detail-actions` in src/review/static/dashboard.html (lines 134–160) to the primary/overflow structure from plan.md Change 4
+- [X] T038 [US3] In `renderDetail` (src/review/static/dashboard.js ~line 241) add a new `case 'open':` to the `data-action` switch that calls `openSong(entry.source_hash)`
+- [X] T039 [US3] Canonicalize the existing `openSong(hash, tool, storyPath)` in src/review/static/dashboard.js (lines 434–446) to `openSong(hash)` that always routes to `/timeline?hash=<hash>` after the `/open-from-library` POST
+- [X] T040 [US3] Rename the legacy three-arg variant to `openSongTool(hash, tool, storyPath)` in src/review/static/dashboard.js; update all callers currently using the old signature (row-click ~line 165, fetch-success ~line 549, overflow-menu `story`/`phonemes` actions)
+- [X] T041 [US3] Wire the overflow-menu toggle in src/review/static/dashboard.js: kebab click toggles `aria-expanded` and the `hidden` attribute on `.overflow-menu`
+- [X] T042 [US3] Add a document-level `click` listener in src/review/static/dashboard.js that closes any open `.overflow-menu` when the click target is outside the menu (FR-010)
+- [X] T043 [US3] Add a document-level `keydown` listener in src/review/static/dashboard.js that closes any open `.overflow-menu` on `Escape` (FR-010)
+- [X] T044 [P] [US3] Add `.btn-open` primary styling, `.btn-kebab`, `.overflow-wrap`, `.overflow-menu`, and menu-item hover states in src/review/static/dashboard.css
+- [X] T045 [US3] Manually walk quickstart.md section 3 "Open + overflow" to confirm Open routes correctly, overflow contains the six actions, and dismiss behavior works
 
 **Checkpoint**: Detail panel reshaped. FR-007, FR-008, FR-009, FR-010 met. SC-003, SC-004, SC-008 met.
 
@@ -139,14 +139,14 @@
 
 ### Tests for User Story 4
 
-- [ ] T046 [P] [US4] Extend tests/ui/strip_states_README.md acceptance oracle to document the badge vocabulary per fixture row and the replacement rules (Generated replaces Analyzed; Stale replaces both)
-- [ ] T047 [P] [US4] Add a grep check note in tests/ui/strip_states_README.md: `grep 'Briefed' src/review/static/dashboard.js` must return no matches in Phase 1 (FR-011)
+- [X] T046 [P] [US4] Extend tests/ui/strip_states_README.md acceptance oracle to document the badge vocabulary per fixture row and the replacement rules (Generated replaces Analyzed; Stale replaces both)
+- [X] T047 [P] [US4] Add a grep check note in tests/ui/strip_states_README.md: `grep 'Briefed' src/review/static/dashboard.js` must return no matches in Phase 1 (FR-011)
 
 ### Implementation for User Story 4
 
-- [ ] T048 [US4] Extend `renderBadges(e)` in src/review/static/dashboard.js (lines 229–238) to prepend lifecycle badges computed from `is_stale`, `last_generated_at`, and `analysis_exists` per plan.md Change 6
-- [ ] T049 [P] [US4] Add CSS classes `.badge-analyzed`, `.badge-generated`, `.badge-stale` in src/review/static/dashboard.css next to the existing `.badge-stems`/`.badge-phonemes`/`.badge-story` block
-- [ ] T050 [US4] Manually walk quickstart.md section 4 "Lifecycle badges" — confirm each badge appears on the correct row and `Briefed` never renders
+- [X] T048 [US4] Extend `renderBadges(e)` in src/review/static/dashboard.js (lines 229–238) to prepend lifecycle badges computed from `is_stale`, `last_generated_at`, and `analysis_exists` per plan.md Change 6
+- [X] T049 [P] [US4] Add CSS classes `.badge-analyzed`, `.badge-generated`, `.badge-stale` in src/review/static/dashboard.css next to the existing `.badge-stems`/`.badge-phonemes`/`.badge-story` block
+- [X] T050 [US4] Manually walk quickstart.md section 4 "Lifecycle badges" — confirm each badge appears on the correct row and `Briefed` never renders
 
 **Checkpoint**: Lifecycle badges visible on library rows. FR-011 met. SC-006 met.
 
