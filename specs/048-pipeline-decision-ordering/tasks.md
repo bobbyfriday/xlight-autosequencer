@@ -86,19 +86,19 @@
 
 ### Tests for User Story 2
 
-- [ ] T024 [P] [US2] In `tests/unit/test_section_assignment.py`, test: with an assignment where `active_tiers = frozenset({1, 4, 8})`, `place_effects()` produces placements only for groups whose `group.tier` is in that set (Acceptance Scenario 2)
-- [ ] T025 [P] [US2] In `tests/unit/test_section_assignment.py`, test: with `palette_target = {5: 2, 6: 3, 7: 4, 8: 5}`, each tier-N placement in the returned `group_effects` has `len(placement.color_palette) <= palette_target[N]` (Acceptance Scenario 3)
-- [ ] T026 [P] [US2] In `tests/unit/test_section_assignment.py`, test: calling `place_effects()` twice with identical assignments produces identical `group_effects` (no ambient state dependency — User Story 2 independent test)
+- [X] T024 [P] [US2] In `tests/unit/test_section_assignment.py`, test: with an assignment where `active_tiers = frozenset({1, 4, 8})`, `place_effects()` produces placements only for groups whose `group.tier` is in that set (Acceptance Scenario 2)
+- [X] T025 [P] [US2] In `tests/unit/test_section_assignment.py`, test: with `palette_target = {5: 2, 6: 3, 7: 4, 8: 5}`, each tier-N placement in the returned `group_effects` has `len(placement.color_palette) <= palette_target[N]` (Acceptance Scenario 3)
+- [X] T026 [P] [US2] In `tests/unit/test_section_assignment.py`, test: calling `place_effects()` twice with identical assignments produces identical `group_effects` (no ambient state dependency — User Story 2 independent test)
 
 ### Implementation for User Story 2 — Step (a): `place_effects` reads from assignment (flags still accepted, ignored)
 
-- [ ] T027 [US2] In `src/generator/effect_placer.py` `place_effects()`, replace the `_compute_active_tiers(...)` call (around line 557–560) with `effective_tiers = assignment.active_tiers` — DO NOT remove the `tiers` kwarg yet; simply stop reading it
-- [ ] T028 [US2] In `src/generator/effect_placer.py` `place_effects()`, replace reads of the `section_index=` kwarg with `assignment.section_index` — every rotation-plan lookup and seed-tuple construction reads off the assignment (FR-033: seeds remain `(section_index, group_index, tier)` byte-identically)
-- [ ] T029 [US2] In `src/generator/effect_placer.py` `place_effects()`, replace reads of the `working_set=` / `focused_vocabulary=` kwargs with `assignment.working_set` / `assignment.working_set is not None` respectively (data-model.md "working_set")
-- [ ] T030 [US2] In `src/generator/effect_placer.py` `place_effects()`, replace reads of `bpm=` kwarg with `hierarchy.estimated_bpm` (the only previous consumer path)
-- [ ] T031 [US2] In `src/generator/effect_placer.py` `place_effects()`, at the per-tier palette-trim site (around line 601–602), replace `if palette_restraint: tier_palette = restrain_palette(tier_palette, section.energy_score, tier)` with a branch that trims `tier_palette` to `assignment.palette_target[tier]` colours when `assignment.palette_target is not None`, using the same spread-index math — NO call to `restrain_palette` from inside `place_effects` (FR-021, plan.md Phase C risk-table entry)
-- [ ] T032 [US2] In `src/generator/effect_placer.py` `place_effects()`, replace the `duration_scaling` / `bpm` threading to `_place_effect_on_group` with direct passthrough of `assignment.duration_target` (None when disabled — `_place_effect_on_group` already accepts a `DurationTarget`, per data-model.md "duration_target")
-- [ ] T033 [US2] Run equivalence gate: `pytest tests/integration/test_generator_equivalence.py -v` — MUST be green at step (a). If any fixture diffs, diagnose before continuing.
+- [X] T027 [US2] In `src/generator/effect_placer.py` `place_effects()`, replace the `_compute_active_tiers(...)` call (around line 557–560) with `effective_tiers = assignment.active_tiers` — DO NOT remove the `tiers` kwarg yet; simply stop reading it
+- [X] T028 [US2] In `src/generator/effect_placer.py` `place_effects()`, replace reads of the `section_index=` kwarg with `assignment.section_index` — every rotation-plan lookup and seed-tuple construction reads off the assignment (FR-033: seeds remain `(section_index, group_index, tier)` byte-identically)
+- [X] T029 [US2] In `src/generator/effect_placer.py` `place_effects()`, replace reads of the `working_set=` / `focused_vocabulary=` kwargs with `assignment.working_set` / `assignment.working_set is not None` respectively (data-model.md "working_set")
+- [X] T030 [US2] In `src/generator/effect_placer.py` `place_effects()`, replace reads of `bpm=` kwarg with `hierarchy.estimated_bpm` (the only previous consumer path)
+- [X] T031 [US2] In `src/generator/effect_placer.py` `place_effects()`, at the per-tier palette-trim site (around line 601–602), replace `if palette_restraint: tier_palette = restrain_palette(tier_palette, section.energy_score, tier)` with a branch that trims `tier_palette` to `assignment.palette_target[tier]` colours when `assignment.palette_target is not None`, using the same spread-index math — NO call to `restrain_palette` from inside `place_effects` (FR-021, plan.md Phase C risk-table entry)
+- [X] T032 [US2] In `src/generator/effect_placer.py` `place_effects()`, replace the `duration_scaling` / `bpm` threading to `_place_effect_on_group` with direct passthrough of `assignment.duration_target` (None when disabled — `_place_effect_on_group` already accepts a `DurationTarget`, per data-model.md "duration_target")
+- [X] T033 [US2] Run equivalence gate: `pytest tests/integration/test_generator_equivalence.py -v` — MUST be green at step (a). If any fixture diffs, diagnose before continuing.
 
 ### Implementation for User Story 2 — Step (b): remove legacy kwargs from signature
 

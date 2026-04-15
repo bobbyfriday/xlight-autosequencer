@@ -197,6 +197,22 @@ _IMPACT_ACCENT_PALETTE = ["#FFFFFF"]
 _IMPACT_ACCENT_TIERS = frozenset({4, 5, 6, 7, 8})
 
 
+def _apply_palette_target(palette: list[str], target: int) -> list[str]:
+    """Trim a palette to ``target`` colours using spread-based indexing.
+
+    Identical spread-index math to `restrain_palette`; kept as a tiny helper so
+    `place_effects` can apply a precomputed per-tier target (spec 048) without
+    re-deriving from energy/tier.
+    """
+    effective = max(1, min(target, len(palette)))
+    if effective >= len(palette):
+        return list(palette)
+    if effective == 1:
+        return [palette[0]]
+    indices = [round(i * (len(palette) - 1) / (effective - 1)) for i in range(effective)]
+    return [palette[i] for i in indices]
+
+
 def restrain_palette(palette: list[str], energy_score: int, tier: int) -> list[str]:
     """Trim palette to 2-4 active colors based on section energy and group tier.
 
@@ -208,13 +224,7 @@ def restrain_palette(palette: list[str], energy_score: int, tier: int) -> list[s
     base_count = 2 + energy_score // 33
     tier_cap = _TIER_PALETTE_CAP.get(tier, 4)
     target = max(1, min(base_count, tier_cap, len(palette)))
-    if target >= len(palette):
-        return list(palette)
-    if target == 1:
-        return [palette[0]]
-    # Spread evenly across palette — picks first, last, and intermediates for contrast
-    indices = [round(i * (len(palette) - 1) / (target - 1)) for i in range(target)]
-    return [palette[i] for i in indices]
+    return _apply_palette_target(palette, target)
 
 
 def compute_music_sparkles(energy_score: int, effect_name: str, rng: random.Random) -> int:
@@ -440,6 +450,10 @@ def place_effects(
 ) -> dict[str, list[EffectPlacement]]:
     """Place effects from theme layers onto power groups, aligned to timing tracks.
 
+    As of spec 048 step (a), every per-section creative decision is read off
+    ``assignment`` — legacy kwargs remain on the signature for backward
+    compatibility but are IGNORED; the signature reduction lands in step (b).
+
     Layer-to-tier mapping:
     - Bottom layer(s) -> tiers 1-2 (base/geo groups)
     - Middle layer(s) -> tiers 3-6 (type/beat/fidelity/prop groups)
@@ -452,6 +466,16 @@ def place_effects(
     """
     section = assignment.section
     theme = assignment.theme
+    # Read per-section decisions off the assignment (spec 048).  The legacy
+    # function kwargs are retained in the signature for backward compatibility
+    # this commit; they are ignored here and removed in step (b).
+    section_index = assignment.section_index
+    working_set = assignment.working_set
+    focused_vocabulary = working_set is not None
+    palette_target = assignment.palette_target
+    duration_target = assignment.duration_target
+    duration_scaling = duration_target is not None
+    bpm = hierarchy.estimated_bpm
 
     # Use alternate layers for repeated sections (variation_seed > 0)
     if assignment.variation_seed > 0 and theme.alternates:
@@ -495,16 +519,10 @@ def place_effects(
     # Map layers to tier sets
     layer_tier_map = _assign_layers_to_tiers(layers)
 
-    # Compute which tiers should run this section.  Tiers 2/4/6/7 are
-    # alternative partition schemes of the same props, so activating multiple
-    # causes silent overrides — we pick exactly one partition tier per section
-    # based on mood and (for structural) phrase structure.  An explicit
-    # `tiers` argument overrides the selection (used for testing and when the
-    # user sets `GenerationConfig.tiers` or disables `tier_selection`).
-    if tiers is not None:
-        effective_tiers: frozenset[int] = frozenset(tiers)
-    else:
-        effective_tiers = _compute_active_tiers(section, section_index, hierarchy)
+    # Tier selection: read the precomputed set off the assignment (spec 048).
+    # `_compute_active_tiers` is no longer called here — it runs once per section
+    # in `build_plan`'s decision-precompute pass.
+    effective_tiers: frozenset[int] = assignment.active_tiers
 
     tier_groups: dict[int, list[PowerGroup]] = {}
     for g in groups:
@@ -544,9 +562,12 @@ def place_effects(
             else:
                 tier_palette = theme.palette
 
-            # Palette restraint: trim to energy/tier-appropriate color count
-            if palette_restraint:
-                tier_palette = restrain_palette(tier_palette, section.energy_score, tier)
+            # Palette restraint: trim to the precomputed per-tier cap (spec 048).
+            # The target colour count was decided in `build_plan` and stored on
+            # the assignment; we simply apply it here with the same spread-index
+            # math used by `restrain_palette`.
+            if palette_target is not None and tier in palette_target:
+                tier_palette = _apply_palette_target(tier_palette, palette_target[tier])
 
             # Tier 5-8: use rotation plan when available
             if tier in (5, 6, 7, 8) and groups_for_tier and rotation_plan is not None:
@@ -717,8 +738,10 @@ def place_effects(
                 if placements:
                     result.setdefault(group.name, []).extend(placements)
 
-    # MusicSparkles: post-process placements when palette_restraint is active
-    if palette_restraint:
+    # MusicSparkles: post-process placements when palette restraint is active.
+    # Read the active state off the assignment (spec 048) — palette_target is
+    # non-None iff restraint is enabled.
+    if palette_target is not None:
         sparkle_rng = random.Random(section.start_ms * 31 + section.energy_score)
         for placements in result.values():
             for p in placements:
