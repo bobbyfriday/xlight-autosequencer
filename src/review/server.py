@@ -428,6 +428,10 @@ def create_app(analysis_path: str | None = None, audio_path: str | None = None,
     from src.review.generate_routes import generate_bp  # noqa: PLC0415
     app.register_blueprint(generate_bp, url_prefix="/generate")
 
+    # ── Register the section preview blueprint (spec 049) ─────────────────────
+    from src.review.preview_routes import preview_bp  # noqa: PLC0415
+    app.register_blueprint(preview_bp, url_prefix="/api/song")
+
     # ── Story review SPA route (always available) ─────────────────────────────
     @app.route("/story-review")
     def story_review_spa():

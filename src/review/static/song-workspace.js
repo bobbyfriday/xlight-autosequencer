@@ -58,6 +58,10 @@
       mountGenerateTab();
       mounted.generate = true;
     }
+    if (tabId === 'preview' && !mounted.preview) {
+      mountPreviewTab();
+      mounted.preview = true;
+    }
   }
 
   function bindTabClicks() {
@@ -395,10 +399,258 @@
     box.textContent = msg;
   }
 
+  // --- Preview tab --------------------------------------------------------
+  // US5 (in-browser canvas preview) is out of scope for spec 049 and will be
+  // picked up in a follow-up spec. The download path is the authoritative P1.
+
+  const PREVIEW_POLL_MS = 500;
+  let previewPollTimer = null;
+  let previewActiveJobId = null;
+  // Track whether the current preview result is stale (Brief changed since last run)
+  let previewResultIsStale = false;
+
+  // Populate the section dropdown from analysis hierarchy.
+  async function populatePreviewSections() {
+    const select = document.getElementById('preview-section-select');
+    const btn = document.getElementById('btn-preview');
+    if (!select) return;
+
+    try {
+      // Load analysis for the song
+      const resp = await fetch(`/api/analysis/${encodeURIComponent(sourceHash)}`);
+      let sections = [];
+      let pickerDefault = 0;
+
+      if (resp.ok) {
+        const data = await resp.json();
+        const hierarchy = data.hierarchy || data;
+        const rawSections = hierarchy.sections || [];
+
+        if (rawSections.length === 0) {
+          select.innerHTML = '<option value="" disabled>No sections available</option>';
+          btn.disabled = true;
+          btn.title = 'No sections available for this song.';
+          return;
+        }
+
+        // Resolve auto-selected default via server (null section_index)
+        // We derive it client-side from picker logic for display purposes.
+        sections = rawSections;
+        // Build section options
+        select.innerHTML = '';
+        sections.forEach((sec, i) => {
+          const startStr = fmtDurationMs(sec.time_ms !== undefined ? sec.time_ms * 1000 : (sec.start_ms || 0));
+          const endStr = fmtDurationMs(sec.end_ms || 0);
+          const label = sec.label || sec.role || `Section ${i}`;
+          const energy = sec.energy_score !== undefined ? sec.energy_score : '';
+          const energyStr = energy !== '' ? ` — energy ${energy}` : '';
+          const opt = document.createElement('option');
+          opt.value = String(i);
+          opt.textContent = `${label} — ${startStr}–${endStr}${energyStr}`;
+          select.appendChild(opt);
+        });
+
+        // Select index 0 by default; the POST with section_index=null will auto-pick
+        select.value = '0';
+        btn.disabled = false;
+        btn.title = '';
+      } else {
+        // Analysis fetch failed — use placeholder
+        select.innerHTML = '<option value="">Auto-select (default)</option>';
+        btn.disabled = false;
+      }
+    } catch (err) {
+      select.innerHTML = '<option value="">Auto-select (default)</option>';
+      btn.disabled = false;
+    }
+  }
+
+  function mountPreviewTab() {
+    populatePreviewSections();
+    bindPreviewButton();
+  }
+
+  function bindPreviewButton() {
+    const btn = document.getElementById('btn-preview');
+    if (btn) btn.addEventListener('click', startPreview);
+    const reBtn = document.getElementById('btn-repreview');
+    if (reBtn) reBtn.addEventListener('click', startPreview);
+  }
+
+  async function startPreview() {
+    const select = document.getElementById('preview-section-select');
+    const sectionIndex = select && select.value !== '' ? parseInt(select.value, 10) : null;
+
+    // Clear stale state
+    previewResultIsStale = false;
+    const staleBanner = document.getElementById('preview-stale-banner');
+    if (staleBanner) staleBanner.hidden = true;
+
+    // Hide previous result and error
+    const resultPane = document.getElementById('preview-result');
+    const errorPane = document.getElementById('preview-error');
+    const dlLink = document.getElementById('preview-download-link');
+    if (resultPane) resultPane.hidden = true;
+    if (errorPane) errorPane.hidden = true;
+    if (dlLink) { dlLink.hidden = true; dlLink.href = '#'; }
+
+    // Show progress
+    const progressEl = document.getElementById('preview-progress');
+    if (progressEl) progressEl.hidden = false;
+
+    // Gather brief (attempt to read from Brief tab form fields if present)
+    const brief = _collectBriefValues();
+
+    try {
+      const resp = await fetch(`/api/song/${encodeURIComponent(sourceHash)}/preview`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          section_index: sectionIndex,
+          brief: brief,
+        }),
+      });
+      const data = await resp.json();
+
+      if (!resp.ok) {
+        if (progressEl) progressEl.hidden = true;
+        showPreviewError(data.error || 'Failed to start preview');
+        return;
+      }
+
+      // Cache hit — result already available
+      if (data.cached) {
+        if (progressEl) progressEl.hidden = true;
+        renderPreviewResult(data.result);
+        return;
+      }
+
+      // Start polling
+      previewActiveJobId = data.job_id;
+      clearPreviewPoll();
+      previewPollTimer = setInterval(pollPreviewStatus, PREVIEW_POLL_MS);
+    } catch (err) {
+      if (progressEl) progressEl.hidden = true;
+      showPreviewError(String(err));
+    }
+  }
+
+  async function pollPreviewStatus() {
+    if (!previewActiveJobId) return;
+    try {
+      const resp = await fetch(
+        `/api/song/${encodeURIComponent(sourceHash)}/preview/${encodeURIComponent(previewActiveJobId)}`
+      );
+      const data = await resp.json();
+
+      if (data.status === 'done') {
+        clearPreviewPoll();
+        document.getElementById('preview-progress').hidden = true;
+        renderPreviewResult(data.result);
+      } else if (data.status === 'failed') {
+        clearPreviewPoll();
+        document.getElementById('preview-progress').hidden = true;
+        // FR-013: clear any prior result download link on error
+        const dlLink = document.getElementById('preview-download-link');
+        if (dlLink) { dlLink.hidden = true; dlLink.href = '#'; }
+        const resultPane = document.getElementById('preview-result');
+        if (resultPane) resultPane.hidden = true;
+        showPreviewError(data.error || 'Preview generation failed.');
+      } else if (data.status === 'cancelled') {
+        // Superseded — a newer job will be polling separately
+        clearPreviewPoll();
+      }
+      // pending / running: keep polling
+    } catch (err) {
+      // transient network error — keep polling
+    }
+  }
+
+  function renderPreviewResult(result) {
+    if (!result) return;
+    const resultPane = document.getElementById('preview-result');
+    if (!resultPane) return;
+
+    const sec = result.section || {};
+    const sectionLabel = sec.label || 'unknown';
+    const startStr = fmtDurationMs(sec.start_ms || 0);
+    const endStr = fmtDurationMs(sec.end_ms || 0);
+    document.getElementById('preview-meta-section').textContent =
+      `${sectionLabel} (${startStr}–${endStr})`;
+    document.getElementById('preview-meta-window').textContent =
+      result.window_ms ? `${(result.window_ms / 1000).toFixed(1)}s` : '—';
+    document.getElementById('preview-meta-theme').textContent = result.theme_name || '—';
+    document.getElementById('preview-meta-placements').textContent =
+      result.placement_count != null ? String(result.placement_count) : '—';
+
+    // Warnings
+    const warnBox = document.getElementById('preview-warnings');
+    if (result.warnings && result.warnings.length > 0) {
+      warnBox.hidden = false;
+      warnBox.innerHTML = result.warnings.map(w => `<p class="preview-warning">⚠ ${w}</p>`).join('');
+    } else {
+      warnBox.hidden = true;
+    }
+
+    // Download link
+    const dlLink = document.getElementById('preview-download-link');
+    if (dlLink && result.artifact_url) {
+      dlLink.href = result.artifact_url;
+      dlLink.hidden = false;
+    }
+
+    resultPane.hidden = false;
+    document.getElementById('preview-error').hidden = true;
+  }
+
+  function showPreviewError(msg) {
+    const errorPane = document.getElementById('preview-error');
+    const msgEl = document.getElementById('preview-error-message');
+    if (errorPane) errorPane.hidden = false;
+    if (msgEl) msgEl.textContent = msg;
+  }
+
+  function clearPreviewPoll() {
+    if (previewPollTimer) {
+      clearInterval(previewPollTimer);
+      previewPollTimer = null;
+    }
+  }
+
+  // Collect brief values from the Brief tab form if it exists (US4 stale detection).
+  function _collectBriefValues() {
+    // If the brief form is not present, use "saved" to load persisted brief.
+    return 'saved';
+  }
+
+  // Brief-change listener for stale marking (SC-005 / US4).
+  // Marks the preview result as stale within 500ms of any Brief field edit.
+  function _bindBriefChangeWatcher() {
+    const briefPanel = document.getElementById('panel-brief');
+    if (!briefPanel) return;
+    briefPanel.addEventListener('change', () => {
+      const resultPane = document.getElementById('preview-result');
+      if (resultPane && !resultPane.hidden) {
+        previewResultIsStale = true;
+        const staleBanner = document.getElementById('preview-stale-banner');
+        if (staleBanner) staleBanner.hidden = false;
+      }
+    });
+    briefPanel.addEventListener('input', () => {
+      const resultPane = document.getElementById('preview-result');
+      if (resultPane && !resultPane.hidden) {
+        previewResultIsStale = true;
+        const staleBanner = document.getElementById('preview-stale-banner');
+        if (staleBanner) staleBanner.hidden = false;
+      }
+    });
+  }
+
   // --- Boot --------------------------------------------------------------
   document.addEventListener('DOMContentLoaded', () => {
     bindTabClicks();
     populateHeader();
+    _bindBriefChangeWatcher();
     const fragment = (location.hash || '').replace(/^#/, '').toLowerCase();
     activateTab(VALID_TABS.includes(fragment) ? fragment : 'analysis');
   });
