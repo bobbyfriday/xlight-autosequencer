@@ -206,12 +206,12 @@
 
 ## Phase 9: Polish & Cross-Cutting Concerns
 
-- [ ] T069 Run full test suite: `pytest tests/ -v` — zero regressions, zero test-code modifications beyond the `place_effects` signature / `SectionAssignment` field updates required by the refactor (SC-006)
-- [ ] T070 Walk through quickstart.md end-to-end (Walkthroughs 1, 2, 3 plus the canonical-XML gate) on a devcontainer shell to confirm every example works as written
-- [ ] T071 Call-site audit: `grep -rn "place_effects(" src/` returns exactly two call sites (one in `build_plan`, one in `regenerate_sections`), both using the six-parameter form (SC-004)
-- [ ] T072 Accent-helper audit: read `_place_drum_accents` and `_place_impact_accent` source; confirm they contain no references to `section.energy_score`, `section.end_ms - section.start_ms`, `_IMPACT_ENERGY_GATE`, `_IMPACT_QUALIFYING_ROLES`, or `_IMPACT_MIN_DURATION_MS` as gating conditions (SC-005; per-hit `_DRUM_HIT_ENERGY_GATE` is allowed and expected)
-- [ ] T073 `GenerationConfig` audit: confirm every flag listed in spec.md FR-030 remains present and accepted by the JSON API with unchanged defaults (no removed field, no renamed field)
-- [ ] T074 Final canonical-XML gate run: `pytest tests/integration/test_generator_equivalence.py -v` — all four permutations green, closing out SC-001
+- [X] T069 Run full test suite: `pytest tests/ -v` — zero regressions, zero test-code modifications beyond the `place_effects` signature / `SectionAssignment` field updates required by the refactor (SC-006)
+- [X] T070 Walk through quickstart.md end-to-end (Walkthroughs 1, 2, 3 plus the canonical-XML gate) on a devcontainer shell to confirm every example works as written
+- [X] T071 Call-site audit: `grep -rn "place_effects(" src/` returns exactly two call sites (one in `build_plan`, one in `regenerate_sections`), both using the six-parameter form (SC-004)
+- [X] T072 Accent-helper audit: read `_place_drum_accents` and `_place_impact_accent` source; confirm they contain no references to `section.energy_score`, `section.end_ms - section.start_ms`, `_IMPACT_ENERGY_GATE`, `_IMPACT_QUALIFYING_ROLES`, or `_IMPACT_MIN_DURATION_MS` as gating conditions (SC-005; per-hit `_DRUM_HIT_ENERGY_GATE` is allowed and expected)
+- [X] T073 `GenerationConfig` audit: confirm every flag listed in spec.md FR-030 remains present and accepted by the JSON API with unchanged defaults (no removed field, no renamed field)
+- [X] T074 Final canonical-XML gate run: `pytest tests/integration/test_generator_equivalence.py -v` — all four permutations green, closing out SC-001
 
 ---
 
