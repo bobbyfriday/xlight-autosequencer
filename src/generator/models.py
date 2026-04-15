@@ -84,13 +84,40 @@ class EffectPlacement:
 
 
 @dataclass
+class AccentPolicy:
+    """Per-section gate outcomes for accent placement (spec 048, FR-001).
+
+    Populated in `build_plan()` from `config.beat_accent_effects` combined with
+    section-level gates (energy, role, duration, drum-event presence).  Accent
+    placement helpers MUST trust these flags and not re-evaluate the underlying
+    gates (FR-022).
+    """
+
+    drum_hits: bool = False  # spec 042A — per-hit Shockwave on small radial props
+    impact: bool = False     # spec 042B — whole-house white Shockwave at section start
+
+
+@dataclass
 class SectionAssignment:
-    """One section's theme and effect mapping."""
+    """One section's theme and effect mapping.
+
+    As of spec 048 (pipeline decision-ordering refactor), every per-section
+    creative decision is stored here as a populated field.  `build_plan()`
+    writes these fields before calling `place_effects()`; the placer reads
+    them as a read-only recipe.
+    """
 
     section: SectionEnergy
     theme: Theme
     group_effects: dict[str, list[EffectPlacement]] = field(default_factory=dict)
     variation_seed: int = 0
+    # Per-section decisions precomputed by build_plan() (spec 048).
+    active_tiers: frozenset[int] = field(default_factory=frozenset)
+    palette_target: Optional[dict[int, int]] = None
+    duration_target: Optional["DurationTarget"] = None
+    accent_policy: AccentPolicy = field(default_factory=AccentPolicy)
+    working_set: Optional["WorkingSet"] = None
+    section_index: int = 0
 
 
 @dataclass
