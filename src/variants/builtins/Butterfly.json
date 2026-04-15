@@ -240,6 +240,110 @@
         "scope": "single-prop",
         "genre_affinity": "any"
       }
+    },
+    {
+      "name": "Butterfly Lines",
+      "base_effect": "Butterfly",
+      "description": "Linear-streak pattern (style 3) \u2014 diagonal lines of color flowing across the canvas. Works well as an ambient background on bounding-box groups.",
+      "parameter_overrides": {
+        "E_CHOICE_Butterfly_Colors": "Palette",
+        "E_CHOICE_Butterfly_Direction": "Normal",
+        "E_SLIDER_Butterfly_Chunks": 1,
+        "E_SLIDER_Butterfly_Skip": 2,
+        "E_SLIDER_Butterfly_Speed": 8,
+        "E_SLIDER_Butterfly_Style": 3
+      },
+      "tags": {
+        "tier_affinity": "background",
+        "energy_level": "medium",
+        "speed_feel": "slow",
+        "direction": "fixed",
+        "section_roles": [
+          "verse",
+          "bridge",
+          "intro"
+        ],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Butterfly Moebius",
+      "base_effect": "Butterfly",
+      "description": "Moebius-twist pattern (style 5) \u2014 continuous looping band with organic color flow. Atmospheric background effect.",
+      "parameter_overrides": {
+        "E_CHOICE_Butterfly_Colors": "Palette",
+        "E_CHOICE_Butterfly_Direction": "Normal",
+        "E_SLIDER_Butterfly_Chunks": 1,
+        "E_SLIDER_Butterfly_Skip": 2,
+        "E_SLIDER_Butterfly_Speed": 8,
+        "E_SLIDER_Butterfly_Style": 5
+      },
+      "tags": {
+        "tier_affinity": "background",
+        "energy_level": "medium",
+        "speed_feel": "slow",
+        "direction": "fixed",
+        "section_roles": [
+          "verse",
+          "bridge",
+          "intro"
+        ],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Butterfly Classic Reverse",
+      "base_effect": "Butterfly",
+      "description": "Classic bilateral symmetry pattern flowing in reverse \u2014 pairs with Butterfly Classic for alternating-section variety.",
+      "parameter_overrides": {
+        "E_CHOICE_Butterfly_Colors": "Palette",
+        "E_CHOICE_Butterfly_Direction": "Reverse",
+        "E_SLIDER_Butterfly_Chunks": 1,
+        "E_SLIDER_Butterfly_Skip": 2,
+        "E_SLIDER_Butterfly_Speed": 10,
+        "E_SLIDER_Butterfly_Style": 1
+      },
+      "tags": {
+        "tier_affinity": "background",
+        "energy_level": "medium",
+        "speed_feel": "slow",
+        "direction": "fixed",
+        "section_roles": [
+          "verse",
+          "bridge",
+          "intro"
+        ],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Butterfly Geometric Reverse",
+      "base_effect": "Butterfly",
+      "description": "Geometric pillar pattern (style 4) flowing in reverse. Pair with Butterfly Geometric for directional variety.",
+      "parameter_overrides": {
+        "E_CHOICE_Butterfly_Colors": "Palette",
+        "E_CHOICE_Butterfly_Direction": "Reverse",
+        "E_SLIDER_Butterfly_Chunks": 1,
+        "E_SLIDER_Butterfly_Skip": 2,
+        "E_SLIDER_Butterfly_Speed": 15,
+        "E_SLIDER_Butterfly_Style": 4
+      },
+      "tags": {
+        "tier_affinity": "background",
+        "energy_level": "medium",
+        "speed_feel": "slow",
+        "direction": "fixed",
+        "section_roles": [
+          "verse",
+          "bridge",
+          "intro"
+        ],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
     }
   ]
 }

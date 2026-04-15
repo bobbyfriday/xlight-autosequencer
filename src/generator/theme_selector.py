@@ -123,14 +123,22 @@ def _fallback_sequence(genre: str, occasion: str) -> list[tuple[str, str]]:
 def _query_themes(
     library: ThemeLibrary, mood: str, genre: str, occasion: str
 ) -> list[Theme]:
-    """Query themes matching mood + genre + occasion."""
+    """Query themes matching mood + genre + occasion exactly.
+
+    Occasion match is strict: a request for "christmas" returns only themes
+    tagged "christmas", not the broader "general" pool.  `_fallback_sequence`
+    broadens to "general" on a subsequent attempt if no specific-occasion
+    themes qualify, so the strict match here ensures Christmas songs land on
+    Christmas themes whenever they exist rather than being outvoted by the
+    larger general pool.
+    """
     results = []
     for theme in library.themes.values():
         if theme.mood != mood:
             continue
         if genre != "any" and theme.genre not in (genre, "any"):
             continue
-        if occasion != "general" and theme.occasion not in (occasion, "general"):
+        if occasion != "general" and theme.occasion != occasion:
             continue
         results.append(theme)
     return results

@@ -64,12 +64,63 @@ _PHRASE_LEN_BARS = 4
 # Pearson-correlation threshold on bar-sampled energy at lag = phrase length.
 # Above this, the section is considered to have strong periodic phrase structure
 # (the pre-condition for GEO call-response to feel musically grounded).
-# 0.5 is a starting value; tune after visual inspection.
-_MIN_PHRASE_CORRELATION = 0.5
+# 0.7 is calibrated after visual inspection on MRC — 0.5 fired GEO too eagerly,
+# producing a blocky look on sections without clear call-response character.
+_MIN_PHRASE_CORRELATION = 0.7
+
+# Effects that read as geometric rectangles on bounding-box groups (GEO, COMP).
+# They look fine on individual props (linear strings, arches, single trees) but
+# awkward when xLights renders them across the bounding box of dissimilar props.
+_BLOCKY_ON_BOUNDING_BOX: frozenset[str] = frozenset({
+    "Bars", "Curtain", "Single Strand",
+})
+
+# Fallback effects to substitute when a theme's layer-0 effect would render as
+# blocky on a bounding-box tier (e.g., GEO).  Organic / radial effects that work
+# on arbitrary spatial groupings.  Order is preference: try the first available
+# in the effect library; fall back to the next if missing.
+_BOUNDING_BOX_SAFE_FALLBACKS: tuple[str, ...] = (
+    "Plasma", "Spirals", "Galaxy", "Ripple", "Color Wash",
+)
+
+
+def _darken_palette_hsl(palette: list[str], target_lightness: float = 0.15) -> list[str]:
+    """Darken a palette via HSL lightness reduction, preserving hue and saturation.
+
+    Linear RGB scaling (_dim_palette) desaturates colors — a dimmed red becomes
+    a muddy brown rather than a deep red.  This routine keeps the colour
+    identity intact by only dropping lightness: a vivid #FF0000 becomes a deep
+    ruby #4C0000 instead of the muddy #660000 that RGB scaling would produce.
+
+    Used for Tier 1 / Tier 2 background palettes so the backdrop reads as a
+    "dark version of this colour" rather than as a washed-out variant.
+    Lightness values already below the target are preserved (we only ever
+    darken, never brighten).
+    """
+    import colorsys
+    result: list[str] = []
+    for color in palette:
+        c = color.lstrip("#")
+        if len(c) != 6:
+            result.append(color)
+            continue
+        r = int(c[0:2], 16) / 255.0
+        g = int(c[2:4], 16) / 255.0
+        b = int(c[4:6], 16) / 255.0
+        h, l, s = colorsys.rgb_to_hls(r, g, b)
+        new_l = min(l, target_lightness)
+        nr, ng, nb = colorsys.hls_to_rgb(h, new_l, s)
+        result.append(f"#{int(nr * 255):02X}{int(ng * 255):02X}{int(nb * 255):02X}")
+    return result
 
 
 def _dim_palette(palette: list[str], multiplier: float) -> list[str]:
-    """Scale hex color brightness by multiplier (0.0-1.0)."""
+    """Scale hex color brightness by multiplier (0.0-1.0).
+
+    Retained for effect-level brightness modulation (e.g., tension curves).
+    For background-tier backdrops, prefer `_darken_palette_hsl` which better
+    preserves color identity at low lightness values.
+    """
     result = []
     for color in palette:
         c = color.lstrip("#")
@@ -485,8 +536,10 @@ def place_effects(
     # Accent palette: explicit or auto-lightened from main palette
     accent = theme.accent_palette if theme.accent_palette else _lighten_palette(theme.palette, 0.5)
 
-    # Background palette: dimmed for tiers 1-2
-    bg_palette = _dim_palette(theme.palette, 0.40)
+    # Background palette: darkened via HSL lightness reduction for tiers 1-2.
+    # HSL-dim preserves color identity (a vivid red stays red, just darker)
+    # rather than desaturating it into a muddy brown as linear RGB dimming does.
+    bg_palette = _darken_palette_hsl(theme.palette, target_lightness=0.15)
 
     # Detect drop/impact phase from section label (chorus, drop, bridge, etc.)
     section_label = (section.label or "").lower()
@@ -681,9 +734,14 @@ def place_effects(
             # back-and-forth that aligns to musical phrase structure.  Gated
             # upstream by _compute_active_tiers — only reached when the
             # section has strong phrase periodicity.
+            #
+            # Substitute blocky effects (Bars, Curtain, Single Strand) with an
+            # organic alternative — GEO groups are bounding-box canvases where
+            # linear effects read as geometric rectangles, not lighting design.
             if tier == 2 and groups_for_tier:
+                geo_effect_def = _substitute_bounding_box_effect(effect_def, effect_library)
                 cr_result = _place_call_response(
-                    effect_def, layer, groups_for_tier,
+                    geo_effect_def, layer, groups_for_tier,
                     assignment.section, hierarchy, tier_palette,
                     variant_library=variant_library,
                     phrase_len_bars=_PHRASE_LEN_BARS,
@@ -716,6 +774,36 @@ def place_effects(
                 )
                 if placements:
                     result.setdefault(group.name, []).extend(placements)
+
+            # Tier 1 background accent overlay: when the theme declares a
+            # `background_accent_variant` (e.g. "Snowflakes Driving Few" on
+            # Christmas themes), layer it on top of the base effect as a
+            # layer-1 placement.  Produces a breathing backdrop (wash + snow)
+            # instead of a flat colour field.  Opt-in per theme — Halloween
+            # and generic themes leave the field null and get no overlay.
+            if (
+                tier == 1
+                and groups_for_tier
+                and theme.background_accent_variant
+                and variant_library is not None
+            ):
+                accent_variant = variant_library.get(theme.background_accent_variant)
+                if accent_variant is not None:
+                    accent_def = effect_library.effects.get(accent_variant.base_effect)
+                    if accent_def is not None:
+                        accent_params = dict(accent_variant.parameter_overrides)
+                        for group in groups_for_tier:
+                            accent_p = _make_placement(
+                                accent_def, group.name,
+                                assignment.section.start_ms,
+                                assignment.section.end_ms,
+                                accent_params,
+                                tier_palette,
+                                "Normal",
+                                "section",
+                            )
+                            accent_p.layer = 1
+                            result.setdefault(group.name, []).append(accent_p)
 
     # MusicSparkles: post-process placements when palette_restraint is active
     if palette_restraint:
@@ -985,6 +1073,27 @@ def _place_chase_across_groups(
         result.setdefault(group.name, []).append(placement)
 
     return result
+
+
+def _substitute_bounding_box_effect(
+    effect_def: EffectDefinition,
+    effect_library: EffectLibrary,
+) -> EffectDefinition:
+    """Substitute blocky effects with a bounding-box-safe alternative.
+
+    GEO zones render as spatial regions (a bounding box enclosing dissimilar
+    props).  Linear effects like Bars look geometric in that context instead
+    of visually meaningful.  Swap in the first available organic/radial
+    effect from `_BOUNDING_BOX_SAFE_FALLBACKS`.  If the library has none of
+    the fallbacks, returns the original (no substitution rather than failure).
+    """
+    if effect_def.name not in _BLOCKY_ON_BOUNDING_BOX:
+        return effect_def
+    for candidate in _BOUNDING_BOX_SAFE_FALLBACKS:
+        alt = effect_library.effects.get(candidate)
+        if alt is not None:
+            return alt
+    return effect_def
 
 
 def _place_call_response(
