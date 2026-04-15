@@ -102,12 +102,12 @@
 
 ### Implementation for User Story 2 — Step (b): remove legacy kwargs from signature
 
-- [ ] T034 [US2] Rewrite `place_effects()` signature in `src/generator/effect_placer.py` to the final six-parameter form: `place_effects(assignment, groups, effect_library, hierarchy, variant_library=None, rotation_plan=None) -> dict[str, list[EffectPlacement]]` (FR-020)
-- [ ] T035 [US2] Remove the now-dead imports of `_compute_active_tiers`, `restrain_palette`, `compute_duration_target` inside `place_effects` scope — they remain module-level functions (still called from `plan.py`) but `place_effects` no longer references them (plan.md Phase C)
-- [ ] T036 [US2] Update the `build_plan()` call site in `src/generator/plan.py` to invoke the new signature: `place_effects(assignment, groups, effect_library, hierarchy, variant_library=variant_library, rotation_plan=rotation_plan)` — no `tiers=`, `section_index=`, `working_set=`, `focused_vocabulary=`, `palette_restraint=`, `duration_scaling=`, `bpm=` kwargs
-- [ ] T037 [US2] Run signature-guard test: `pytest tests/unit/test_place_effects_signature.py -v` — MUST now pass (it was red in T009)
-- [ ] T038 [US2] Run US2 tests: `pytest tests/unit/test_section_assignment.py -v`
-- [ ] T039 [US2] Run equivalence gate again: `pytest tests/integration/test_generator_equivalence.py -v` — MUST remain green across the signature change
+- [X] T034 [US2] Rewrite `place_effects()` signature in `src/generator/effect_placer.py` to the final six-parameter form: `place_effects(assignment, groups, effect_library, hierarchy, variant_library=None, rotation_plan=None) -> dict[str, list[EffectPlacement]]` (FR-020)
+- [X] T035 [US2] Remove the now-dead imports of `_compute_active_tiers`, `restrain_palette`, `compute_duration_target` inside `place_effects` scope — they remain module-level functions (still called from `plan.py`) but `place_effects` no longer references them (plan.md Phase C)
+- [X] T036 [US2] Update the `build_plan()` call site in `src/generator/plan.py` to invoke the new signature: `place_effects(assignment, groups, effect_library, hierarchy, variant_library=variant_library, rotation_plan=rotation_plan)` — no `tiers=`, `section_index=`, `working_set=`, `focused_vocabulary=`, `palette_restraint=`, `duration_scaling=`, `bpm=` kwargs
+- [X] T037 [US2] Run signature-guard test: `pytest tests/unit/test_place_effects_signature.py -v` — MUST now pass (it was red in T009)
+- [X] T038 [US2] Run US2 tests: `pytest tests/unit/test_section_assignment.py -v`
+- [X] T039 [US2] Run equivalence gate again: `pytest tests/integration/test_generator_equivalence.py -v` — MUST remain green across the signature change
 
 **Checkpoint**: `place_effects` is a pure recipe consumer. Signature is six parameters. Equivalence gate green. SC-002, SC-004 met.
 

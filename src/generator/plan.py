@@ -185,26 +185,15 @@ def build_plan(
     # read-only recipe.
     _populate_assignment_decisions(assignments, config, hierarchy, working_sets)
 
-    # 5. Place effects for each section
+    # 5. Place effects for each section.  `place_effects` reads every per-section
+    # decision off the assignment fields populated above.
     model_names = [p.name for p in props]
     props_by_name = {p.name: p for p in props}
-    # When tier_selection is disabled, pass all tiers explicitly so place_effects
-    # treats it as a user override and bypasses the energy/mood-driven selection.
-    tiers_arg = config.tiers if config.tier_selection else frozenset(range(1, 9))
-    for idx, assignment in enumerate(assignments):
-        theme_name = assignment.theme.name
-        section_working_set = working_sets.get(theme_name) if config.focused_vocabulary else None
+    for assignment in assignments:
         group_effects = place_effects(
             assignment, groups, effect_library, hierarchy,
-            tiers=tiers_arg,
             variant_library=variant_library,
             rotation_plan=rotation_plan,
-            section_index=idx,
-            working_set=section_working_set,
-            focused_vocabulary=config.focused_vocabulary,
-            palette_restraint=config.palette_restraint,
-            duration_scaling=config.duration_scaling,
-            bpm=hierarchy.estimated_bpm,
         )
         assignment.group_effects = group_effects
 
@@ -516,23 +505,14 @@ def regenerate_sections(config: GenerationConfig, existing_xsq: Path) -> Path:
     except Exception:
         logger.debug("Variant library unavailable — falling back to pool rotation")
 
-    # When tier_selection is disabled, pass all tiers explicitly so place_effects
-    # treats it as a user override and bypasses the energy/mood-driven selection.
-    tiers_arg = (
-        getattr(config, "tiers", None)
-        if getattr(config, "tier_selection", True)
-        else frozenset(range(1, 9))
-    )
-    for idx, assignment in enumerate(assignments):
+    # Precompute per-section decisions on each assignment, then place using the
+    # same assignment-driven path as `build_plan` (spec 048, FR-023).
+    _populate_assignment_decisions(assignments, config, hierarchy, working_sets={})
+    for assignment in assignments:
         group_effects = place_effects(
             assignment, groups, effect_library, hierarchy,
-            tiers=tiers_arg,
             variant_library=variant_library,
             rotation_plan=rotation_plan,
-            section_index=idx,
-            palette_restraint=getattr(config, "palette_restraint", True),
-            duration_scaling=getattr(config, "duration_scaling", True),
-            bpm=hierarchy.estimated_bpm,
         )
         assignment.group_effects = group_effects
 

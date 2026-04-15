@@ -438,21 +438,14 @@ def place_effects(
     groups: list[PowerGroup],
     effect_library: EffectLibrary,
     hierarchy: HierarchyResult,
-    tiers: set[int] | None = None,
     variant_library=None,
     rotation_plan: RotationPlan | None = None,
-    section_index: int = 0,
-    working_set: WorkingSet | None = None,
-    focused_vocabulary: bool = False,
-    palette_restraint: bool = False,
-    duration_scaling: bool = False,
-    bpm: float = 120.0,
 ) -> dict[str, list[EffectPlacement]]:
     """Place effects from theme layers onto power groups, aligned to timing tracks.
 
-    As of spec 048 step (a), every per-section creative decision is read off
-    ``assignment`` — legacy kwargs remain on the signature for backward
-    compatibility but are IGNORED; the signature reduction lands in step (b).
+    As of spec 048, every per-section creative decision is read off ``assignment``:
+    ``active_tiers``, ``palette_target``, ``duration_target``, ``working_set``,
+    ``section_index``.  Nothing is re-derived from config flags or ambient state.
 
     Layer-to-tier mapping:
     - Bottom layer(s) -> tiers 1-2 (base/geo groups)
@@ -466,9 +459,6 @@ def place_effects(
     """
     section = assignment.section
     theme = assignment.theme
-    # Read per-section decisions off the assignment (spec 048).  The legacy
-    # function kwargs are retained in the signature for backward compatibility
-    # this commit; they are ignored here and removed in step (b).
     section_index = assignment.section_index
     working_set = assignment.working_set
     focused_vocabulary = working_set is not None
