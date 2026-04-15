@@ -72,23 +72,23 @@
 
 ### Tests for User Story 2
 
-- [ ] T022 [P] [US2] Write integration test: after GET `/song/<hash>`, assert the HTML body contains a `#panel-analysis` element and references `/app.js` is loadable (smoke test only — DOM mount is exercised manually in quickstart) in `tests/integration/test_song_workspace_flow.py`
-- [ ] T023 [P] [US2] Write route test: `/timeline?hash=<hash>` still returns `index.html` body containing `#timeline-root` mount point in `tests/unit/test_song_workspace_route.py`
+- [X] T022 [P] [US2] Write integration test: after GET `/song/<hash>`, assert the HTML body contains a `#panel-analysis` element and references `/app.js` is loadable (smoke test only — DOM mount is exercised manually in quickstart) in `tests/integration/test_song_workspace_flow.py`
+- [X] T023 [P] [US2] Write route test: `/timeline?hash=<hash>` still returns `index.html` body containing `#timeline-root` mount point in `tests/unit/test_song_workspace_route.py`
 
 ### Implementation for User Story 2
 
-- [ ] T024 [US2] Wrap the body of `src/review/static/app.js` in `function createTimeline({ rootEl, hashParam = null }) { ... }` and expose `window.createTimeline = createTimeline` — per research.md §3 chosen design
-- [ ] T025 [US2] Move every module-level state variable catalogued in T006 (`tracks`, `durationMs`, `focusIndex`, `pxPerSec`, `dragSrcIndex`, `phonemeLayers`, `songSegments`, `activeStemFilter`, etc.) into the factory closure in `src/review/static/app.js`
-- [ ] T026 [US2] Replace every `document.getElementById('foo')` / `document.querySelector(...)` inventoried in T005 with `rootEl.querySelector('#foo')` inside the factory in `src/review/static/app.js`
-- [ ] T027 [US2] Move creation/lookup of `<audio id="player">` into the factory so the element lives under `rootEl` in `src/review/static/app.js` — ensure `player.src` still targets `/audio`
-- [ ] T028 [US2] Change the module-level `init()` call at the bottom of `src/review/static/app.js` to an auto-mount guard: `if (document.getElementById('timeline-root')) { createTimeline({ rootEl: ..., hashParam: new URLSearchParams(location.search).get('hash') }); }`
-- [ ] T029 [US2] Update `init()` inside the factory in `src/review/static/app.js` to use `hashParam ? `/analysis?hash=${hashParam}` : '/analysis'` for the analysis fetch
-- [ ] T030 [US2] Refactor `src/review/static/index.html` into a thin full-page wrapper: keep the navbar + toolbar, replace the old per-id body with a single `<div id="timeline-root">` that owns the toolbar, `#main`, `<audio>`, `#legend-panel`, `#status` as children — the factory populates this element
-- [ ] T031 [US2] Add a small "Open in workspace" link in `src/review/static/index.html` pointing to `/song/<source_hash>#analysis` when a `hash` URL param is resolvable (FR-012 affordance)
-- [ ] T032 [US2] In `src/review/static/song-workspace.js`, lazy-load `/app.js` on first Analysis-tab activation (insert a `<script src="/app.js">` tag into the document head if not already present) and call `createTimeline({ rootEl: document.getElementById('panel-analysis'), hashParam: sourceHash })` exactly once — subsequent activations are no-ops
-- [ ] T033 [US2] In `src/review/static/song-workspace.js`, render the Analysis empty-state ("No analysis available — re-run analysis to populate this tab") into `#panel-analysis` when the library entry indicates analysis is missing or errored (US2 acceptance scenario 5)
-- [ ] T034 [US2] Leave keyboard shortcut bindings (`Space`, `Ctrl+-`, `Ctrl+0`, `ArrowUp/Down`) on `window` inside the factory in `src/review/static/app.js` — Phase 2 only mounts one timeline; per research.md §3 this is intentional
-- [ ] T035 [US2] Run route tests: `python3 -m pytest tests/unit/test_song_workspace_route.py -v`
+- [X] T024 [US2] Wrap the body of `src/review/static/app.js` in `function createTimeline({ rootEl, hashParam = null }) { ... }` and expose `window.createTimeline = createTimeline` — per research.md §3 chosen design
+- [X] T025 [US2] Move every module-level state variable catalogued in T006 (`tracks`, `durationMs`, `focusIndex`, `pxPerSec`, `dragSrcIndex`, `phonemeLayers`, `songSegments`, `activeStemFilter`, etc.) into the factory closure in `src/review/static/app.js`
+- [X] T026 [US2] Replace every `document.getElementById('foo')` / `document.querySelector(...)` inventoried in T005 with `rootEl.querySelector('#foo')` inside the factory in `src/review/static/app.js`
+- [X] T027 [US2] Move creation/lookup of `<audio id="player">` into the factory so the element lives under `rootEl` in `src/review/static/app.js` — ensure `player.src` still targets `/audio`
+- [X] T028 [US2] Change the module-level `init()` call at the bottom of `src/review/static/app.js` to an auto-mount guard: `if (document.getElementById('timeline-root')) { createTimeline({ rootEl: ..., hashParam: new URLSearchParams(location.search).get('hash') }); }`
+- [X] T029 [US2] Update `init()` inside the factory in `src/review/static/app.js` to use `hashParam ? `/analysis?hash=${hashParam}` : '/analysis'` for the analysis fetch
+- [X] T030 [US2] Refactor `src/review/static/index.html` into a thin full-page wrapper: keep the navbar + toolbar, replace the old per-id body with a single `<div id="timeline-root">` that owns the toolbar, `#main`, `<audio>`, `#legend-panel`, `#status` as children — the factory populates this element
+- [X] T031 [US2] Add a small "Open in workspace" link in `src/review/static/index.html` pointing to `/song/<source_hash>#analysis` when a `hash` URL param is resolvable (FR-012 affordance)
+- [X] T032 [US2] In `src/review/static/song-workspace.js`, lazy-load `/app.js` on first Analysis-tab activation (insert a `<script src="/app.js">` tag into the document head if not already present) and call `createTimeline({ rootEl: document.getElementById('panel-analysis'), hashParam: sourceHash })` exactly once — subsequent activations are no-ops
+- [X] T033 [US2] In `src/review/static/song-workspace.js`, render the Analysis empty-state ("No analysis available — re-run analysis to populate this tab") into `#panel-analysis` when the library entry indicates analysis is missing or errored (US2 acceptance scenario 5)
+- [X] T034 [US2] Leave keyboard shortcut bindings (`Space`, `Ctrl+-`, `Ctrl+0`, `ArrowUp/Down`) on `window` inside the factory in `src/review/static/app.js` — Phase 2 only mounts one timeline; per research.md §3 this is intentional
+- [X] T035 [US2] Run route tests: `python3 -m pytest tests/unit/test_song_workspace_route.py -v`
 
 **Checkpoint**: Analysis tab renders full timeline UI; `/timeline` still works standalone; no regression. SC-002, SC-005, SC-009 met.
 
@@ -102,23 +102,23 @@
 
 ### Tests for User Story 3
 
-- [ ] T036 [P] [US3] Write unit test: seed `_jobs` with one `complete`, one `running`, one `failed` for the same `source_hash`; assert `/generate/<hash>/history` returns all three sorted newest-first in `tests/unit/test_generate_routes.py` (or the existing equivalent test file)
-- [ ] T037 [P] [US3] Write unit test: the `running` entry in the history payload has NO `download_url` field; the `complete` entry has a `download_url` pointing to `/generate/<hash>/download/<job_id>`; the `failed` entry has an `error` field in `tests/unit/test_generate_routes.py`
-- [ ] T038 [P] [US3] Write integration test: full flow — GET `/song/<hash>`, POST `/generate/<hash>`, poll `/generate/<hash>/status?job_id=...` until `complete`, GET `/generate/<hash>/download/<job_id>` returns an `.xsq` artifact in `tests/integration/test_song_workspace_flow.py`
-- [ ] T039 [P] [US3] Write integration test: seed a `running` job for `<hash>`; assert the initial `/generate/<hash>/history` payload on a fresh workspace mount contains the running entry with `status: "running"` in `tests/integration/test_song_workspace_flow.py`
+- [X] T036 [P] [US3] Write unit test: seed `_jobs` with one `complete`, one `running`, one `failed` for the same `source_hash`; assert `/generate/<hash>/history` returns all three sorted newest-first in `tests/unit/test_generate_routes.py` (or the existing equivalent test file)
+- [X] T037 [P] [US3] Write unit test: the `running` entry in the history payload has NO `download_url` field; the `complete` entry has a `download_url` pointing to `/generate/<hash>/download/<job_id>`; the `failed` entry has an `error` field in `tests/unit/test_generate_routes.py`
+- [X] T038 [P] [US3] Write integration test: full flow — GET `/song/<hash>`, POST `/generate/<hash>`, poll `/generate/<hash>/status?job_id=...` until `complete`, GET `/generate/<hash>/download/<job_id>` returns an `.xsq` artifact in `tests/integration/test_song_workspace_flow.py`
+- [X] T039 [P] [US3] Write integration test: seed a `running` job for `<hash>`; assert the initial `/generate/<hash>/history` payload on a fresh workspace mount contains the running entry with `status: "running"` in `tests/integration/test_song_workspace_flow.py`
 
 ### Implementation for User Story 3
 
-- [ ] T040 [US3] Extend `generation_history` in `src/review/generate_routes.py` — remove the `status == "complete"` filter, select all jobs for the `source_hash`, sort by `created_at` descending (per plan.md Change 2 diff)
-- [ ] T041 [US3] In the serialized dict in `src/review/generate_routes.py`, emit every status value (`pending`, `running`, `complete`, `failed`) and add conditional fields: `download_url` only when `status == "complete"`, `error` only when `status == "failed"`
-- [ ] T042 [US3] In `src/review/static/song-workspace.js`, on Generate-tab first activation, GET `/generate/<source_hash>/history` once and render the "Previous renders" list from entries with `status == "complete"` (timestamp, config summary, re-download link) — sorted newest-first
-- [ ] T043 [US3] In `src/review/static/song-workspace.js`, inspect the history payload for any entry with `status in {"pending", "running"}` — if found, adopt that `job_id` and enter the polling state immediately (progress UI visible, Generate button hidden/disabled)
-- [ ] T044 [US3] In `src/review/static/song-workspace.js`, render the primary Generate button, progress region (spinner + stage label), download region, and history list inside `#panel-generate`
-- [ ] T045 [US3] Wire the Generate button click handler in `src/review/static/song-workspace.js` — POST to `/generate/<source_hash>`, capture the `job_id`, disable the button, show the progress region
-- [ ] T046 [US3] Implement polling in `src/review/static/song-workspace.js` — `setInterval(1500)` calling `/generate/<source_hash>/status?job_id=...`; on `status == "complete"`, clear the interval, render the Download link (prominent, visually dominant) pointing to `/generate/<source_hash>/download/<job_id>`; on `status == "failed"`, surface the `error` message and re-enable Generate
-- [ ] T047 [US3] In `src/review/static/song-workspace.js`, fetch `/generate/settings` (or the existing layout-status endpoint) and render the layout-gate banner / disable the Generate button with a tooltip linking to the Zone A setup page when layout is not configured (FR-008)
-- [ ] T048 [US3] Ensure the history/settings/analysis fetches each fire at most once per page load in `src/review/static/song-workspace.js` (SC-005) — guard with per-tab `_mounted` flags
-- [ ] T049 [US3] Run unit and integration tests: `python3 -m pytest tests/unit/test_generate_routes.py tests/integration/test_song_workspace_flow.py -v`
+- [X] T040 [US3] Extend `generation_history` in `src/review/generate_routes.py` — remove the `status == "complete"` filter, select all jobs for the `source_hash`, sort by `created_at` descending (per plan.md Change 2 diff)
+- [X] T041 [US3] In the serialized dict in `src/review/generate_routes.py`, emit every status value (`pending`, `running`, `complete`, `failed`) and add conditional fields: `download_url` only when `status == "complete"`, `error` only when `status == "failed"`
+- [X] T042 [US3] In `src/review/static/song-workspace.js`, on Generate-tab first activation, GET `/generate/<source_hash>/history` once and render the "Previous renders" list from entries with `status == "complete"` (timestamp, config summary, re-download link) — sorted newest-first
+- [X] T043 [US3] In `src/review/static/song-workspace.js`, inspect the history payload for any entry with `status in {"pending", "running"}` — if found, adopt that `job_id` and enter the polling state immediately (progress UI visible, Generate button hidden/disabled)
+- [X] T044 [US3] In `src/review/static/song-workspace.js`, render the primary Generate button, progress region (spinner + stage label), download region, and history list inside `#panel-generate`
+- [X] T045 [US3] Wire the Generate button click handler in `src/review/static/song-workspace.js` — POST to `/generate/<source_hash>`, capture the `job_id`, disable the button, show the progress region
+- [X] T046 [US3] Implement polling in `src/review/static/song-workspace.js` — `setInterval(1500)` calling `/generate/<source_hash>/status?job_id=...`; on `status == "complete"`, clear the interval, render the Download link (prominent, visually dominant) pointing to `/generate/<source_hash>/download/<job_id>`; on `status == "failed"`, surface the `error` message and re-enable Generate
+- [X] T047 [US3] In `src/review/static/song-workspace.js`, fetch `/generate/settings` (or the existing layout-status endpoint) and render the layout-gate banner / disable the Generate button with a tooltip linking to the Zone A setup page when layout is not configured (FR-008)
+- [X] T048 [US3] Ensure the history/settings/analysis fetches each fire at most once per page load in `src/review/static/song-workspace.js` (SC-005) — guard with per-tab `_mounted` flags
+- [X] T049 [US3] Run unit and integration tests: `python3 -m pytest tests/unit/test_generate_routes.py tests/integration/test_song_workspace_flow.py -v`
 
 **Checkpoint**: Full generate flow works inside the workspace with no external page navigation; history + in-flight re-attach working. SC-003, SC-004 met.
 

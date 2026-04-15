@@ -104,6 +104,49 @@
   }
 
   // --- Analysis tab: lazy-load app.js + call createTimeline() ------------
+  //
+  // Spec 046 wraps the /timeline UI in a createTimeline(rootEl, hashParam)
+  // factory (see app.js). Since the workspace doesn't ship a full HTML page,
+  // we build the timeline's expected subtree here and hand it to the factory.
+  function buildTimelineSubtree() {
+    const root = document.createElement('div');
+    root.id = 'timeline-root';
+    root.dataset.xoMounted = 'true'; // suppresses the app.js auto-mount guard
+    root.innerHTML = [
+      '<div id="toolbar">',
+      '  <button id="btn-play" aria-label="Play or pause audio">Play</button>',
+      '  <span id="time-display" aria-live="polite">0:00 / 0:00</span>',
+      '  <div id="beat-flash" title="Beat indicator" role="presentation"></div>',
+      '  <button id="btn-prev" aria-label="Focus previous track">&#9664; Prev</button>',
+      '  <button id="btn-next" aria-label="Focus next track">Next &#9654;</button>',
+      '  <button id="btn-clear" aria-label="Clear track focus">Clear Focus</button>',
+      '  <span id="focus-label" aria-live="polite"></span>',
+      '  <span id="selected-count" aria-live="polite"></span>',
+      '  <span class="toolbar-sep" role="separator"></span>',
+      '  <button id="btn-zoom-out" title="Zoom out (Ctrl+-)" aria-label="Zoom out">&#8722;</button>',
+      '  <span id="zoom-level" aria-live="polite">100%</span>',
+      '  <button id="btn-zoom-in" title="Zoom in (Ctrl++)" aria-label="Zoom in">+</button>',
+      '  <button id="btn-phonemes" disabled title="No phoneme data — re-analyze with Phonemes enabled" aria-label="View phoneme tracks">Phonemes</button>',
+      '  <button id="btn-legend" title="Show/hide section color legend">Legend</button>',
+      '  <button id="btn-export" disabled>Export Selection</button>',
+      '</div>',
+      '<div id="main">',
+      '  <div id="panel">',
+      '    <div id="stem-filter-bar"></div>',
+      '    <div id="track-list"></div>',
+      '  </div>',
+      '  <div id="canvas-wrap">',
+      '    <canvas id="bg-canvas"></canvas>',
+      '    <canvas id="fg-canvas"></canvas>',
+      '  </div>',
+      '</div>',
+      '<audio id="player" src="/audio" preload="auto"></audio>',
+      '<div id="legend-panel"></div>',
+      '<div id="status">Loading analysis...</div>',
+    ].join('\n');
+    return root;
+  }
+
   function mountAnalysisTab() {
     const panel = document.getElementById('panel-analysis');
     if (!panel) return;
@@ -116,8 +159,17 @@
       return;
     }
 
-    const mountRoot = document.createElement('div');
-    mountRoot.id = 'timeline-root';
+    // Also link style.css for the timeline — the workspace page doesn't
+    // include it by default. Idempotent if already present.
+    if (!document.querySelector('link[data-xo-style]')) {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = '/style.css';
+      link.dataset.xoStyle = 'true';
+      document.head.appendChild(link);
+    }
+
+    const mountRoot = buildTimelineSubtree();
     panel.appendChild(mountRoot);
 
     const run = () => {
