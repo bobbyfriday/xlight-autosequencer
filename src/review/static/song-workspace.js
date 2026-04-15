@@ -409,6 +409,21 @@
     const panel = document.getElementById('panel-brief');
     if (!panel) return;
 
+    // Edge case: analysis missing — Brief tab shows disabled state (spec §edge-cases §1)
+    if (window.__xoAnalysisMissing) {
+      panel.innerHTML =
+        '<div class="brief-disabled-banner">' +
+        'Analysis required — run Analysis first before editing the Brief.' +
+        '</div>';
+      // Disable the Brief tab button
+      const tabBtn = document.querySelector('[data-tab="brief"]');
+      if (tabBtn) {
+        tabBtn.disabled = true;
+        tabBtn.title = 'Run analysis first to enable the Brief tab.';
+      }
+      return;
+    }
+
     // Inject CSS once
     if (!document.querySelector('link[data-xo-brief-css]')) {
       const link = document.createElement('link');
