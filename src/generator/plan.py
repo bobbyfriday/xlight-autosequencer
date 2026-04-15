@@ -504,9 +504,19 @@ def regenerate_sections(config: GenerationConfig, existing_xsq: Path) -> Path:
     except Exception:
         logger.debug("Variant library unavailable — falling back to pool rotation")
 
+    # Derive per-theme working sets when focused_vocabulary is enabled, same as
+    # `build_plan` step 3c.
+    from src.generator.effect_placer import derive_working_set
+    working_sets: dict = {}
+    if config.focused_vocabulary and variant_library is not None:
+        for assignment in assignments:
+            theme_name = assignment.theme.name
+            if theme_name not in working_sets:
+                working_sets[theme_name] = derive_working_set(assignment.theme, variant_library)
+
     # Precompute per-section decisions on each assignment, then place using the
     # same assignment-driven path as `build_plan` (spec 048, FR-023).
-    _populate_assignment_decisions(assignments, config, hierarchy, working_sets={})
+    _populate_assignment_decisions(assignments, config, hierarchy, working_sets)
     for assignment in assignments:
         group_effects = place_effects(
             assignment, groups, effect_library, hierarchy,

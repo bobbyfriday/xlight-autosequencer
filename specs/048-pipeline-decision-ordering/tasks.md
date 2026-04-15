@@ -147,14 +147,14 @@
 
 ### Tests for User Story 4
 
-- [ ] T050 [P] [US4] In `tests/unit/test_section_assignment.py`, test (Walkthrough 2): build a plan, snapshot `plan.sections[2].group_effects`, clear it, call `place_effects(a, groups, effect_lib, hierarchy, variant_library=variant_lib, rotation_plan=plan.rotation_plan)`, assert the result equals the snapshot (Acceptance Scenario 1)
-- [ ] T051 [P] [US4] In `tests/unit/test_section_assignment.py`, test: a `SectionAssignment` extracted from `plan.sections[i]` and passed alone to `_place_impact_accent` (with `accent_policy.impact=True`) fires the impact accent as it would in the full pipeline (Acceptance Scenario 2)
-- [ ] T052 [P] [US4] In `tests/unit/test_section_assignment.py`, test: `place_effects` does not reference `section_index` as a parameter anywhere — it reads `assignment.section_index` — verified by calling `place_effects` on a single assignment whose `section_index=5` without passing that index as a kwarg (Acceptance Scenario 3)
+- [X] T050 [P] [US4] In `tests/unit/test_section_assignment.py`, test (Walkthrough 2): build a plan, snapshot `plan.sections[2].group_effects`, clear it, call `place_effects(a, groups, effect_lib, hierarchy, variant_library=variant_lib, rotation_plan=plan.rotation_plan)`, assert the result equals the snapshot (Acceptance Scenario 1)
+- [X] T051 [P] [US4] In `tests/unit/test_section_assignment.py`, test: a `SectionAssignment` extracted from `plan.sections[i]` and passed alone to `_place_impact_accent` (with `accent_policy.impact=True`) fires the impact accent as it would in the full pipeline (Acceptance Scenario 2)
+- [X] T052 [P] [US4] In `tests/unit/test_section_assignment.py`, test: `place_effects` does not reference `section_index` as a parameter anywhere — it reads `assignment.section_index` — verified by calling `place_effects` on a single assignment whose `section_index=5` without passing that index as a kwarg (Acceptance Scenario 3)
 
 ### Implementation for User Story 4
 
-- [ ] T053 [US4] Verify (no code change expected) that `place_effects` as refactored in Phase 4 already satisfies isolation: it reads `assignment.section_index`, `assignment.active_tiers`, `assignment.palette_target`, `assignment.duration_target`, `assignment.working_set` and needs only `(assignment, groups, effect_library, hierarchy, variant_library, rotation_plan)`. If any residual per-song ambient lookup remains, fix it.
-- [ ] T054 [US4] Run US4 tests: `pytest tests/unit/test_section_assignment.py -v -k "isolation or walkthrough_2"`
+- [X] T053 [US4] Verify (no code change expected) that `place_effects` as refactored in Phase 4 already satisfies isolation: it reads `assignment.section_index`, `assignment.active_tiers`, `assignment.palette_target`, `assignment.duration_target`, `assignment.working_set` and needs only `(assignment, groups, effect_library, hierarchy, variant_library, rotation_plan)`. If any residual per-song ambient lookup remains, fix it.
+- [X] T054 [US4] Run US4 tests: `pytest tests/unit/test_section_assignment.py -v -k "isolation or walkthrough_2"`
 
 **Checkpoint**: Spec 049 Preview has a clean attachment point — a single assignment plus the shared layout/hierarchy/libs is enough to render one section end-to-end.
 
@@ -168,15 +168,15 @@
 
 ### Tests for User Story 5
 
-- [ ] T055 [P] [US5] In `tests/unit/test_section_assignment.py`, test (Walkthrough 3): mutate `assignment.palette_target` to cap at 2 colours per active tier, re-run `place_effects`, assert every placement's palette is trimmed to at most 2 colours (Acceptance Scenario 1)
-- [ ] T056 [P] [US5] In `tests/unit/test_section_assignment.py`, test: mutate `assignment.duration_target = DurationTarget(min_ms=400, target_ms=600, max_ms=800)`, re-run `place_effects`, assert placements target the overridden range (Acceptance Scenario 2)
-- [ ] T057 [P] [US5] In `tests/unit/test_section_assignment.py`, test: mutate `assignment.active_tiers = frozenset({1, 8})`, re-run `place_effects`, assert `group_effects` contains only groups whose `tier` is 1 or 8 (Acceptance Scenario 3)
-- [ ] T058 [P] [US5] In `tests/unit/test_section_assignment.py`, test: set `assignment.accent_policy = AccentPolicy(drum_hits=False, impact=False)` on a section that originally had accents, re-run the accent pass, assert no accent placements appear for that section while others are unaffected (Acceptance Scenario 4)
+- [X] T055 [P] [US5] In `tests/unit/test_section_assignment.py`, test (Walkthrough 3): mutate `assignment.palette_target` to cap at 2 colours per active tier, re-run `place_effects`, assert every placement's palette is trimmed to at most 2 colours (Acceptance Scenario 1)
+- [X] T056 [P] [US5] In `tests/unit/test_section_assignment.py`, test: mutate `assignment.duration_target = DurationTarget(min_ms=400, target_ms=600, max_ms=800)`, re-run `place_effects`, assert placements target the overridden range (Acceptance Scenario 2)
+- [X] T057 [P] [US5] In `tests/unit/test_section_assignment.py`, test: mutate `assignment.active_tiers = frozenset({1, 8})`, re-run `place_effects`, assert `group_effects` contains only groups whose `tier` is 1 or 8 (Acceptance Scenario 3)
+- [X] T058 [P] [US5] In `tests/unit/test_section_assignment.py`, test: set `assignment.accent_policy = AccentPolicy(drum_hits=False, impact=False)` on a section that originally had accents, re-run the accent pass, assert no accent placements appear for that section while others are unaffected (Acceptance Scenario 4)
 
 ### Implementation for User Story 5
 
-- [ ] T059 [US5] Verify (no code change expected) that the override path works by construction: mutations to `active_tiers`, `palette_target`, `duration_target`, `accent_policy` on the assignment flow through `place_effects` and the accent helpers without needing any new parameter. If a mutation does NOT propagate (e.g. a cached decision computed inside `place_effects`), remove the cache.
-- [ ] T060 [US5] Run US5 tests: `pytest tests/unit/test_section_assignment.py -v -k "override"`
+- [X] T059 [US5] Verify (no code change expected) that the override path works by construction: mutations to `active_tiers`, `palette_target`, `duration_target`, `accent_policy` on the assignment flow through `place_effects` and the accent helpers without needing any new parameter. If a mutation does NOT propagate (e.g. a cached decision computed inside `place_effects`), remove the cache.
+- [X] T060 [US5] Run US5 tests: `pytest tests/unit/test_section_assignment.py -v -k "override"`
 
 **Checkpoint**: Spec 047 Brief UI has its attachment points. SC-007 met.
 
@@ -188,17 +188,17 @@
 
 ### Tests for Phase 8
 
-- [ ] T061 [P] In `tests/unit/test_section_assignment.py`, test: `regenerate_sections()` called with the same inputs as `build_plan()` for a given subset of section indices produces `group_effects` byte-equal to the originals (no divergence from the new path — FR-023)
-- [ ] T062 [P] In `tests/unit/test_place_effects_signature.py`, extend the grep-style check to scan `src/generator/plan.py` for any `place_effects(...)` invocation and assert both call sites (in `build_plan` and `regenerate_sections`) use the exact same six-argument form (SC-004)
+- [X] T061 [P] In `tests/unit/test_section_assignment.py`, test: `regenerate_sections()` called with the same inputs as `build_plan()` for a given subset of section indices produces `group_effects` byte-equal to the originals (no divergence from the new path — FR-023)
+- [X] T062 [P] In `tests/unit/test_place_effects_signature.py`, extend the grep-style check to scan `src/generator/plan.py` for any `place_effects(...)` invocation and assert both call sites (in `build_plan` and `regenerate_sections`) use the exact same six-argument form (SC-004)
 
 ### Implementation for Phase 8
 
-- [ ] T063 In `src/generator/plan.py` `regenerate_sections()` (lines ~365–490), delete the duplicated flag-handling block at lines 437–452 that threads `tiers_arg`, `palette_restraint=`, `duration_scaling=`, `bpm=` into `place_effects`
-- [ ] T064 In `src/generator/plan.py` `regenerate_sections()`, run the same Phase B decision-precompute loop over the affected `assignments` subset — identical code as T019–T021 (extract into a private helper `_populate_assignment_decisions(assignments, config, hierarchy, working_sets)` in `plan.py` and call it from both `build_plan` and `regenerate_sections` to avoid duplication)
-- [ ] T065 In `src/generator/plan.py`, refactor `build_plan()` to call the new `_populate_assignment_decisions` helper instead of its inline loop (consolidates the precompute into a single function used by both entry points)
-- [ ] T066 In `src/generator/plan.py` `regenerate_sections()`, replace the old `place_effects(...)` call with `place_effects(assignment, groups, effect_library, hierarchy, variant_library=variant_library, rotation_plan=rotation_plan)` — identical to `build_plan`'s call (FR-023)
-- [ ] T067 Run Phase 8 tests: `pytest tests/unit/test_section_assignment.py tests/unit/test_place_effects_signature.py -v`
-- [ ] T068 Run equivalence gate again: `pytest tests/integration/test_generator_equivalence.py -v` — MUST still be green (regenerate_sections path is not exercised by the default gate, but verifies nothing in `build_plan` broke during the helper extraction)
+- [X] T063 In `src/generator/plan.py` `regenerate_sections()` (lines ~365–490), delete the duplicated flag-handling block at lines 437–452 that threads `tiers_arg`, `palette_restraint=`, `duration_scaling=`, `bpm=` into `place_effects`
+- [X] T064 In `src/generator/plan.py` `regenerate_sections()`, run the same Phase B decision-precompute loop over the affected `assignments` subset — identical code as T019–T021 (extract into a private helper `_populate_assignment_decisions(assignments, config, hierarchy, working_sets)` in `plan.py` and call it from both `build_plan` and `regenerate_sections` to avoid duplication)
+- [X] T065 In `src/generator/plan.py`, refactor `build_plan()` to call the new `_populate_assignment_decisions` helper instead of its inline loop (consolidates the precompute into a single function used by both entry points)
+- [X] T066 In `src/generator/plan.py` `regenerate_sections()`, replace the old `place_effects(...)` call with `place_effects(assignment, groups, effect_library, hierarchy, variant_library=variant_library, rotation_plan=rotation_plan)` — identical to `build_plan`'s call (FR-023)
+- [X] T067 Run Phase 8 tests: `pytest tests/unit/test_section_assignment.py tests/unit/test_place_effects_signature.py -v`
+- [X] T068 Run equivalence gate again: `pytest tests/integration/test_generator_equivalence.py -v` — MUST still be green (regenerate_sections path is not exercised by the default gate, but verifies nothing in `build_plan` broke during the helper extraction)
 
 **Checkpoint**: Single precompute path, single `place_effects` signature, zero duplication. SC-004 fully met.
 
