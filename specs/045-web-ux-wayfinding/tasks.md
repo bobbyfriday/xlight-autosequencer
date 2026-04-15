@@ -15,9 +15,9 @@
 
 **Purpose**: No new files or dependencies. Confirm the existing plumbing referenced by the plan is where the plan says it is.
 
-- [ ] T001 Verify `src/settings.py` exposes `get_layout_path()` returning `Path | None` — confirm by reading `src/settings.py` around line 37
-- [ ] T002 Verify `src/review/generate_routes.py` exposes the in-memory `_jobs` dict with `source_hash`, `status`, and `created_at` fields used by `/generate/<hash>/history` — read `src/review/generate_routes.py` around line 222
-- [ ] T003 Verify the current `/library` shape by reading `src/review/server.py` lines 447–570 (`library_index()` and `_enrich()`) — confirm `source_hash`, `source_file_exists`, `analysis_exists`, `has_story`, `has_phonemes` are already emitted
+- [X] T001 Verify `src/settings.py` exposes `get_layout_path()` returning `Path | None` — confirm by reading `src/settings.py` around line 37
+- [X] T002 Verify `src/review/generate_routes.py` exposes the in-memory `_jobs` dict with `source_hash`, `status`, and `created_at` fields used by `/generate/<hash>/history` — read `src/review/generate_routes.py` around line 222
+- [X] T003 Verify the current `/library` shape by reading `src/review/server.py` lines 447–570 (`library_index()` and `_enrich()`) — confirm `source_hash`, `source_file_exists`, `analysis_exists`, `has_story`, `has_phonemes` are already emitted
 
 **Checkpoint**: Server-side prerequisites for the `/library` payload extension confirmed.
 
@@ -29,19 +29,19 @@
 
 ### Tests for Foundational
 
-- [ ] T004 [P] Write integration test: GET `/library` returns entries with `layout_configured` (bool), `last_generated_at` (ISO-8601 string or null), `has_story` (bool), and `is_stale` (bool) fields present on every entry, in tests/integration/test_library_payload.py
-- [ ] T005 [P] Write integration test: when `src.settings.get_layout_path()` returns None, every entry in `/library` has `layout_configured: false`; when it returns an existing Path, every entry has `layout_configured: true`, in tests/integration/test_library_payload.py
-- [ ] T006 [P] Write integration test: when the source file's recomputed MD5 equals `source_hash`, `is_stale` is false; when the source file is missing, `is_stale` is false (skipped), in tests/integration/test_library_payload.py
+- [X] T004 [P] Write integration test: GET `/library` returns entries with `layout_configured` (bool), `last_generated_at` (ISO-8601 string or null), `has_story` (bool), and `is_stale` (bool) fields present on every entry, in tests/integration/test_library_payload.py
+- [X] T005 [P] Write integration test: when `src.settings.get_layout_path()` returns None, every entry in `/library` has `layout_configured: false`; when it returns an existing Path, every entry has `layout_configured: true`, in tests/integration/test_library_payload.py
+- [X] T006 [P] Write integration test: when the source file's recomputed MD5 equals `source_hash`, `is_stale` is false; when the source file is missing, `is_stale` is false (skipped), in tests/integration/test_library_payload.py
 
 ### Implementation for Foundational
 
-- [ ] T007 Compute `layout_configured` once per request at the top of `library_index()` in src/review/server.py by calling `src.settings.get_layout_path()` and checking `.exists()`; store in a local bool
-- [ ] T008 Extend `_enrich(e)` in src/review/server.py (~lines 469–570) to set `entry["layout_configured"] = layout_configured` from the enclosing scope on every row
-- [ ] T009 Extend `_enrich(e)` in src/review/server.py to compute `last_generated_at` by scanning `src.review.generate_routes._jobs` for the newest job with `source_hash == e.source_hash` and `status == "complete"`; emit ISO-8601 or null
-- [ ] T010 Extend `_enrich(e)` in src/review/server.py to compute `is_stale` by recomputing the source file MD5 and comparing to `e.source_hash`; skip (false) when source file is missing
-- [ ] T011 Add an in-process cache keyed by `(source_path, mtime, size)` for the MD5 recomputation in src/review/server.py to keep `/library` under 100ms for large libraries (research.md Decision 3)
-- [ ] T012 Confirm `has_story` is already emitted by `_enrich()` (plan.md line 96); no code change — add an inline comment in src/review/server.py noting that spec 045 consumes this field
-- [ ] T013 Run tests: `python3 -m pytest tests/integration/test_library_payload.py -v`
+- [X] T007 Compute `layout_configured` once per request at the top of `library_index()` in src/review/server.py by calling `src.settings.get_layout_path()` and checking `.exists()`; store in a local bool
+- [X] T008 Extend `_enrich(e)` in src/review/server.py (~lines 469–570) to set `entry["layout_configured"] = layout_configured` from the enclosing scope on every row
+- [X] T009 Extend `_enrich(e)` in src/review/server.py to compute `last_generated_at` by scanning `src.review.generate_routes._jobs` for the newest job with `source_hash == e.source_hash` and `status == "complete"`; emit ISO-8601 or null
+- [X] T010 Extend `_enrich(e)` in src/review/server.py to compute `is_stale` by recomputing the source file MD5 and comparing to `e.source_hash`; skip (false) when source file is missing
+- [X] T011 Add an in-process cache keyed by `(source_path, mtime, size)` for the MD5 recomputation in src/review/server.py to keep `/library` under 100ms for large libraries (research.md Decision 3)
+- [X] T012 Confirm `has_story` is already emitted by `_enrich()` (plan.md line 96); no code change — add an inline comment in src/review/server.py noting that spec 045 consumes this field
+- [X] T013 Run tests: `python3 -m pytest tests/integration/test_library_payload.py -v`
 
 **Checkpoint**: `/library` now serves the four fields the dashboard needs. Every user-story phase below depends on this.
 
