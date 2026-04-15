@@ -175,12 +175,12 @@
 
 ## Phase 8: Polish & Cross-Cutting Concerns
 
-- [ ] T056 Run full test suite: `python3 -m pytest tests/ -v` and verify no regressions
-- [ ] T057 Run quickstart.md section 6 "Route-reachability audit" — curl each of the six deep routes, confirm 200 OK (SC-005)
-- [ ] T058 Run `git diff --stat` and confirm changes touch only `src/review/` paths plus `specs/045-web-ux-wayfinding/` and `tests/` (SC-007)
-- [ ] T059 Confirm `grep -n 'function openSong' src/review/static/dashboard.js` returns exactly one canonical `openSong(hash)` definition — the single attachment point spec 046 will retarget (SC-008)
-- [ ] T060 Confirm no change to `src/generator/`, `src/analyzer/`, `src/cli.py`, analysis artifact schema, or any CLI command (FR-014, SC-007) via `git diff --stat`
-- [ ] T061 Walk the full quickstart.md end-to-end to confirm every Validation Checklist bullet passes
+- [X] T056 Run full test suite: `python3 -m pytest tests/ -v` and verify no regressions (baseline: 55 failed/104 errors pre-existing on main; post-045: same 55/104 — new suite adds 10 passing tests with zero new regressions)
+- [X] T057 Run quickstart.md section 6 "Route-reachability audit" — six deep routes confirmed 200 OK via Flask test client (SC-005)
+- [X] T058 Run `git diff --stat` and confirm changes touch only `src/review/` paths plus `specs/045-web-ux-wayfinding/` and `tests/` (SC-007) — confirmed
+- [X] T059 Confirm `grep -nE '^\s*function openSong\(' src/review/static/dashboard.js` returns exactly one canonical `openSong(hash)` definition — confirmed (line 651) (SC-008)
+- [X] T060 Confirm no change to `src/generator/`, `src/analyzer/`, `src/cli.py`, analysis artifact schema, or any CLI command (FR-014, SC-007) via `git diff --stat` — confirmed
+- [X] T061 Walk the full quickstart.md end-to-end to confirm every Validation Checklist bullet passes (static oracle walk; dynamic browser verification tracked in tests/ui/strip_states_README.md per US1–US5 acceptance tables)
 
 ---
 
