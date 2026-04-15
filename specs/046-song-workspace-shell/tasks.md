@@ -15,10 +15,10 @@
 
 **Purpose**: No new dependencies. Confirm existing infrastructure the workspace will consume.
 
-- [ ] T001 Verify the `/generate/<hash>/history` endpoint exists in `src/review/generate_routes.py` — locate the current `status == "complete"` filter and note line numbers for the Phase 3 extension
-- [ ] T002 Verify `/analysis?hash=<source_hash>` resolves hash-based analysis lookups in `src/review/server.py` (around line 951 per plan.md) — no changes needed, just confirm the contract the Analysis tab relies on
-- [ ] T003 Verify `Library().find_by_hash()` exists in `src/library.py` — the `/song/<source_hash>` route's 404 gate depends on it
-- [ ] T004 Verify spec 045's centralized `openSong()` helper exists in `src/review/static/dashboard.js` (around lines 434–446 per plan.md) — this is the sole edit point for Change 5
+- [X] T001 Verify the `/generate/<hash>/history` endpoint exists in `src/review/generate_routes.py` — locate the current `status == "complete"` filter and note line numbers for the Phase 3 extension
+- [X] T002 Verify `/analysis?hash=<source_hash>` resolves hash-based analysis lookups in `src/review/server.py` (around line 951 per plan.md) — no changes needed, just confirm the contract the Analysis tab relies on
+- [X] T003 Verify `Library().find_by_hash()` exists in `src/library.py` — the `/song/<source_hash>` route's 404 gate depends on it
+- [X] T004 Verify spec 045's centralized `openSong()` helper exists in `src/review/static/dashboard.js` (around lines 434–446 per plan.md) — this is the sole edit point for Change 5
 
 ---
 
@@ -26,9 +26,9 @@
 
 **Purpose**: Inventory `app.js` globals and DOM lookups before the factory refactor; seed the workspace static files so later tasks have files to edit.
 
-- [ ] T005 Grep `src/review/static/app.js` for every `document.getElementById` and `document.querySelector` call — produce an inventory comment block or scratch list identifying which ones move to `rootEl.querySelector` and which stay on `window`/`document` (keyboard shortcut bindings)
-- [ ] T006 Catalog module-level state in `src/review/static/app.js` (lines 5–11, 36–80 per research.md §1) — list `tracks`, `durationMs`, `focusIndex`, `pxPerSec`, DOM handles, etc. that must move into the factory closure
-- [ ] T007 Create empty stub files `src/review/static/song-workspace.html`, `src/review/static/song-workspace.js`, `src/review/static/song-workspace.css` so subsequent tasks can edit in place
+- [X] T005 Grep `src/review/static/app.js` for every `document.getElementById` and `document.querySelector` call — produce an inventory comment block or scratch list identifying which ones move to `rootEl.querySelector` and which stay on `window`/`document` (keyboard shortcut bindings)
+- [X] T006 Catalog module-level state in `src/review/static/app.js` (lines 5–11, 36–80 per research.md §1) — list `tracks`, `durationMs`, `focusIndex`, `pxPerSec`, DOM handles, etc. that must move into the factory closure
+- [X] T007 Create empty stub files `src/review/static/song-workspace.html`, `src/review/static/song-workspace.js`, `src/review/static/song-workspace.css` so subsequent tasks can edit in place
 
 **Checkpoint**: Refactor surface area understood; new static files exist as empty shells.
 
