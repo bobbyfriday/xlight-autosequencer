@@ -194,8 +194,17 @@ class GenerationConfig:
     duration_scaling: bool = True       # Scale effect durations by BPM and section energy
     beat_accent_effects: bool = True    # Drum-hit Shockwave on small radials + whole-house impact accents
     tier_selection: bool = True         # Energy/mood-driven single partition tier per section
+    # Nominal fields (spec 047) — stored but not read in Phase 3. Phase 4
+    # (spec 048 follow-up) will wire them into build_plan/theme_selector so
+    # the Brief tab can drop its client-side MOOD_DEFAULTS ruleset.
+    mood_intent: str = "auto"           # Brief mood axis: auto/party/emotional/dramatic/playful
+    duration_feel: str = "auto"         # Brief duration axis: auto/snappy/balanced/flowing
+    accent_strength: str = "auto"       # Brief accent axis: auto/subtle/strong
 
     _VALID_CURVES_MODES = frozenset({"all", "brightness", "speed", "color", "none"})
+    _VALID_MOOD_INTENTS = frozenset({"auto", "party", "emotional", "dramatic", "playful"})
+    _VALID_DURATION_FEELS = frozenset({"auto", "snappy", "balanced", "flowing"})
+    _VALID_ACCENT_STRENGTHS = frozenset({"auto", "subtle", "strong"})
 
     def __post_init__(self) -> None:
         self.audio_path = Path(self.audio_path)
@@ -210,4 +219,19 @@ class GenerationConfig:
             raise ValueError(
                 f"Invalid curves_mode {self.curves_mode!r}. "
                 f"Must be one of: {sorted(self._VALID_CURVES_MODES)}"
+            )
+        if self.mood_intent not in self._VALID_MOOD_INTENTS:
+            raise ValueError(
+                f"Invalid mood_intent {self.mood_intent!r}. "
+                f"Must be one of: {sorted(self._VALID_MOOD_INTENTS)}"
+            )
+        if self.duration_feel not in self._VALID_DURATION_FEELS:
+            raise ValueError(
+                f"Invalid duration_feel {self.duration_feel!r}. "
+                f"Must be one of: {sorted(self._VALID_DURATION_FEELS)}"
+            )
+        if self.accent_strength not in self._VALID_ACCENT_STRENGTHS:
+            raise ValueError(
+                f"Invalid accent_strength {self.accent_strength!r}. "
+                f"Must be one of: {sorted(self._VALID_ACCENT_STRENGTHS)}"
             )
