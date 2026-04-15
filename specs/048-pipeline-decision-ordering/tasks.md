@@ -15,9 +15,9 @@
 
 **Purpose**: Capture the behavioural baseline before any refactor diff lands. Goldens live on disk from the pre-refactor commit so every later phase can diff against them.
 
-- [ ] T001 Create directory `tests/fixtures/xsq/048_golden/` (committed empty with a `.gitkeep`) to hold pre-refactor golden `.xsq` outputs
-- [ ] T002 On the current tip of `main` (pre-refactor commit), generate `.xsq` output for four fixture permutations — `default`, `no_focus` (`focused_vocabulary=False`), `no_tier_selection` (`tier_selection=False`), `no_accents` (`beat_accent_effects=False`) — using `tests/fixtures/beat_120bpm_10s.wav` and `tests/fixtures/generate/mock_layout.xml`; write each to `tests/fixtures/xsq/048_golden/{default,no_focus,no_tier_selection,no_accents}.xsq`
-- [ ] T003 Commit the captured goldens on the 048 refactor branch as the first commit so every subsequent diff gates against the frozen baseline (per research.md §6)
+- [X] T001 Create directory `tests/fixtures/xsq/048_golden/` (committed empty with a `.gitkeep`) to hold pre-refactor golden `.xsq` outputs
+- [X] T002 On the current tip of `main` (pre-refactor commit), generate `.xsq` output for four fixture permutations — `default`, `no_focus` (`focused_vocabulary=False`), `no_tier_selection` (`tier_selection=False`), `no_accents` (`beat_accent_effects=False`) — using `tests/fixtures/beat_120bpm_10s.wav` and `tests/fixtures/generate/mock_layout.xml`; write each to `tests/fixtures/xsq/048_golden/{default,no_focus,no_tier_selection,no_accents}.xsq`
+- [X] T003 Commit the captured goldens on the 048 refactor branch as the first commit so every subsequent diff gates against the frozen baseline (per research.md §6)
 
 **Checkpoint**: Goldens captured and committed; refactor work may now begin against a fixed baseline.
 
@@ -29,18 +29,18 @@
 
 ### Canonical-XML equivalence gate
 
-- [ ] T004 [P] Write `tests/integration/test_generator_equivalence.py` with a `_canon(xsq_path)` helper that calls `xml.etree.ElementTree.canonicalize(xml_data=..., strip_text=True)` and returns the canonicalised string (per research.md §3)
-- [ ] T005 [P] Add four parametrised equivalence tests in `tests/integration/test_generator_equivalence.py` — one per permutation (`default`, `no_focus`, `no_tier_selection`, `no_accents`) — that regenerate `.xsq` from the same fixture audio+layout, canonicalise, and assert byte-equal to `tests/fixtures/xsq/048_golden/<permutation>.xsq` (SC-001, FR-031)
-- [ ] T006 [P] Add a `@pytest.mark.capture_only`-gated `capture_goldens` helper in `tests/integration/test_generator_equivalence.py` that writes goldens from current output; default CI run MUST skip it (quickstart.md "Regenerating goldens")
+- [X] T004 [P] Write `tests/integration/test_generator_equivalence.py` with a `_canon(xsq_path)` helper that calls `xml.etree.ElementTree.canonicalize(xml_data=..., strip_text=True)` and returns the canonicalised string (per research.md §3)
+- [X] T005 [P] Add four parametrised equivalence tests in `tests/integration/test_generator_equivalence.py` — one per permutation (`default`, `no_focus`, `no_tier_selection`, `no_accents`) — that regenerate `.xsq` from the same fixture audio+layout, canonicalise, and assert byte-equal to `tests/fixtures/xsq/048_golden/<permutation>.xsq` (SC-001, FR-031)
+- [X] T006 [P] Add a `@pytest.mark.capture_only`-gated `capture_goldens` helper in `tests/integration/test_generator_equivalence.py` that writes goldens from current output; default CI run MUST skip it (quickstart.md "Regenerating goldens")
 
 ### Signature-guard test
 
-- [ ] T007 [P] Write `tests/unit/test_place_effects_signature.py` that uses `inspect.signature(place_effects)` to assert the parameter list is exactly `(assignment, groups, effect_library, hierarchy, variant_library, rotation_plan)` and that NONE of `{tiers, section_index, working_set, focused_vocabulary, palette_restraint, duration_scaling, bpm}` appear as parameters (FR-020, SC-002, SC-004)
-- [ ] T008 [P] In `tests/unit/test_place_effects_signature.py` add a grep-style check (using `pathlib` + `re` over `src/generator/plan.py`) that no `place_effects(...)` call site passes any of the forbidden kwargs, guarding against future reintroduction (SC-004)
+- [X] T007 [P] Write `tests/unit/test_place_effects_signature.py` that uses `inspect.signature(place_effects)` to assert the parameter list is exactly `(assignment, groups, effect_library, hierarchy, variant_library, rotation_plan)` and that NONE of `{tiers, section_index, working_set, focused_vocabulary, palette_restraint, duration_scaling, bpm}` appear as parameters (FR-020, SC-002, SC-004)
+- [X] T008 [P] In `tests/unit/test_place_effects_signature.py` add a grep-style check (using `pathlib` + `re` over `src/generator/plan.py`) that no `place_effects(...)` call site passes any of the forbidden kwargs, guarding against future reintroduction (SC-004)
 
 ### Baseline run
 
-- [ ] T009 Run the harness on pre-refactor `main`: `pytest tests/integration/test_generator_equivalence.py tests/unit/test_place_effects_signature.py -v` — equivalence tests MUST pass (goldens match pre-refactor code); signature test MUST currently fail (proves it meaningfully detects the pre-refactor 11-kwarg signature)
+- [X] T009 Run the harness on pre-refactor `main`: `pytest tests/integration/test_generator_equivalence.py tests/unit/test_place_effects_signature.py -v` — equivalence tests MUST pass (goldens match pre-refactor code); signature test MUST currently fail (proves it meaningfully detects the pre-refactor 11-kwarg signature)
 
 **Checkpoint**: Regression harness in place and behaves correctly against the pre-refactor baseline. Equivalence tests green; signature test red (as expected). Any later step that breaks equivalence will be caught immediately.
 
