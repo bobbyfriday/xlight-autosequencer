@@ -368,10 +368,14 @@ def write_xsq(
         for layer_idx in sorted(layers_map.keys()):
             layer_el = ET.SubElement(model_el, "EffectLayer")
             # 01_BASE_All is a whole-house wash group — render as a single unified canvas.
-            # All other groups use Per Model Default (xLights' built-in group default),
-            # so each prop renders the effect independently on its own pixel layout.
+            # Tiers 5+ (PROP / COMPOUND / HERO) use "Per Model Default" so each individual
+            # prop in the group renders the effect on its own pixel layout rather than across
+            # the group's bounding box.  Lower tiers (01–04) render as a unified group.
+            tier_num = int(group_name[:2]) if len(group_name) >= 2 and group_name[:2].isdigit() else 0
             if group_name == "01_BASE_All":
                 layer_el.set("settings", "B_CHOICE_BufferStyle=Default")
+            elif tier_num >= 5:
+                layer_el.set("settings", "B_CHOICE_BufferStyle=Per Model Default")
             for p in sorted(layers_map[layer_idx], key=lambda p: p.start_ms):
                 effect_el = ET.SubElement(layer_el, "Effect")
 

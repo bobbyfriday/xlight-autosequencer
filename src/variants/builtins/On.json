@@ -11,11 +11,11 @@
         "E_CHECKBOX_On_Shimmer": false
       },
       "tags": {
-        "tier_affinity": "impact",
+        "tier_affinity": "foreground",
         "energy_level": "high",
-        "speed_feel": "instant",
+        "speed_feel": "fast",
         "direction": null,
-        "section_roles": ["chorus", "drop", "hook", "climax"],
+        "section_roles": ["chorus", "drop", "build"],
         "scope": "single-prop",
         "genre_affinity": "any"
       }
@@ -49,7 +49,7 @@
         "E_CHECKBOX_On_Shimmer": false
       },
       "tags": {
-        "tier_affinity": "impact",
+        "tier_affinity": "foreground",
         "energy_level": "high",
         "speed_feel": "fast",
         "direction": null,
@@ -89,7 +89,7 @@
       "tags": {
         "tier_affinity": "background",
         "energy_level": "low",
-        "speed_feel": "instant",
+        "speed_feel": "slow",
         "direction": null,
         "section_roles": ["intro", "outro", "verse", "bridge"],
         "scope": "single-prop",

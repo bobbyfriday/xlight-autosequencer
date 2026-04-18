@@ -69,7 +69,7 @@
       </EffectLayer>
     </Element>
     <Element type="model" name="05_TEX_LoDens">
-      <EffectLayer>
+      <EffectLayer settings="B_CHOICE_BufferStyle=Per Model Default">
         <Effect ref="4" name="Shockwave" startTime="10000" endTime="10800" palette="3" selected="0" />
       </EffectLayer>
     </Element>
