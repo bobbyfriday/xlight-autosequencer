@@ -231,12 +231,12 @@ _RADIAL_NAME_KEYWORDS: frozenset[str] = frozenset({
 })
 
 _DRUM_VARIANT_MAP: dict[str, str] = {
-    "kick":  "Shockwave Full Fast",
-    "snare": "Shockwave Medium Fast",
-    "hihat": "Shockwave Small Thin",
+    "kick":  "Shockwave Full Fast",  # hardest hit → radial burst
+    "snare": "On Bold",              # punchy solid flash for snare
+    "hihat": "Strobe Dual Fast",     # quick strobe for hi-hat ticks
 }
 _DRUM_ACCENT_DEFAULT_VARIANT = "Shockwave Full Fast"
-_DRUM_ACCENT_ALTERNATING = ("Shockwave Full Fast", "Shockwave Medium Fast")
+_DRUM_ACCENT_ALTERNATING = ("Shockwave Full Fast", "On Bold")
 _DRUM_BIAS_THRESHOLD = 0.80  # >80% same label → use alternating kick/snare fallback
 
 # 042B: Whole-house impact accent at section peaks
@@ -1800,12 +1800,13 @@ def _place_drum_accents(
 
             variant = variant_library.get(variant_name) if variant_library is not None else None
             params = dict(variant.parameter_overrides) if variant is not None else {}
+            effect_base = variant.base_effect if variant is not None else "Shockwave"
 
             start_ms = frame_align(hit.time_ms)
             end_ms = frame_align(hit.time_ms + _DRUM_ACCENT_DURATION_MS)
             placement = EffectPlacement(
-                effect_name="Shockwave",
-                xlights_id="Shockwave",
+                effect_name=effect_base,
+                xlights_id=effect_base,
                 model_or_group=model_name,
                 start_ms=start_ms,
                 end_ms=end_ms,
