@@ -35,10 +35,10 @@
     <Effect>E_CHOICE_Plasma_Color=Normal,E_SLIDER_Plasma_Line_Density=4,E_SLIDER_Plasma_Speed=12,E_SLIDER_Plasma_Style=1</Effect>
     <Effect>E_CHECKBOX_Meteors_UseMusic=0,E_CHOICE_Meteors_Effect=Down,E_CHOICE_Meteors_Type=Palette,E_SLIDER_Meteors_Count=8,E_SLIDER_Meteors_Length=15,E_SLIDER_Meteors_Speed=40,E_SLIDER_Meteors_Swirl_Intensity=0,E_SLIDER_Meteors_WamupFrames=0</Effect>
     <Effect>E_CHOICE_Butterfly_Colors=Palette,E_CHOICE_Butterfly_Direction=Normal,E_SLIDER_Butterfly_Chunks=3,E_SLIDER_Butterfly_Skip=2,E_SLIDER_Butterfly_Speed=15,E_SLIDER_Butterfly_Style=1,T_TEXTCTRL_Fadeout=4</Effect>
-    <Effect>E_SLIDER_Shockwave_Accel=0,E_SLIDER_Shockwave_CenterX=50,E_SLIDER_Shockwave_CenterY=50,E_SLIDER_Shockwave_End_Radius=80,E_SLIDER_Shockwave_End_Width=10,E_SLIDER_Shockwave_Start_Radius=1,E_SLIDER_Shockwave_Start_Width=5</Effect>
+    <Effect>E_SLIDER_Shockwave_Accel=0,E_SLIDER_Shockwave_CenterX=50,E_SLIDER_Shockwave_CenterY=50,E_SLIDER_Shockwave_End_Radius=80,E_SLIDER_Shockwave_End_Width=50,E_SLIDER_Shockwave_Start_Radius=1,E_SLIDER_Shockwave_Start_Width=5</Effect>
     <Effect>E_CHECKBOX_Meteors_UseMusic=0,E_CHOICE_Meteors_Effect=Left,E_CHOICE_Meteors_Type=Palette,E_SLIDER_Meteors_Count=8,E_SLIDER_Meteors_Length=15,E_SLIDER_Meteors_Speed=40,E_SLIDER_Meteors_Swirl_Intensity=0,E_SLIDER_Meteors_WamupFrames=0</Effect>
-    <Effect>E_SLIDER_Shockwave_Accel=0,E_SLIDER_Shockwave_CenterX=50,E_SLIDER_Shockwave_CenterY=50,E_SLIDER_Shockwave_End_Radius=80,E_SLIDER_Shockwave_End_Width=10,E_SLIDER_Shockwave_Start_Radius=1,E_SLIDER_Shockwave_Start_Width=5,T_TEXTCTRL_Fadeout=4</Effect>
-    <Effect>E_SLIDER_Shockwave_Accel=5,E_SLIDER_Shockwave_CenterX=50,E_SLIDER_Shockwave_CenterY=50,E_SLIDER_Shockwave_End_Radius=100,E_SLIDER_Shockwave_End_Width=10,E_SLIDER_Shockwave_Start_Radius=1,E_SLIDER_Shockwave_Start_Width=8</Effect>
+    <Effect>E_SLIDER_Shockwave_Accel=0,E_SLIDER_Shockwave_CenterX=50,E_SLIDER_Shockwave_CenterY=50,E_SLIDER_Shockwave_End_Radius=80,E_SLIDER_Shockwave_End_Width=50,E_SLIDER_Shockwave_Start_Radius=1,E_SLIDER_Shockwave_Start_Width=5,T_TEXTCTRL_Fadeout=4</Effect>
+    <Effect>E_SLIDER_Shockwave_Accel=5,E_SLIDER_Shockwave_CenterX=50,E_SLIDER_Shockwave_CenterY=50,E_SLIDER_Shockwave_End_Radius=100,E_SLIDER_Shockwave_End_Width=50,E_SLIDER_Shockwave_Start_Radius=1,E_SLIDER_Shockwave_Start_Width=8</Effect>
     <Effect>E_CHECKBOX_Meteors_UseMusic=0,E_CHOICE_Meteors_Effect=Up,E_CHOICE_Meteors_Type=Palette,E_SLIDER_Meteors_Count=8,E_SLIDER_Meteors_Length=15,E_SLIDER_Meteors_Speed=40,E_SLIDER_Meteors_Swirl_Intensity=0,E_SLIDER_Meteors_WamupFrames=0</Effect>
     <Effect>E_CHECKBOX_Meteors_UseMusic=0,E_CHOICE_Meteors_Effect=Right,E_CHOICE_Meteors_Type=Palette,E_SLIDER_Meteors_Count=8,E_SLIDER_Meteors_Length=15,E_SLIDER_Meteors_Speed=40,E_SLIDER_Meteors_Swirl_Intensity=0,E_SLIDER_Meteors_WamupFrames=0</Effect>
   </EffectDB>
@@ -89,7 +89,7 @@
       </EffectLayer>
     </Element>
     <Element type="model" name="04_BEAT_1">
-      <EffectLayer>
+      <EffectLayer settings="B_CHOICE_BufferStyle=Per Model Default">
         <Effect ref="11" name="Shockwave" startTime="0" endTime="1000" palette="4" selected="0" />
         <Effect ref="11" name="Shockwave" startTime="2000" endTime="3000" palette="4" selected="0" />
         <Effect ref="8" name="Plasma" startTime="4000" endTime="4500" palette="5" selected="0" />
@@ -104,12 +104,12 @@
         <Effect ref="11" name="Shockwave" startTime="16000" endTime="17000" palette="4" selected="0" />
         <Effect ref="13" name="Shockwave" startTime="18000" endTime="19000" palette="4" selected="0" />
       </EffectLayer>
-      <EffectLayer>
+      <EffectLayer settings="B_CHOICE_BufferStyle=Per Model Default">
         <Effect ref="14" name="Shockwave" startTime="10000" endTime="10800" palette="9" selected="0" />
       </EffectLayer>
     </Element>
     <Element type="model" name="04_BEAT_2">
-      <EffectLayer>
+      <EffectLayer settings="B_CHOICE_BufferStyle=Per Model Default">
         <Effect ref="11" name="Shockwave" startTime="1000" endTime="2000" palette="4" selected="0" />
         <Effect ref="11" name="Shockwave" startTime="3000" endTime="3500" palette="4" selected="0" />
         <Effect ref="8" name="Plasma" startTime="4500" endTime="5500" palette="6" selected="0" />
@@ -124,7 +124,7 @@
         <Effect ref="11" name="Shockwave" startTime="17000" endTime="18000" palette="10" selected="0" />
         <Effect ref="13" name="Shockwave" startTime="19000" endTime="19500" palette="4" selected="0" />
       </EffectLayer>
-      <EffectLayer>
+      <EffectLayer settings="B_CHOICE_BufferStyle=Per Model Default">
         <Effect ref="14" name="Shockwave" startTime="10000" endTime="10800" palette="9" selected="0" />
       </EffectLayer>
     </Element>
