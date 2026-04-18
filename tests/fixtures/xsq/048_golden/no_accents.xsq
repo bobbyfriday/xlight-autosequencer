@@ -42,7 +42,7 @@
       </EffectLayer>
     </Element>
     <Element type="model" name="04_BEAT_1">
-      <EffectLayer>
+      <EffectLayer settings="B_CHOICE_BufferStyle=Per Model Default">
         <Effect ref="2" name="Meteors" startTime="10000" endTime="10500" palette="1" selected="0" />
         <Effect ref="3" name="Meteors" startTime="11000" endTime="11500" palette="1" selected="0" />
         <Effect ref="2" name="Meteors" startTime="12000" endTime="13000" palette="2" selected="0" />
@@ -51,7 +51,7 @@
       </EffectLayer>
     </Element>
     <Element type="model" name="04_BEAT_2">
-      <EffectLayer>
+      <EffectLayer settings="B_CHOICE_BufferStyle=Per Model Default">
         <Effect ref="4" name="Meteors" startTime="10500" endTime="11000" palette="1" selected="0" />
         <Effect ref="5" name="Meteors" startTime="11500" endTime="12000" palette="1" selected="0" />
         <Effect ref="4" name="Meteors" startTime="13000" endTime="13500" palette="1" selected="0" />

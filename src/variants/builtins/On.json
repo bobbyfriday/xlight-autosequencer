@@ -1,0 +1,100 @@
+{
+  "effect": "On",
+  "variants": [
+    {
+      "name": "On Bold",
+      "base_effect": "On",
+      "description": "Solid full-intensity color block. The simplest and most punchy effect — all pixels on, no motion. Best for impact moments and beat-synchronized flashes.",
+      "parameter_overrides": {
+        "E_TEXTCTRL_Eff_On_Transparency": 0,
+        "E_TEXTCTRL_Eff_On_Cycles": 1.0,
+        "E_CHECKBOX_On_Shimmer": false
+      },
+      "tags": {
+        "tier_affinity": "foreground",
+        "energy_level": "high",
+        "speed_feel": "fast",
+        "direction": null,
+        "section_roles": ["chorus", "drop", "build"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "On Shimmer",
+      "base_effect": "On",
+      "description": "Solid color with shimmer enabled — subtle pixel-level twinkling over a held color. Good for sustained chorus sections where motion would distract.",
+      "parameter_overrides": {
+        "E_TEXTCTRL_Eff_On_Transparency": 0,
+        "E_TEXTCTRL_Eff_On_Cycles": 1.0,
+        "E_CHECKBOX_On_Shimmer": true
+      },
+      "tags": {
+        "tier_affinity": "mid",
+        "energy_level": "medium",
+        "speed_feel": "slow",
+        "direction": null,
+        "section_roles": ["chorus", "verse", "bridge"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "On Cycle Fast",
+      "base_effect": "On",
+      "description": "Rapid palette cycling — steps through palette colors at 4 cycles per section. Creates a quick color-changing strobe-like effect without the harshness of Strobe.",
+      "parameter_overrides": {
+        "E_TEXTCTRL_Eff_On_Transparency": 0,
+        "E_TEXTCTRL_Eff_On_Cycles": 4.0,
+        "E_CHECKBOX_On_Shimmer": false
+      },
+      "tags": {
+        "tier_affinity": "foreground",
+        "energy_level": "high",
+        "speed_feel": "fast",
+        "direction": null,
+        "section_roles": ["chorus", "drop", "build"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "On Cycle Slow",
+      "base_effect": "On",
+      "description": "Slow palette cycle — drifts through palette colors at 2 cycles per section. Warm ambient fill for verses and bridges.",
+      "parameter_overrides": {
+        "E_TEXTCTRL_Eff_On_Transparency": 0,
+        "E_TEXTCTRL_Eff_On_Cycles": 2.0,
+        "E_CHECKBOX_On_Shimmer": false
+      },
+      "tags": {
+        "tier_affinity": "background",
+        "energy_level": "low",
+        "speed_feel": "slow",
+        "direction": null,
+        "section_roles": ["verse", "intro", "bridge", "outro"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "On Dim",
+      "base_effect": "On",
+      "description": "30% transparency solid color. Subtle fill light for quiet passages — props stay visually present without competing with active effects on other tiers.",
+      "parameter_overrides": {
+        "E_TEXTCTRL_Eff_On_Transparency": 30,
+        "E_TEXTCTRL_Eff_On_Cycles": 1.0,
+        "E_CHECKBOX_On_Shimmer": false
+      },
+      "tags": {
+        "tier_affinity": "background",
+        "energy_level": "low",
+        "speed_feel": "slow",
+        "direction": null,
+        "section_roles": ["intro", "outro", "verse", "bridge"],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    }
+  ]
+}
