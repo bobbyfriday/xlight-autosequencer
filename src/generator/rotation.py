@@ -194,8 +194,19 @@ class RotationEngine:
         candidates are constrained to only those whose base_effect appears in that
         theme's WorkingSet. This is the T012 focused_vocabulary constraint.
         """
+        # Cap: no single base_effect may exceed this fraction of all rotation
+        # assignments across the full song.  25% keeps any one effect from
+        # dominating while still allowing it to be the clear "character" effect
+        # for a theme.  Applied as a soft penalty — the engine falls back to
+        # the best uncapped alternative; if none scores ≥ 0.3 the cap is waived.
+        _MAX_EFFECT_FRACTION = 0.25
+
         tier_groups = [g for g in groups if 5 <= g.tier <= 8]
         entries: list[RotationEntry] = []
+
+        # Global effect-usage counter for the per-song cap.
+        global_effect_counts: dict[str, int] = defaultdict(int)
+        global_total_assignments: int = 0
 
         # T036: Build symmetry lookup: group_b name → group_a name
         symmetry_map: dict[str, str] = {}
@@ -320,10 +331,35 @@ class RotationEngine:
                         variant, score, breakdown = unclaimed[0]
                     # else: no suitable alternative — keep current selection (allow duplication)
 
+                # Global effect cap: if this base_effect already occupies ≥ 25%
+                # of all assignments so far, try a capped alternative.
+                if global_total_assignments > 0:
+                    current_fraction = (
+                        global_effect_counts[variant.base_effect] / global_total_assignments
+                    )
+                    if current_fraction >= _MAX_EFFECT_FRACTION:
+                        capped_alt = [
+                            (v, s, b) for v, s, b in results
+                            if v.base_effect != variant.base_effect
+                            and v.base_effect not in used_effects_per_tier[group.tier]
+                            and (
+                                global_total_assignments == 0
+                                or global_effect_counts[v.base_effect] / global_total_assignments
+                                < _MAX_EFFECT_FRACTION
+                            )
+                            and s >= 0.3
+                        ]
+                        if capped_alt:
+                            variant, score, breakdown = capped_alt[0]
+
                 used_in_section.add(variant.name)
                 # T009: record base effect as used for this tier
                 if group.tier >= 5:
                     used_effects_per_tier[group.tier].add(variant.base_effect)
+
+                # Update global counters for cap tracking.
+                global_effect_counts[variant.base_effect] += 1
+                global_total_assignments += 1
 
                 entry = RotationEntry(
                     section_index=section_index,
