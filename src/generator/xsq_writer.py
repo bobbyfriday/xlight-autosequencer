@@ -699,11 +699,10 @@ def _collect_timing_tracks(hierarchy: HierarchyResult | None) -> dict[str, list[
     if hierarchy.chords and hierarchy.chords.marks:
         tracks["Chords"] = hierarchy.chords.marks
 
-    # Add onset events for the best stem
+    # Add onset events for all available stems
     for stem_name, track in hierarchy.events.items():
         if track.marks:
             tracks[f"Onsets ({stem_name})"] = track.marks
-            break  # just the first/best one
 
     return tracks
 
