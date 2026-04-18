@@ -26,6 +26,7 @@ class EffectLayer:
     variant: str
     blend_mode: str = "Normal"
     effect_pool: list[str] = field(default_factory=list)
+    stem: str | None = None  # onset stem for duration_type "trigger" (e.g. "vocals", "bass", "drums")
 
     @classmethod
     def from_dict(cls, data: dict) -> EffectLayer:
@@ -33,6 +34,7 @@ class EffectLayer:
             variant=data["variant"],
             blend_mode=data.get("blend_mode", "Normal"),
             effect_pool=data.get("effect_pool", []),
+            stem=data.get("stem", None),
         )
 
     def to_dict(self) -> dict:
@@ -40,6 +42,7 @@ class EffectLayer:
             "variant": self.variant,
             "blend_mode": self.blend_mode,
             "effect_pool": self.effect_pool,
+            "stem": self.stem,
         }
 
 

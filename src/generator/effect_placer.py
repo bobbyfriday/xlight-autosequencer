@@ -1030,6 +1030,7 @@ def _place_effect_on_group(
         return _place_per_trigger(
             effect_def, group.name, section, hierarchy,
             params, resolved_palette, layer.blend_mode,
+            stem=getattr(layer, "stem", None),
             direction_cycle=direction_cycle,
         )
 
@@ -1293,13 +1294,23 @@ def _place_per_trigger(
     effect_def: EffectDefinition, group_name: str, section: SectionEnergy,
     hierarchy: HierarchyResult, params: dict[str, Any],
     palette: list[str], blend_mode: str,
+    stem: str | None = None,
     direction_cycle: dict | None = None,
 ) -> list[EffectPlacement]:
-    """Place one-shot effect instances on onset/impact events."""
+    """Place one-shot effect instances on onset/impact events.
+
+    ``stem`` selects which stem's onset track to use (e.g. "vocals", "bass",
+    "guitar", "drums").  When None or not found, falls back to the first
+    available events track.
+    """
     events_track = None
-    for track in hierarchy.events.values():
-        events_track = track
-        break
+    if stem is not None:
+        events_track = hierarchy.events.get(stem)
+    if events_track is None:
+        # fallback: first available stem
+        for track in hierarchy.events.values():
+            events_track = track
+            break
 
     if events_track is None:
         return []
