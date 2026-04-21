@@ -37,5 +37,5 @@ export const LIGHT = {
 export type Palette = typeof DARK;
 
 export function getPalette(mode: 'dark' | 'light'): Palette {
-  return mode === 'light' ? LIGHT : DARK;
+  return (mode === 'light' ? LIGHT : DARK) as Palette;
 }

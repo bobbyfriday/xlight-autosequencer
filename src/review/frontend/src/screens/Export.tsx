@@ -62,6 +62,18 @@ export function Export({ song, layoutId, onExportComplete }: ExportProps) {
     }
   }
 
+  const isSourceMissing = song.status === 'source_missing';
+
+  if (isSourceMissing) {
+    return (
+      <div data-testid="source-missing-block" className={styles.block}>
+        <h3>Audio File Missing</h3>
+        <p>The audio file for <strong>{song.title}</strong> can no longer be found.</p>
+        <p>Use "Locate file" to point to the audio file on your disk.</p>
+      </div>
+    );
+  }
+
   if (!hasLayout) {
     return (
       <div data-testid="layout-required" className={styles.block}>

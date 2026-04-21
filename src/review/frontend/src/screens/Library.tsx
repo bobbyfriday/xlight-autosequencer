@@ -63,6 +63,48 @@ export function Library({ songs, folders, onSelectSong }: Props) {
     { id: 'themed', label: 'Themed' },
   ];
 
+  // T134: Empty-library first-run centered drop target (FR-005c)
+  if (songs.length === 0 && folders.every((f) => {
+    const fid = (f as any).folder_id ?? (f as any).id;
+    return fid === 'unfiled';
+  })) {
+    return (
+      <div
+        data-testid="library-empty-drop"
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '60vh',
+          gap: 16,
+          color: 'var(--color-text-muted, #888)',
+        }}
+      >
+        <div
+          style={{
+            border: '2px dashed var(--color-border, #444)',
+            borderRadius: 12,
+            padding: '48px 64px',
+            textAlign: 'center',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 12,
+          }}
+        >
+          <span style={{ fontSize: 40 }}>🎵</span>
+          <p style={{ fontSize: 16, fontWeight: 600, color: 'var(--color-text, #f5f5f0)', margin: 0 }}>
+            Drop an MP3 or WAV here to get started
+          </p>
+          <p style={{ fontSize: 13, margin: 0 }}>
+            or use the upload button in the header
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div data-testid="library-screen" style={{ padding: 24 }}>
       {/* Filter pills */}

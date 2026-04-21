@@ -49,6 +49,26 @@ npm run build      # outputs to src/review/frontend/dist/
 
 Commit the resulting `dist/` changes to git. End-users running `pip install -e .` or an installed wheel get the pre-built SPA; Flask serves it from `dist/index.html` at `/`.
 
+Shortcut — use the helper script from the repo root:
+
+```bash
+./scripts/build-frontend.sh
+# Builds the frontend and stages dist/ for git commit.
+# Run `git commit` afterwards to include the updated dist/.
+```
+
+### The `xlight review` command
+
+After `pip install -e .`, the `xlight review` command is available as the primary entry point for end-users:
+
+```bash
+xlight review                   # Start Flask server on :5000 and open browser
+xlight review --port 8080       # Custom port
+xlight review --no-browser      # Skip browser auto-open
+```
+
+The server serves the pre-built React SPA at `/` and mounts the `/api/v1` Blueprint. For development, run both Flask (`:5000`) and Vite (`:5173`) simultaneously — the Vite dev server proxies `/api` and `/audio` to Flask automatically.
+
 ### 5. Running tests
 
 ```bash

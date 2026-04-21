@@ -408,7 +408,9 @@ def create_app(analysis_path: str | None = None, audio_path: str | None = None,
     When analysis_path + audio_path are provided, review-mode routes are
     also registered for direct file viewing.
     """
-    app = Flask(__name__, static_folder=str(Path(__file__).parent / "static"), static_url_path="")
+    # Serve the new React frontend from frontend/dist/
+    _dist_dir = str(Path(__file__).parent / "frontend" / "dist")
+    app = Flask(__name__, static_folder=_dist_dir, static_url_path="/assets")
     app.config["ANALYSIS_PATH"] = analysis_path
     app.config["AUDIO_PATH"] = audio_path
     app.config["SCAN_DIR"] = scan_dir
@@ -417,30 +419,6 @@ def create_app(analysis_path: str | None = None, audio_path: str | None = None,
     # ── Register /api/v1 Blueprint ───────────────────────────────────────────
     from src.review.api.v1 import api_v1  # noqa: PLC0415
     app.register_blueprint(api_v1, url_prefix="/api/v1")
-
-    # ── Register blueprints ──────────────────────────────────────────────────
-    from src.review.story_routes import story_bp  # noqa: PLC0415
-    app.register_blueprint(story_bp, url_prefix="/story")
-
-    # ── Register the theme editor blueprint (always available) ────────────────
-    from src.review.theme_routes import theme_bp  # noqa: PLC0415
-    app.register_blueprint(theme_bp)
-
-    # ── Register the variant library blueprint (always available) ─────────────
-    from src.review.variant_routes import variant_bp  # noqa: PLC0415
-    app.register_blueprint(variant_bp)
-
-    # ── Register the sequence generation blueprint (always available) ─────────
-    from src.review.generate_routes import generate_bp  # noqa: PLC0415
-    app.register_blueprint(generate_bp, url_prefix="/generate")
-
-    # ── Register the creative brief blueprint (spec 047) ─────────────────────
-    from src.review.brief_routes import brief_bp  # noqa: PLC0415
-    app.register_blueprint(brief_bp)
-
-    # ── Register the section preview blueprint (spec 049) ─────────────────────
-    from src.review.preview_routes import preview_bp  # noqa: PLC0415
-    app.register_blueprint(preview_bp, url_prefix="/api/song")
 
     # ── Spec 051: x-onset audio stream route ────────────────────────────────────
     @app.route("/audio/<song_id>")
@@ -517,45 +495,10 @@ def create_app(analysis_path: str | None = None, audio_path: str | None = None,
         resp.headers["Accept-Ranges"] = "bytes"
         return resp
 
-    # ── Story review SPA route (always available) ─────────────────────────────
-    @app.route("/story-review")
-    def story_review_spa():
-        return send_from_directory(app.static_folder, "story-review.html")
-
-    # ══════════════════════════════════════════════════════════════════════════
-    # Dashboard routes — always available regardless of mode
-    # ══════════════════════════════════════════════════════════════════════════
-
+    # ── New React SPA — catch-all routes serve index.html ─────────────────────
     @app.route("/")
-    def dashboard_index():
-        return send_from_directory(app.static_folder, "dashboard.html")
-
-    @app.route("/library-view")
-    def library_view_redirect():
-        from flask import redirect
-        return redirect("/", code=302)
-
-    @app.route("/timeline")
-    def timeline():
-        return send_from_directory(app.static_folder, "index.html")
-
-    @app.route("/phonemes-view")
-    def phonemes_view():
-        return send_from_directory(app.static_folder, "phonemes.html")
-
-    # Spec 046: per-song workspace shell served at /song/<source_hash>.
-    # Resolves via Library().find_by_hash and gates 404 before serving the
-    # static HTML; client-side JS re-reads the hash from location.pathname.
-    @app.route("/song/<source_hash>")
-    def song_workspace(source_hash):
-        from src.library import Library
-        if Library().find_by_hash(source_hash) is None:
-            return (
-                "Song not found in library. "
-                "<a href=\"/\">Return to the library view.</a>",
-                404,
-            )
-        return send_from_directory(app.static_folder, "song-workspace.html")
+    def spa_index():
+        return send_from_directory(_dist_dir, "index.html")
 
     @app.route("/song/<source_hash>/sections")
     def song_sections(source_hash):

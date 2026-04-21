@@ -285,3 +285,44 @@ A power user wants to work without taking their hand off the keyboard: switch sc
 - Automated theme recommendation ("suggest a theme for this section").
 - Audio editing — users cannot trim, stretch, or modify the source MP3 inside the app.
 - Rendering real xLights output video inside the app — the render preview is a visual approximation, not a frame-accurate xLights render.
+
+## Visual QA Notes
+
+**Captured**: 2026-04-21 (manual audit — `openwolf designqc` not available in this environment; notes are based on code review comparing `src/review/frontend/src/` against `design_handoff_xonset/Prototype.html` and `prototype/state.jsx`).
+
+### FR-047 Visual Identity Requirements
+
+**Dark mode design tokens** — PASS
+The implementation in `src/review/frontend/src/theme/tokens.module.css` and `src/theme/palette.ts` faithfully replicates the PALETTE.dark values from the design handoff:
+- `bg0: #111114`, `bg1: #1a1a20`, `bg2: #22222a` — correct
+- `accent: #d97757` (warm amber) — correct
+- `ink: #f5f5f0`, `ink2: #a8a8b0`, `ink3: #6a6a78` — correct
+- `err: #d43a2f`, `ok: #4ade80`, `warn: #f5a623` — correct
+
+**Light mode tokens** — PASS
+Light mode tokens (`bg0: #f4f4ef`, `ink: #1a1a20`) match PALETTE.light exactly.
+
+**Typography** — PASS
+`src/review/frontend/src/theme/typography.css` loads Inter + JetBrains Mono from Google Fonts. The `font-family` fallback chain matches the design handoff.
+
+**Spacing grid** — PARTIAL
+The implementation uses inline styles in several components rather than CSS custom property-based spacing tokens (e.g. `padding: 24` hardcoded in Library.tsx). The design handoff doesn't specify a formal spacing scale, but consistency could be improved by adding `--space-*` tokens to `tokens.module.css` and using them in components.
+
+### Findings
+
+1. **No global reset/normalize** — The implementation doesn't include a CSS reset. The Prototype.html uses `margin: 0; padding: 0` on `html, body` and `box-sizing: border-box`. These should be in `tokens.module.css` or a global `index.css`. **LOW priority.**
+
+2. **Scrollbar styling** — The Prototype.html styles scrollbars (`-webkit-scrollbar-thumb: #2a2a33`). The implementation does not. Visible on macOS with persistent scrollbars. **LOW priority.**
+
+3. **Consistent use of CSS custom properties** — Several screen-level components use hardcoded hex colors (`#888`, `#333`, `#1a1a1a`) in `style={}` props instead of CSS variables. Should use `var(--ink3)`, `var(--bg2)`, etc. **MEDIUM priority.**
+
+4. **Library empty-state (T134)** — Implemented with a 🎵 emoji and centered drop zone per FR-005c. Visual matches the spec intent. The emoji may not render consistently across OSes; a simple SVG icon would be more robust. **LOW priority.**
+
+5. **Source-missing badge** — `StatusChip` shows "missing" in red (`#ef4444`). The color is close to the `err` token (`#d43a2f`) but not exact. Should use `var(--err)`. **LOW priority.**
+
+### Recommended Actions
+
+1. Add `--space-1` through `--space-6` spacing tokens (4px grid) to `tokens.module.css` and migrate hardcoded padding values in screens.
+2. Replace the 🎵 emoji in the empty-state with a simple SVG music note icon.
+3. Replace hardcoded hex colors in `style={}` props with CSS custom property references.
+4. Add a global CSS reset in `index.html` or a global stylesheet.

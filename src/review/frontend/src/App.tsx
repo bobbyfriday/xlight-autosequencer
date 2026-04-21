@@ -7,6 +7,7 @@ import { usePlaybackStore } from 'src/store/playback';
 import { useAppStore, Screen } from 'src/store/app';
 import { useLibraryStore } from 'src/store/library';
 import type { Song, Folder } from 'src/store/library';
+import type { Assignment as StoreAssignment } from 'src/store/assignments';
 import { usePreferencesStore } from 'src/store/preferences';
 import { Chrome } from 'src/components/Chrome/Chrome';
 import { Drop } from 'src/screens/Drop';
@@ -36,12 +37,8 @@ interface Section {
   label: string;
 }
 
-interface Assignment {
-  section_index: number;
-  theme_id: string | null;
-  overrides: Record<string, number>;
-  user_confirmed: boolean;
-}
+// Use the store's canonical Assignment type.
+type Assignment = StoreAssignment;
 
 interface Analysis {
   song_id: string;

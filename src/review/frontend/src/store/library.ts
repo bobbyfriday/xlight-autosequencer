@@ -16,9 +16,13 @@ export interface Song {
 }
 
 export interface Folder {
-  id: string;
+  id?: string;
+  folder_id?: string;
   name: string;
-  created_at: string;
+  created_at?: string;
+  collapsed?: boolean;
+  order?: number;
+  reserved?: boolean;
 }
 
 type FilterStatus = 'all' | 'draft' | 'analyzed' | 'themed';

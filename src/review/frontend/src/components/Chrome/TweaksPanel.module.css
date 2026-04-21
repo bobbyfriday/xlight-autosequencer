@@ -46,3 +46,25 @@
   background: var(--accent);
   color: var(--accent-ink);
 }
+
+.actionBtn {
+  width: 100%;
+  padding: 6px 10px;
+  background: var(--bg3, #2a2a2a);
+  border: 1px solid var(--line2, #444);
+  border-radius: 4px;
+  color: var(--ink2, #ccc);
+  font-size: 12px;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  text-align: left;
+}
+
+.actionBtn:hover {
+  background: var(--bg4, #333);
+}
+
+.actionBtn[data-danger='true'] {
+  border-color: var(--color-error, #ef4444);
+  color: var(--color-error, #ef4444);
+}

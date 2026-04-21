@@ -1,12 +1,17 @@
-"""Library endpoints — GET /library, folder CRUD, song delete + purge (T045, T090, T092, T094)."""
+"""Library endpoints — GET /library, folder CRUD, song delete + purge (T045, T090, T092, T094).
+Export/import portability (T128). Relocate endpoint (T133).
+"""
 from __future__ import annotations
 
+import hashlib
+import io
 import shutil
 from pathlib import Path
 
-from flask import jsonify, request
+from flask import jsonify, request, send_file
 
 from . import api_v1
+from src.review.storage.bundle import BundleInvalidError, pack, unpack
 from src.review.storage.library import load_library, save_library
 from src.review.storage.paths import song_session_path, library_root
 
@@ -263,3 +268,145 @@ def _dir_size(path: Path) -> int:
         if f.is_file():
             total += f.stat().st_size
     return total
+
+
+# ─── Library portability: export / import (T128) ─────────────────────────────
+
+
+@api_v1.route("/library/export", methods=["POST"])
+def export_library():
+    """Pack the library + all song sessions into a .xonset-bundle zip."""
+    lib = load_library()
+
+    sessions: dict[str, dict] = {}
+    for song in lib.get("songs", []):
+        song_id = song["song_id"]
+        sess_path = song_session_path(song_id)
+        if sess_path.exists():
+            import json as _json
+            try:
+                sessions[song_id] = _json.loads(sess_path.read_text(encoding="utf-8"))
+            except Exception:
+                pass
+
+    bundle_bytes = pack(lib, sessions)
+    return send_file(
+        io.BytesIO(bundle_bytes),
+        mimetype="application/zip",
+        as_attachment=True,
+        download_name="library.xonset",
+    )
+
+
+@api_v1.route("/library/import", methods=["POST"])
+def import_library():
+    """Import a .xonset-bundle zip.
+
+    Accepts multipart/form-data with:
+      - bundle: the zip file
+      - mode: "replace" (default) | "merge"
+    """
+    if "bundle" not in request.files:
+        return jsonify({"error": {"code": "missing_bundle", "message": "No bundle file provided"}}), 400
+
+    mode = (request.form.get("mode") or "replace").lower()
+    if mode not in ("replace", "merge"):
+        return jsonify({"error": {"code": "invalid_mode", "message": "mode must be 'replace' or 'merge'"}}), 400
+
+    bundle_file = request.files["bundle"]
+    bundle_bytes = bundle_file.read()
+
+    try:
+        imported_lib, imported_sessions = unpack(bundle_bytes)
+    except BundleInvalidError as exc:
+        return jsonify({"error": {"code": "bundle_invalid", "message": str(exc)}}), 400
+
+    import json as _json
+
+    current_lib = load_library()
+
+    if mode == "replace":
+        merged_songs = imported_lib.get("songs", [])
+        merged_folders = imported_lib.get("folders", current_lib.get("folders", []))
+    else:
+        # Merge: keep existing songs, add bundle songs (dedup by song_id)
+        existing_ids = {s["song_id"] for s in current_lib.get("songs", [])}
+        new_songs = [s for s in imported_lib.get("songs", []) if s["song_id"] not in existing_ids]
+        merged_songs = current_lib.get("songs", []) + new_songs
+        merged_folders = current_lib.get("folders", [])
+
+    current_lib["songs"] = merged_songs
+    current_lib["folders"] = merged_folders
+    save_library(current_lib)
+
+    # Write imported sessions
+    for song_id, session in imported_sessions.items():
+        if mode == "replace" or song_id in {s["song_id"] for s in merged_songs}:
+            sess_path = song_session_path(song_id)
+            sess_path.parent.mkdir(parents=True, exist_ok=True)
+            sess_path.write_text(_json.dumps(session, indent=2), encoding="utf-8")
+
+    # Identify songs whose audio source is missing
+    source_missing_songs = []
+    for song in merged_songs:
+        paths = song.get("source_paths") or []
+        if not paths or not any(Path(p).exists() for p in paths):
+            source_missing_songs.append(song["song_id"])
+
+    return jsonify({
+        "songs": merged_songs,
+        "source_missing_songs": source_missing_songs,
+    }), 200
+
+
+# ─── Song relocate (T133) ─────────────────────────────────────────────────────
+
+
+@api_v1.route("/songs/<song_id>/relocate", methods=["POST"])
+def relocate_song(song_id: str):
+    """Let the user point to a new audio file path for a song.
+
+    Verifies that the file at the given path hashes (SHA-256, first 16 hex chars)
+    to the stored song_id.  On success, appends the path to source_paths and
+    clears source_missing status.
+    """
+    lib = load_library()
+    song = next((s for s in lib.get("songs", []) if s["song_id"] == song_id), None)
+    if song is None:
+        return jsonify({"error": {"code": "song_not_found", "message": "Song not found"}}), 404
+
+    body = request.get_json(silent=True) or {}
+    new_path = (body.get("path") or "").strip()
+    if not new_path:
+        return jsonify({"error": {"code": "missing_path", "message": "'path' field is required"}}), 400
+
+    file = Path(new_path)
+    if not file.exists():
+        return jsonify({"error": {"code": "file_not_found", "message": "File not found at provided path"}}), 404
+
+    # Verify hash matches song_id
+    file_bytes = file.read_bytes()
+    computed_id = hashlib.sha256(file_bytes).hexdigest()[:16]
+    if computed_id != song_id:
+        return jsonify({
+            "error": {
+                "code": "hash_mismatch",
+                "message": (
+                    f"File at '{new_path}' has song_id '{computed_id}', "
+                    f"expected '{song_id}'"
+                ),
+            }
+        }), 409
+
+    # Append path (no duplicates)
+    source_paths: list[str] = song.get("source_paths") or []
+    if new_path not in source_paths:
+        source_paths.append(new_path)
+    song["source_paths"] = source_paths
+
+    # Clear source_missing status
+    if song.get("status") == "source_missing":
+        song["status"] = "draft"
+
+    save_library(lib)
+    return jsonify(_song_with_source_exists(song)), 200

@@ -114,7 +114,7 @@ describe('Library screen', () => {
       expect(screen.getByText('Christmas')).toBeTruthy();
     });
 
-    it('shows empty-state message when no songs', () => {
+    it('shows empty-state drop zone when no songs (FR-005c)', () => {
       render(
         <Library
           songs={[]}
@@ -122,8 +122,8 @@ describe('Library screen', () => {
           onSelectSong={() => {}}
         />,
       );
-      // Some empty state indication
-      expect(screen.getByTestId('library-screen')).toBeTruthy();
+      // T134: empty-library first-run shows a centered drop target, not the library grid
+      expect(screen.getByTestId('library-empty-drop')).toBeTruthy();
     });
   });
 

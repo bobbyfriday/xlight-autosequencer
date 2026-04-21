@@ -5,6 +5,7 @@ import { LightsPreview } from '../components/LightsPreview/LightsPreview';
 import { SectionStrip } from '../components/SectionStrip/SectionStrip';
 import { Inspector } from '../components/Inspector/Inspector';
 import { ParameterSliders, ParameterOverrides } from '../components/ParameterSliders/ParameterSliders';
+import type { Assignment } from 'src/store/assignments';
 
 interface Theme {
   theme_id: string;
@@ -21,13 +22,6 @@ interface Section {
   end_ms: number;
   kind: string;
   label: string;
-}
-
-interface Assignment {
-  section_index: number;
-  theme_id: string | null;
-  overrides: Record<string, number>;
-  user_confirmed: boolean;
 }
 
 interface Song {
@@ -138,7 +132,7 @@ export function Theme({
           const a = localAssignments.find((a) => a.section_index === idx);
           setLiveOverrides(
             a?.overrides && Object.keys(a.overrides).length > 0
-              ? (a.overrides as ParameterOverrides)
+              ? a.overrides
               : DEFAULT_OVERRIDES
           );
         }}
@@ -178,7 +172,7 @@ export function Theme({
               themeId={currentAssignment.theme_id}
               overrides={
                 currentAssignment.overrides && Object.keys(currentAssignment.overrides).length > 0
-                  ? (currentAssignment.overrides as ParameterOverrides)
+                  ? currentAssignment.overrides
                   : DEFAULT_OVERRIDES
               }
               onOverridesChange={(updated) => {
