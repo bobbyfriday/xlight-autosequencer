@@ -13,6 +13,8 @@ export interface Preferences {
 }
 
 interface PreferencesState extends Preferences {
+  setMode: (mode: Preferences['mode']) => void;
+  setDensity: (density: Preferences['density']) => void;
   setPreferences: (prefs: Partial<Preferences>) => void;
 }
 
@@ -28,7 +30,34 @@ const DEFAULTS: Preferences = {
   library_state_version: 0,
 };
 
+function applyDataMode(mode: Preferences['mode']) {
+  if (typeof document !== 'undefined') {
+    document.documentElement.setAttribute('data-mode', mode);
+  }
+}
+
+function applyDensity(density: Preferences['density']) {
+  if (typeof document !== 'undefined') {
+    document.documentElement.style.setProperty('--density', density);
+  }
+}
+
 export const usePreferencesStore = create<PreferencesState>((set) => ({
   ...DEFAULTS,
-  setPreferences: (prefs) => set((s) => ({ ...s, ...prefs })),
+
+  setMode: (mode) => {
+    applyDataMode(mode);
+    set({ mode });
+  },
+
+  setDensity: (density) => {
+    applyDensity(density);
+    set({ density });
+  },
+
+  setPreferences: (prefs) => {
+    if (prefs.mode) applyDataMode(prefs.mode);
+    if (prefs.density) applyDensity(prefs.density);
+    set((s) => ({ ...s, ...prefs }));
+  },
 }));

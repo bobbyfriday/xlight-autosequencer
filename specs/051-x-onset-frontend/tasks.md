@@ -252,18 +252,18 @@ description: "Task list for x-onset Frontend Redo"
 
 ### API
 
-- [ ] T118 [P] [US5] Write failing tests in `tests/review/test_api_preferences.py` for `GET` and `PUT /api/v1/preferences` (partial updates, validation rejects unknown `mode` value)
-- [ ] T119 [US5] Implement `src/review/api/v1/preferences.py`; T118 passes
+- [X] T118 [P] [US5] Write failing tests in `tests/review/test_api_preferences.py` for `GET` and `PUT /api/v1/preferences` (partial updates, validation rejects unknown `mode` value)
+- [X] T119 [US5] Implement `src/review/api/v1/preferences.py`; T118 passes
 
 ### Frontend
 
-- [ ] T120 [P] [US5] Write failing tests in `src/review/frontend/tests/store/preferences.test.ts` for the preferences store slice — reducer + derivation to `data-mode`
-- [ ] T121 [US5] Implement `src/review/frontend/src/store/preferences.ts` per T030 scaffold; T120 passes
-- [ ] T122 [P] [US5] Wire TweaksPanel (T035) segmented controls to `store.preferences` and back to `PUT /api/v1/preferences` via the persistence hook
-- [ ] T123 [P] [US5] Write failing tests in `src/review/frontend/tests/hooks/useKeyboard.integration.test.tsx` — each FR-041 global shortcut (`space`, `←`/`→`, `Shift+←`/`Shift+→`, `1`–`6`) fires the right store action, input-focus suppresses shortcuts
-- [ ] T124 [US5] Register global shortcuts in `src/review/frontend/src/App.tsx` using the registry from T037; T123 passes
-- [ ] T125 [US5] Register TIMELINE-sections-edit-mode shortcuts (FR-042: `S`/`M`/`Del`/`R`) inside the SectionsEditMode component (T110); they unregister when the mode exits
-- [ ] T126 [US5] Implement the `inspector_open` toggle + density compact/comfortable CSS (CSS custom property switches `:root { --density: ... }`)
+- [X] T120 [P] [US5] Write failing tests in `src/review/frontend/tests/store/preferences.test.ts` for the preferences store slice — reducer + derivation to `data-mode`
+- [X] T121 [US5] Implement `src/review/frontend/src/store/preferences.ts` per T030 scaffold; T120 passes
+- [X] T122 [P] [US5] Wire TweaksPanel (T035) segmented controls to `store.preferences` and back to `PUT /api/v1/preferences` via the persistence hook
+- [X] T123 [P] [US5] Write failing tests in `src/review/frontend/tests/hooks/useKeyboard.integration.test.tsx` — each FR-041 global shortcut (`space`, `←`/`→`, `Shift+←`/`Shift+→`, `1`–`6`) fires the right store action, input-focus suppresses shortcuts
+- [X] T124 [US5] Register global shortcuts in `src/review/frontend/src/App.tsx` using the registry from T037; T123 passes
+- [X] T125 [US5] Register TIMELINE-sections-edit-mode shortcuts (FR-042: `S`/`M`/`Del`/`R`) inside the SectionsEditMode component (T110); they unregister when the mode exits
+- [X] T126 [US5] Implement the `inspector_open` toggle + density compact/comfortable CSS (CSS custom property switches `:root { --density: ... }`)
 
 **Checkpoint**: US5 complete — all preferences persist, keyboard-only US1 passes SC-006.
 

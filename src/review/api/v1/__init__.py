@@ -2,6 +2,10 @@ from flask import Blueprint, jsonify
 
 api_v1 = Blueprint("api_v1", __name__)
 
+# Import route modules to register them with the Blueprint.
+# Order matters: modules that reference api_v1 must be imported after it is created.
+from . import analysis, import_, library, preferences, sections, themes  # noqa: E402, F401
+
 
 @api_v1.app_errorhandler(404)
 def not_found(exc):
