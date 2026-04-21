@@ -9,6 +9,8 @@ venv/
 env/
 dist/
 build/
+# Exception: frontend pre-built SPA — committed so pip install works without Node
+!src/review/frontend/dist/
 *.egg-info/
 .eggs/
 

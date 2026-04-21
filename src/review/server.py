@@ -399,7 +399,8 @@ def _hierarchy_summary_for_server(json_path: Path) -> dict | None:
 
 
 def create_app(analysis_path: str | None = None, audio_path: str | None = None,
-               scan_dir: str | None = None, story_mode: bool = False) -> Flask:
+               scan_dir: str | None = None, story_mode: bool = False,
+               testing: bool = False) -> Flask:
     """
     Create the Flask application.
 
@@ -411,6 +412,11 @@ def create_app(analysis_path: str | None = None, audio_path: str | None = None,
     app.config["ANALYSIS_PATH"] = analysis_path
     app.config["AUDIO_PATH"] = audio_path
     app.config["SCAN_DIR"] = scan_dir
+    app.config["TESTING"] = testing
+
+    # ── Register /api/v1 Blueprint ───────────────────────────────────────────
+    from src.review.api.v1 import api_v1  # noqa: PLC0415
+    app.register_blueprint(api_v1, url_prefix="/api/v1")
 
     # ── Register blueprints ──────────────────────────────────────────────────
     from src.review.story_routes import story_bp  # noqa: PLC0415
