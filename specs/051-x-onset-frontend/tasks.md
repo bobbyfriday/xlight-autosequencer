@@ -180,21 +180,21 @@ description: "Task list for x-onset Frontend Redo"
 
 ### API (test-first)
 
-- [ ] T089 [P] [US2] Extend tests in `tests/review/test_api_library.py` for the multi-song case, `GET /library` ordering, folder listing
-- [ ] T090 [US2] Extend `GET /api/v1/library` to return full multi-song + folder-tree response; T089 passes
-- [ ] T091 [P] [US2] Write failing tests in `tests/review/test_api_folders.py` for `POST /api/v1/folders`, `PATCH /api/v1/folders/<id>`, `DELETE /api/v1/folders/<id>` (moves songs to `unfiled`, can't delete reserved `unfiled`), `PATCH /api/v1/songs/<id>/folder`
-- [ ] T092 [US2] Implement folder CRUD endpoints in `src/review/api/v1/library.py`; T091 passes
-- [ ] T093 [P] [US2] Write failing tests in `tests/review/test_api_song_delete.py` for `DELETE /api/v1/songs/<id>` (drops Session + returns `cache_purge_available`) and `POST /api/v1/songs/<id>/purge` (purges analysis cache + stems, FR-005a/b)
-- [ ] T094 [US2] Implement song delete + cache purge endpoints; T093 passes
+- [X] T089 [P] [US2] Extend tests in `tests/review/test_api_library.py` for the multi-song case, `GET /library` ordering, folder listing
+- [X] T090 [US2] Extend `GET /api/v1/library` to return full multi-song + folder-tree response; T089 passes
+- [X] T091 [P] [US2] Write failing tests in `tests/review/test_api_folders.py` for `POST /api/v1/folders`, `PATCH /api/v1/folders/<id>`, `DELETE /api/v1/folders/<id>` (moves songs to `unfiled`, can't delete reserved `unfiled`), `PATCH /api/v1/songs/<id>/folder`
+- [X] T092 [US2] Implement folder CRUD endpoints in `src/review/api/v1/library.py`; T091 passes
+- [X] T093 [P] [US2] Write failing tests in `tests/review/test_api_song_delete.py` for `DELETE /api/v1/songs/<id>` (drops Session + returns `cache_purge_available`) and `POST /api/v1/songs/<id>/purge` (purges analysis cache + stems, FR-005a/b)
+- [X] T094 [US2] Implement song delete + cache purge endpoints; T093 passes
 
 ### Frontend
 
-- [ ] T095 [P] [US2] Write failing tests in `src/review/frontend/tests/screens/Library.test.tsx` — song grid/list, filter pills (all/themed/analyzed/draft) update view in < 200ms keystroke → render (SC-007), folder sections collapsible, clicking a song routes by status (FR-003)
-- [ ] T096 [US2] Implement `src/review/frontend/src/screens/Library.tsx` using the existing Chrome.LibraryRail shell from T034; T095 passes
-- [ ] T097 [P] [US2] Extend LibraryRail in Chrome (from T034) to render the folder tree + per-song status chips + active-song highlight; unit tests under `src/review/frontend/tests/components/Chrome.test.tsx`
-- [ ] T098 [US2] Wire drag-and-drop of a song between folders (calls `PATCH /songs/<id>/folder`) in the rail
-- [ ] T099 [US2] Wire the "remove from library" action on a library entry (calls `DELETE /songs/<id>` then presents the cache-purge dialog; purge calls `POST /songs/<id>/purge`)
-- [ ] T100 [US2] Wire `preferences.last_song_id` + `last_screen` restore on app boot — SC-004 (< 2 s to first paint)
+- [X] T095 [P] [US2] Write failing tests in `src/review/frontend/tests/screens/Library.test.tsx` — song grid/list, filter pills (all/themed/analyzed/draft) update view in < 200ms keystroke → render (SC-007), folder sections collapsible, clicking a song routes by status (FR-003)
+- [X] T096 [US2] Implement `src/review/frontend/src/screens/Library.tsx` using the existing Chrome.LibraryRail shell from T034; T095 passes
+- [X] T097 [P] [US2] Extend LibraryRail in Chrome (from T034) to render the folder tree + per-song status chips + active-song highlight; unit tests under `src/review/frontend/tests/components/Chrome.test.tsx`
+- [X] T098 [US2] Wire drag-and-drop of a song between folders (calls `PATCH /songs/<id>/folder`) in the rail
+- [X] T099 [US2] Wire the "remove from library" action on a library entry (calls `DELETE /songs/<id>` then presents the cache-purge dialog; purge calls `POST /songs/<id>/purge`)
+- [X] T100 [US2] Wire `preferences.last_song_id` + `last_screen` restore on app boot — SC-004 (< 2 s to first paint)
 
 **Checkpoint**: US2 complete — multi-song library with folders, status routing, and deletion; SC-004, SC-007 verifiable.
 
