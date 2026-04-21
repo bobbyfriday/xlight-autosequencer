@@ -234,11 +234,11 @@ description: "Task list for x-onset Frontend Redo"
 
 **Independent Test**: Theme a song. Select section A, slide brightness to 0.5 — live preview dims. Change theme on A — sliders reset. Switch to section B — B shows default values. Export — rendered output applies overrides per section.
 
-- [ ] T113 [P] [US4] Write failing tests in `src/review/frontend/tests/components/ParameterSliders.test.tsx` — each slider bound to `assignments.overrides.<field>`, values persist via `PUT /assignments/<idx>`, theme change wipes values to new theme defaults (FR-032a)
-- [ ] T114 [US4] Implement `src/review/frontend/src/components/ParameterSliders/ParameterSliders.tsx` and mount in the Theme-screen Inspector; T113 passes
-- [ ] T115 [US4] Verify `PUT /api/v1/songs/<id>/assignments/<idx>` correctly handles partial `overrides` bodies + theme-change-triggered reset (tests already in T050; add regression cases if missing)
-- [ ] T116 [US4] Wire ParameterSliders into the LightsPreview on the Theme screen so slider drags produce immediate visual feedback (no round-trip required for preview — server only hears the final value via the normal persistence flow)
-- [ ] T117 [US4] Confirm the Export pipeline (T055) picks up `overrides` per section — add an end-to-end test at `tests/review/test_api_export.py` that asserts a song with non-default overrides produces different output bytes than the same song with defaults
+- [X] T113 [P] [US4] Write failing tests in `src/review/frontend/tests/components/ParameterSliders.test.tsx` — each slider bound to `assignments.overrides.<field>`, values persist via `PUT /assignments/<idx>`, theme change wipes values to new theme defaults (FR-032a)
+- [X] T114 [US4] Implement `src/review/frontend/src/components/ParameterSliders/ParameterSliders.tsx` and mount in the Theme-screen Inspector; T113 passes
+- [X] T115 [US4] Verify `PUT /api/v1/songs/<id>/assignments/<idx>` correctly handles partial `overrides` bodies + theme-change-triggered reset (tests already in T050; add regression cases if missing)
+- [X] T116 [US4] Wire ParameterSliders into the LightsPreview on the Theme screen so slider drags produce immediate visual feedback (no round-trip required for preview — server only hears the final value via the normal persistence flow)
+- [X] T117 [US4] Confirm the Export pipeline (T055) picks up `overrides` per section — add an end-to-end test at `tests/review/test_api_export.py` that asserts a song with non-default overrides produces different output bytes than the same song with defaults
 
 **Checkpoint**: US4 complete — per-section tuning works end-to-end.
 

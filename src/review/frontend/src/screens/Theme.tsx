@@ -3,6 +3,8 @@ import styles from './Theme.module.css';
 import { ThemeCard } from '../components/ThemeCard/ThemeCard';
 import { LightsPreview } from '../components/LightsPreview/LightsPreview';
 import { SectionStrip } from '../components/SectionStrip/SectionStrip';
+import { Inspector } from '../components/Inspector/Inspector';
+import { ParameterSliders, ParameterOverrides } from '../components/ParameterSliders/ParameterSliders';
 
 interface Theme {
   theme_id: string;
@@ -44,6 +46,13 @@ interface ThemeScreenProps {
   onAssignmentChange: (assignment: Assignment) => void;
 }
 
+const DEFAULT_OVERRIDES: ParameterOverrides = {
+  brightness: 1.0,
+  hit_strength: 1.0,
+  dwell_time: 1.0,
+  color_shift: 0.0,
+};
+
 export function Theme({
   song,
   themes,
@@ -55,6 +64,8 @@ export function Theme({
   const [selectedSectionIdx, setSelectedSectionIdx] = useState(0);
   const [localAssignments, setLocalAssignments] = useState(assignments);
   const [error, setError] = useState<string | null>(null);
+  // Live override state for immediate preview — no round-trip needed
+  const [liveOverrides, setLiveOverrides] = useState<ParameterOverrides>(DEFAULT_OVERRIDES);
 
   const currentAssignment = localAssignments.find((a) => a.section_index === selectedSectionIdx);
 
@@ -76,10 +87,12 @@ export function Theme({
       }
       const updated = localAssignments.map((a) =>
         a.section_index === selectedSectionIdx
-          ? { ...a, theme_id: themeId, user_confirmed: true }
+          ? { ...body.assignment }
           : a
       );
       setLocalAssignments(updated);
+      // Reset live overrides to defaults on theme change (FR-032a)
+      setLiveOverrides(body.assignment.overrides ?? DEFAULT_OVERRIDES);
       onAssignmentChange(body.assignment);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error');
@@ -120,7 +133,15 @@ export function Theme({
         assignments={localAssignments}
         durationMs={song.duration_ms}
         selectedIndex={selectedSectionIdx}
-        onSelect={setSelectedSectionIdx}
+        onSelect={(idx) => {
+          setSelectedSectionIdx(idx);
+          const a = localAssignments.find((a) => a.section_index === idx);
+          setLiveOverrides(
+            a?.overrides && Object.keys(a.overrides).length > 0
+              ? (a.overrides as ParameterOverrides)
+              : DEFAULT_OVERRIDES
+          );
+        }}
       />
 
       {error && <p className={styles.error}>{error}</p>}
@@ -145,9 +166,34 @@ export function Theme({
               ? (themes.find((t) => t.theme_id === currentAssignment.theme_id)?.accent ?? '#4ade80')
               : '#555'
             }
-            energyPulse={0.6}
+            energyPulse={0.6 * liveOverrides.brightness}
           />
         </div>
+
+        <Inspector title="Section Parameters">
+          {currentAssignment?.theme_id && (
+            <ParameterSliders
+              songId={song.song_id}
+              sectionIdx={selectedSectionIdx}
+              themeId={currentAssignment.theme_id}
+              overrides={
+                currentAssignment.overrides && Object.keys(currentAssignment.overrides).length > 0
+                  ? (currentAssignment.overrides as ParameterOverrides)
+                  : DEFAULT_OVERRIDES
+              }
+              onOverridesChange={(updated) => {
+                setLiveOverrides(updated);
+                // Update local assignment overrides for persistence on next theme action
+                const next = localAssignments.map((a) =>
+                  a.section_index === selectedSectionIdx
+                    ? { ...a, overrides: updated }
+                    : a
+                );
+                setLocalAssignments(next);
+              }}
+            />
+          )}
+        </Inspector>
       </div>
     </div>
   );

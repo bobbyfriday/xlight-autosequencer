@@ -124,6 +124,86 @@ class TestPutAssignment:
         assert resp.status_code == 404
 
 
+class TestPutAssignmentOverrides:
+    """Regression tests for partial overrides bodies — T115."""
+
+    def test_partial_overrides_only_updates_specified_fields(self, client):
+        """PUT with only overrides (no theme_id) patches only the given fields."""
+        song_id = _import_and_analyze(client)
+        # First assign a theme so the section has a known state
+        client.put(
+            f"/api/v1/songs/{song_id}/assignments/0",
+            json={"theme_id": "shimmer-wash"},
+        )
+        # Now send partial override — only brightness
+        data = client.put(
+            f"/api/v1/songs/{song_id}/assignments/0",
+            json={"overrides": {"brightness": 0.5}},
+        ).get_json()
+        assert data["assignment"]["overrides"]["brightness"] == 0.5
+        # Other fields unchanged from defaults
+        assert data["assignment"]["overrides"]["dwell_time"] == 1.0
+        assert data["assignment"]["overrides"]["color_shift"] == 0.0
+
+    def test_all_four_override_fields_accepted(self, client):
+        """PUT with all four override fields persists all values."""
+        song_id = _import_and_analyze(client)
+        client.put(
+            f"/api/v1/songs/{song_id}/assignments/0",
+            json={"theme_id": "shimmer-wash"},
+        )
+        data = client.put(
+            f"/api/v1/songs/{song_id}/assignments/0",
+            json={"overrides": {"brightness": 0.5, "hit_strength": 1.5, "dwell_time": 0.8, "color_shift": 0.3}},
+        ).get_json()
+        ov = data["assignment"]["overrides"]
+        assert ov["brightness"] == 0.5
+        assert ov["hit_strength"] == 1.5
+        assert ov["dwell_time"] == 0.8
+        assert ov["color_shift"] == 0.3
+
+    def test_theme_change_then_override_uses_defaults_as_base(self, client):
+        """FR-032a: after theme change resets overrides, a subsequent PUT patches from defaults."""
+        song_id = _import_and_analyze(client)
+        # Set custom overrides on initial theme
+        client.put(
+            f"/api/v1/songs/{song_id}/assignments/0",
+            json={"theme_id": "shimmer-wash", "overrides": {"brightness": 0.2}},
+        )
+        # Change theme — overrides reset to defaults
+        client.put(
+            f"/api/v1/songs/{song_id}/assignments/0",
+            json={"theme_id": "peak-flash"},
+        )
+        # Now patch a single field — others should be at defaults, not the old 0.2
+        data = client.put(
+            f"/api/v1/songs/{song_id}/assignments/0",
+            json={"overrides": {"color_shift": 0.5}},
+        ).get_json()
+        ov = data["assignment"]["overrides"]
+        assert ov["brightness"] == 1.0   # reset to default, not 0.2
+        assert ov["color_shift"] == 0.5  # new value applied
+
+    def test_override_with_theme_change_same_request_resets_first(self, client):
+        """If theme_id and overrides appear together, overrides from this request
+        are applied on top of the reset defaults — not the prior values."""
+        song_id = _import_and_analyze(client)
+        client.put(
+            f"/api/v1/songs/{song_id}/assignments/0",
+            json={"theme_id": "shimmer-wash", "overrides": {"brightness": 0.1}},
+        )
+        # Change theme and also set brightness in the same request
+        data = client.put(
+            f"/api/v1/songs/{song_id}/assignments/0",
+            json={"theme_id": "peak-flash", "overrides": {"brightness": 0.7}},
+        ).get_json()
+        ov = data["assignment"]["overrides"]
+        # brightness was reset then patched to 0.7 (not leftover 0.1)
+        assert ov["brightness"] == 0.7
+        # other fields at defaults
+        assert ov["dwell_time"] == 1.0
+
+
 class TestAcceptAll:
     def test_accept_all_flips_to_themed(self, client):
         song_id = _import_and_analyze(client)

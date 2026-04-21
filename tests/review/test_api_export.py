@@ -167,3 +167,85 @@ class TestExportSSE:
         export_id = export_data.get("export_id", "")
         resp = client.get(f"/api/v1/songs/{song_id}/export/status")
         assert resp.status_code in (200, 404)
+
+
+class TestExportOverrides:
+    """T117: verify overrides affect exported output bytes."""
+
+    def _run_full_export(self, client, tmp_path) -> tuple[str, bytes]:
+        """Import, analyze, layout, theme a song and run export. Returns (song_id, output_bytes)."""
+        wav_path = tmp_path / "test.wav"
+        wav_bytes = _make_wav_bytes()
+        wav_path.write_bytes(wav_bytes)
+
+        song_id = client.post(
+            "/api/v1/import",
+            data={
+                "audio": (io.BytesIO(wav_bytes), "test.wav"),
+                "source_path": str(wav_path),
+            },
+            content_type="multipart/form-data",
+        ).get_json()["song"]["song_id"]
+
+        client.post(f"/api/v1/songs/{song_id}/analyze")
+        for _ in range(20):
+            time.sleep(0.1)
+            lib_data = client.get("/api/v1/library").get_json()
+            song = next((s for s in lib_data["songs"] if s["song_id"] == song_id), None)
+            if song and song.get("status") == "analyzed":
+                break
+
+        _import_layout(client)
+        return song_id
+
+    def test_export_with_non_default_overrides_differs_from_defaults(self, client, tmp_path):
+        """A song exported with non-default overrides must produce different bytes than defaults."""
+        song_id = self._run_full_export(client, tmp_path)
+
+        # Export A: accept all defaults (overrides all at default values)
+        client.post(f"/api/v1/songs/{song_id}/assignments/accept-all")
+        resp_a = client.post(f"/api/v1/songs/{song_id}/export", json={"format": "xsq"})
+        assert resp_a.status_code == 202
+        export_id_a = resp_a.get_json()["export_id"]
+
+        # Wait for export A to complete
+        output_path_a: str | None = None
+        for _ in range(40):
+            time.sleep(0.1)
+            from src.review.api.v1.export import _exports
+            state = _exports.get(export_id_a)
+            if state and state.status != "running":
+                output_path_a = state.output_path
+                break
+
+        assert output_path_a is not None, "Export A did not complete"
+        import os
+        assert os.path.exists(output_path_a), "Export A output file missing"
+        bytes_a = open(output_path_a, "rb").read()
+
+        # Modify section 0 override — set brightness to a non-default value
+        client.put(
+            f"/api/v1/songs/{song_id}/assignments/0",
+            json={"overrides": {"brightness": 0.1}},
+        )
+
+        # Export B: with non-default brightness override
+        resp_b = client.post(f"/api/v1/songs/{song_id}/export", json={"format": "xsq"})
+        assert resp_b.status_code == 202
+        export_id_b = resp_b.get_json()["export_id"]
+
+        output_path_b: str | None = None
+        for _ in range(40):
+            time.sleep(0.1)
+            state = _exports.get(export_id_b)
+            if state and state.status != "running":
+                output_path_b = state.output_path
+                break
+
+        assert output_path_b is not None, "Export B did not complete"
+        assert os.path.exists(output_path_b), "Export B output file missing"
+        bytes_b = open(output_path_b, "rb").read()
+
+        assert bytes_a != bytes_b, (
+            "Export with brightness=0.1 should produce different bytes than default brightness=1.0"
+        )

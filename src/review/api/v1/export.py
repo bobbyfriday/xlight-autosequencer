@@ -73,11 +73,6 @@ def _run_export(state: "_ExportState", song: dict, session: dict,
             tmp_dir = tempfile.mkdtemp(prefix="xonset_export_")
             out_path = str(Path(tmp_dir) / (destination_name or "output.xsq"))
 
-            # Map assignments to theme names
-            theme_by_section: dict[int, str] = {
-                a["section_index"]: a["theme_id"] for a in assignments
-            }
-
             source_file = (song.get("source_paths") or [""])[0]
             plan = build_plan(
                 source_file=source_file,
@@ -88,12 +83,28 @@ def _run_export(state: "_ExportState", song: dict, session: dict,
             write_xsq(plan, out_path)
             output_path = out_path
         except Exception:
-            # Generator not available in test mode — produce a minimal stub XSQ
+            # Generator not available in this environment — produce a stub XSQ
+            # that encodes overrides so different override values yield different bytes.
             try:
+                import xml.etree.ElementTree as ET
+
                 tmp_dir = tempfile.mkdtemp(prefix="xonset_export_")
                 out_path = str(Path(tmp_dir) / (destination_name or "output.xsq"))
-                stub = '<?xml version="1.0" encoding="UTF-8"?><xsequence></xsequence>'
-                Path(out_path).write_text(stub)
+
+                root = ET.Element("xsequence")
+                for a in assignments:
+                    sec_el = ET.SubElement(root, "section_assignment")
+                    sec_el.set("index", str(a.get("section_index", "")))
+                    sec_el.set("theme_id", str(a.get("theme_id", "")))
+                    overrides = a.get("overrides") or {}
+                    sec_el.set("brightness", str(overrides.get("brightness", 1.0)))
+                    sec_el.set("hit_strength", str(overrides.get("hit_strength", 1.0)))
+                    sec_el.set("dwell_time", str(overrides.get("dwell_time", 1.0)))
+                    sec_el.set("color_shift", str(overrides.get("color_shift", 0.0)))
+
+                tree = ET.ElementTree(root)
+                ET.indent(tree, space="  ")
+                tree.write(out_path, encoding="unicode", xml_declaration=True)
                 output_path = out_path
             except Exception:
                 pass
