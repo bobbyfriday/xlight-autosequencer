@@ -69,9 +69,17 @@ mad_russian_christmas/
 .env
 .env.*
 
-# Claude Code / OpenWolf local state (transient per-session tooling)
+# Claude Code local state (per-user tooling)
 .claude/
-.wolf/
+
+# OpenWolf — ignore transient runtime state only; team-shared docs/config stay tracked
+.wolf/memory.md
+.wolf/cron-state.json
+.wolf/daemon.log
+.wolf/designqc-report.json
+.wolf/designqc-captures/
+.wolf/suggestions.json
+.wolf/token-ledger.json
 
 # User song data (audio, analysis, generated sequences)
 songs/
