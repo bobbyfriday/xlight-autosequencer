@@ -68,3 +68,10 @@ mad_russian_christmas/
 # Env
 .env
 .env.*
+
+# Claude Code / OpenWolf local state (transient per-session tooling)
+.claude/
+.wolf/
+
+# User song data (audio, analysis, generated sequences)
+songs/
