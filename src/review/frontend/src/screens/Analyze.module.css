@@ -1,0 +1,76 @@
+.root {
+  padding: 24px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0 0 16px;
+  color: var(--color-text, #f5f5f0);
+}
+
+.overall {
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.progressBar {
+  flex: 1;
+  height: 6px;
+  background: var(--color-surface-3, #2a2a32);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: var(--color-accent, #4ade80);
+  transition: width 0.2s;
+  border-radius: 3px;
+}
+
+.statusText {
+  font-size: 12px;
+  color: var(--color-text-muted, #888);
+  min-width: 60px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin-bottom: 24px;
+}
+
+.table th,
+.table td {
+  text-align: left;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--color-border, #333);
+  color: var(--color-text-muted, #888);
+}
+
+.table th {
+  color: var(--color-text, #f5f5f0);
+  font-weight: 600;
+}
+
+.reviewBtn {
+  background: var(--color-accent, #4ade80);
+  color: #000;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.reviewBtn:hover {
+  opacity: 0.9;
+}

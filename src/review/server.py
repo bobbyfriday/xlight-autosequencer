@@ -442,6 +442,81 @@ def create_app(analysis_path: str | None = None, audio_path: str | None = None,
     from src.review.preview_routes import preview_bp  # noqa: PLC0415
     app.register_blueprint(preview_bp, url_prefix="/api/song")
 
+    # ── Spec 051: x-onset audio stream route ────────────────────────────────────
+    @app.route("/audio/<song_id>")
+    def audio_stream(song_id: str):
+        """Stream audio bytes for a song, supporting HTTP Range requests (T057)."""
+        from src.review.storage.library import load_library as _load_library
+        from flask import jsonify as _jsonify
+
+        lib = _load_library()
+        song = next((s for s in lib.get("songs", []) if s["song_id"] == song_id), None)
+        if song is None:
+            return _jsonify({"error": {"code": "source_file_missing",
+                                       "message": "Song not found"}}), 404
+
+        source_paths = song.get("source_paths") or []
+        source_path = next(
+            (p for p in source_paths if Path(p).exists()), None
+        )
+        if source_path is None:
+            return _jsonify({"error": {"code": "source_file_missing",
+                                       "message": "Audio source file not found on disk"}}), 404
+
+        file_path = Path(source_path)
+        file_size = file_path.stat().st_size
+
+        range_header = request.headers.get("Range")
+        if range_header:
+            # Parse "bytes=start-end"
+            byte_range = range_header.replace("bytes=", "")
+            parts = byte_range.split("-")
+            try:
+                range_start = int(parts[0]) if parts[0] else 0
+                range_end = int(parts[1]) if len(parts) > 1 and parts[1] else file_size - 1
+            except (ValueError, IndexError):
+                range_start = 0
+                range_end = file_size - 1
+
+            range_end = min(range_end, file_size - 1)
+            length = range_end - range_start + 1
+
+            def _generate_range():
+                with open(str(file_path), "rb") as fh:
+                    fh.seek(range_start)
+                    remaining = length
+                    while remaining > 0:
+                        chunk_size = min(65536, remaining)
+                        data = fh.read(chunk_size)
+                        if not data:
+                            break
+                        remaining -= len(data)
+                        yield data
+
+            suffix = file_path.suffix.lower()
+            mime = "audio/mpeg" if suffix == ".mp3" else "audio/wav"
+            resp = Response(
+                stream_with_context(_generate_range()),
+                status=206,
+                mimetype=mime,
+                headers={
+                    "Content-Range": f"bytes {range_start}-{range_end}/{file_size}",
+                    "Accept-Ranges": "bytes",
+                    "Content-Length": str(length),
+                },
+            )
+            return resp
+
+        suffix = file_path.suffix.lower()
+        mime = "audio/mpeg" if suffix == ".mp3" else "audio/wav"
+        resp = send_file(
+            str(file_path),
+            mimetype=mime,
+            conditional=True,
+        )
+        resp.headers["Accept-Ranges"] = "bytes"
+        return resp
+
     # ── Story review SPA route (always available) ─────────────────────────────
     @app.route("/story-review")
     def story_review_spa():

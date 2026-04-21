@@ -104,69 +104,69 @@ description: "Task list for x-onset Frontend Redo"
 
 ### API endpoints for US1 (test-first)
 
-- [ ] T040 [P] [US1] Write failing tests in `tests/review/test_api_themes.py` for `GET /api/v1/themes` — returns `schema_version`, every Section kind has at least one theme with that kind in `default_for_kinds` (FR-012a requirement)
-- [ ] T041 [P] [US1] Implement `src/review/api/v1/themes.py` reading the built-in theme catalog from `src/themes/builtin_themes.json` and transforming to API shape; T040 passes
-- [ ] T042 [P] [US1] Write failing tests in `tests/review/test_api_import.py` per `contracts/import.md` — accepts multipart MP3, computes content hash, dedups on same hash, rejects unsupported format, returns 201 on new + 200 on dedup
-- [ ] T043 [US1] Implement `src/review/api/v1/import_.py` — multipart upload, SHA-256 hash first 16 hex, library lookup/create, ID3-tag parse for title/artist; T042 passes
-- [ ] T044 [P] [US1] Write failing tests in `tests/review/test_api_library.py` for `GET /api/v1/library` (single-song case only for US1) — returns songs[], folders[] (at least "unfiled"), `source_exists` computed from disk
-- [ ] T045 [US1] Implement `GET /api/v1/library` in `src/review/api/v1/library.py`; T044 passes
-- [ ] T046 [P] [US1] Write failing tests in `tests/review/test_api_analysis.py` covering `POST /api/v1/songs/<id>/analyze` (202 + run_id), `GET .../analysis` (200 with full AnalysisResult after completion, 409 `not_analyzed` before), and SSE stream basic shape (first event received within 2s, terminates with `overall.done`)
-- [ ] T047 [US1] Implement `src/review/api/v1/analysis.py` — wraps the existing `src/analyzer/runner.py`, streams per-detector progress via SSE, auto-populates section assignments with default-theme on completion (FR-012a); T046 passes
-- [ ] T048 [P] [US1] Write failing tests in `tests/review/test_api_sections.py` for `GET /api/v1/songs/<id>/sections` (split/merge/etc. live in US3)
-- [ ] T049 [US1] Implement `GET /api/v1/songs/<id>/sections` in `src/review/api/v1/sections.py`; T048 passes
-- [ ] T050 [P] [US1] Write failing tests in `tests/review/test_api_assignments.py` for `GET /api/v1/songs/<id>/assignments`, `PUT .../assignments/<idx>` (FR-032a override reset on theme change), and `POST .../assignments/accept-all` (FR-029a status transition to "themed")
-- [ ] T051 [US1] Implement `src/review/api/v1/assignments.py`; T050 passes
-- [ ] T052 [P] [US1] Write failing tests in `tests/review/test_api_layout.py` for `POST /api/v1/layout` (parses `xlights_rgbeffects.xml`, rejects invalid XML, returns `replaced_prior` flag per FR-036c) and `GET /api/v1/layout`
-- [ ] T053 [US1] Implement `src/review/api/v1/layout.py` (reuses existing layout-parsing from `src/layout/`); T052 passes
-- [ ] T054 [P] [US1] Write failing tests in `tests/review/test_api_export.py` covering `POST /api/v1/songs/<id>/export` (202 + export_id), SSE progress, 409 `incomplete_theming` with `missing_sections`, 409 `layout_required`, 409 `source_file_missing`
-- [ ] T055 [US1] Implement `src/review/api/v1/export.py` — wraps existing `src/generator/` pipeline, streams progress via SSE; T054 passes
-- [ ] T056 [P] [US1] Write failing tests in `tests/review/test_audio_stream.py` for `GET /audio/<song_id>` — streams bytes with `Accept-Ranges: bytes`, supports partial-content 206, returns 404 `source_file_missing` when path not found
-- [ ] T057 [US1] Implement the audio-stream route in `src/review/server.py`; T056 passes
+- [X] T04- [X] T040 [P] [US1] Write failing tests in `tests/review/test_api_themes.py` for `GET /api/v1/themes` — returns `schema_version`, every Section kind has at least one theme with that kind in `default_for_kinds` (FR-012a requirement)
+- [X] T04- [X] T041 [P] [US1] Implement `src/review/api/v1/themes.py` reading the built-in theme catalog from `src/themes/builtin_themes.json` and transforming to API shape; T040 passes
+- [X] T04- [X] T042 [P] [US1] Write failing tests in `tests/review/test_api_import.py` per `contracts/import.md` — accepts multipart MP3, computes content hash, dedups on same hash, rejects unsupported format, returns 201 on new + 200 on dedup
+- [X] T04- [X] T043 [US1] Implement `src/review/api/v1/import_.py` — multipart upload, SHA-256 hash first 16 hex, library lookup/create, ID3-tag parse for title/artist; T042 passes
+- [X] T04- [X] T044 [P] [US1] Write failing tests in `tests/review/test_api_library.py` for `GET /api/v1/library` (single-song case only for US1) — returns songs[], folders[] (at least "unfiled"), `source_exists` computed from disk
+- [X] T04- [X] T045 [US1] Implement `GET /api/v1/library` in `src/review/api/v1/library.py`; T044 passes
+- [X] T04- [X] T046 [P] [US1] Write failing tests in `tests/review/test_api_analysis.py` covering `POST /api/v1/songs/<id>/analyze` (202 + run_id), `GET .../analysis` (200 with full AnalysisResult after completion, 409 `not_analyzed` before), and SSE stream basic shape (first event received within 2s, terminates with `overall.done`)
+- [X] T04- [X] T047 [US1] Implement `src/review/api/v1/analysis.py` — wraps the existing `src/analyzer/runner.py`, streams per-detector progress via SSE, auto-populates section assignments with default-theme on completion (FR-012a); T046 passes
+- [X] T04- [X] T048 [P] [US1] Write failing tests in `tests/review/test_api_sections.py` for `GET /api/v1/songs/<id>/sections` (split/merge/etc. live in US3)
+- [X] T04- [X] T049 [US1] Implement `GET /api/v1/songs/<id>/sections` in `src/review/api/v1/sections.py`; T048 passes
+- [X] T050 [P] [US1] Write failing tests in `tests/review/test_api_assignments.py` for `GET /api/v1/songs/<id>/assignments`, `PUT .../assignments/<idx>` (FR-032a override reset on theme change), and `POST .../assignments/accept-all` (FR-029a status transition to "themed")
+- [X] T051 [US1] Implement `src/review/api/v1/assignments.py`; T050 passes
+- [X] T052 [P] [US1] Write failing tests in `tests/review/test_api_layout.py` for `POST /api/v1/layout` (parses `xlights_rgbeffects.xml`, rejects invalid XML, returns `replaced_prior` flag per FR-036c) and `GET /api/v1/layout`
+- [X] T053 [US1] Implement `src/review/api/v1/layout.py` (reuses existing layout-parsing from `src/layout/`); T052 passes
+- [X] T054 [P] [US1] Write failing tests in `tests/review/test_api_export.py` covering `POST /api/v1/songs/<id>/export` (202 + export_id), SSE progress, 409 `incomplete_theming` with `missing_sections`, 409 `layout_required`, 409 `source_file_missing`
+- [X] T055 [US1] Implement `src/review/api/v1/export.py` — wraps existing `src/generator/` pipeline, streams progress via SSE; T054 passes
+- [X] T056 [P] [US1] Write failing tests in `tests/review/test_audio_stream.py` for `GET /audio/<song_id>` — streams bytes with `Accept-Ranges: bytes`, supports partial-content 206, returns 404 `source_file_missing` when path not found
+- [X] T057 [US1] Implement the audio-stream route in `src/review/server.py`; T056 passes
 
 ### Frontend shared components for US1 (test-first)
 
-- [ ] T058 [P] [US1] Write failing tests in `src/review/frontend/tests/components/LightsPreview.test.tsx` — renders N cells, reacts to `playhead`/`energyPulse` props, compact flag hides label
-- [ ] T059 [P] [US1] Implement `src/review/frontend/src/components/LightsPreview/LightsPreview.tsx`; T058 passes
-- [ ] T060 [P] [US1] Write failing tests in `src/review/frontend/tests/components/MiniLights.test.tsx` — deterministic animation keyed on `themeId` + `kind`
-- [ ] T061 [P] [US1] Implement `src/review/frontend/src/components/MiniLights/MiniLights.tsx`; T060 passes
-- [ ] T062 [P] [US1] Write failing tests in `src/review/frontend/tests/components/Waveform.test.tsx` — renders SVG path from `peaks[]`, playhead line at correct x, per-section tint rects
-- [ ] T063 [P] [US1] Implement `src/review/frontend/src/components/Waveform/Waveform.tsx` per research §5 (inline SVG); T062 passes
-- [ ] T064 [P] [US1] Write failing tests in `src/review/frontend/tests/components/Ruler.test.tsx` — tick every 20s, click scrubs
-- [ ] T065 [P] [US1] Implement `src/review/frontend/src/components/Ruler/Ruler.tsx`; T064 passes
-- [ ] T066 [P] [US1] Write failing tests in `src/review/frontend/tests/components/Transport.test.tsx` — play/pause toggles, jump prev/next section, big timecode tabular
-- [ ] T067 [P] [US1] Implement `src/review/frontend/src/components/Transport/Transport.tsx`; T066 passes
-- [ ] T068 [P] [US1] Write failing tests in `src/review/frontend/tests/components/SectionStrip.test.tsx` — chips width proportional to duration, selected chip outlined, colored by assigned theme.accent
-- [ ] T069 [US1] Implement `src/review/frontend/src/components/SectionStrip/SectionStrip.tsx`; T068 passes
-- [ ] T069b [P] [US1] Write failing tests in `src/review/frontend/tests/components/DetectorTracks.test.tsx` — FR-017: toggle-able detector event tracks render below waveform, each track lane labeled by detector name, events positioned by `t_ms`, lanes hidden by default, visible after toggle
-- [ ] T069c [US1] Implement `src/review/frontend/src/components/DetectorTracks/DetectorTracks.tsx`; T069b passes
-- [ ] T070 [P] [US1] Write failing tests in `src/review/frontend/tests/components/ThemeCard.test.tsx` — renders swatches, `ASSIGNED` pill when active, double-stroke border on assigned state
-- [ ] T071 [P] [US1] Implement `src/review/frontend/src/components/ThemeCard/ThemeCard.tsx`; T070 passes
-- [ ] T072 [P] [US1] Implement `src/review/frontend/src/components/Inspector/Inspector.tsx` — generic right-rail container (per-screen inspector content slots via children). Tests co-located.
+- [X] T058 [P] [US1] Write failing tests in `src/review/frontend/tests/components/LightsPreview.test.tsx` — renders N cells, reacts to `playhead`/`energyPulse` props, compact flag hides label
+- [X] T059 [P] [US1] Implement `src/review/frontend/src/components/LightsPreview/LightsPreview.tsx`; T058 passes
+- [X] T060 [P] [US1] Write failing tests in `src/review/frontend/tests/components/MiniLights.test.tsx` — deterministic animation keyed on `themeId` + `kind`
+- [X] T061 [P] [US1] Implement `src/review/frontend/src/components/MiniLights/MiniLights.tsx`; T060 passes
+- [X] T062 [P] [US1] Write failing tests in `src/review/frontend/tests/components/Waveform.test.tsx` — renders SVG path from `peaks[]`, playhead line at correct x, per-section tint rects
+- [X] T063 [P] [US1] Implement `src/review/frontend/src/components/Waveform/Waveform.tsx` per research §5 (inline SVG); T062 passes
+- [X] T064 [P] [US1] Write failing tests in `src/review/frontend/tests/components/Ruler.test.tsx` — tick every 20s, click scrubs
+- [X] T065 [P] [US1] Implement `src/review/frontend/src/components/Ruler/Ruler.tsx`; T064 passes
+- [X] T066 [P] [US1] Write failing tests in `src/review/frontend/tests/components/Transport.test.tsx` — play/pause toggles, jump prev/next section, big timecode tabular
+- [X] T067 [P] [US1] Implement `src/review/frontend/src/components/Transport/Transport.tsx`; T066 passes
+- [X] T068 [P] [US1] Write failing tests in `src/review/frontend/tests/components/SectionStrip.test.tsx` — chips width proportional to duration, selected chip outlined, colored by assigned theme.accent
+- [X] T069 [US1] Implement `src/review/frontend/src/components/SectionStrip/SectionStrip.tsx`; T068 passes
+- [X] T069b [P] [US1] Write failing tests in `src/review/frontend/tests/components/DetectorTracks.test.tsx` — FR-017: toggle-able detector event tracks render below waveform, each track lane labeled by detector name, events positioned by `t_ms`, lanes hidden by default, visible after toggle
+- [X] T069c [US1] Implement `src/review/frontend/src/components/DetectorTracks/DetectorTracks.tsx`; T069b passes
+- [X] T070 [P] [US1] Write failing tests in `src/review/frontend/tests/components/ThemeCard.test.tsx` — renders swatches, `ASSIGNED` pill when active, double-stroke border on assigned state
+- [X] T071 [P] [US1] Implement `src/review/frontend/src/components/ThemeCard/ThemeCard.tsx`; T070 passes
+- [X] T072 [P] [US1] Implement `src/review/frontend/src/components/Inspector/Inspector.tsx` — generic right-rail container (per-screen inspector content slots via children). Tests co-located.
 
 ### CLI + audio hook
 
-- [ ] T073 [US1] Implement `src/review/cli.py` — `xlight review` command that starts Flask, opens `http://127.0.0.1:5000` in the default browser, reads `--dev` flag to skip auto-open
-- [ ] T074 [P] [US1] Write failing tests in `src/review/frontend/tests/hooks/useAudio.test.ts` — single `<audio>` element ref survives re-render, RAF-driven `time` updates fire at ~60Hz while playing, seek clamps to [0, duration]
-- [ ] T075 [US1] Implement `src/review/frontend/src/hooks/useAudio.ts` per research §6; T074 passes
+- [X] T073 [US1] Implement `src/review/cli.py` — `xlight review` command that starts Flask, opens `http://127.0.0.1:5000` in the default browser, reads `--dev` flag to skip auto-open
+- [X] T074 [P] [US1] Write failing tests in `src/review/frontend/tests/hooks/useAudio.test.ts` — single `<audio>` element ref survives re-render, RAF-driven `time` updates fire at ~60Hz while playing, seek clamps to [0, duration]
+- [X] T075 [US1] Implement `src/review/frontend/src/hooks/useAudio.ts` per research §6; T074 passes
 
 ### Screens for US1
 
-- [ ] T076 [P] [US1] Write failing tests in `src/review/frontend/tests/screens/Drop.test.tsx` — drop target accepts a file and calls the import API, rejects unsupported extensions pre-flight, auto-advances to analyze on success (FR-008)
-- [ ] T077 [US1] Implement `src/review/frontend/src/screens/Drop.tsx`; T076 passes
-- [ ] T078 [P] [US1] Write failing tests in `src/review/frontend/tests/screens/Analyze.test.tsx` — consumes SSE stream, renders per-detector rows (FR-009), overall progress (FR-010), enables `review timeline →` on completion (FR-012)
-- [ ] T079 [US1] Implement `src/review/frontend/src/screens/Analyze.tsx`; T078 passes
-- [ ] T080 [P] [US1] Write failing tests in `src/review/frontend/tests/screens/Timeline.test.tsx` — Transport + Ruler + SectionStrip + Waveform + LightsPreview composed correctly, playback continues across screen switches (FR-038)
-- [ ] T081 [US1] Implement `src/review/frontend/src/screens/Timeline.tsx`; T080 passes
-- [ ] T082 [P] [US1] Write failing tests in `src/review/frontend/tests/screens/Theme.test.tsx` — theme grid renders, clicking a card calls `PUT /assignments/<idx>` (T051), "accept all defaults" button flips song status to "themed" via `POST /assignments/accept-all` (FR-029a), live LightsPreview reflects current assignment
-- [ ] T083 [US1] Implement `src/review/frontend/src/screens/Theme.tsx`; T082 passes
-- [ ] T084 [P] [US1] Write failing tests in `src/review/frontend/tests/screens/Export.test.tsx` — shows layout-required block when `preferences.layout_id == null` (FR-036b), shows `incomplete_theming` block when applicable (FR-035), mapping table renders from `GET /export/mapping`, render button fires SSE-driven progress
-- [ ] T085 [US1] Implement `src/review/frontend/src/screens/Export.tsx`; T084 passes
+- [X] T076 [P] [US1] Write failing tests in `src/review/frontend/tests/screens/Drop.test.tsx` — drop target accepts a file and calls the import API, rejects unsupported extensions pre-flight, auto-advances to analyze on success (FR-008)
+- [X] T077 [US1] Implement `src/review/frontend/src/screens/Drop.tsx`; T076 passes
+- [X] T078 [P] [US1] Write failing tests in `src/review/frontend/tests/screens/Analyze.test.tsx` — consumes SSE stream, renders per-detector rows (FR-009), overall progress (FR-010), enables `review timeline →` on completion (FR-012)
+- [X] T079 [US1] Implement `src/review/frontend/src/screens/Analyze.tsx`; T078 passes
+- [X] T080 [P] [US1] Write failing tests in `src/review/frontend/tests/screens/Timeline.test.tsx` — Transport + Ruler + SectionStrip + Waveform + LightsPreview composed correctly, playback continues across screen switches (FR-038)
+- [X] T081 [US1] Implement `src/review/frontend/src/screens/Timeline.tsx`; T080 passes
+- [X] T082 [P] [US1] Write failing tests in `src/review/frontend/tests/screens/Theme.test.tsx` — theme grid renders, clicking a card calls `PUT /assignments/<idx>` (T051), "accept all defaults" button flips song status to "themed" via `POST /assignments/accept-all` (FR-029a), live LightsPreview reflects current assignment
+- [X] T083 [US1] Implement `src/review/frontend/src/screens/Theme.tsx`; T082 passes
+- [X] T084 [P] [US1] Write failing tests in `src/review/frontend/tests/screens/Export.test.tsx` — shows layout-required block when `preferences.layout_id == null` (FR-036b), shows `incomplete_theming` block when applicable (FR-035), mapping table renders from `GET /export/mapping`, render button fires SSE-driven progress
+- [X] T085 [US1] Implement `src/review/frontend/src/screens/Export.tsx`; T084 passes
 
 ### US1 wiring + navigation
 
-- [ ] T086 [US1] Wire `App.tsx` router keyed on `store.app.screen`; mounts each screen inside `<Chrome>`
-- [ ] T087 [US1] Wire auto-advance from DROP to ANALYZE on successful import; wire `review timeline →` button to advance to TIMELINE; wire TIMELINE → THEME via tool strip or implicit on themed-transition
-- [ ] T088 [US1] Wire the persistence hook (T039) so library, sections, assignments, and preferences writes fire on every meaningful state change (FR-049a)
+- [X] T086 [US1] Wire `App.tsx` router keyed on `store.app.screen`; mounts each screen inside `<Chrome>`
+- [X] T087 [US1] Wire auto-advance from DROP to ANALYZE on successful import; wire `review timeline →` button to advance to TIMELINE; wire TIMELINE → THEME via tool strip or implicit on themed-transition
+- [X] T088 [US1] Wire the persistence hook (T039) so library, sections, assignments, and preferences writes fire on every meaningful state change (FR-049a)
 
 **Checkpoint**: US1 MVP shippable — a hobbyist can go from empty-app to exported `.xsq` on a single song. SC-001 (≤15 min end-to-end), SC-002 (60fps scrub), SC-005 (design-token fidelity) verifiable here.
 
