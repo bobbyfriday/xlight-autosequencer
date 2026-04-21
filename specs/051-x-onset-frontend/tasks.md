@@ -208,21 +208,21 @@ description: "Task list for x-onset Frontend Redo"
 
 ### API (test-first)
 
-- [ ] T101 [P] [US3] Write failing tests in `tests/review/test_api_sections_edit.py` per [contracts/sections.md](contracts/sections.md): split (FR-021, sub-500ms rejected, theme inherit both), merge (FR-022, first-wins), promote-ghost (FR-025, inherit), delete (FR-023, last-section guard), rename (FR-024), reset (FR-026, restores detected + re-derives default themes per FR-012a)
-- [ ] T102 [US3] Implement the five section edit endpoints in `src/review/api/v1/sections.py`; T101 passes
-- [ ] T103 [P] [US3] Extend `POST /api/v1/songs/<id>/analyze` tests in `tests/review/test_api_analysis.py` to cover the `force: true` flag on analyzed/themed songs (does NOT overwrite session yet) and `POST .../analyze/commit` endpoint with `assignment_mapping` body per FR-013a
-- [ ] T104 [US3] Implement `force` flag + `POST .../analyze/commit` endpoint in `src/review/api/v1/analysis.py`; T103 passes
-- [ ] T105 [P] [US3] Write failing tests in `tests/review/test_overlap_mapping.py` for the max-overlap algorithm (research §10): 0.3 threshold, orphan detection, new-sections-need-theme detection
-- [ ] T106 [US3] Implement overlap-mapping utility in `src/review/api/v1/analysis.py` (or a helper module); T105 passes
+- [X] T101 [P] [US3] Write failing tests in `tests/review/test_api_sections_edit.py` per [contracts/sections.md](contracts/sections.md): split (FR-021, sub-500ms rejected, theme inherit both), merge (FR-022, first-wins), promote-ghost (FR-025, inherit), delete (FR-023, last-section guard), rename (FR-024), reset (FR-026, restores detected + re-derives default themes per FR-012a)
+- [X] T102 [US3] Implement the five section edit endpoints in `src/review/api/v1/sections.py`; T101 passes
+- [X] T103 [P] [US3] Extend `POST /api/v1/songs/<id>/analyze` tests in `tests/review/test_api_analysis.py` to cover the `force: true` flag on analyzed/themed songs (does NOT overwrite session yet) and `POST .../analyze/commit` endpoint with `assignment_mapping` body per FR-013a
+- [X] T104 [US3] Implement `force` flag + `POST .../analyze/commit` endpoint in `src/review/api/v1/analysis.py`; T103 passes
+- [X] T105 [P] [US3] Write failing tests in `tests/review/test_overlap_mapping.py` for the max-overlap algorithm (research §10): 0.3 threshold, orphan detection, new-sections-need-theme detection
+- [X] T106 [US3] Implement overlap-mapping utility in `src/review/api/v1/analysis.py` (or a helper module); T105 passes
 
 ### Frontend
 
-- [ ] T107 [P] [US3] Write failing tests in `src/review/frontend/tests/util/overlap.test.ts` — mirror of T105 at the client (the review dialog also computes the proposed mapping client-side for instant UI)
-- [ ] T108 [US3] Implement `src/review/frontend/src/util/overlap.ts`; T107 passes
-- [ ] T109 [P] [US3] Write failing tests in `src/review/frontend/tests/components/SectionsEditMode.test.tsx` — mode toggle, `S`/`M`/`Del`/`R` keyboard shortcuts (FR-042), ghost-boundary UI on the timeline, section-rename inline edit
-- [ ] T110 [US3] Implement `src/review/frontend/src/components/SectionsEditMode/*` + wire into Timeline screen; T109 passes
-- [ ] T111 [P] [US3] Write failing tests in `src/review/frontend/tests/components/ReanalysisDialog.test.tsx` — lists carry-over / shifted / dropped / needs-theme rows, confirm calls `POST .../analyze/commit`, cancel keeps prior analysis intact
-- [ ] T112 [US3] Implement `src/review/frontend/src/components/ReanalysisDialog/ReanalysisDialog.tsx`; T111 passes
+- [X] T107 [P] [US3] Write failing tests in `src/review/frontend/tests/util/overlap.test.ts` — mirror of T105 at the client (the review dialog also computes the proposed mapping client-side for instant UI)
+- [X] T108 [US3] Implement `src/review/frontend/src/util/overlap.ts`; T107 passes
+- [X] T109 [P] [US3] Write failing tests in `src/review/frontend/tests/components/SectionsEditMode.test.tsx` — mode toggle, `S`/`M`/`Del`/`R` keyboard shortcuts (FR-042), ghost-boundary UI on the timeline, section-rename inline edit
+- [X] T110 [US3] Implement `src/review/frontend/src/components/SectionsEditMode/*` + wire into Timeline screen; T109 passes
+- [X] T111 [P] [US3] Write failing tests in `src/review/frontend/tests/components/ReanalysisDialog.test.tsx` — lists carry-over / shifted / dropped / needs-theme rows, confirm calls `POST .../analyze/commit`, cancel keeps prior analysis intact
+- [X] T112 [US3] Implement `src/review/frontend/src/components/ReanalysisDialog/ReanalysisDialog.tsx`; T111 passes
 
 **Checkpoint**: US3 complete — all section edits work with correct theme inheritance; re-analysis is safe and reviewable.
 

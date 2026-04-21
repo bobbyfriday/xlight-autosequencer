@@ -42,3 +42,27 @@ def save_session(
         except OSError:
             pass
         raise
+
+
+def save_full_session(song_id: str, payload: dict[str, Any]) -> None:
+    """Write an arbitrary session payload (must include schema_version).
+
+    Use this when extra fields (detected_sections, ghost_boundaries, …) must be
+    persisted alongside the standard sections/assignments pair.
+    """
+    p = song_session_path(song_id)
+    p.parent.mkdir(parents=True, exist_ok=True)
+    if "schema_version" not in payload:
+        payload = {"schema_version": SCHEMA_VERSION, **payload}
+    data = json.dumps(payload, indent=2, ensure_ascii=False)
+    fd, tmp = tempfile.mkstemp(dir=p.parent, suffix=".tmp")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            f.write(data)
+        os.replace(tmp, p)
+    except Exception:
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+        raise
