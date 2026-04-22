@@ -399,7 +399,8 @@ def _hierarchy_summary_for_server(json_path: Path) -> dict | None:
 
 
 def create_app(analysis_path: str | None = None, audio_path: str | None = None,
-               scan_dir: str | None = None, story_mode: bool = False) -> Flask:
+               scan_dir: str | None = None, story_mode: bool = False,
+               testing: bool = False) -> Flask:
     """
     Create the Flask application.
 
@@ -407,74 +408,97 @@ def create_app(analysis_path: str | None = None, audio_path: str | None = None,
     When analysis_path + audio_path are provided, review-mode routes are
     also registered for direct file viewing.
     """
-    app = Flask(__name__, static_folder=str(Path(__file__).parent / "static"), static_url_path="")
+    # Serve the new React frontend from frontend/dist/
+    _dist_dir = str(Path(__file__).parent / "frontend" / "dist")
+    app = Flask(__name__, static_folder=_dist_dir, static_url_path="/assets")
     app.config["ANALYSIS_PATH"] = analysis_path
     app.config["AUDIO_PATH"] = audio_path
     app.config["SCAN_DIR"] = scan_dir
+    app.config["TESTING"] = testing
 
-    # ── Register blueprints ──────────────────────────────────────────────────
-    from src.review.story_routes import story_bp  # noqa: PLC0415
-    app.register_blueprint(story_bp, url_prefix="/story")
+    # ── Register /api/v1 Blueprint ───────────────────────────────────────────
+    from src.review.api.v1 import api_v1  # noqa: PLC0415
+    app.register_blueprint(api_v1, url_prefix="/api/v1")
 
-    # ── Register the theme editor blueprint (always available) ────────────────
-    from src.review.theme_routes import theme_bp  # noqa: PLC0415
-    app.register_blueprint(theme_bp)
+    # ── Spec 051: x-onset audio stream route ────────────────────────────────────
+    @app.route("/audio/<song_id>")
+    def audio_stream(song_id: str):
+        """Stream audio bytes for a song, supporting HTTP Range requests (T057)."""
+        from src.review.storage.library import load_library as _load_library
+        from flask import jsonify as _jsonify
 
-    # ── Register the variant library blueprint (always available) ─────────────
-    from src.review.variant_routes import variant_bp  # noqa: PLC0415
-    app.register_blueprint(variant_bp)
+        lib = _load_library()
+        song = next((s for s in lib.get("songs", []) if s["song_id"] == song_id), None)
+        if song is None:
+            return _jsonify({"error": {"code": "source_file_missing",
+                                       "message": "Song not found"}}), 404
 
-    # ── Register the sequence generation blueprint (always available) ─────────
-    from src.review.generate_routes import generate_bp  # noqa: PLC0415
-    app.register_blueprint(generate_bp, url_prefix="/generate")
+        source_paths = song.get("source_paths") or []
+        source_path = next(
+            (p for p in source_paths if Path(p).exists()), None
+        )
+        if source_path is None:
+            return _jsonify({"error": {"code": "source_file_missing",
+                                       "message": "Audio source file not found on disk"}}), 404
 
-    # ── Register the creative brief blueprint (spec 047) ─────────────────────
-    from src.review.brief_routes import brief_bp  # noqa: PLC0415
-    app.register_blueprint(brief_bp)
+        file_path = Path(source_path)
+        file_size = file_path.stat().st_size
 
-    # ── Register the section preview blueprint (spec 049) ─────────────────────
-    from src.review.preview_routes import preview_bp  # noqa: PLC0415
-    app.register_blueprint(preview_bp, url_prefix="/api/song")
+        range_header = request.headers.get("Range")
+        if range_header:
+            # Parse "bytes=start-end"
+            byte_range = range_header.replace("bytes=", "")
+            parts = byte_range.split("-")
+            try:
+                range_start = int(parts[0]) if parts[0] else 0
+                range_end = int(parts[1]) if len(parts) > 1 and parts[1] else file_size - 1
+            except (ValueError, IndexError):
+                range_start = 0
+                range_end = file_size - 1
 
-    # ── Story review SPA route (always available) ─────────────────────────────
-    @app.route("/story-review")
-    def story_review_spa():
-        return send_from_directory(app.static_folder, "story-review.html")
+            range_end = min(range_end, file_size - 1)
+            length = range_end - range_start + 1
 
-    # ══════════════════════════════════════════════════════════════════════════
-    # Dashboard routes — always available regardless of mode
-    # ══════════════════════════════════════════════════════════════════════════
+            def _generate_range():
+                with open(str(file_path), "rb") as fh:
+                    fh.seek(range_start)
+                    remaining = length
+                    while remaining > 0:
+                        chunk_size = min(65536, remaining)
+                        data = fh.read(chunk_size)
+                        if not data:
+                            break
+                        remaining -= len(data)
+                        yield data
 
-    @app.route("/")
-    def dashboard_index():
-        return send_from_directory(app.static_folder, "dashboard.html")
-
-    @app.route("/library-view")
-    def library_view_redirect():
-        from flask import redirect
-        return redirect("/", code=302)
-
-    @app.route("/timeline")
-    def timeline():
-        return send_from_directory(app.static_folder, "index.html")
-
-    @app.route("/phonemes-view")
-    def phonemes_view():
-        return send_from_directory(app.static_folder, "phonemes.html")
-
-    # Spec 046: per-song workspace shell served at /song/<source_hash>.
-    # Resolves via Library().find_by_hash and gates 404 before serving the
-    # static HTML; client-side JS re-reads the hash from location.pathname.
-    @app.route("/song/<source_hash>")
-    def song_workspace(source_hash):
-        from src.library import Library
-        if Library().find_by_hash(source_hash) is None:
-            return (
-                "Song not found in library. "
-                "<a href=\"/\">Return to the library view.</a>",
-                404,
+            suffix = file_path.suffix.lower()
+            mime = "audio/mpeg" if suffix == ".mp3" else "audio/wav"
+            resp = Response(
+                stream_with_context(_generate_range()),
+                status=206,
+                mimetype=mime,
+                headers={
+                    "Content-Range": f"bytes {range_start}-{range_end}/{file_size}",
+                    "Accept-Ranges": "bytes",
+                    "Content-Length": str(length),
+                },
             )
-        return send_from_directory(app.static_folder, "song-workspace.html")
+            return resp
+
+        suffix = file_path.suffix.lower()
+        mime = "audio/mpeg" if suffix == ".mp3" else "audio/wav"
+        resp = send_file(
+            str(file_path),
+            mimetype=mime,
+            conditional=True,
+        )
+        resp.headers["Accept-Ranges"] = "bytes"
+        return resp
+
+    # ── New React SPA — catch-all routes serve index.html ─────────────────────
+    @app.route("/")
+    def spa_index():
+        return send_from_directory(_dist_dir, "index.html")
 
     @app.route("/song/<source_hash>/sections")
     def song_sections(source_hash):

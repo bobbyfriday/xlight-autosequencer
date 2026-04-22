@@ -1,0 +1,48 @@
+.toggleBtn {
+  background: none;
+  border: 1px solid var(--color-border, #333);
+  color: var(--color-text-muted, #888);
+  font-size: 12px;
+  padding: 3px 8px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.lanes {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 4px;
+}
+
+.lane {
+  display: flex;
+  align-items: center;
+  height: 20px;
+  gap: 8px;
+}
+
+.laneLabel {
+  font-size: 11px;
+  color: var(--color-text-muted, #888);
+  width: 80px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.laneTrack {
+  flex: 1;
+  height: 100%;
+  background: var(--color-surface-2, #1e1e24);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.event {
+  position: absolute;
+  top: 2px;
+  width: 2px;
+  height: calc(100% - 4px);
+  background: var(--color-accent, #4ade80);
+  opacity: 0.7;
+}

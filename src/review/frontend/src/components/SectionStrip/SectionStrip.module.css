@@ -1,0 +1,40 @@
+.strip {
+  display: flex;
+  width: 100%;
+  height: 28px;
+  overflow: hidden;
+}
+
+.chip {
+  flex-shrink: 0;
+  background: var(--color-surface-2, #1e1e24);
+  border: 2px solid transparent;
+  border-bottom: 3px solid transparent;
+  color: var(--color-text-muted, #888);
+  font-size: 11px;
+  cursor: pointer;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  padding: 2px 4px;
+  text-align: left;
+  transition: border-color 0.1s;
+  min-width: 20px;
+}
+
+.chip:hover {
+  color: var(--color-text, #f5f5f0);
+}
+
+.selected {
+  border-width: 2px;
+  background: var(--color-surface-3, #2a2a32);
+  color: var(--color-text, #f5f5f0);
+  outline: 1px solid currentColor;
+}
+
+.chipLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

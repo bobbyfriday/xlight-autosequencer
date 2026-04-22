@@ -1,0 +1,69 @@
+.root {
+  padding: 24px;
+  max-width: 700px;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0 0 16px;
+  color: var(--color-text, #f5f5f0);
+}
+
+.block {
+  padding: 32px 24px;
+  background: var(--color-surface-2, #1e1e24);
+  border-radius: 8px;
+  border: 1px solid var(--color-border, #333);
+  margin: 24px;
+}
+
+.block h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 8px;
+  color: var(--color-text, #f5f5f0);
+}
+
+.block p {
+  font-size: 13px;
+  color: var(--color-text-muted, #888);
+  margin: 0;
+}
+
+.renderBtn {
+  background: var(--color-accent, #4ade80);
+  color: #000;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.renderBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.error {
+  color: var(--color-error, #ef4444);
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+
+.success {
+  background: var(--color-surface-2, #1e1e24);
+  border-radius: 6px;
+  padding: 16px;
+}
+
+.path {
+  display: block;
+  font-size: 12px;
+  color: var(--color-text-muted, #888);
+  margin-top: 8px;
+  word-break: break-all;
+}
