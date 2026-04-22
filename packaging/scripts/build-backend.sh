@@ -30,8 +30,31 @@ WORK_DIR=".build-pyinstaller/$ARCH"
 DIST_DIR="packaging/tauri/src-tauri/binaries"
 TRIPLE="$ARCH-apple-darwin"
 
+# Require Python 3.11 specifically.
+#   - madmom has no wheels for 3.12+ and its source build against 3.12/3.13
+#     is unreliable.
+#   - torch wheels for 3.14 (released Oct 2025) were still sparse at release
+#     time of this script.
+# Override with PY311=/path/to/python3.11 if your installation is elsewhere.
+PY311="${PY311:-python3.11}"
+if ! command -v "$PY311" >/dev/null 2>&1; then
+  echo "error: python3.11 not found on PATH." >&2
+  echo "       Install via:  brew install python@3.11" >&2
+  echo "       Or set PY311=/full/path/to/python3.11 and re-run." >&2
+  exit 2
+fi
+PY311_VERSION="$("$PY311" --version 2>&1)"
+case "$PY311_VERSION" in
+  "Python 3.11."*) ;;
+  *)
+    echo "error: $PY311 reports '$PY311_VERSION' — expected Python 3.11.x" >&2
+    exit 2
+    ;;
+esac
+echo "→ Using $PY311 ($PY311_VERSION)"
+
 echo "→ Preparing venv at $VENV_DIR"
-python3 -m venv "$VENV_DIR"
+"$PY311" -m venv "$VENV_DIR"
 # shellcheck disable=SC1091
 source "$VENV_DIR/bin/activate"
 
