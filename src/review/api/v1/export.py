@@ -256,3 +256,51 @@ def export_mapping(song_id: str):
         })
 
     return jsonify({"props": props}), 200
+
+
+@api_v1.route("/songs/<song_id>/export/save-to", methods=["POST"])
+def export_save_to(song_id: str):
+    """052 US3 — copy the most recent export result to a user-chosen path.
+
+    Body: `{path: "<absolute-path-to-destination.xsq>"}`.
+    Only available in bundled mode (the packaged app). Dev mode keeps
+    the existing browser-download flow.
+    """
+    import shutil
+    from src.packaging.bundled_mode import is_bundled
+
+    if not is_bundled():
+        return jsonify({"error": {
+            "code": "not_bundled",
+            "message": "export/save-to is only available in the packaged app.",
+        }}), 403
+
+    body = request.get_json(silent=True) or {}
+    raw_dest = body.get("path")
+    if not raw_dest or not isinstance(raw_dest, str):
+        return jsonify({"error": {"code": "missing_path",
+                                   "message": "Body must include a string 'path'."}}), 400
+
+    with _exports_lock:
+        exp_id = _song_exports.get(song_id)
+        state = _exports.get(exp_id) if exp_id else None
+
+    if state is None or not state.output_path:
+        return jsonify({"error": {"code": "no_export_available",
+                                   "message": "Run an export before saving."}}), 409
+
+    source = Path(state.output_path)
+    if not source.is_file():
+        return jsonify({"error": {"code": "export_file_missing",
+                                   "message": "Previous export result no longer on disk."}}), 409
+
+    dest = Path(raw_dest)
+    try:
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(source, dest)
+    except OSError as exc:
+        return jsonify({"error": {"code": "write_failed",
+                                   "message": str(exc)}}), 500
+
+    return jsonify({"saved_to": str(dest.resolve()),
+                    "bytes": dest.stat().st_size}), 200

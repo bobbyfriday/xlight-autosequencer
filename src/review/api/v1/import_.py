@@ -134,3 +134,95 @@ def import_song():
     save_library(lib)
 
     return jsonify({"created": True, "song": song}), 201
+
+
+@api_v1.route("/import/by-path", methods=["POST"])
+def import_song_by_path():
+    """052 US3 — packaged-app path-based import.
+
+    The Tauri shell resolves a file path via the native Open dialog,
+    then POSTs `{path}`. The backend reads the file from disk directly
+    and runs the same import flow, avoiding a multipart upload round-
+    trip for multi-MB MP3s.
+
+    Only available when the backend is running in bundled mode
+    (XLIGHT_PACKAGED=1 set by the Tauri launcher). Dev-mode callers
+    must continue to use POST /api/v1/import with multipart upload.
+    """
+    from src.packaging.bundled_mode import is_bundled
+
+    if not is_bundled():
+        return jsonify({"error": {
+            "code": "not_bundled",
+            "message": "import/by-path is only available in the packaged app.",
+        }}), 403
+
+    body = request.get_json(silent=True) or {}
+    raw_path = body.get("path")
+    if not raw_path or not isinstance(raw_path, str):
+        return jsonify({"error": {"code": "missing_path",
+                                   "message": "Body must include a string 'path'."}}), 400
+
+    source_path = Path(raw_path)
+    if not source_path.is_file():
+        return jsonify({"error": {"code": "file_not_found",
+                                   "message": f"Not a file: {raw_path}"}}), 404
+
+    ext = source_path.suffix.lower()
+    if ext not in _ALLOWED_EXTENSIONS:
+        return jsonify({"error": {"code": "unsupported_format",
+                                   "message": f"Unsupported file type: {ext}"}}), 400
+
+    try:
+        stat = source_path.stat()
+    except OSError as exc:
+        return jsonify({"error": {"code": "stat_failed",
+                                   "message": str(exc)}}), 500
+    if stat.st_size > _MAX_BYTES:
+        return jsonify({"error": {"code": "audio_too_large",
+                                   "message": "File exceeds 200 MB limit"}}), 413
+
+    audio_bytes = source_path.read_bytes()
+    song_id = hashlib.sha256(audio_bytes).hexdigest()[:16]
+
+    folder_id = body.get("folder_id") or "unfiled"
+    absolute = str(source_path.resolve())
+
+    lib = load_library()
+    existing = next((s for s in lib["songs"] if s["song_id"] == song_id), None)
+
+    if existing is not None:
+        source_path_added = False
+        if absolute not in existing["source_paths"]:
+            existing["source_paths"].insert(0, absolute)
+            source_path_added = True
+        save_library(lib)
+        return jsonify({
+            "created": False,
+            "song": existing,
+            "source_path_added": source_path_added,
+        }), 200
+
+    duration_ms = _duration_ms(audio_bytes, ext)
+    id3_title, id3_artist = _read_id3(audio_bytes)
+    title = id3_title or source_path.stem
+    artist = id3_artist or None
+
+    song = {
+        "song_id": song_id,
+        "title": title,
+        "artist": artist,
+        "duration_ms": duration_ms,
+        "bpm": None,
+        "key": None,
+        "time_signature": None,
+        "status": "draft",
+        "source_paths": [absolute],
+        "folder_id": folder_id,
+        "imported_at": _now_iso(),
+        "last_opened_at": None,
+    }
+    lib["songs"].append(song)
+    save_library(lib)
+
+    return jsonify({"created": True, "song": song}), 201
