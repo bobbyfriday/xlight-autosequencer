@@ -63,18 +63,31 @@ pip install --upgrade pip wheel setuptools
 pip install -e ".[stems]"
 pip install "pyinstaller>=6,<7"
 
-# madmom, vamp are optional extras — try but don't fail the build if they
+# madmom builds Cython extensions at install time and imports Cython
+# directly in its setup.py — the implicit PEP 517 isolated build env
+# doesn't include Cython/numpy unless we pre-install them outside it
+# (or add them to madmom's declared build deps, which we don't own).
+pip install --upgrade "cython>=3" "numpy<2"
+
+# madmom, vamp are optional — try but don't fail the build if they
 # refuse to install on this arch.
-pip install "madmom>=0.16" || echo "warn: madmom install failed — beats-only analysis will be unavailable in the bundle"
-pip install "vamp>=1.1" || echo "warn: vamp install failed — vamp plugins will be unavailable in the bundle"
+pip install "madmom>=0.16" --no-build-isolation || \
+  echo "warn: madmom install failed — beats-only analysis will be unavailable in the bundle"
+pip install "vamp>=1.1" || \
+  echo "warn: vamp install failed — vamp plugins will be unavailable in the bundle"
 
 mkdir -p "$DIST_DIR" "$WORK_DIR"
 
-echo "→ Running PyInstaller (target-arch=$ARCH)"
+# --target-arch is only valid with PyInstaller's CLI when invoked against
+# a script, not a .spec. The spec owns architecture selection. For host-
+# arch builds (which this is) we let PyInstaller default to host. For a
+# cross-arch build (e.g. x86_64 on an arm64 Mac), run this script under
+# `arch -x86_64` with an x86_64 python3.11 installed, and set the venv
+# via PY311=/path/to/x86_64-python3.11.
+echo "→ Running PyInstaller (host-arch build targeting $ARCH)"
 pyinstaller packaging/pyinstaller/backend.spec \
   --distpath "$DIST_DIR" \
   --workpath "$WORK_DIR" \
-  --target-arch "$ARCH" \
   --clean --noconfirm
 
 # PyInstaller onedir outputs `<distpath>/backend/`. Tauri expects a named
