@@ -1,5 +1,6 @@
 import React, { useRef, useState, useCallback } from 'react';
 import styles from './Drop.module.css';
+import { apiFetch } from 'src/lib/apiClient';
 
 interface Song {
   song_id: string;
@@ -41,7 +42,7 @@ export function Drop({ onSongImported }: DropProps) {
       const formData = new FormData();
       formData.append('audio', file);
 
-      const res = await fetch('/api/v1/import', {
+      const res = await apiFetch('/api/v1/import', {
         method: 'POST',
         body: formData,
       });

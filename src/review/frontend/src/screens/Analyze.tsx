@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import styles from './Analyze.module.css';
+import { apiFetch } from 'src/lib/apiClient';
 
 interface Song {
   song_id: string;
@@ -36,7 +37,7 @@ export function Analyze({ song, onComplete }: AnalyzeProps) {
 
     async function startAnalysis() {
       try {
-        const res = await fetch(`/api/v1/songs/${song.song_id}/analyze`, {
+        const res = await apiFetch(`/api/v1/songs/${song.song_id}/analyze`, {
           method: 'POST',
         });
         if (!res.ok) return;

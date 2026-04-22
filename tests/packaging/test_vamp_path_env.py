@@ -1,41 +1,38 @@
 """T009 — pin existing VAMP_PATH behavior in src/analyzer/capabilities.py.
 
-This is a regression test rather than a new-feature test: the capability
-probe already prepends `VAMP_PATH` to its plugin search. The test ensures
-that behavior cannot silently regress.
+The capability probe already prepends `VAMP_PATH` to its plugin search
+(line ~97 of capabilities.py at the time of writing). This test is a
+regression pin: if someone rewrites capabilities.py and drops the env
+var handling, this test will fail loudly.
+
+We deliberately DON'T import `capabilities` at module level — on some
+systems that triggers pyannote/torchaudio compatibility errors that are
+unrelated to the VAMP_PATH behavior we're checking.
 """
 from __future__ import annotations
 
-import os
 from pathlib import Path
-from unittest import mock
-
-# We exercise the plugin search logic directly rather than importing
-# capabilities at module top — the module probes for vamp at import time
-# and we want to avoid side effects on unrelated tests.
 
 
-def test_vamp_path_env_is_prepended_to_plugin_dirs(tmp_path: Path) -> None:
-    fake_plugin_dir = tmp_path / "vamp"
-    fake_plugin_dir.mkdir()
-    # Seed a fake .dylib so the "has_plugins" branch can be taken in practice.
-    (fake_plugin_dir / "fake.dylib").write_bytes(b"")
+CAPABILITIES_PATH = (
+    Path(__file__).resolve().parents[2]
+    / "src"
+    / "analyzer"
+    / "capabilities.py"
+)
 
-    env = {"VAMP_PATH": str(fake_plugin_dir)}
-    with mock.patch.dict(os.environ, env, clear=False):
-        from src.analyzer import capabilities
 
-        # Call the internal probe function to exercise the search path
-        # logic. We assert that the VAMP_PATH directory is the first one
-        # considered and that it contains a plugin-shaped file.
-        caps = capabilities.detect_capabilities(verbose=False)
+def test_vamp_path_env_is_consulted_by_plugin_search() -> None:
+    source = CAPABILITIES_PATH.read_text()
 
-        # The detect call doesn't return the path list directly; instead
-        # we re-read the module source to confirm VAMP_PATH handling is
-        # still present as a string check. This is a belt-and-braces
-        # regression pin.
-        source = Path(capabilities.__file__).read_text()
-        assert 'os.environ.get("VAMP_PATH"' in source or "os.environ.get('VAMP_PATH'" in source
-        assert "vamp_path.split(os.pathsep)" in source
-        # Smoke: the env var is respected and at least doesn't crash the probe.
-        assert caps is not None
+    # Regression-pin: the env var must be read and split on pathsep into
+    # the plugin search list.
+    assert 'os.environ.get("VAMP_PATH"' in source or "os.environ.get('VAMP_PATH'" in source, (
+        "VAMP_PATH env-var read appears to have been removed from "
+        "src/analyzer/capabilities.py — the packaged Tauri launcher "
+        "depends on this to surface bundled plugins. See 052 plan R5."
+    )
+    assert "vamp_path.split(os.pathsep)" in source, (
+        "VAMP_PATH must be split on os.pathsep (not ':' or ';' directly) "
+        "to stay cross-platform."
+    )

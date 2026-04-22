@@ -6,6 +6,7 @@ import { SectionStrip } from '../components/SectionStrip/SectionStrip';
 import { Inspector } from '../components/Inspector/Inspector';
 import { ParameterSliders, ParameterOverrides } from '../components/ParameterSliders/ParameterSliders';
 import type { Assignment } from 'src/store/assignments';
+import { apiFetch } from 'src/lib/apiClient';
 
 interface Theme {
   theme_id: string;
@@ -66,8 +67,7 @@ export function Theme({
   async function handleThemeSelect(themeId: string) {
     setError(null);
     try {
-      const res = await fetch(
-        `/api/v1/songs/${song.song_id}/assignments/${selectedSectionIdx}`,
+      const res = await apiFetch(`/api/v1/songs/${song.song_id}/assignments/${selectedSectionIdx}`,
         {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -96,8 +96,7 @@ export function Theme({
   async function handleAcceptAll() {
     setError(null);
     try {
-      const res = await fetch(
-        `/api/v1/songs/${song.song_id}/assignments/accept-all`,
+      const res = await apiFetch(`/api/v1/songs/${song.song_id}/assignments/accept-all`,
         { method: 'POST' }
       );
       const body = await res.json();

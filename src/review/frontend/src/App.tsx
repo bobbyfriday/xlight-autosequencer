@@ -17,6 +17,7 @@ import { Theme } from 'src/screens/Theme';
 import { Export } from 'src/screens/Export';
 import { Library } from 'src/screens/Library';
 import { debounce } from 'src/hooks/usePersist';
+import { apiFetch } from 'src/lib/apiClient';
 
 // ── shared types ─────────────────────────────────────────────────────────────
 
@@ -160,7 +161,7 @@ function GlobalKeyboardListener() {
 // ── persistence helpers (T088) ────────────────────────────────────────────────
 
 async function saveAssignments(songId: string, assignments: Assignment[]) {
-  await fetch(`/api/v1/songs/${songId}/assignments`, {
+  await apiFetch(`/api/v1/songs/${songId}/assignments`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ assignments }),
@@ -204,7 +205,7 @@ export default function App() {
     bootDone.current = true;
 
     // Load preferences first
-    fetch('/api/v1/preferences')
+    apiFetch('/api/v1/preferences')
       .then((r) => (r.ok ? r.json() : null))
       .then((prefs) => {
         if (prefs) {
@@ -214,7 +215,7 @@ export default function App() {
       .catch(() => {});
 
     // Load library
-    fetch('/api/v1/library')
+    apiFetch('/api/v1/library')
       .then((r) => r.json())
       .then((body) => {
         if (body.songs) setSongs(body.songs);
@@ -240,7 +241,7 @@ export default function App() {
 
   // load themes catalog once on mount
   useEffect(() => {
-    fetch('/api/v1/themes')
+    apiFetch('/api/v1/themes')
       .then((r) => r.json())
       .then((body) => {
         if (body.themes) setData((d) => ({ ...d, themes: body.themes }));
@@ -250,7 +251,7 @@ export default function App() {
 
   // load layout preference on mount
   useEffect(() => {
-    fetch('/api/v1/layout')
+    apiFetch('/api/v1/layout')
       .then((r) => {
         if (!r.ok) return null;
         return r.json();
@@ -294,8 +295,8 @@ export default function App() {
     if (!song) return;
     try {
       const [analysisRes, assignmentsRes] = await Promise.all([
-        fetch(`/api/v1/songs/${song.song_id}/analysis`),
-        fetch(`/api/v1/songs/${song.song_id}/assignments`),
+        apiFetch(`/api/v1/songs/${song.song_id}/analysis`),
+        apiFetch(`/api/v1/songs/${song.song_id}/assignments`),
       ]);
       const analysisBody = analysisRes.ok ? await analysisRes.json() : null;
       const assignmentsBody = assignmentsRes.ok ? await assignmentsRes.json() : null;
@@ -330,7 +331,7 @@ export default function App() {
 
     // Persist last_song_id in preferences
     setPreferences({ last_song_id: song.song_id, last_screen: targetScreen });
-    fetch('/api/v1/preferences', {
+    apiFetch('/api/v1/preferences', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ last_song_id: song.song_id, last_screen: targetScreen }),
@@ -341,7 +342,7 @@ export default function App() {
 
   // T098: drag-and-drop folder move
   const handleSongMoved = useCallback((songId: string, targetFolderId: string) => {
-    fetch(`/api/v1/songs/${songId}/folder`, {
+    apiFetch(`/api/v1/songs/${songId}/folder`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ folder_id: targetFolderId }),
@@ -355,7 +356,7 @@ export default function App() {
 
   // T099: remove from library → cache purge dialog
   const handleRemoveSong = useCallback((song: Song) => {
-    fetch(`/api/v1/songs/${song.song_id}`, { method: 'DELETE' })
+    apiFetch(`/api/v1/songs/${song.song_id}`, { method: 'DELETE' })
       .then((r) => (r.ok ? r.json() : null))
       .then((result) => {
         if (!result) return;
@@ -369,7 +370,7 @@ export default function App() {
   }, [songs, setSongs]);
 
   const handlePurgeCache = useCallback((songId: string) => {
-    fetch(`/api/v1/songs/${songId}/purge`, {
+    apiFetch(`/api/v1/songs/${songId}/purge`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ analysis: true, stems: true }),
