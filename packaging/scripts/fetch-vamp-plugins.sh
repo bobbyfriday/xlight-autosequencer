@@ -23,28 +23,25 @@ mkdir -p "$OUT"
 # Expected plugin packs. `.dylib` suffix is the canonical macOS Vamp
 # plugin extension. Names match what Python code requests via
 # `vamp.load_plugin()` (see src/analyzer/algorithms/vamp_*.py).
-declare -a EXPECTED=(
-  "qm-vamp-plugins.dylib"
-  "beatroot-vamp.dylib"
-  "pyin.dylib"
-  "nnls-chroma.dylib"
-  "silvet.dylib"
-)
-
-declare -A SOURCES=(
-  [qm-vamp-plugins]="https://code.soundsoftware.ac.uk/projects/qm-vamp-plugins/"
-  [beatroot-vamp]="https://code.soundsoftware.ac.uk/projects/beatroot-vamp"
-  [pyin]="https://code.soundsoftware.ac.uk/projects/pyin"
-  [nnls-chroma]="https://code.soundsoftware.ac.uk/projects/nnls-chroma"
-  [silvet]="https://code.soundsoftware.ac.uk/projects/silvet"
+#
+# Format per entry: "<filename>|<source-url>"
+# (Plain array instead of associative array so this runs on macOS's
+# stock bash 3.2 — `declare -A` needs bash 4+.)
+EXPECTED=(
+  "qm-vamp-plugins.dylib|https://code.soundsoftware.ac.uk/projects/qm-vamp-plugins/"
+  "beatroot-vamp.dylib|https://code.soundsoftware.ac.uk/projects/beatroot-vamp"
+  "pyin.dylib|https://code.soundsoftware.ac.uk/projects/pyin"
+  "nnls-chroma.dylib|https://code.soundsoftware.ac.uk/projects/nnls-chroma"
+  "silvet.dylib|https://code.soundsoftware.ac.uk/projects/silvet"
 )
 
 MISSING=0
-for name in "${EXPECTED[@]}"; do
+for entry in "${EXPECTED[@]}"; do
+  name="${entry%%|*}"
+  source_url="${entry##*|}"
   if [[ ! -f "$OUT/$name" ]]; then
-    key="${name%.dylib}"
     echo "✗ missing: $OUT/$name"
-    echo "    source: ${SOURCES[$key]}"
+    echo "    source: $source_url"
     MISSING=1
   else
     echo "✓ present: $OUT/$name"
