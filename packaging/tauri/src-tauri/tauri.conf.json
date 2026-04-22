@@ -34,9 +34,9 @@
       "icons/128x128@2x.png",
       "icons/icon.icns"
     ],
-    "externalBin": ["binaries/backend"],
     "resources": {
       "../../pyinstaller/plugins/vamp": "vamp",
+      "binaries/backend-aarch64-apple-darwin": "backend",
       "packaging-manifest.json": "packaging-manifest.json"
     },
     "macOS": {

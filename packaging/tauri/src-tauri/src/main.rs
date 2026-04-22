@@ -4,22 +4,22 @@
 
 mod handshake;
 
+use std::io::{BufRead, BufReader};
+use std::path::PathBuf;
+use std::process::{Command, Stdio};
 use std::sync::Mutex;
 
 use serde::Serialize;
 use tauri::{AppHandle, Emitter, Manager, State};
-use tauri_plugin_shell::process::{Command, CommandEvent};
-use tauri_plugin_shell::ShellExt;
 
 /// Cached backend port; written once the handshake line is parsed on the
 /// sidecar's stdout, read by the frontend via `get_backend_port` and also
 /// used for graceful shutdown.
 struct BackendState {
     port: Mutex<Option<u16>>,
-    // We intentionally do NOT retain a reference to `CommandChild` here;
-    // Tauri's process handle is consumed by the stdout-reader task, and
-    // shutdown is performed by sending SIGTERM to the pid we record when
-    // the sidecar spawns.
+    // We intentionally do NOT retain a reference to the child process here;
+    // the Command handle is consumed by the waiter thread, and shutdown is
+    // performed by sending SIGTERM to the pid recorded at spawn.
     pid: Mutex<Option<u32>>,
 }
 
@@ -50,7 +50,21 @@ fn get_backend_port(state: State<'_, BackendState>) -> Option<u16> {
     state.port.lock().ok().and_then(|g| *g)
 }
 
-/// Spawn the PyInstaller sidecar and wire up stdout parsing.
+/// Resolve the backend binary path. Tauri copies the PyInstaller onedir
+/// into the resource dir (under `backend/`) per `tauri.conf.json >
+/// bundle.resources` — in dev that's `target/debug/backend/`, in release
+/// it's `.app/Contents/Resources/backend/`.
+fn backend_binary_path(app: &AppHandle) -> Result<PathBuf, String> {
+    let arch = std::env::consts::ARCH;
+    let binary_name = format!("backend-{arch}-apple-darwin");
+    let resource_dir = app
+        .path()
+        .resource_dir()
+        .map_err(|e| format!("resource_dir: {e}"))?;
+    Ok(resource_dir.join("backend").join(&binary_name))
+}
+
+/// Spawn the PyInstaller backend and wire up stdout parsing.
 fn spawn_backend(app: &AppHandle) -> Result<(), String> {
     let resource_dir = app
         .path()
@@ -67,95 +81,111 @@ fn spawn_backend(app: &AppHandle) -> Result<(), String> {
         .join("torch-hub");
     std::fs::create_dir_all(torch_home.join("hub").join("checkpoints")).ok();
 
-    let sidecar: Command = app
-        .shell()
-        .sidecar("backend")
-        .map_err(|e| format!("sidecar lookup failed: {e}"))?
-        .envs([
-            ("XLIGHT_PACKAGED", "1".to_string()),
-            ("PYTHONUNBUFFERED", "1".to_string()),
-            ("VAMP_PATH", vamp_path.to_string_lossy().to_string()),
-            ("TORCH_HOME", torch_home.to_string_lossy().to_string()),
-            // Cap torch/openmp thread count so we don't spike CPU at startup.
-            ("OMP_NUM_THREADS", "4".to_string()),
-            ("MKL_NUM_THREADS", "4".to_string()),
-        ]);
+    let backend_path = backend_binary_path(app)?;
 
-    let (mut rx, child) = sidecar
+    let mut child = Command::new(&backend_path)
+        .env("XLIGHT_PACKAGED", "1")
+        .env("PYTHONUNBUFFERED", "1")
+        .env("VAMP_PATH", vamp_path.to_string_lossy().to_string())
+        .env("TORCH_HOME", torch_home.to_string_lossy().to_string())
+        // Cap torch/openmp thread count so we don't spike CPU at startup.
+        .env("OMP_NUM_THREADS", "4")
+        .env("MKL_NUM_THREADS", "4")
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
         .spawn()
-        .map_err(|e| format!("failed to spawn backend: {e}"))?;
+        .map_err(|e| format!("failed to spawn backend ({}): {e}", backend_path.display()))?;
 
-    let pid = child.pid();
+    let pid = child.id();
     if let Ok(mut slot) = app.state::<BackendState>().pid.lock() {
         *slot = Some(pid);
     }
 
-    let handle = app.clone();
-    tauri::async_runtime::spawn(async move {
+    let stdout = child
+        .stdout
+        .take()
+        .ok_or_else(|| "backend: no stdout".to_string())?;
+    let stderr = child
+        .stderr
+        .take()
+        .ok_or_else(|| "backend: no stderr".to_string())?;
+
+    // Stdout reader: parses the port handshake and passes remaining lines
+    // through to our log.
+    let stdout_handle = app.clone();
+    std::thread::spawn(move || {
+        let reader = BufReader::new(stdout);
         let mut port_announced = false;
-        let deadline =
-            std::time::Instant::now() + std::time::Duration::from_secs(30);
-
-        while let Some(event) = rx.recv().await {
-            match event {
-                CommandEvent::Stdout(line_bytes) => {
-                    let line = String::from_utf8_lossy(&line_bytes).to_string();
-                    if !port_announced {
-                        if let Some(port) = handshake::parse_port_line(&line) {
-                            port_announced = true;
-                            if let Ok(mut slot) =
-                                handle.state::<BackendState>().port.lock()
-                            {
-                                *slot = Some(port);
-                            }
-                            let _ = handle.emit(
-                                "backend-ready",
-                                BackendReadyPayload { port },
-                            );
-                        }
+        for line in reader.lines() {
+            let Ok(line) = line else { break };
+            if !port_announced {
+                if let Some(port) = handshake::parse_port_line(&line) {
+                    port_announced = true;
+                    if let Ok(mut slot) = stdout_handle.state::<BackendState>().port.lock() {
+                        *slot = Some(port);
                     }
-                    eprintln!("[backend stdout] {}", line.trim_end());
+                    let _ = stdout_handle
+                        .emit("backend-ready", BackendReadyPayload { port });
                 }
-                CommandEvent::Stderr(line_bytes) => {
-                    let line = String::from_utf8_lossy(&line_bytes);
-                    eprintln!("[backend stderr] {}", line.trim_end());
-                }
-                CommandEvent::Terminated(status) => {
-                    if !port_announced {
-                        let _ = handle.emit(
-                            "backend-startup-failed",
-                            BackendStartupFailedPayload {
-                                message: format!(
-                                    "Sidecar exited before announcing port (code={:?})",
-                                    status.code
-                                ),
-                            },
-                        );
-                    } else {
-                        let _ = handle.emit(
-                            "backend-lost",
-                            BackendStartupFailedPayload {
-                                message: format!(
-                                    "Backend process exited (code={:?})",
-                                    status.code
-                                ),
-                            },
-                        );
-                    }
-                    break;
-                }
-                _ => {}
             }
+            eprintln!("[backend stdout] {}", line.trim_end());
+        }
+    });
 
-            if !port_announced && std::time::Instant::now() > deadline {
-                let _ = handle.emit(
-                    "backend-startup-failed",
-                    BackendStartupFailedPayload {
-                        message: "Handshake timed out (30s)".to_string(),
-                    },
-                );
-                break;
+    // Stderr reader: pass-through to our log.
+    std::thread::spawn(move || {
+        let reader = BufReader::new(stderr);
+        for line in reader.lines() {
+            if let Ok(line) = line {
+                eprintln!("[backend stderr] {}", line.trim_end());
             }
+        }
+    });
+
+    // Waiter: detects backend termination and emits the appropriate event
+    // (startup-failed if the port was never announced, backend-lost if the
+    // process exited after handshake).
+    let wait_handle = app.clone();
+    std::thread::spawn(move || {
+        let status = child.wait();
+        let port = wait_handle
+            .state::<BackendState>()
+            .port
+            .lock()
+            .ok()
+            .and_then(|g| *g);
+        let code = status.as_ref().ok().and_then(|s| s.code());
+        let event = if port.is_some() {
+            "backend-lost"
+        } else {
+            "backend-startup-failed"
+        };
+        let _ = wait_handle.emit(
+            event,
+            BackendStartupFailedPayload {
+                message: format!("Backend process exited (code={code:?})"),
+            },
+        );
+    });
+
+    // Handshake deadline: if the port hasn't been announced within 30s,
+    // surface a failure event so the frontend can stop waiting.
+    let deadline_handle = app.clone();
+    std::thread::spawn(move || {
+        std::thread::sleep(std::time::Duration::from_secs(30));
+        let port = deadline_handle
+            .state::<BackendState>()
+            .port
+            .lock()
+            .ok()
+            .and_then(|g| *g);
+        if port.is_none() {
+            let _ = deadline_handle.emit(
+                "backend-startup-failed",
+                BackendStartupFailedPayload {
+                    message: "Handshake timed out (30s)".to_string(),
+                },
+            );
         }
     });
 
@@ -168,7 +198,7 @@ fn dirs_home() -> Option<std::path::PathBuf> {
     std::env::var_os("HOME").map(std::path::PathBuf::from)
 }
 
-/// Best-effort: send SIGTERM to the sidecar pid we recorded at spawn.
+/// Best-effort: send SIGTERM to the backend pid we recorded at spawn.
 /// Uses libc on Unix; on Windows would need TerminateProcess — out of
 /// scope for the macOS v1 ship.
 #[cfg(unix)]
