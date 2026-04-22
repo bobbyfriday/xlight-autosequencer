@@ -88,7 +88,8 @@ export type DropUnsubscribe = () => void;
 export async function onDrop(callback: (paths: string[]) => void): Promise<DropUnsubscribe> {
   if (isTauri()) {
     const { listen } = await import("@tauri-apps/api/event");
-    const unlisten = await listen<string[]>("tauri://file-drop", (event) => {
+    // Tauri 2 renamed the event from `tauri://file-drop` to `tauri://drag-drop`.
+    const unlisten = await listen<string[]>("tauri://drag-drop", (event) => {
       callback(event.payload);
     });
     return unlisten;
