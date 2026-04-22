@@ -18,6 +18,7 @@ import { Export } from 'src/screens/Export';
 import { Library } from 'src/screens/Library';
 import { debounce } from 'src/hooks/usePersist';
 import { apiFetch } from 'src/lib/apiClient';
+import { WeightsDownload } from 'src/components/WeightsDownload/WeightsDownload';
 
 // ── shared types ─────────────────────────────────────────────────────────────
 
@@ -458,6 +459,10 @@ export default function App() {
       >
         {renderScreen()}
       </Chrome>
+
+      {/* 052 US2: first-use demucs-weights download modal.
+          Self-managed visibility via useWeightsDownloadStore.phase. */}
+      <WeightsDownload />
 
       {/* T099: cache purge confirmation dialog */}
       {purgeDialog && (
