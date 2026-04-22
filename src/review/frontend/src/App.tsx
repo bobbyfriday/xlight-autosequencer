@@ -19,6 +19,7 @@ import { Library } from 'src/screens/Library';
 import { debounce } from 'src/hooks/usePersist';
 import { apiFetch } from 'src/lib/apiClient';
 import { WeightsDownload } from 'src/components/WeightsDownload/WeightsDownload';
+import { About } from 'src/components/About/About';
 
 // ── shared types ─────────────────────────────────────────────────────────────
 
@@ -198,6 +199,9 @@ export default function App() {
 
   // Cache purge dialog state (T099)
   const [purgeDialog, setPurgeDialog] = useState<PurgeDialogState | null>(null);
+
+  // 052 US4: About dialog visibility.
+  const [aboutOpen, setAboutOpen] = useState(false);
 
   // T100: Load preferences + library on mount, then restore last session
   const bootDone = useRef(false);
@@ -463,6 +467,31 @@ export default function App() {
       {/* 052 US2: first-use demucs-weights download modal.
           Self-managed visibility via useWeightsDownloadStore.phase. */}
       <WeightsDownload />
+
+      {/* 052 US4: About dialog + tiny trigger in the corner. */}
+      <About open={aboutOpen} onClose={() => setAboutOpen(false)} />
+      <button
+        className="app-about-trigger"
+        aria-label="About XLight"
+        title="About XLight"
+        onClick={() => setAboutOpen(true)}
+        style={{
+          position: 'fixed',
+          bottom: 12,
+          right: 12,
+          width: 28,
+          height: 28,
+          borderRadius: '50%',
+          background: 'var(--color-surface, #1a1a1a)',
+          border: '1px solid var(--color-border, #333)',
+          color: 'var(--color-text-muted, #888)',
+          fontSize: 14,
+          cursor: 'pointer',
+          zIndex: 900,
+        }}
+      >
+        ?
+      </button>
 
       {/* T099: cache purge confirmation dialog */}
       {purgeDialog && (
