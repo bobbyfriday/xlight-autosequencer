@@ -11,8 +11,6 @@
     "shell:allow-open",
     "dialog:allow-open",
     "dialog:allow-save",
-    "dialog:default",
-    "fs:allow-read-file",
-    "fs:allow-exists"
+    "dialog:default"
   ]
 }
