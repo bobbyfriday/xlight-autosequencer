@@ -143,6 +143,7 @@ already been tried and why.
 - Timestamps are always stored as integers (milliseconds) — never floats
 
 ## Recent Changes
+- 052-tauri-desktop-packaging: Added Tauri 2 macOS shell over the existing Flask backend and React frontend. Sidecar handshake via stdout (`XLIGHT_BACKEND_PORT=`), dynamic free-port Flask binding, frontend apiUrl/apiFetch indirection, hardened-runtime entitlements for Vamp `dlopen` and torch JIT, resumable demucs weights download (CC BY-NC 4.0, first-use only), native Open/Save dialogs via `@tauri-apps/plugin-dialog`, new `src/packaging/` helpers (bundled_mode, stems_paths, models_paths, weights_downloader), new `packaging/` tree (PyInstaller spec + hooks, Tauri Rust shell, build/sign/notarize scripts). Run `./packaging/scripts/release.sh <aarch64|x86_64>` on a Mac with Developer ID cert + XLIGHT_NOTARY keychain profile to ship a signed notarized `.dmg`. Tests: 23 passing.
 - 041-prop-type-affinity: Added Python 3.11+ + No new dependencies — all existing generator pipeline
 - 037-duration-scaling: Added Python 3.11+ + click 8+, Flask 3+, existing generator pipeline
 - 038-palette-restraint: Added Python 3.11+ + Flask 3+ (web server), click 8+ (CLI), existing generator pipeline
