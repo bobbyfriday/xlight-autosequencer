@@ -33,6 +33,11 @@ EXPECTED=(
   "pyin.dylib|https://code.soundsoftware.ac.uk/projects/pyin"
   "nnls-chroma.dylib|https://code.soundsoftware.ac.uk/projects/nnls-chroma"
   "silvet.dylib|https://code.soundsoftware.ac.uk/projects/silvet"
+  "bbc-vamp-plugins.dylib|https://code.soundsoftware.ac.uk/projects/bbc-vamp-plugins"
+  "segmentino.dylib|https://code.soundsoftware.ac.uk/projects/segmentino"
+  "tempogram.dylib|https://code.soundsoftware.ac.uk/projects/tempogram"
+  "vamp-aubio.dylib|https://aubio.org/vamp-aubio-plugins/"
+  "vamp-example-plugins.dylib|https://vamp-plugins.org/download.html"
 )
 
 MISSING=0
