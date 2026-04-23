@@ -1,15 +1,15 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-04-21T19:28:48.973Z
-> Files: 516 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-04-23T13:51:03.193Z
+> Files: 536 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
 
 - `.DS_Store` (~1640 tok)
-- `.gitignore` — Git ignore rules (~391 tok)
-- `CLAUDE.md` — OpenWolf (~5153 tok)
+- `.gitignore` — Git ignore rules (~420 tok)
+- `CLAUDE.md` — OpenWolf (~5686 tok)
 - `LICENSE` — Project license (~285 tok)
-- `pyproject.toml` — Automatically generate xLights sequences from audio files (~480 tok)
+- `pyproject.toml` — Python project configuration (~525 tok)
 - `README.md` — Project documentation (~3264 tok)
 - `xlights_rgbeffects.xml` (~106466 tok)
 
@@ -118,6 +118,7 @@
 
 ## .claude/worktrees/049-section-preview/.claude/commands/
 
+- `review-diff.md` — User Input (~1250 tok)
 - `speckit.analyze.md` — User Input (~1793 tok)
 - `speckit.checklist.md` — Checklist Purpose: "Unit Tests for English" (~4232 tok)
 - `speckit.clarify.md` — User Input (~2827 tok)
@@ -144,8 +145,8 @@
 
 ## .claude/worktrees/049-section-preview/.pytest_cache/v/cache/
 
-- `lastfailed` (~3751 tok)
-- `nodeids` (~56689 tok)
+- `lastfailed` (~3718 tok)
+- `nodeids` (~58245 tok)
 
 ## .claude/worktrees/049-section-preview/.specify/
 
@@ -180,6 +181,34 @@
 - `batch_ensemble.py` — class: run_segmentino, run_qm_segmenter, find_consensus, find_unique + 2 more (~2879 tok)
 - `batch_report.py` — load_results, get_track, analyze_energy, analyze_bars + 3 more (~4120 tok)
 - `split_clips.py` — get_segmentino_sections, get_harmonic_splits, extract_clip, process_song + 2 more (~3256 tok)
+
+## .claude/worktrees/049-section-preview/design_handoff_xonset/
+
+- `Prototype.html` — x-onset · Interactive Prototype (~612 tok)
+- `README.md` — Project documentation (~6510 tok)
+
+## .claude/worktrees/049-section-preview/design_handoff_xonset/assets/
+
+- `highway-data.js` (~7715 tok)
+
+## .claude/worktrees/049-section-preview/design_handoff_xonset/prototype/
+
+- `analyze-screen.jsx` — Analyze screen v2 — feels like the tool is actually finding things. (~8406 tok)
+- `app.jsx` — App entry: mount, route to screen, keyboard shortcuts. (~601 tok)
+- `export-screen.jsx` — Export screen — dry-run first, commit second. Staged pipeline, per-section render, (~7739 tok)
+- `lights.jsx` — Live animated lights strip. Reacts to beats + section + theme. (~1333 tok)
+- `other-screens.jsx` — The 4 other screens — Library, Drop, Analyze, Export. (~7861 tok)
+- `sections-edit.jsx` — Editable sections UI — inline handles on the strip/waveform + Sections mode. (~4990 tok)
+- `shell.jsx` — Chrome: header, tool strip (nav), library rail, status bar, tweaks panel. (~3277 tok)
+- `state.jsx` — Shared state, theme palettes, helpers, tweak mode. (~3590 tok)
+- `theme-picker.jsx` — Theme picker — the north-star interactive screen. (~5234 tok)
+- `timeline.jsx` — Review timeline screen — scrub, play, raw detector tracks. (~4714 tok)
+
+## .claude/worktrees/049-section-preview/design_handoff_xonset/reference/
+
+- `Flow Wireframes.html` — xlight-autosequencer · Flow Wireframes (~23986 tok)
+- `Pro-Tool Flow.html` — x-onset · Pro-Tool Flow (~786 tok)
+- `Visual Directions.html` — x-onset · Visual Directions (~825 tok)
 
 ## .claude/worktrees/049-section-preview/docs/
 
@@ -929,12 +958,18 @@
 - `vamp_structure.py` — T034: Vamp structural segmentation and tempo algorithms. (~567 tok)
 - `vamp_utils.py` — Shared helper functions for Vamp plugin algorithm wrappers. (~399 tok)
 
-## .claude/worktrees/049-section-preview/src/cli/
+## src/review/frontend/src/
 
-- `__init__.py` — CLI entry point for xlight-analyze. (~381 tok)
-- `analyze.py` — Analyze, full, and wizard commands. (~4176 tok)
-- `extras.py` — Remaining CLI commands not yet split into dedicated modules. (~293 tok)
+- `App.tsx` — SCREENS (~6875 tok)
 
-## .claude/worktrees/049-section-preview/src/generator/
+## src/review/frontend/src/screens/
 
-- `xsq_writer.py` — XSQ writer — serializes a SequencePlan to xLights .xsq XML format. (~8089 tok)
+- `Analyze.tsx` — When true, run analysis on mount even if the song is already marked (~7314 tok)
+- `Drop.tsx` — Called after a successful /api/v1/import response. (~995 tok)
+- `Library.tsx` — ALLOWED_EXTS (~2952 tok)
+- `Timeline.tsx` — Returns the beat entry whose t_ms is <= timeMs (last beat at or before playhead) (~7150 tok)
+
+## src/review/frontend/tests/screens/
+
+- `Analyze.test.tsx` — mockFetch (~547 tok)
+- `Drop.test.tsx` — Mock fetch globally (~616 tok)

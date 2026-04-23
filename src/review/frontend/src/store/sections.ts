@@ -4,7 +4,7 @@ export interface Section {
   index: number;
   start_ms: number;
   end_ms: number;
-  kind: 'intro' | 'verse' | 'chorus' | 'solo' | 'bridge' | 'outro' | 'unknown';
+  kind: 'intro' | 'verse' | 'pre_chorus' | 'chorus' | 'solo' | 'bridge' | 'outro' | 'unknown';
   label: string;
 }
 

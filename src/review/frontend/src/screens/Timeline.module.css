@@ -5,14 +5,191 @@
   overflow: hidden;
 }
 
+/* Flex row: main content + inspector */
+.body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.mainCol {
+  --track-gutter: 260px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* Wrapper that aligns a time-based track with the AlgoTrack sidebar width */
+.trackAligned {
+  padding-left: var(--track-gutter);
+  position: relative;
+}
+
+.trackAlignedLabel {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: var(--track-gutter);
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  color: var(--ink3, #6a6a78);
+  letter-spacing: 1px;
+  background: var(--bg1, #1a1a20);
+  border-right: 1px solid var(--line, #2a2a33);
+  box-sizing: border-box;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.zoomBar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-bottom: 1px solid var(--line, #2a2a33);
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.zoomLabel {
+  font-family: var(--font-mono, monospace);
+  font-size: 9px;
+  color: var(--ink3, #6a6a78);
+  letter-spacing: 1px;
+  margin-right: 4px;
+}
+
+.zoomBtn {
+  width: 22px;
+  height: 22px;
+  background: transparent;
+  color: var(--ink2, #a8a8b0);
+  border: 1px solid var(--line2, #3a3a46);
+  font-family: var(--font-mono, monospace);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.1s, color 0.1s;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.zoomBtn:hover:not(:disabled) {
+  background: var(--bg3, #2a2a33);
+  color: var(--ink, #f5f5f0);
+}
+
+.zoomBtn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.zoomLevel {
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  color: var(--ink, #f5f5f0);
+  font-variant-numeric: tabular-nums;
+  min-width: 28px;
+  text-align: center;
+}
+
+.zoomResetBtn {
+  margin-left: 6px;
+  padding: 2px 7px;
+  background: transparent;
+  color: var(--accent, #4ade80);
+  border: 1px solid var(--accent, #4ade80);
+  font-family: var(--font-mono, monospace);
+  font-size: 9px;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  transition: background 0.1s;
+}
+
+.zoomResetBtn:hover {
+  background: color-mix(in srgb, var(--accent, #4ade80) 12%, transparent);
+}
+
 .waveformArea {
   flex-shrink: 0;
-  padding: 8px 0;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-right: 0;
+  /* left padding is set by .trackAligned via var(--track-gutter) */
+}
+
+.sectionsToolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 12px;
+  background: var(--bg1, #1a1a20);
+  border-top: 1px solid var(--line, #2a2a33);
+  border-bottom: 1px solid var(--line, #2a2a33);
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.sectionsLabel {
+  font-family: var(--font-mono, monospace);
+  font-size: 9px;
+  color: var(--ink3, #6a6a78);
+  letter-spacing: 1px;
+}
+
+.editHint {
+  flex: 1;
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  color: var(--ink3, #6a6a78);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sectionsEditBtn {
+  padding: 4px 10px;
+  background: transparent;
+  color: var(--ink2, #a8a8b0);
+  border: 1px solid var(--line2, #3a3a46);
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s;
+  flex-shrink: 0;
+}
+
+.sectionsEditBtn:hover {
+  background: var(--bg3, #2a2a33);
+  color: var(--ink, #f5f5f0);
+}
+
+.sectionsEditBtnActive {
+  background: var(--accent, #d97757);
+  color: #000;
+  border-color: var(--accent, #d97757);
+}
+
+.sectionsEditBtnActive:hover {
+  background: var(--accent, #d97757);
+  opacity: 0.9;
+  color: #000;
 }
 
 .previewRow {
   padding: 12px;
   border-top: 1px solid var(--color-border, #333);
+  flex-shrink: 0;
 }
 
 .themeBtn {
@@ -25,4 +202,444 @@
   font-weight: 600;
   cursor: pointer;
   align-self: flex-start;
+  flex-shrink: 0;
+}
+
+/* ─── Inspector panel ─── */
+.inspector {
+  width: 300px;
+  flex-shrink: 0;
+  background: var(--bg1, #1a1a20);
+  border-left: 1px solid var(--line, #2a2a33);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+.inspectorCollapsed {
+  width: 22px;
+  flex-shrink: 0;
+  background: var(--bg1, #1a1a20);
+  border-left: 1px solid var(--line, #2a2a33);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 10px;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.inspectorCollapsed:hover {
+  background: var(--bg2, #22222a);
+}
+
+.inspectorCollapsedLabel {
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  color: var(--ink3, #6a6a78);
+  letter-spacing: 2px;
+  writing-mode: vertical-rl;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.inspectorCollapseBtn {
+  position: absolute;
+  top: 8px;
+  left: 6px;
+  width: 20px;
+  height: 20px;
+  background: var(--bg1, #1a1a20);
+  color: var(--ink3, #6a6a78);
+  border: 1px solid var(--line2, #3a3a46);
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  cursor: pointer;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.inspectorCollapseBtn:hover {
+  color: var(--ink, #f5f5f0);
+  background: var(--bg3, #2a2a33);
+}
+
+.inspectorBlock {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line, #2a2a33);
+  flex-shrink: 0;
+}
+
+.inspectorLabel {
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  color: var(--ink3, #6a6a78);
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+
+.timecode {
+  font-family: var(--font-mono, monospace);
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink, #f5f5f0);
+  margin-bottom: 2px;
+}
+
+.barBeat {
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  color: var(--ink3, #6a6a78);
+}
+
+.sectionInfo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sectionSwatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  flex-shrink: 0;
+  border-radius: 1px;
+}
+
+.sectionInfoText {
+  flex: 1;
+  min-width: 0;
+}
+
+.sectionInfoLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink, #f5f5f0);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sectionInfoKind {
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  color: var(--ink3, #6a6a78);
+  margin-top: 2px;
+}
+
+.timingRow {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  margin-bottom: 4px;
+}
+
+.timingKey {
+  color: var(--ink3, #6a6a78);
+}
+
+.timingVal {
+  color: var(--ink, #f5f5f0);
+  font-variant-numeric: tabular-nums;
+}
+
+.inspectorSpacer {
+  flex: 1;
+}
+
+.inspectorNudge {
+  display: flex;
+  gap: 6px;
+  padding: 10px 14px;
+  border-top: 1px solid var(--line, #2a2a33);
+  flex-shrink: 0;
+}
+
+.nudgeBtn {
+  flex: 1;
+  padding: 5px 6px;
+  background: transparent;
+  color: var(--ink2, #a8a8b0);
+  border: 1px solid var(--line2, #3a3a46);
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.nudgeBtn:hover {
+  background: var(--bg3, #2a2a33);
+  color: var(--ink, #f5f5f0);
+}
+
+.inspectorEditToggle {
+  padding: 10px 14px;
+  border-top: 1px solid var(--line, #2a2a33);
+  flex-shrink: 0;
+}
+
+.editToggleBtn {
+  width: 100%;
+  padding: 7px 12px;
+  background: transparent;
+  color: var(--ink2, #a8a8b0);
+  border: 1px solid var(--line2, #3a3a46);
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s;
+  text-align: center;
+}
+
+.editToggleBtn:hover {
+  background: var(--bg3, #2a2a33);
+  color: var(--ink, #f5f5f0);
+}
+
+.editToggleBtnActive {
+  background: var(--accent, #d97757);
+  color: #000;
+  border-color: var(--accent, #d97757);
+}
+
+.editToggleBtnActive:hover {
+  background: var(--accent, #d97757);
+  opacity: 0.85;
+  color: #000;
+}
+
+/* ─── Edit mode inspector ─── */
+.inspectorEditMode {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.inspectorEditHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line, #2a2a33);
+  flex-shrink: 0;
+}
+
+.inspectorEditTitle {
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  color: var(--accent, #d97757);
+  letter-spacing: 1px;
+  flex: 1;
+}
+
+.inspectorEditDone {
+  background: transparent;
+  color: var(--ink2, #a8a8b0);
+  border: 1px solid var(--line2, #3a3a46);
+  padding: 3px 8px;
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.inspectorEditDone:hover {
+  background: var(--bg3, #2a2a33);
+  color: var(--ink, #f5f5f0);
+}
+
+.inspectorEditHint {
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--line, #2a2a33);
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  color: var(--ink3, #6a6a78);
+  line-height: 1.5;
+  flex-shrink: 0;
+}
+
+.inspectorEditActions {
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--line, #2a2a33);
+  flex-shrink: 0;
+}
+
+.inspectorActionBtn {
+  width: 100%;
+  padding: 6px 8px;
+  background: transparent;
+  color: var(--ink2, #a8a8b0);
+  border: 1px solid var(--line2, #3a3a46);
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.inspectorActionBtn:hover {
+  background: var(--bg3, #2a2a33);
+  color: var(--ink, #f5f5f0);
+}
+
+.inspectorSectionHeader {
+  padding: 8px 14px;
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  color: var(--ink3, #6a6a78);
+  letter-spacing: 1px;
+  flex-shrink: 0;
+}
+
+.inspectorSectionList {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.sectionRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 7px 14px;
+  border: none;
+  border-bottom: 1px solid var(--line, #2a2a33);
+  border-left: 2px solid transparent;
+  background: transparent;
+  color: var(--ink, #f5f5f0);
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.1s;
+  font-size: 12px;
+}
+
+.sectionRow:hover {
+  background: var(--bg2, #22222a);
+}
+
+.sectionRowSelected {
+  background: var(--bg3, #2a2a33);
+  border-left-color: var(--accent, #d97757);
+}
+
+.sectionRowActive {
+  background: var(--bg2, #22222a);
+}
+
+.sectionRowSwatch {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+  border-radius: 1px;
+}
+
+.sectionRowNum {
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  color: var(--ink3, #6a6a78);
+  width: 20px;
+  flex-shrink: 0;
+}
+
+.sectionRowLabel {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 12px;
+  color: var(--ink, #f5f5f0);
+}
+
+.sectionRowKind {
+  font-family: var(--font-mono, monospace);
+  font-size: 9px;
+  color: var(--ink3, #6a6a78);
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+}
+
+.sectionRowTime {
+  font-family: var(--font-mono, monospace);
+  font-size: 9px;
+  color: var(--ink3, #6a6a78);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.sectionRowDur {
+  font-family: var(--font-mono, monospace);
+  font-size: 9px;
+  color: var(--ink3, #6a6a78);
+  flex-shrink: 0;
+  width: 36px;
+  text-align: right;
+}
+
+/* ── Raw Algorithm Tracks Drawer ─────────────────────────── */
+
+.tracksDrawer {
+  flex-shrink: 0;
+  border-top: 1px solid var(--color-border, #1e2a3a);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.drawerHeader {
+  height: 30px;
+  background: var(--bg1, #0f1923);
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  gap: 12px;
+  flex-shrink: 0;
+  cursor: pointer;
+  user-select: none;
+  border-bottom: 1px solid var(--color-border, #1e2a3a);
+}
+
+.drawerHeader:hover {
+  background: var(--bg2, #162030);
+}
+
+.drawerTitle {
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  color: var(--ink, #e2e8f0);
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+
+.drawerCount {
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  color: var(--ink3, #475569);
+  white-space: nowrap;
+}
+
+.drawerSpacer {
+  flex: 1;
+}
+
+.drawerHint {
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  color: var(--ink3, #475569);
+  white-space: nowrap;
+}
+
+.drawerRows {
+  overflow-y: auto;
+  max-height: 224px; /* 8 rows × 28px */
 }

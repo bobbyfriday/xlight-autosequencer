@@ -40,6 +40,18 @@ interface Props {
 
 export function Chrome({ activeScreen, onNavigate, children, songs, folders, activeSongId, onSelectSong, onSongMoved, onRemoveSong }: Props) {
   const showRail = songs && folders && songs.length > 0;
+  const [railCollapsed, setRailCollapsed] = React.useState<boolean>(() => {
+    try { return localStorage.getItem('xonset.railCollapsed') === '1'; }
+    catch { return false; }
+  });
+
+  const toggleRail = () => {
+    setRailCollapsed((prev) => {
+      const next = !prev;
+      try { localStorage.setItem('xonset.railCollapsed', next ? '1' : '0'); } catch {}
+      return next;
+    });
+  };
 
   return (
     <div className={styles.shell}>
@@ -62,15 +74,33 @@ export function Chrome({ activeScreen, onNavigate, children, songs, folders, act
         </nav>
       </header>
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-        {showRail && (
-          <LibraryRail
-            songs={songs!}
-            folders={folders!}
-            activeSongId={activeSongId ?? null}
-            onSelectSong={onSelectSong}
-            onSongMoved={onSongMoved}
-            onRemoveSong={onRemoveSong}
-          />
+        {showRail && railCollapsed && (
+          <div
+            className={styles.railCollapsed}
+            onClick={toggleRail}
+            title="Expand library rail"
+          >
+            <span className={styles.railCollapsedLabel}>▸ LIBRARY</span>
+          </div>
+        )}
+        {showRail && !railCollapsed && (
+          <div style={{ position: 'relative', display: 'flex' }}>
+            <button
+              className={styles.railCollapseBtn}
+              onClick={toggleRail}
+              title="Collapse library rail"
+            >
+              ◂
+            </button>
+            <LibraryRail
+              songs={songs!}
+              folders={folders!}
+              activeSongId={activeSongId ?? null}
+              onSelectSong={onSelectSong}
+              onSongMoved={onSongMoved}
+              onRemoveSong={onRemoveSong}
+            />
+          </div>
         )}
         <main className={styles.content}>{children}</main>
       </div>

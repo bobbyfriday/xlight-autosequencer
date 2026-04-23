@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
 import styles from './ParameterSliders.module.css';
-import { apiFetch } from 'src/lib/apiClient';
 
 export interface ParameterOverrides {
   brightness: number;
@@ -69,7 +68,7 @@ export function ParameterSliders({
     }
     debounceTimerRef.current = setTimeout(() => {
       debounceTimerRef.current = null;
-      apiFetch(`/api/v1/songs/${songId}/assignments/${sectionIdx}`, {
+      fetch(`/api/v1/songs/${songId}/assignments/${sectionIdx}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ overrides: updated }),

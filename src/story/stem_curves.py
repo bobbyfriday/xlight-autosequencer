@@ -60,7 +60,7 @@ def extract_stem_curves(hierarchy: dict, duration_ms: int) -> dict:
     duration_sec = duration_ms / 1000.0
     n_out = math.ceil(duration_sec * target_rate)
 
-    energy_curves: dict = hierarchy.get("energy_curves", {})
+    energy_curves: dict = hierarchy.get("energy_curves") or {}
 
     def _get_stem_rms(stem_name: str) -> list[float]:
         if stem_name not in energy_curves:

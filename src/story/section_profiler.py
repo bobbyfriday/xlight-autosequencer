@@ -175,7 +175,7 @@ def profile_section(start_ms: int, end_ms: int, hierarchy: dict) -> dict:
         Dict with 'character' and 'stems' sub-dicts.
     """
     duration_sec = (end_ms - start_ms) / 1000.0
-    energy_curves: dict = hierarchy.get("energy_curves", {})
+    energy_curves: dict = hierarchy.get("energy_curves") or {}
 
     # ── Energy frames ────────────────────────────────────────────────────────
     full_mix_curve = energy_curves.get("full_mix", {})
@@ -277,7 +277,10 @@ def profile_section(start_ms: int, end_ms: int, hierarchy: dict) -> dict:
     # ── Spectral flatness (from spectral flux variation) ────────────────────
     # High spectral flux variance → tonal (peaky spectrum) → low flatness
     # Low variance → noise-like (flat spectrum) → high flatness
-    sf_curve = hierarchy.get("spectral_flux", {})
+    # Use `or {}` guard — some hierarchy builds include the key with a null
+    # value (e.g. when the BBC spectral-flux Vamp plugin is unavailable), in
+    # which case `get(key, {})` would still return None.
+    sf_curve = hierarchy.get("spectral_flux") or {}
     sf_vals = sf_curve.get("values", [])
     sf_fps = float(sf_curve.get("fps") or sf_curve.get("sample_rate") or 10.0)
     sf_frames = _get_frames_in_range(sf_vals, sf_fps, start_ms, end_ms)
@@ -292,7 +295,7 @@ def profile_section(start_ms: int, end_ms: int, hierarchy: dict) -> dict:
         spectral_flatness = float(spectral_flatness_map[texture])
 
     # ── Onset density ────────────────────────────────────────────────────────
-    events: dict = hierarchy.get("events", {})
+    events: dict = hierarchy.get("events") or {}
     total_onsets = 0
     for stem_events in events.values():
         marks = stem_events.get("marks", []) if isinstance(stem_events, dict) else []

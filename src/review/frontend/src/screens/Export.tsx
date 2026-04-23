@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
 import styles from './Export.module.css';
-import { apiFetch } from 'src/lib/apiClient';
-import { saveExportTo, saveSequence } from 'src/lib/nativeDialog';
 
 interface Song {
   song_id: string;
@@ -28,7 +26,7 @@ export function Export({ song, layoutId, onExportComplete }: ExportProps) {
     setError(null);
     setExporting(true);
     try {
-      const res = await apiFetch(`/api/v1/songs/${song.song_id}/export`, {
+      const res = await fetch(`/api/v1/songs/${song.song_id}/export`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ format: 'xsq' }),
@@ -104,24 +102,6 @@ export function Export({ song, layoutId, onExportComplete }: ExportProps) {
         <div className={styles.success}>
           <p>Export complete!</p>
           <code className={styles.path}>{outputPath}</code>
-          <button
-            className={styles.renderBtn}
-            data-testid="save-sequence-btn"
-            onClick={async () => {
-              setError(null);
-              const dest = await saveSequence({
-                defaultName: `${song.title || song.song_id}.xsq`,
-              });
-              if (!dest) return; // User cancelled, or dev-browser (will download via anchor later).
-              try {
-                await saveExportTo(song.song_id, dest);
-              } catch (err) {
-                setError(err instanceof Error ? err.message : 'Save failed');
-              }
-            }}
-          >
-            Save to disk…
-          </button>
         </div>
       ) : (
         <button

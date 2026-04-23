@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { api } from 'src/api/client';
 import type { MappingEntry, DroppedEntry } from 'src/util/overlap';
+import styles from './ReanalysisDialog.module.css';
 
 interface Section {
   index: number;
@@ -65,80 +66,73 @@ export function ReanalysisDialog({
   const newSectionsByIdx = Object.fromEntries(newSections.map((s) => [s.index, s]));
 
   return (
-    <div role="dialog" aria-modal="true" aria-label="Review re-analysis">
-      <h2>Review Re-analysis</h2>
-      <p>The analyzer produced a new section list. Review the changes before applying.</p>
+    <div className={styles.overlay}>
+      <div role="dialog" aria-modal="true" aria-label="Review re-analysis" className={styles.dialog}>
+        <h2 className={styles.title}>Review Re-analysis</h2>
+        <p className={styles.subtitle}>The analyzer produced a new section list. Review the changes before applying.</p>
 
-      {/* Mapping rows */}
-      <table>
-        <thead>
-          <tr>
-            <th>Status</th>
-            <th>New section</th>
-            <th>Theme</th>
-          </tr>
-        </thead>
-        <tbody>
-          {mapping.map((entry) => {
-            const sec = newSectionsByIdx[entry.new_section_index];
-            const label = sec?.label ?? `Section ${entry.new_section_index}`;
-
-            if (entry.action === 'kept') {
-              return (
-                <tr key={`kept-${entry.new_section_index}`} data-testid={`row-kept-${entry.new_section_index}`}>
-                  <td>Kept</td>
-                  <td>{label}</td>
-                  <td>{entry.inherited_theme_id}</td>
-                </tr>
-              );
-            }
-            if (entry.action === 'shifted') {
-              return (
-                <tr key={`shifted-${entry.new_section_index}`} data-testid={`row-shifted-${entry.new_section_index}`}>
-                  <td>Shifted</td>
-                  <td>{label}</td>
-                  <td>{entry.inherited_theme_id}</td>
-                </tr>
-              );
-            }
-            // needs_theme
-            return (
-              <tr key={`needs-theme-${entry.new_section_index}`} data-testid={`row-needs-theme-${entry.new_section_index}`}>
-                <td>Needs theme</td>
-                <td>{label}</td>
-                <td>—</td>
+        <div className={styles.tableWrap}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th>Status</th>
+                <th>New section</th>
+                <th>Theme</th>
               </tr>
-            );
-          })}
+            </thead>
+            <tbody>
+              {mapping.map((entry) => {
+                const sec = newSectionsByIdx[entry.new_section_index];
+                const label = sec?.label ?? `Section ${entry.new_section_index}`;
 
-          {/* Dropped rows */}
-          {dropped.map((d) => (
-            <tr key={`dropped-${d.old_section_index}`} data-testid={`row-dropped-${d.old_section_index}`}>
-              <td>Dropped</td>
-              <td>Old section {d.old_section_index}</td>
-              <td>{d.theme_id ?? '—'}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+                if (entry.action === 'kept') {
+                  return (
+                    <tr key={`kept-${entry.new_section_index}`} className={styles.kept} data-testid={`row-kept-${entry.new_section_index}`}>
+                      <td>Kept</td>
+                      <td>{label}</td>
+                      <td>{entry.inherited_theme_id}</td>
+                    </tr>
+                  );
+                }
+                if (entry.action === 'shifted') {
+                  return (
+                    <tr key={`shifted-${entry.new_section_index}`} className={styles.shifted} data-testid={`row-shifted-${entry.new_section_index}`}>
+                      <td>Shifted</td>
+                      <td>{label}</td>
+                      <td>{entry.inherited_theme_id}</td>
+                    </tr>
+                  );
+                }
+                return (
+                  <tr key={`needs-theme-${entry.new_section_index}`} className={styles.needsTheme} data-testid={`row-needs-theme-${entry.new_section_index}`}>
+                    <td>Needs theme</td>
+                    <td>{label}</td>
+                    <td>—</td>
+                  </tr>
+                );
+              })}
 
-      {error && <p role="alert">{error}</p>}
+              {dropped.map((d) => (
+                <tr key={`dropped-${d.old_section_index}`} className={styles.dropped} data-testid={`row-dropped-${d.old_section_index}`}>
+                  <td>Dropped</td>
+                  <td>Old section {d.old_section_index}</td>
+                  <td>{d.theme_id ?? '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
 
-      <div>
-        <button
-          data-testid="btn-cancel"
-          onClick={onCancel}
-          disabled={submitting}
-        >
-          Cancel
-        </button>
-        <button
-          data-testid="btn-confirm"
-          onClick={handleConfirm}
-          disabled={submitting}
-        >
-          {submitting ? 'Applying…' : 'Apply Changes'}
-        </button>
+        {error && <p role="alert" className={styles.error}>{error}</p>}
+
+        <div className={styles.actions}>
+          <button className={styles.btnCancel} data-testid="btn-cancel" onClick={onCancel} disabled={submitting}>
+            Cancel
+          </button>
+          <button className={styles.btnConfirm} data-testid="btn-confirm" onClick={handleConfirm} disabled={submitting}>
+            {submitting ? 'Applying…' : 'Apply Changes'}
+          </button>
+        </div>
       </div>
     </div>
   );

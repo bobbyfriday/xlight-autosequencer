@@ -2,7 +2,6 @@ import React, { useRef, useState } from 'react';
 import { usePreferencesStore, Preferences } from 'src/store/preferences';
 import { api } from 'src/api/client';
 import styles from './TweaksPanel.module.css';
-import { apiFetch } from 'src/lib/apiClient';
 
 function persistPrefs(patch: Partial<Preferences>): void {
   api.put('/preferences', patch).catch(() => {
@@ -35,7 +34,7 @@ export function TweaksPanel() {
   }
 
   async function handleExport() {
-    const resp = await apiFetch('/api/v1/library/export', { method: 'POST' });
+    const resp = await fetch('/api/v1/library/export', { method: 'POST' });
     if (!resp.ok) return;
     const blob = await resp.blob();
     const url = URL.createObjectURL(blob);
@@ -58,7 +57,7 @@ export function TweaksPanel() {
     const formData = new FormData();
     formData.append('bundle', file);
     formData.append('mode', 'merge');
-    await apiFetch('/api/v1/library/import', { method: 'POST', body: formData });
+    await fetch('/api/v1/library/import', { method: 'POST', body: formData });
     // Reload the page to refresh library state
     window.location.reload();
   }
@@ -84,7 +83,7 @@ export function TweaksPanel() {
     const formData = new FormData();
     formData.append('bundle', file);
     formData.append('mode', 'replace');
-    await apiFetch('/api/v1/library/import', { method: 'POST', body: formData });
+    await fetch('/api/v1/library/import', { method: 'POST', body: formData });
     window.location.reload();
   }
 

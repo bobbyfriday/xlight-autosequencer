@@ -139,9 +139,21 @@ from pathlib import Path
 from src.analyzer.genius_segments import GeniusSegmentAnalyzer
 audio_path = {str(audio_path)!r}
 audio_p = Path(audio_path)
-stem_dir = audio_p.parent / "stems"
-if not stem_dir.exists():
-    stem_dir = audio_p.parent / ".stems"
+# Stem layout varies across callers:
+#   main pipeline:  <audio_parent>/stems/
+#   older analyses: <audio_parent>/.stems/
+#   review library: <audio_parent>/<audio_stem>/stems/ (nested per-song dir)
+for _candidate in (
+    audio_p.parent / "stems",
+    audio_p.parent / ".stems",
+    audio_p.parent / audio_p.stem / "stems",
+    audio_p.parent / audio_p.stem / ".stems",
+):
+    if _candidate.exists():
+        stem_dir = _candidate
+        break
+else:
+    stem_dir = audio_p.parent / "stems"  # doesn't exist; analyzer falls back to full mix
 analyzer = GeniusSegmentAnalyzer()
 structure, _phonemes, warnings = analyzer.run(
     audio_path=audio_path,
@@ -354,7 +366,7 @@ def build_song_story(hierarchy: dict, audio_path: str) -> dict:
         if len(sections_ms) >= 2 and roles[-1]["role"] != "outro":
             last_start, last_end = sections_ms[-1]
             last_dur = last_end - last_start
-            energy_curves = hierarchy.get("energy_curves", {})
+            energy_curves = hierarchy.get("energy_curves") or {}
             full_mix = energy_curves.get("full_mix", {})
             fm_vals = full_mix.get("values", [])
             fm_fps = float(full_mix.get("fps") or full_mix.get("sample_rate") or 10)

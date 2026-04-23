@@ -1,6 +1,4 @@
-import { apiUrl } from '../lib/apiClient';
-
-const API_PREFIX = '/api/v1';
+const BASE = '/api/v1';
 
 export class ApiError extends Error {
   constructor(
@@ -18,7 +16,7 @@ async function request<T>(
   body?: unknown,
   signal?: AbortSignal,
 ): Promise<T> {
-  const res = await fetch(apiUrl(`${API_PREFIX}${path}`), {
+  const res = await fetch(`${BASE}${path}`, {
     method,
     headers: body ? { 'Content-Type': 'application/json' } : undefined,
     body: body ? JSON.stringify(body) : undefined,
@@ -53,7 +51,7 @@ export function openSse(
   onMessage: (data: unknown) => void,
   onError?: (err: Event) => void,
 ): SseCleanup {
-  const es = new EventSource(apiUrl(`${API_PREFIX}${path}`));
+  const es = new EventSource(`${BASE}${path}`);
   es.onmessage = (e) => {
     try {
       onMessage(JSON.parse(e.data));
