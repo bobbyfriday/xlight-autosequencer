@@ -86,23 +86,34 @@ def import_song():
     source_path = request.form.get("source_path") or None
     folder_id = request.form.get("folder_id") or "unfiled"
 
+    # Always persist the audio bytes into the state directory so the pipeline
+    # has a stable path regardless of where the user's original file lives.
+    from src.review.storage.paths import library_root
+    audio_dir = library_root() / "songs" / song_id / "audio"
+    audio_dir.mkdir(parents=True, exist_ok=True)
+    stored_audio_path = audio_dir / filename
+    if not stored_audio_path.exists():
+        tmp_path = stored_audio_path.with_suffix(".tmp")
+        tmp_path.write_bytes(audio_bytes)
+        os.replace(str(tmp_path), str(stored_audio_path))
+
+    # stored_audio_path is always the canonical source path
+    canonical_path = str(stored_audio_path)
+
     lib = load_library()
 
     # Check for existing song with same song_id
     existing = next((s for s in lib["songs"] if s["song_id"] == song_id), None)
 
     if existing is not None:
-        source_path_added = False
+        # Ensure the canonical path is recorded
+        if canonical_path not in existing["source_paths"]:
+            existing["source_paths"].insert(0, canonical_path)
+        # Also record the original source path if provided
         if source_path and source_path not in existing["source_paths"]:
-            existing["source_paths"].insert(0, source_path)
-            source_path_added = True
+            existing["source_paths"].append(source_path)
         save_library(lib)
-        resp = {"created": False, "song": existing}
-        if source_path_added:
-            resp["source_path_added"] = True
-        else:
-            resp["source_path_added"] = False
-        return jsonify(resp), 200
+        return jsonify({"created": False, "source_path_added": True, "song": existing}), 200
 
     # Compute duration
     duration_ms = _duration_ms(audio_bytes, ext)
@@ -113,7 +124,10 @@ def import_song():
     title = id3_title or Path(filename).stem
     artist = id3_artist or None
 
-    source_paths = [source_path] if source_path else []
+    # canonical stored path first, original source path second (if different)
+    source_paths = [canonical_path]
+    if source_path and source_path != canonical_path:
+        source_paths.append(source_path)
 
     song = {
         "song_id": song_id,

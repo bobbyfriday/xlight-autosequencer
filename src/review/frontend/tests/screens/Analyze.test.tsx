@@ -22,7 +22,9 @@ describe('Analyze screen', () => {
 
   it('renders the song title', () => {
     render(<Analyze song={mockSong} onComplete={() => {}} />);
-    expect(screen.getByText('Test Song')).toBeTruthy();
+    // headerMeta renders "Test Song · <duration>" as one text node, so a
+    // substring matcher is required.
+    expect(screen.getByText(/Test Song/)).toBeTruthy();
   });
 
   it('shows an analyzing state initially', () => {

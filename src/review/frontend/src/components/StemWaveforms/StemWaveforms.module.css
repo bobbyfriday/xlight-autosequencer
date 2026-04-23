@@ -1,0 +1,94 @@
+.root {
+  border-top: 1px solid var(--line, #2a2a33);
+  flex-shrink: 0;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 12px;
+  background: var(--bg1, #1a1a20);
+  border: none;
+  color: var(--ink3, #6a6a78);
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  cursor: pointer;
+  text-align: left;
+  letter-spacing: 1px;
+  transition: background 0.1s;
+}
+
+.header:hover {
+  background: var(--bg2, #22222a);
+  color: var(--ink2, #a8a8b0);
+}
+
+.arrow {
+  font-size: 10px;
+  width: 10px;
+  flex-shrink: 0;
+}
+
+.title {
+  flex: 1;
+}
+
+.badge {
+  color: var(--accent, #4ade80);
+  font-size: 9px;
+}
+
+.hint {
+  font-size: 9px;
+  opacity: 0.6;
+}
+
+.body {
+  background: var(--bg0, #0a0a0e);
+  padding: 4px 0;
+}
+
+.loading,
+.empty {
+  padding: 10px 12px;
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  color: var(--ink3, #6a6a78);
+  font-style: italic;
+}
+
+.stemRow {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  border-bottom: 1px solid var(--line, #2a2a33);
+}
+
+.stemRow:last-child {
+  border-bottom: none;
+}
+
+.stemLabel {
+  width: var(--track-gutter, 240px);
+  flex-shrink: 0;
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  padding: 0 10px;
+  text-transform: uppercase;
+  background: var(--bg1, #1a1a20);
+  border-right: 1px solid var(--line, #2a2a33);
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+}
+
+.stemTrack {
+  flex: 1;
+  min-width: 0;
+  height: 40px;
+  overflow: hidden;
+}

@@ -10,12 +10,17 @@ interface Section {
 
 interface WaveformProps {
   peaks: number[];
+  /** When true, `peaks` already covers exactly the visible window — don't slice. */
+  peaksArePrescaled?: boolean;
   playheadMs?: number;
   durationMs?: number;
+  viewStartMs?: number;
+  viewEndMs?: number;
   sections?: Section[];
   width?: number;
   height?: number;
   accent?: string;
+  onSeek?: (ms: number) => void;
 }
 
 const KIND_COLORS: Record<string, string> = {
@@ -28,39 +33,70 @@ const KIND_COLORS: Record<string, string> = {
   unknown: '#94a3b820',
 };
 
+/**
+ * Builds a vertical-bar waveform path: one M/V segment per sample from
+ * -peak to +peak around the centre line. This preserves transient sharpness
+ * at all zoom levels — unlike a smoothed polygon outline.
+ */
 function buildPath(peaks: number[], width: number, height: number): string {
   if (!peaks.length) return '';
   const midY = height / 2;
   const step = width / peaks.length;
-  const points: string[] = [];
+  const parts: string[] = [];
 
-  // Top half
   for (let i = 0; i < peaks.length; i++) {
-    const x = i * step;
-    const y = midY - peaks[i] * midY * 0.9;
-    points.push(`${i === 0 ? 'M' : 'L'} ${x.toFixed(1)} ${y.toFixed(1)}`);
+    const x = (i * step + step / 2).toFixed(2);
+    const amplitude = peaks[i] * midY * 0.9;
+    const y1 = (midY - amplitude).toFixed(2);
+    const y2 = (midY + amplitude).toFixed(2);
+    parts.push(`M${x},${y1}V${y2}`);
   }
-  // Bottom half (mirrored)
-  for (let i = peaks.length - 1; i >= 0; i--) {
-    const x = i * step;
-    const y = midY + peaks[i] * midY * 0.9;
-    points.push(`L ${x.toFixed(1)} ${y.toFixed(1)}`);
-  }
-  points.push('Z');
-  return points.join(' ');
+  return parts.join('');
 }
 
 export function Waveform({
   peaks,
+  peaksArePrescaled = false,
   playheadMs = 0,
   durationMs = 0,
+  viewStartMs,
+  viewEndMs,
   sections,
-  width = 600,
+  width = 1000,
   height = 80,
   accent = '#4ade80',
+  onSeek,
 }: WaveformProps) {
-  const playheadX = durationMs > 0 ? (playheadMs / durationMs) * width : 0;
-  const d = buildPath(peaks, width, height);
+  const start = viewStartMs ?? 0;
+  const end = viewEndMs ?? durationMs;
+  const windowMs = end - start || durationMs;
+
+  // Slice peaks to the visible window (skip if the caller already sliced)
+  const visiblePeaks = (() => {
+    if (peaksArePrescaled) return peaks;
+    if (!viewStartMs && !viewEndMs) return peaks;
+    const startFrac = start / durationMs;
+    const endFrac = end / durationMs;
+    const lo = Math.floor(startFrac * peaks.length);
+    const hi = Math.ceil(endFrac * peaks.length);
+    return peaks.slice(lo, hi);
+  })();
+
+  const playheadX = windowMs > 0 ? ((playheadMs - start) / windowMs) * width : 0;
+  const d = buildPath(visiblePeaks, width, height);
+
+  // ms → x within the visible window
+  function msToX(ms: number): number {
+    return ((ms - start) / windowMs) * width;
+  }
+
+  function handleClick(e: React.MouseEvent<SVGSVGElement>) {
+    if (!onSeek) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const ratio = (e.clientX - rect.left) / rect.width;
+    const ms = start + ratio * windowMs;
+    onSeek(Math.max(0, Math.min(durationMs || ms, ms)));
+  }
 
   return (
     <svg
@@ -68,12 +104,17 @@ export function Waveform({
       width="100%"
       height={height}
       preserveAspectRatio="none"
+      onClick={onSeek ? handleClick : undefined}
+      style={onSeek ? { cursor: 'pointer' } : undefined}
     >
       {/* Section tint rects */}
       {sections?.map((sec) => {
         if (!durationMs) return null;
-        const x = (sec.start_ms / durationMs) * width;
-        const w = ((sec.end_ms - sec.start_ms) / durationMs) * width;
+        const secStart = Math.max(sec.start_ms, start);
+        const secEnd = Math.min(sec.end_ms, end);
+        if (secEnd <= secStart) return null;
+        const x = msToX(secStart);
+        const w = msToX(secEnd) - x;
         return (
           <rect
             key={sec.index}
@@ -87,20 +128,31 @@ export function Waveform({
         );
       })}
 
-      {/* Waveform path */}
-      {d && <path d={d} fill={accent} fillOpacity={0.7} />}
+      {/* Waveform bars — stroked vertical lines, one per sample */}
+      {d && (
+        <path
+          d={d}
+          fill="none"
+          stroke={accent}
+          strokeOpacity={0.85}
+          strokeWidth={Math.max(0.8, (width / Math.max(visiblePeaks.length, 1)) * 0.7)}
+          vectorEffect="non-scaling-stroke"
+        />
+      )}
 
-      {/* Playhead */}
-      <line
-        data-testid="playhead"
-        x1={playheadX}
-        y1={0}
-        x2={playheadX}
-        y2={height}
-        stroke="white"
-        strokeWidth={1.5}
-        strokeOpacity={0.9}
-      />
+      {/* Playhead — only render when inside visible window */}
+      {playheadMs >= start && playheadMs <= end && (
+        <line
+          data-testid="playhead"
+          x1={playheadX}
+          y1={0}
+          x2={playheadX}
+          y2={height}
+          stroke="white"
+          strokeWidth={1.5}
+          strokeOpacity={0.9}
+        />
+      )}
     </svg>
   );
 }

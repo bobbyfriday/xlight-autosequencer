@@ -410,7 +410,7 @@ def create_app(analysis_path: str | None = None, audio_path: str | None = None,
     """
     # Serve the new React frontend from frontend/dist/
     _dist_dir = str(Path(__file__).parent / "frontend" / "dist")
-    app = Flask(__name__, static_folder=_dist_dir, static_url_path="/assets")
+    app = Flask(__name__, static_folder=None)
     app.config["ANALYSIS_PATH"] = analysis_path
     app.config["AUDIO_PATH"] = audio_path
     app.config["SCAN_DIR"] = scan_dir
@@ -495,7 +495,13 @@ def create_app(analysis_path: str | None = None, audio_path: str | None = None,
         resp.headers["Accept-Ranges"] = "bytes"
         return resp
 
-    # ── New React SPA — catch-all routes serve index.html ─────────────────────
+    # ── New React SPA — static assets + index.html ────────────────────────────
+    _assets_dir = str(Path(_dist_dir) / "assets")
+
+    @app.route("/assets/<path:filename>")
+    def spa_assets(filename):
+        return send_from_directory(_assets_dir, filename)
+
     @app.route("/")
     def spa_index():
         return send_from_directory(_dist_dir, "index.html")

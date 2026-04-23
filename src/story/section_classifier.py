@@ -66,7 +66,7 @@ def classify_section_roles(
     if not sections:
         return []
 
-    energy_curves: dict = hierarchy.get("energy_curves", {})
+    energy_curves: dict = hierarchy.get("energy_curves") or {}
     vocals_curve: dict | None = energy_curves.get("vocals")
     full_mix_curve: dict | None = energy_curves.get("full_mix")
 

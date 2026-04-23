@@ -6,6 +6,8 @@ interface RulerProps {
   playheadMs?: number;
   onSeek?: (ms: number) => void;
   tickIntervalMs?: number;
+  viewStartMs?: number;
+  viewEndMs?: number;
 }
 
 function formatTime(ms: number): string {
@@ -15,20 +17,40 @@ function formatTime(ms: number): string {
   return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
-export function Ruler({ durationMs, playheadMs = 0, onSeek, tickIntervalMs = 20000 }: RulerProps) {
+export function Ruler({ durationMs, playheadMs = 0, onSeek, tickIntervalMs, viewStartMs, viewEndMs }: RulerProps) {
   const rulerRef = useRef<HTMLDivElement>(null);
+
+  const start = viewStartMs ?? 0;
+  const end = viewEndMs ?? durationMs;
+  const windowMs = end - start || durationMs;
+
+  // Auto-scale tick interval based on visible window
+  const resolvedTickInterval = tickIntervalMs ?? (() => {
+    if (windowMs <= 10000) return 1000;
+    if (windowMs <= 30000) return 2000;
+    if (windowMs <= 60000) return 5000;
+    if (windowMs <= 120000) return 10000;
+    if (windowMs <= 300000) return 20000;
+    return 60000;
+  })();
 
   function handleClick(e: React.MouseEvent<HTMLDivElement>) {
     if (!onSeek || !rulerRef.current) return;
     const rect = rulerRef.current.getBoundingClientRect();
     const ratio = (e.clientX - rect.left) / rect.width;
-    onSeek(Math.max(0, Math.min(durationMs, ratio * durationMs)));
+    const ms = start + ratio * windowMs;
+    onSeek(Math.max(0, Math.min(durationMs, ms)));
   }
 
   const ticks: number[] = [];
-  for (let t = 0; t <= durationMs; t += tickIntervalMs) {
+  // Start at the first tick at or after viewStart
+  const firstTick = Math.ceil(start / resolvedTickInterval) * resolvedTickInterval;
+  for (let t = firstTick; t <= end; t += resolvedTickInterval) {
     ticks.push(t);
   }
+
+  const playheadPct = windowMs > 0 ? ((playheadMs - start) / windowMs) * 100 : 0;
+  const playheadVisible = playheadMs >= start && playheadMs <= end;
 
   return (
     <div
@@ -39,7 +61,7 @@ export function Ruler({ durationMs, playheadMs = 0, onSeek, tickIntervalMs = 200
       style={{ position: 'relative', overflow: 'hidden' }}
     >
       {ticks.map((t) => {
-        const pct = durationMs > 0 ? (t / durationMs) * 100 : 0;
+        const pct = ((t - start) / windowMs) * 100;
         return (
           <div
             key={t}
@@ -51,11 +73,11 @@ export function Ruler({ durationMs, playheadMs = 0, onSeek, tickIntervalMs = 200
           </div>
         );
       })}
-      {durationMs > 0 && (
+      {durationMs > 0 && playheadVisible && (
         <div
           data-testid="ruler-playhead"
           className={styles.playhead}
-          style={{ left: `${(playheadMs / durationMs) * 100}%` }}
+          style={{ left: `${playheadPct}%` }}
         />
       )}
     </div>

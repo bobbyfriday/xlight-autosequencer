@@ -1,70 +1,155 @@
-"""GET /api/v1/themes — built-in theme catalog for the x-onset frontend (T041)."""
+"""GET /api/v1/themes — theme catalog loaded from the real theme library (T041)."""
 from __future__ import annotations
 
-from flask import jsonify
+import json
+import pathlib
+import re
+
+from flask import jsonify, request
 
 from . import api_v1
 
-# Built-in theme catalog shaped per contracts/themes.md.
-# Each Section kind ("intro", "verse", "chorus", "solo", "bridge", "outro", "unknown")
-# must appear in at least one theme's default_for_kinds (FR-012a).
-_BUILTIN_THEMES: list[dict] = [
-    {
-        "theme_id": "shimmer-wash",
-        "name": "Shimmer Wash",
-        "description": "Slow color drift with micro-sparkle. Floats gently — great for intros and outros.",
-        "accent": "#4ade80",
-        "swatches": ["#4ade80", "#7eebd1", "#f5f5f0", "#1a1a20"],
-        "default_for_kinds": ["intro", "outro"],
-    },
-    {
-        "theme_id": "driving-pulse",
-        "name": "Driving Pulse",
-        "description": "Warm strobe with beat-tight color shifts. Locks to the kick drum. Great for verses.",
-        "accent": "#d97757",
-        "swatches": ["#d97757", "#f5a623", "#f5f5f0", "#111114"],
-        "default_for_kinds": ["verse"],
-    },
-    {
-        "theme_id": "peak-flash",
-        "name": "Peak Flash",
-        "description": "High-contrast whiteout hits on every impact. Built for choruses and drops.",
-        "accent": "#facc15",
-        "swatches": ["#facc15", "#fb923c", "#f5f5f0", "#0d0d10"],
-        "default_for_kinds": ["chorus"],
-    },
-    {
-        "theme_id": "solo-chase",
-        "name": "Solo Chase",
-        "description": "Single-color ribbon chase that follows note onsets. Ideal for instrument solos.",
-        "accent": "#38bdf8",
-        "swatches": ["#38bdf8", "#818cf8", "#f5f5f0", "#0d1020"],
-        "default_for_kinds": ["solo"],
-    },
-    {
-        "theme_id": "bridge-burn",
-        "name": "Bridge Burn",
-        "description": "Slow build through warm oranges and reds. Tension for bridges and transitions.",
-        "accent": "#f97316",
-        "swatches": ["#f97316", "#ef4444", "#fde68a", "#14040a"],
-        "default_for_kinds": ["bridge"],
-    },
-    {
-        "theme_id": "neutral-glow",
-        "name": "Neutral Glow",
-        "description": "Soft white warm glow with gentle pulse. Works everywhere — the safe default.",
-        "accent": "#e2e8f0",
-        "swatches": ["#e2e8f0", "#cbd5e1", "#f8fafc", "#0f172a"],
-        "default_for_kinds": ["unknown"],
-    },
-]
+_BUILTIN_THEMES_PATH = pathlib.Path(__file__).parents[3] / "themes" / "builtin_themes.json"
+_CUSTOM_THEMES_DIR = pathlib.Path.home() / ".xlight" / "custom_themes"
 
 _SCHEMA_VERSION = 1
+
+# mood → section kinds for default_for_kinds (FR-012a)
+_MOOD_KINDS: dict[str, list[str]] = {
+    "ethereal": ["intro", "outro"],
+    "aggressive": ["chorus", "drop"],
+    "dark": ["verse", "bridge"],
+    "structural": ["verse", "chorus"],
+}
+_OCCASION_KINDS: dict[str, list[str]] = {
+    "christmas": ["intro", "verse", "chorus", "outro"],
+    "halloween": ["verse", "chorus", "bridge"],
+}
+
+
+def _slugify(name: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
+
+
+def _theme_to_api(raw: dict, theme_id: str, editable: bool = False) -> dict:
+    """Map internal theme schema → frontend API shape."""
+    mood = raw.get("mood", "structural")
+    occasion = raw.get("occasion", "general")
+    if occasion != "general":
+        kinds = _OCCASION_KINDS.get(occasion, ["unknown"])
+    else:
+        kinds = _MOOD_KINDS.get(mood, ["unknown"])
+
+    palette: list[str] = raw.get("palette", [])
+    accent_palette: list[str] = raw.get("accent_palette", [])
+    accent = accent_palette[0] if accent_palette else (palette[0] if palette else "#ffffff")
+    swatches = (palette + accent_palette)[:5]
+
+    result: dict = {
+        "theme_id": theme_id,
+        "name": raw.get("name", theme_id),
+        "description": raw.get("intent", ""),
+        "accent": accent,
+        "swatches": swatches,
+        "default_for_kinds": kinds,
+        "mood": mood,
+        "occasion": occasion,
+        "genre": raw.get("genre", "any"),
+        "editable": editable,
+    }
+    return result
+
+
+def _load_themes() -> list[dict]:
+    themes: list[dict] = []
+
+    # Built-in themes (read-only)
+    if _BUILTIN_THEMES_PATH.exists():
+        try:
+            raw = json.loads(_BUILTIN_THEMES_PATH.read_text(encoding="utf-8"))
+            for name, entry in raw.get("themes", {}).items():
+                themes.append(_theme_to_api(entry, _slugify(name), editable=False))
+        except Exception:
+            pass
+
+    # Custom themes (editable)
+    if _CUSTOM_THEMES_DIR.exists():
+        for path in sorted(_CUSTOM_THEMES_DIR.glob("*.json")):
+            try:
+                entry = json.loads(path.read_text(encoding="utf-8"))
+                theme_id = path.stem
+                themes.append(_theme_to_api(entry, theme_id, editable=True))
+            except Exception:
+                pass
+
+    return themes
 
 
 @api_v1.route("/themes", methods=["GET"])
 def get_themes():
     return jsonify({
         "schema_version": _SCHEMA_VERSION,
-        "themes": _BUILTIN_THEMES,
+        "themes": _load_themes(),
     }), 200
+
+
+@api_v1.route("/themes/<theme_id>", methods=["PUT"])
+def update_theme(theme_id: str):
+    """Update a custom theme. Built-in themes are read-only."""
+    # Verify it's not a built-in
+    if _BUILTIN_THEMES_PATH.exists():
+        try:
+            raw = json.loads(_BUILTIN_THEMES_PATH.read_text(encoding="utf-8"))
+            builtin_ids = {_slugify(n) for n in raw.get("themes", {})}
+            if theme_id in builtin_ids:
+                return jsonify({"error": {"message": "Built-in themes are read-only"}}), 403
+        except Exception:
+            pass
+
+    _CUSTOM_THEMES_DIR.mkdir(parents=True, exist_ok=True)
+    path = _CUSTOM_THEMES_DIR / f"{theme_id}.json"
+    if not path.exists():
+        return jsonify({"error": {"message": "Theme not found"}}), 404
+
+    body = request.get_json(silent=True) or {}
+    try:
+        existing = json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        existing = {}
+
+    # Merge allowed fields
+    for field in ("name", "intent", "mood", "occasion", "genre", "palette", "accent_palette"):
+        if field in body:
+            existing[field] = body[field]
+
+    path.write_text(json.dumps(existing, indent=2, ensure_ascii=False), encoding="utf-8")
+    return jsonify({"theme": _theme_to_api(existing, theme_id, editable=True)}), 200
+
+
+@api_v1.route("/themes", methods=["POST"])
+def create_theme():
+    """Create a new custom theme."""
+    body = request.get_json(silent=True) or {}
+    name = body.get("name", "").strip()
+    if not name:
+        return jsonify({"error": {"message": "name is required"}}), 400
+
+    theme_id = _slugify(name)
+    _CUSTOM_THEMES_DIR.mkdir(parents=True, exist_ok=True)
+    path = _CUSTOM_THEMES_DIR / f"{theme_id}.json"
+    if path.exists():
+        return jsonify({"error": {"message": "Theme ID already exists"}}), 409
+
+    entry: dict = {
+        "name": name,
+        "mood": body.get("mood", "structural"),
+        "occasion": body.get("occasion", "general"),
+        "genre": body.get("genre", "any"),
+        "intent": body.get("intent", body.get("description", "")),
+        "layers": body.get("layers", []),
+        "alternates": body.get("alternates", []),
+        "palette": body.get("palette", []),
+        "accent_palette": body.get("accent_palette", []),
+    }
+    path.write_text(json.dumps(entry, indent=2, ensure_ascii=False), encoding="utf-8")
+    return jsonify({"theme": _theme_to_api(entry, theme_id, editable=True)}), 201

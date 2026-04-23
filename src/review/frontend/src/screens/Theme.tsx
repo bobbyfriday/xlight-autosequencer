@@ -14,6 +14,10 @@ interface Theme {
   accent: string;
   swatches: string[];
   default_for_kinds: string[];
+  mood?: string;
+  occasion?: string;
+  genre?: string;
+  editable?: boolean;
 }
 
 interface Section {
@@ -47,6 +51,121 @@ const DEFAULT_OVERRIDES: ParameterOverrides = {
   color_shift: 0.0,
 };
 
+interface EditState {
+  theme: Theme;
+  name: string;
+  description: string;
+  mood: string;
+  occasion: string;
+  genre: string;
+  palette: string[];
+  accent_palette: string[];
+  saving: boolean;
+  error: string | null;
+}
+
+function EditDialog({
+  state,
+  onChange,
+  onSave,
+  onClose,
+}: {
+  state: EditState;
+  onChange: (patch: Partial<EditState>) => void;
+  onSave: () => void;
+  onClose: () => void;
+}) {
+  return (
+    <div className={styles.dialogOverlay} onClick={onClose}>
+      <div className={styles.dialog} onClick={(e) => e.stopPropagation()}>
+        <div className={styles.dialogHeader}>
+          <span className={styles.dialogTitle}>Edit Theme</span>
+          <button className={styles.dialogClose} onClick={onClose}>✕</button>
+        </div>
+
+        {state.error && <p className={styles.error}>{state.error}</p>}
+
+        <label className={styles.fieldLabel}>Name</label>
+        <input
+          className={styles.fieldInput}
+          value={state.name}
+          onChange={(e) => onChange({ name: e.target.value })}
+        />
+
+        <label className={styles.fieldLabel}>Description / Intent</label>
+        <textarea
+          className={styles.fieldTextarea}
+          value={state.description}
+          rows={3}
+          onChange={(e) => onChange({ description: e.target.value })}
+        />
+
+        <div className={styles.fieldRow}>
+          <div className={styles.fieldCol}>
+            <label className={styles.fieldLabel}>Mood</label>
+            <select
+              className={styles.fieldSelect}
+              value={state.mood}
+              onChange={(e) => onChange({ mood: e.target.value })}
+            >
+              {['ethereal', 'aggressive', 'dark', 'structural'].map((m) => (
+                <option key={m} value={m}>{m}</option>
+              ))}
+            </select>
+          </div>
+          <div className={styles.fieldCol}>
+            <label className={styles.fieldLabel}>Occasion</label>
+            <select
+              className={styles.fieldSelect}
+              value={state.occasion}
+              onChange={(e) => onChange({ occasion: e.target.value })}
+            >
+              {['general', 'christmas', 'halloween'].map((o) => (
+                <option key={o} value={o}>{o}</option>
+              ))}
+            </select>
+          </div>
+          <div className={styles.fieldCol}>
+            <label className={styles.fieldLabel}>Genre</label>
+            <input
+              className={styles.fieldInput}
+              value={state.genre}
+              onChange={(e) => onChange({ genre: e.target.value })}
+            />
+          </div>
+        </div>
+
+        <label className={styles.fieldLabel}>Palette (one hex per line)</label>
+        <textarea
+          className={styles.fieldTextarea}
+          value={state.palette.join('\n')}
+          rows={4}
+          onChange={(e) =>
+            onChange({ palette: e.target.value.split('\n').map((s) => s.trim()).filter(Boolean) })
+          }
+        />
+
+        <label className={styles.fieldLabel}>Accent Palette (one hex per line)</label>
+        <textarea
+          className={styles.fieldTextarea}
+          value={state.accent_palette.join('\n')}
+          rows={2}
+          onChange={(e) =>
+            onChange({ accent_palette: e.target.value.split('\n').map((s) => s.trim()).filter(Boolean) })
+          }
+        />
+
+        <div className={styles.dialogActions}>
+          <button className={styles.cancelBtn} onClick={onClose}>Cancel</button>
+          <button className={styles.saveBtn} onClick={onSave} disabled={state.saving}>
+            {state.saving ? 'Saving…' : 'Save'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function Theme({
   song,
   themes,
@@ -58,8 +177,8 @@ export function Theme({
   const [selectedSectionIdx, setSelectedSectionIdx] = useState(0);
   const [localAssignments, setLocalAssignments] = useState(assignments);
   const [error, setError] = useState<string | null>(null);
-  // Live override state for immediate preview — no round-trip needed
   const [liveOverrides, setLiveOverrides] = useState<ParameterOverrides>(DEFAULT_OVERRIDES);
+  const [editState, setEditState] = useState<EditState | null>(null);
 
   const currentAssignment = localAssignments.find((a) => a.section_index === selectedSectionIdx);
 
@@ -85,7 +204,6 @@ export function Theme({
           : a
       );
       setLocalAssignments(updated);
-      // Reset live overrides to defaults on theme change (FR-032a)
       setLiveOverrides(body.assignment.overrides ?? DEFAULT_OVERRIDES);
       onAssignmentChange(body.assignment);
     } catch (err) {
@@ -110,6 +228,50 @@ export function Theme({
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error');
+    }
+  }
+
+  function openEdit(theme: Theme) {
+    setEditState({
+      theme,
+      name: theme.name,
+      description: theme.description,
+      mood: theme.mood ?? 'structural',
+      occasion: theme.occasion ?? 'general',
+      genre: theme.genre ?? 'any',
+      palette: theme.swatches.slice(0, 4),
+      accent_palette: [theme.accent],
+      saving: false,
+      error: null,
+    });
+  }
+
+  async function handleSaveEdit() {
+    if (!editState) return;
+    setEditState((s) => s ? { ...s, saving: true, error: null } : s);
+    try {
+      const res = await fetch(`/api/v1/themes/${editState.theme.theme_id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: editState.name,
+          intent: editState.description,
+          mood: editState.mood,
+          occasion: editState.occasion,
+          genre: editState.genre,
+          palette: editState.palette,
+          accent_palette: editState.accent_palette,
+        }),
+      });
+      const body = await res.json();
+      if (!res.ok) {
+        setEditState((s) => s ? { ...s, saving: false, error: body?.error?.message ?? 'Save failed' } : s);
+        return;
+      }
+      // Theme saved — close dialog (parent will re-fetch themes on next load)
+      setEditState(null);
+    } catch (err) {
+      setEditState((s) => s ? { ...s, saving: false, error: err instanceof Error ? err.message : 'Error' } : s);
     }
   }
 
@@ -148,6 +310,7 @@ export function Theme({
               theme={theme}
               assigned={currentAssignment?.theme_id === theme.theme_id}
               onClick={() => handleThemeSelect(theme.theme_id)}
+              onEdit={theme.editable ? () => openEdit(theme) : undefined}
             />
           ))}
         </div>
@@ -177,7 +340,6 @@ export function Theme({
               }
               onOverridesChange={(updated) => {
                 setLiveOverrides(updated);
-                // Update local assignment overrides for persistence on next theme action
                 const next = localAssignments.map((a) =>
                   a.section_index === selectedSectionIdx
                     ? { ...a, overrides: updated }
@@ -189,6 +351,15 @@ export function Theme({
           )}
         </Inspector>
       </div>
+
+      {editState && (
+        <EditDialog
+          state={editState}
+          onChange={(patch) => setEditState((s) => s ? { ...s, ...patch } : s)}
+          onSave={handleSaveEdit}
+          onClose={() => setEditState(null)}
+        />
+      )}
     </div>
   );
 }

@@ -7,7 +7,7 @@ This project uses OpenWolf for context management. Read and follow .wolf/OPENWOL
 
 # XLight AutoSequencer Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-04-13
+Auto-generated from all feature plans. Last updated: 2026-04-22
 
 ## Active Technologies
 - Python 3.11+ + demucs (new), vamp, librosa, madmom, click, Flask (008-stem-separation)
@@ -54,6 +54,10 @@ Auto-generated from all feature plans. Last updated: 2026-04-13
 - JSON files (effect definitions, analysis output), XML files (.xsq output) (037-duration-scaling)
 - Python 3.11+ + No new dependencies — all existing generator pipeline (041-prop-type-affinity)
 - N/A — no new data stored; changes are in-memory generation logic (041-prop-type-affinity)
+- Python 3.11+ (backend), TypeScript 5+ / ES2022 (frontend) + Flask 3+ (backend web server, existing); React 18+, Zustand 4+, Vite 5+, TypeScript 5+ (frontend). No UI framework (no Tailwind, no shadcn/ui, no Chakra) — design tokens ported directly from [design_handoff_xonset/prototype/state.jsx](../../design_handoff_xonset/prototype/state.jsx) as CSS custom properties consumed by CSS Modules. (051-x-onset-frontend)
+- JSON files on local disk under the user's state directory (`~/.xlight/library/` — library, sections, assignments, preferences, layout), and the existing hash-keyed analysis + stems caches under `.stems/<hash>/` and `_analysis.json` files. (051-x-onset-frontend)
+- Python 3.11+ (backend, sidecar); TypeScript 5+ / ES2022 (frontend); Rust 1.75+ (Tauri shell, compiled as part of `tauri build`, not hand-written Rust feature code) + Tauri 2.x; existing Flask 3+, React 18+, Zustand 4+, Vite 5+ (frontend, unchanged); existing analyzer stack (librosa, madmom, vamp, torch, ffmpeg). New build-time only: `pyinstaller` 6+, `@tauri-apps/cli`, Apple `notarytool` (bundled with Xcode). (052-tauri-desktop-packaging)
+- JSON on local disk. Existing `~/.xlight/` convention (library, custom themes, preferences) preserved and shared with the CLI. Existing `.stems/<hash>/` co-location with source audio preserved with fallback to `~/Library/Application Support/XLight/stems/<hash>/` when the source directory is not writable. (052-tauri-desktop-packaging)
 
 - **Language**: Python 3.11+
 - **Audio analysis**: vamp (Python host), librosa 0.10+, madmom 0.16+
@@ -143,9 +147,9 @@ already been tried and why.
 - Timestamps are always stored as integers (milliseconds) — never floats
 
 ## Recent Changes
+- 052-tauri-desktop-packaging: Added Python 3.11+ (backend, sidecar); TypeScript 5+ / ES2022 (frontend); Rust 1.75+ (Tauri shell, compiled as part of `tauri build`, not hand-written Rust feature code) + Tauri 2.x; existing Flask 3+, React 18+, Zustand 4+, Vite 5+ (frontend, unchanged); existing analyzer stack (librosa, madmom, vamp, torch, ffmpeg). New build-time only: `pyinstaller` 6+, `@tauri-apps/cli`, Apple `notarytool` (bundled with Xcode).
+- 051-x-onset-frontend: Added Python 3.11+ (backend), TypeScript 5+ / ES2022 (frontend) + Flask 3+ (backend web server, existing); React 18+, Zustand 4+, Vite 5+, TypeScript 5+ (frontend). No UI framework (no Tailwind, no shadcn/ui, no Chakra) — design tokens ported directly from [design_handoff_xonset/prototype/state.jsx](../../design_handoff_xonset/prototype/state.jsx) as CSS custom properties consumed by CSS Modules.
 - 041-prop-type-affinity: Added Python 3.11+ + No new dependencies — all existing generator pipeline
-- 037-duration-scaling: Added Python 3.11+ + click 8+, Flask 3+, existing generator pipeline
-- 038-palette-restraint: Added Python 3.11+ + Flask 3+ (web server), click 8+ (CLI), existing generator pipeline
   `htdemucs_6s` separates audio into 6 stems (drums, bass, vocals, guitar, piano, other).
   Algorithms route to their preferred stem via `Algorithm.preferred_stem` class attribute.
   Stems are MD5-cached in `.stems/<hash>/` adjacent to the source file. Each `TimingTrack`

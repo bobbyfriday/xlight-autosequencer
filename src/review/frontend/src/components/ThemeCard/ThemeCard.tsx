@@ -8,15 +8,20 @@ interface Theme {
   accent: string;
   swatches: string[];
   default_for_kinds: string[];
+  mood?: string;
+  occasion?: string;
+  genre?: string;
+  editable?: boolean;
 }
 
 interface ThemeCardProps {
   theme: Theme;
   assigned?: boolean;
   onClick?: () => void;
+  onEdit?: () => void;
 }
 
-export function ThemeCard({ theme, assigned = false, onClick }: ThemeCardProps) {
+export function ThemeCard({ theme, assigned = false, onClick, onEdit }: ThemeCardProps) {
   return (
     <div
       data-testid="theme-card"
@@ -40,13 +45,35 @@ export function ThemeCard({ theme, assigned = false, onClick }: ThemeCardProps) 
         ))}
       </div>
 
-      {/* Name + ASSIGNED pill */}
+      {/* Name + ASSIGNED pill + edit btn */}
       <div className={styles.nameRow}>
         <span className={styles.name}>{theme.name}</span>
         {assigned && (
           <span className={styles.assignedPill}>Assigned</span>
         )}
+        {theme.editable && onEdit && (
+          <button
+            className={styles.editBtn}
+            onClick={(e) => { e.stopPropagation(); onEdit(); }}
+            aria-label={`Edit ${theme.name}`}
+          >
+            ✎
+          </button>
+        )}
       </div>
+
+      {/* Tags row */}
+      {(theme.mood || theme.occasion || theme.genre) && (
+        <div className={styles.tagRow}>
+          {theme.mood && <span className={styles.tag}>{theme.mood}</span>}
+          {theme.occasion && theme.occasion !== 'general' && (
+            <span className={`${styles.tag} ${styles.tagOccasion}`}>{theme.occasion}</span>
+          )}
+          {theme.genre && theme.genre !== 'any' && (
+            <span className={styles.tag}>{theme.genre}</span>
+          )}
+        </div>
+      )}
 
       {/* Description */}
       <p className={styles.description}>{theme.description}</p>

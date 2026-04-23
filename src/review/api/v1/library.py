@@ -410,3 +410,22 @@ def relocate_song(song_id: str):
 
     save_library(lib)
     return jsonify(_song_with_source_exists(song)), 200
+
+
+# ─── Audio file serving ───────────────────────────────────────────────────────
+
+
+@api_v1.route("/songs/<song_id>/audio", methods=["GET"])
+def serve_audio(song_id: str):
+    """Stream the audio file for a song so the browser can play it."""
+    lib = load_library()
+    song = next((s for s in lib.get("songs", []) if s["song_id"] == song_id), None)
+    if song is None:
+        return jsonify({"error": {"code": "song_not_found", "message": "Song not found"}}), 404
+
+    source_paths = song.get("source_paths") or []
+    audio_path = next((p for p in source_paths if Path(p).exists()), None)
+    if audio_path is None:
+        return jsonify({"error": {"code": "source_file_missing", "message": "Audio file not found"}}), 404
+
+    return send_file(audio_path, conditional=True)

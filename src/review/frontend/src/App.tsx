@@ -1,5 +1,5 @@
 import React, { useEffect, useCallback, useRef, useState } from 'react';
-import './theme/tokens.module.css';
+import './theme/tokens.css';
 import './theme/typography.css';
 import { useKeyboard } from 'src/hooks/useKeyboard';
 import { useKeyboardStore } from 'src/store/keyboard';
@@ -27,6 +27,10 @@ interface ThemeDef {
   accent: string;
   swatches: string[];
   default_for_kinds: string[];
+  mood?: string;
+  occasion?: string;
+  genre?: string;
+  editable?: boolean;
 }
 
 interface Section {
@@ -157,6 +161,101 @@ function GlobalKeyboardListener() {
   return null;
 }
 
+// Bridges the real HTMLAudioElement with the Zustand playback store.
+// Owns the audio element; rewires store's play/pause/seekMs to actually drive it.
+function GlobalAudioPlayer({ songId }: { songId: string | null }) {
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const rafRef = useRef<number>(0);
+
+  if (!audioRef.current) {
+    audioRef.current = new Audio();
+  }
+
+  // Load new audio source when the active song changes
+  useEffect(() => {
+    const audio = audioRef.current!;
+    if (!songId) return;
+    audio.src = `/api/v1/songs/${songId}/audio`;
+    audio.load();
+    usePlaybackStore.getState().setSongId(songId);
+    usePlaybackStore.setState({ playing: false, timeMs: 0 });
+  }, [songId]);
+
+  // Wire audio events → store
+  useEffect(() => {
+    const audio = audioRef.current!;
+    const { setDurationMs } = usePlaybackStore.getState();
+
+    function onDuration() {
+      if (isFinite(audio.duration)) setDurationMs(Math.round(audio.duration * 1000));
+    }
+    function onEnded() { usePlaybackStore.setState({ playing: false }); }
+    function onPause() { usePlaybackStore.setState({ playing: false }); }
+
+    audio.addEventListener('durationchange', onDuration);
+    audio.addEventListener('ended', onEnded);
+    audio.addEventListener('pause', onPause);
+    return () => {
+      audio.removeEventListener('durationchange', onDuration);
+      audio.removeEventListener('ended', onEnded);
+      audio.removeEventListener('pause', onPause);
+      cancelAnimationFrame(rafRef.current);
+    };
+  }, []);
+
+  // RAF loop to tick timeMs while playing
+  const isPlayingRef = useRef(false);
+  useEffect(() => {
+    return usePlaybackStore.subscribe((state) => {
+      const wasPlaying = isPlayingRef.current;
+      isPlayingRef.current = state.playing;
+      const audio = audioRef.current!;
+
+      if (state.playing && !wasPlaying) {
+        audio.play().catch(() => usePlaybackStore.setState({ playing: false }));
+        const tick = () => {
+          usePlaybackStore.getState().setTimeMs(Math.round(audio.currentTime * 1000));
+          if (!audio.paused) rafRef.current = requestAnimationFrame(tick);
+        };
+        rafRef.current = requestAnimationFrame(tick);
+      } else if (!state.playing && wasPlaying) {
+        audio.pause();
+        cancelAnimationFrame(rafRef.current);
+      }
+    });
+  }, []);
+
+  // Intercept store seekMs so waveform clicks drive the audio element
+  useEffect(() => {
+    const origSeek = usePlaybackStore.getState().seekMs;
+    const patched = (ms: number) => {
+      origSeek(ms);
+      const audio = audioRef.current!;
+      const clamped = Math.max(0, Math.min(ms, (audio.duration || 0) * 1000));
+      audio.currentTime = clamped / 1000;
+    };
+    usePlaybackStore.setState({ seekMs: patched });
+    return () => { usePlaybackStore.setState({ seekMs: origSeek }); };
+  }, []);
+
+  return null;
+}
+
+// Block the browser's default "open file in new tab" on drag-and-drop everywhere.
+// Individual drop zones handle files via their own onDrop handlers.
+function GlobalDragBlock() {
+  useEffect(() => {
+    function block(e: DragEvent) { e.preventDefault(); }
+    document.addEventListener('dragover', block);
+    document.addEventListener('drop', block);
+    return () => {
+      document.removeEventListener('dragover', block);
+      document.removeEventListener('drop', block);
+    };
+  }, []);
+  return null;
+}
+
 // ── persistence helpers (T088) ────────────────────────────────────────────────
 
 async function saveAssignments(songId: string, assignments: Assignment[]) {
@@ -196,6 +295,12 @@ export default function App() {
 
   // Cache purge dialog state (T099)
   const [purgeDialog, setPurgeDialog] = useState<PurgeDialogState | null>(null);
+
+  // One-shot flag: when true, the next Analyze mount runs with force=true
+  // even if the song is already marked 'analyzed'. Set by handleSongImported
+  // on a re-dropped file (where the server dedupe hit returns created: false
+  // with the existing song record).
+  const [forceAnalyze, setForceAnalyze] = useState(false);
 
   // T100: Load preferences + library on mount, then restore last session
   const bootDone = useRef(false);
@@ -281,10 +386,18 @@ export default function App() {
   // ── screen handlers ──
 
   // T087: DROP → ANALYZE
-  const handleSongImported = useCallback((song: Song) => {
+  //
+  // When `created` is false, the dropped file matched an existing library
+  // entry (SHA-256 dedup on the server). The returned song typically has
+  // status='analyzed', which would make the Analyze screen skip straight
+  // to the cached result — confusing if the user's intent was "re-analyze
+  // this file I just dropped". Set forceAnalyze so the Analyze screen
+  // kicks off a fresh run regardless of the cached status.
+  const handleSongImported = useCallback((song: Song, created: boolean = true) => {
     setData((d) => ({ ...d, song, analysis: null, assignments: [] }));
     setSelectedSongId(song.song_id);
     upsertSong(song);
+    setForceAnalyze(!created);
     setScreen('analyze');
   }, [setScreen, setSelectedSongId, upsertSong]);
 
@@ -335,6 +448,25 @@ export default function App() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ last_song_id: song.song_id, last_screen: targetScreen }),
     }).catch(() => {});
+
+    // If navigating to timeline/theme, fetch analysis + assignments so the
+    // screen has the data it needs. Otherwise the screen shows "Analysis required".
+    if (targetScreen === 'timeline' || targetScreen === 'theme') {
+      Promise.all([
+        fetch(`/api/v1/songs/${song.song_id}/analysis`),
+        fetch(`/api/v1/songs/${song.song_id}/assignments`),
+      ])
+        .then(async ([aRes, asRes]) => {
+          const analysisBody = aRes.ok ? await aRes.json() : null;
+          const assignmentsBody = asRes.ok ? await asRes.json() : null;
+          setData((d) => ({
+            ...d,
+            analysis: analysisBody,
+            assignments: assignmentsBody?.assignments ?? assignmentsBody ?? [],
+          }));
+        })
+        .catch(() => {});
+    }
 
     setScreen(targetScreen as Screen);
   }, [setScreen, setSelectedSongId, setPreferences]);
@@ -388,6 +520,7 @@ export default function App() {
             songs={songs}
             folders={folders}
             onSelectSong={handleSelectSong}
+            onFileDrop={handleSongImported}
           />
         );
 
@@ -396,11 +529,34 @@ export default function App() {
 
       case 'analyze':
         if (!song) return <PlaceholderScreen label="Drop a song first" onDrop={() => setScreen('drop')} />;
-        return <Analyze song={song} onComplete={handleAnalyzeComplete} />;
+        return (
+          <Analyze
+            song={song}
+            forceOnMount={forceAnalyze}
+            onAnalysisComplete={(updated) => {
+              // Clear the one-shot force flag now that the run is committed,
+              // and reflect the new status in both the active song and the
+              // library rail so the chip turns green immediately.
+              setForceAnalyze(false);
+              upsertSong(updated);
+              setData((d) => (d.song && d.song.song_id === updated.song_id
+                ? { ...d, song: updated } : d));
+            }}
+            onComplete={handleAnalyzeComplete}
+          />
+        );
 
       case 'timeline':
-        if (!song || !analysis)
-          return <PlaceholderScreen label="Analysis required" onDrop={() => setScreen('analyze')} />;
+        if (!song) return <PlaceholderScreen label="Drop a song first" onDrop={() => setScreen('drop')} />;
+        if (!analysis) {
+          // Song is marked analyzed/themed but the fetch hasn't landed yet
+          // (happens momentarily when switching songs from the rail). Show a
+          // quiet loading state instead of "Analysis required".
+          const isLoading = song.status === 'analyzed' || song.status === 'themed';
+          return isLoading
+            ? <PlaceholderScreen label="Loading analysis…" onDrop={() => {}} loading />
+            : <PlaceholderScreen label="Analysis required" onDrop={() => setScreen('analyze')} />;
+        }
         return (
           <Timeline
             song={song}
@@ -411,8 +567,13 @@ export default function App() {
         );
 
       case 'theme':
-        if (!song || !analysis)
-          return <PlaceholderScreen label="Analysis required" onDrop={() => setScreen('analyze')} />;
+        if (!song) return <PlaceholderScreen label="Drop a song first" onDrop={() => setScreen('drop')} />;
+        if (!analysis) {
+          const isLoading = song.status === 'analyzed' || song.status === 'themed';
+          return isLoading
+            ? <PlaceholderScreen label="Loading analysis…" onDrop={() => {}} loading />
+            : <PlaceholderScreen label="Analysis required" onDrop={() => setScreen('analyze')} />;
+        }
         return (
           <Theme
             song={song}
@@ -445,6 +606,8 @@ export default function App() {
   return (
     <div id="app-root" data-testid="app-root">
       <GlobalKeyboardListener />
+      <GlobalDragBlock />
+      <GlobalAudioPlayer songId={data.song?.song_id ?? null} />
       <Chrome
         activeScreen={screen}
         onNavigate={setScreen}
@@ -554,25 +717,40 @@ function PurgeDialog({
 
 // ── minimal placeholder screens ───────────────────────────────────────────────
 
-function PlaceholderScreen({ label, onDrop }: { label: string; onDrop: () => void }) {
+function PlaceholderScreen({
+  label,
+  onDrop,
+  loading = false,
+}: {
+  label: string;
+  onDrop: () => void;
+  /**
+   * When true, render a quiet "loading" state with no action button — used
+   * while the analysis is being fetched for a song we know is analyzed.
+   * Prevents "Analysis required" flashing during song-switch fetches.
+   */
+  loading?: boolean;
+}) {
   return (
     <div style={{ padding: 32, color: 'var(--color-text-muted, #888)', textAlign: 'center' }}>
       <p>{label}</p>
-      <button
-        onClick={onDrop}
-        style={{
-          marginTop: 16,
-          padding: '8px 20px',
-          background: 'var(--color-accent, #4ade80)',
-          color: '#000',
-          border: 'none',
-          borderRadius: 6,
-          cursor: 'pointer',
-          fontWeight: 600,
-        }}
-      >
-        Go
-      </button>
+      {!loading && (
+        <button
+          onClick={onDrop}
+          style={{
+            marginTop: 16,
+            padding: '8px 20px',
+            background: 'var(--color-accent, #4ade80)',
+            color: '#000',
+            border: 'none',
+            borderRadius: 6,
+            cursor: 'pointer',
+            fontWeight: 600,
+          }}
+        >
+          Go
+        </button>
+      )}
     </div>
   );
 }

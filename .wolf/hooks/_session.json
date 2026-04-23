@@ -1,72 +1,297 @@
 {
-  "session_id": "session-2026-04-21-1202",
-  "started": "2026-04-21T19:02:40.439Z",
+  "session_id": "session-2026-04-22-1428",
+  "started": "2026-04-22T21:28:08.056Z",
   "files_read": {
-    "/workspace/.gitignore": {
-      "count": 1,
-      "tokens": 294,
-      "first_read": "2026-04-21T19:10:08.175Z"
-    },
-    "/workspace/specs/050-quality-calibration/spec.md": {
+    "/workspace/src/review/api/v1/sections.py": {
       "count": 1,
       "tokens": 0,
-      "first_read": "2026-04-21T19:12:51.377Z"
+      "first_read": "2026-04-23T04:00:13.851Z"
     },
-    "/workspace/specs/050-quality-calibration/plan.md": {
-      "count": 1,
+    "/workspace/src/review/api/v1/analysis.py": {
+      "count": 4,
       "tokens": 0,
-      "first_read": "2026-04-21T19:12:54.357Z"
+      "first_read": "2026-04-23T04:00:49.918Z"
     },
-    "/workspace/specs/050-quality-calibration/tasks.md": {
+    "/workspace/.env": {
       "count": 2,
       "tokens": 0,
-      "first_read": "2026-04-21T19:13:03.165Z"
+      "first_read": "2026-04-23T04:09:29.476Z"
     },
-    "/workspace/pyproject.toml": {
+    "/workspace/src/story/builder.py": {
+      "count": 2,
+      "tokens": 0,
+      "first_read": "2026-04-23T04:16:10.554Z"
+    },
+    "/workspace/src/story/section_profiler.py": {
       "count": 1,
-      "tokens": 502,
-      "first_read": "2026-04-21T19:23:33.795Z"
+      "tokens": 0,
+      "first_read": "2026-04-23T04:27:51.388Z"
+    },
+    "/workspace/src/story/section_classifier.py": {
+      "count": 1,
+      "tokens": 0,
+      "first_read": "2026-04-23T04:28:39.154Z"
+    },
+    "/workspace/src/story/stem_curves.py": {
+      "count": 1,
+      "tokens": 0,
+      "first_read": "2026-04-23T04:28:50.463Z"
+    },
+    "/workspace/src/review/frontend/src/screens/Analyze.tsx": {
+      "count": 7,
+      "tokens": 6619,
+      "first_read": "2026-04-23T13:17:14.204Z"
+    },
+    "/workspace/src/review/frontend/src/components/ReanalysisDialog/ReanalysisDialog.tsx": {
+      "count": 1,
+      "tokens": 0,
+      "first_read": "2026-04-23T13:17:25.532Z"
+    },
+    "/workspace/src/review/frontend/src/App.tsx": {
+      "count": 11,
+      "tokens": 6539,
+      "first_read": "2026-04-23T13:18:10.815Z"
+    },
+    "/workspace/src/review/frontend/src/screens/Library.tsx": {
+      "count": 2,
+      "tokens": 0,
+      "first_read": "2026-04-23T13:18:29.046Z"
+    },
+    "/workspace/src/review/api/v1/import_.py": {
+      "count": 1,
+      "tokens": 0,
+      "first_read": "2026-04-23T13:19:26.568Z"
+    },
+    "/workspace/src/review/frontend/src/components/Chrome/Chrome.tsx": {
+      "count": 1,
+      "tokens": 0,
+      "first_read": "2026-04-23T13:19:53.842Z"
+    },
+    "/workspace/src/review/frontend/tests/screens/Analyze.test.tsx": {
+      "count": 1,
+      "tokens": 0,
+      "first_read": "2026-04-23T13:39:43.169Z"
+    },
+    "/workspace/src/review/frontend/src/screens/Timeline.tsx": {
+      "count": 2,
+      "tokens": 0,
+      "first_read": "2026-04-23T13:50:00.168Z"
+    },
+    "/workspace/src/review/frontend/src/store/sections.ts": {
+      "count": 1,
+      "tokens": 0,
+      "first_read": "2026-04-23T13:50:28.424Z"
     }
   },
   "files_written": [
     {
-      "file": "/workspace/.gitignore",
+      "file": "/workspace/.worktrees/052/packaging/scripts/build-backend.sh",
       "action": "edit",
-      "tokens": 30,
-      "at": "2026-04-21T19:10:23.101Z"
+      "tokens": 270,
+      "at": "2026-04-22T21:28:34.754Z"
     },
     {
-      "file": "/workspace/.gitignore",
+      "file": "/workspace/.worktrees/052/packaging/scripts/build-backend.sh",
       "action": "edit",
-      "tokens": 43,
-      "at": "2026-04-21T19:11:34.135Z"
+      "tokens": 414,
+      "at": "2026-04-22T21:36:01.144Z"
     },
     {
-      "file": "/workspace/pyproject.toml",
+      "file": "/workspace/.worktrees/052/packaging/tauri/package.json",
       "action": "edit",
-      "tokens": 26,
-      "at": "2026-04-21T19:23:37.553Z"
+      "tokens": 41,
+      "at": "2026-04-22T21:48:42.007Z"
     },
     {
-      "file": "/workspace/.gitignore",
+      "file": "/workspace/.worktrees/052/packaging/tauri/src-tauri/tauri.conf.json",
       "action": "edit",
-      "tokens": 56,
-      "at": "2026-04-21T19:28:23.820Z"
+      "tokens": 9,
+      "at": "2026-04-22T21:52:20.597Z"
     },
     {
-      "file": "/workspace/.gitignore",
+      "file": "/workspace/.worktrees/052/src/review/frontend/src/lib/nativeDialog.ts",
       "action": "edit",
-      "tokens": 85,
-      "at": "2026-04-21T19:28:48.979Z"
+      "tokens": 57,
+      "at": "2026-04-22T21:52:27.516Z"
+    },
+    {
+      "file": "/workspace/src/story/builder.py",
+      "action": "edit",
+      "tokens": 172,
+      "at": "2026-04-23T04:17:43.035Z"
+    },
+    {
+      "file": "/tmp/debug_bs.py",
+      "action": "create",
+      "tokens": 219,
+      "at": "2026-04-23T04:27:31.498Z"
+    },
+    {
+      "file": "/workspace/src/story/section_profiler.py",
+      "action": "edit",
+      "tokens": 75,
+      "at": "2026-04-23T04:28:19.963Z"
+    },
+    {
+      "file": "/workspace/src/story/section_profiler.py",
+      "action": "edit",
+      "tokens": 18,
+      "at": "2026-04-23T04:28:25.398Z"
+    },
+    {
+      "file": "/workspace/src/story/section_profiler.py",
+      "action": "edit",
+      "tokens": 14,
+      "at": "2026-04-23T04:28:30.435Z"
+    },
+    {
+      "file": "/workspace/src/story/section_classifier.py",
+      "action": "edit",
+      "tokens": 18,
+      "at": "2026-04-23T04:28:45.895Z"
+    },
+    {
+      "file": "/workspace/src/story/stem_curves.py",
+      "action": "edit",
+      "tokens": 18,
+      "at": "2026-04-23T04:28:54.648Z"
+    },
+    {
+      "file": "/workspace/src/story/builder.py",
+      "action": "edit",
+      "tokens": 19,
+      "at": "2026-04-23T04:28:59.557Z"
+    },
+    {
+      "file": "/workspace/src/review/frontend/src/screens/Drop.tsx",
+      "action": "edit",
+      "tokens": 152,
+      "at": "2026-04-23T13:35:46.026Z"
+    },
+    {
+      "file": "/workspace/src/review/frontend/src/screens/Drop.tsx",
+      "action": "edit",
+      "tokens": 57,
+      "at": "2026-04-23T13:35:54.656Z"
+    },
+    {
+      "file": "/workspace/src/review/frontend/src/screens/Library.tsx",
+      "action": "edit",
+      "tokens": 200,
+      "at": "2026-04-23T13:36:10.753Z"
+    },
+    {
+      "file": "/workspace/src/review/frontend/src/screens/Library.tsx",
+      "action": "edit",
+      "tokens": 16,
+      "at": "2026-04-23T13:36:16.542Z"
+    },
+    {
+      "file": "/workspace/src/review/frontend/src/screens/Library.tsx",
+      "action": "edit",
+      "tokens": 52,
+      "at": "2026-04-23T13:36:28.206Z"
+    },
+    {
+      "file": "/workspace/src/review/frontend/src/App.tsx",
+      "action": "edit",
+      "tokens": 223,
+      "at": "2026-04-23T13:36:50.482Z"
+    },
+    {
+      "file": "/workspace/src/review/frontend/src/App.tsx",
+      "action": "edit",
+      "tokens": 128,
+      "at": "2026-04-23T13:37:07.683Z"
+    },
+    {
+      "file": "/workspace/src/review/frontend/src/App.tsx",
+      "action": "edit",
+      "tokens": 223,
+      "at": "2026-04-23T13:37:21.556Z"
+    },
+    {
+      "file": "/workspace/src/review/frontend/src/screens/Analyze.tsx",
+      "action": "edit",
+      "tokens": 129,
+      "at": "2026-04-23T13:37:38.050Z"
+    },
+    {
+      "file": "/workspace/src/review/frontend/src/screens/Analyze.tsx",
+      "action": "edit",
+      "tokens": 233,
+      "at": "2026-04-23T13:37:48.877Z"
+    },
+    {
+      "file": "/workspace/src/review/frontend/src/screens/Analyze.tsx",
+      "action": "edit",
+      "tokens": 82,
+      "at": "2026-04-23T13:38:02.461Z"
+    },
+    {
+      "file": "/workspace/src/review/frontend/src/screens/Analyze.tsx",
+      "action": "edit",
+      "tokens": 164,
+      "at": "2026-04-23T13:38:21.155Z"
+    },
+    {
+      "file": "/workspace/src/review/frontend/src/screens/Analyze.tsx",
+      "action": "edit",
+      "tokens": 1007,
+      "at": "2026-04-23T13:38:57.110Z"
+    },
+    {
+      "file": "/workspace/src/review/frontend/tests/screens/Drop.test.tsx",
+      "action": "edit",
+      "tokens": 95,
+      "at": "2026-04-23T13:39:16.354Z"
+    },
+    {
+      "file": "/workspace/src/review/frontend/tests/screens/Analyze.test.tsx",
+      "action": "edit",
+      "tokens": 79,
+      "at": "2026-04-23T13:40:03.102Z"
+    },
+    {
+      "file": "/workspace/src/review/frontend/src/App.tsx",
+      "action": "edit",
+      "tokens": 263,
+      "at": "2026-04-23T13:47:14.327Z"
+    },
+    {
+      "file": "/workspace/src/review/frontend/src/App.tsx",
+      "action": "edit",
+      "tokens": 391,
+      "at": "2026-04-23T13:47:26.223Z"
+    },
+    {
+      "file": "/workspace/src/review/frontend/src/screens/Timeline.tsx",
+      "action": "edit",
+      "tokens": 269,
+      "at": "2026-04-23T13:51:03.200Z"
     }
   ],
   "edit_counts": {
-    ".gitignore": 4,
-    "pyproject.toml": 1
+    ".worktrees/052/packaging/scripts/build-backend.sh": 2,
+    ".worktrees/052/packaging/tauri/package.json": 1,
+    ".worktrees/052/packaging/tauri/src-tauri/tauri.conf.json": 1,
+    ".worktrees/052/src/review/frontend/src/lib/nativeDialog.ts": 1,
+    "src/story/builder.py": 2,
+    "../tmp/debug_bs.py": 1,
+    "src/story/section_profiler.py": 3,
+    "src/story/section_classifier.py": 1,
+    "src/story/stem_curves.py": 1,
+    "src/review/frontend/src/screens/Drop.tsx": 2,
+    "src/review/frontend/src/screens/Library.tsx": 3,
+    "src/review/frontend/src/App.tsx": 5,
+    "src/review/frontend/src/screens/Analyze.tsx": 5,
+    "src/review/frontend/tests/screens/Drop.test.tsx": 1,
+    "src/review/frontend/tests/screens/Analyze.test.tsx": 1,
+    "src/review/frontend/src/screens/Timeline.tsx": 1
   },
-  "anatomy_hits": 2,
-  "anatomy_misses": 3,
-  "repeated_reads_warned": 1,
+  "anatomy_hits": 0,
+  "anatomy_misses": 16,
+  "repeated_reads_warned": 23,
   "cerebrum_warnings": 0,
-  "stop_count": 11
+  "stop_count": 31
 }

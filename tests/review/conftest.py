@@ -10,6 +10,9 @@ from src.review.server import create_app
 def app(tmp_path, monkeypatch):
     """Flask test-client app wired to a fresh temp library dir."""
     monkeypatch.setenv("XLIGHT_STATE_HOME", str(tmp_path))
+    # Use the fast stub analysis pipeline in tests so they don't time out
+    # waiting for the full vamp/demucs/madmom pipeline.
+    monkeypatch.setenv("XLIGHT_STUB_ANALYSIS", "1")
     application = create_app(testing=True)
     application.config["TESTING"] = True
     yield application

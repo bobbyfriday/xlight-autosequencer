@@ -1,5 +1,30 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import type { Song, Folder } from 'src/store/library';
+
+const ALLOWED_EXTS = new Set(['.mp3', '.wav', '.flac', '.aiff', '.aif']);
+function getExt(f: string) { const i = f.lastIndexOf('.'); return i >= 0 ? f.slice(i).toLowerCase() : ''; }
+
+async function importFile(
+  file: File,
+  onDone: (song: Song, created: boolean) => void,
+  onErr: (msg: string) => void,
+) {
+  if (!ALLOWED_EXTS.has(getExt(file.name))) {
+    onErr(`Unsupported type: ${getExt(file.name)}`);
+    return;
+  }
+  const fd = new FormData();
+  fd.append('audio', file);
+  try {
+    const res = await fetch('/api/v1/import', { method: 'POST', body: fd });
+    const body = await res.json();
+    if (!res.ok) { onErr(body?.error?.message ?? 'Import failed'); return; }
+    // Forward `created` so the caller can force re-analysis on a re-drop.
+    onDone(body.song, Boolean(body?.created));
+  } catch (e) {
+    onErr(e instanceof Error ? e.message : 'Import failed');
+  }
+}
 
 type FilterStatus = 'all' | 'draft' | 'analyzed' | 'themed';
 
@@ -20,10 +45,15 @@ interface Props {
   songs: Song[];
   folders: Folder[];
   onSelectSong: (song: Song, screen: string) => void;
+  onFileDrop?: (song: Song, created: boolean) => void;
 }
 
-export function Library({ songs, folders, onSelectSong }: Props) {
+export function Library({ songs, folders, onSelectSong, onFileDrop }: Props) {
   const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
+  const [dropError, setDropError] = useState<string | null>(null);
+  const [dropLoading, setDropLoading] = useState(false);
+  const [dragging, setDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [collapsedFolders, setCollapsedFolders] = useState<Set<string>>(
     () => new Set(folders.filter((f) => f.collapsed).map((f) => f.folder_id ?? (f as any).id)),
   );
@@ -63,6 +93,17 @@ export function Library({ songs, folders, onSelectSong }: Props) {
     { id: 'themed', label: 'Themed' },
   ];
 
+  async function handleDroppedFile(file: File) {
+    if (!onFileDrop) return;
+    setDropLoading(true);
+    setDropError(null);
+    await importFile(
+      file,
+      (song, created) => { setDropLoading(false); onFileDrop(song, created); },
+      (msg) => { setDropLoading(false); setDropError(msg); },
+    );
+  }
+
   // T134: Empty-library first-run centered drop target (FR-005c)
   if (songs.length === 0 && folders.every((f) => {
     const fid = (f as any).folder_id ?? (f as any).id;
@@ -71,19 +112,22 @@ export function Library({ songs, folders, onSelectSong }: Props) {
     return (
       <div
         data-testid="library-empty-drop"
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          height: '60vh',
-          gap: 16,
-          color: 'var(--color-text-muted, #888)',
-        }}
+        style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60vh', gap: 16 }}
       >
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".mp3,.wav,.flac,.aiff,.aif"
+          style={{ display: 'none' }}
+          onChange={(e) => { const f = e.target.files?.[0]; if (f) handleDroppedFile(f); }}
+        />
         <div
+          onDrop={(e) => { e.preventDefault(); e.stopPropagation(); setDragging(false); const f = e.dataTransfer.files[0]; if (f) handleDroppedFile(f); }}
+          onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); setDragging(true); }}
+          onDragLeave={() => setDragging(false)}
+          onClick={() => fileInputRef.current?.click()}
           style={{
-            border: '2px dashed var(--color-border, #444)',
+            border: `2px dashed ${dragging ? 'var(--color-accent, #d97757)' : 'var(--color-border, #444)'}`,
             borderRadius: 12,
             padding: '48px 64px',
             textAlign: 'center',
@@ -91,16 +135,20 @@ export function Library({ songs, folders, onSelectSong }: Props) {
             flexDirection: 'column',
             alignItems: 'center',
             gap: 12,
+            cursor: 'pointer',
+            background: dragging ? 'var(--color-surface-2, #22222a)' : 'transparent',
+            transition: 'border-color 0.15s, background 0.15s',
           }}
         >
           <span style={{ fontSize: 40 }}>🎵</span>
           <p style={{ fontSize: 16, fontWeight: 600, color: 'var(--color-text, #f5f5f0)', margin: 0 }}>
-            Drop an MP3 or WAV here to get started
+            {dropLoading ? 'Importing…' : 'Drop an MP3 or WAV here to get started'}
           </p>
-          <p style={{ fontSize: 13, margin: 0 }}>
-            or use the upload button in the header
+          <p style={{ fontSize: 13, margin: 0, color: 'var(--color-text-muted, #888)' }}>
+            or click to browse files
           </p>
         </div>
+        {dropError && <p style={{ color: 'var(--color-error, #d43a2f)', fontSize: 13 }}>{dropError}</p>}
       </div>
     );
   }
