@@ -1,0 +1,9 @@
+{
+  "app_version": "0.0.0-dev",
+  "build_timestamp": "1970-01-01T00:00:00Z",
+  "target_arch": "dev",
+  "frontend_commit": "dev",
+  "backend_commit": "dev",
+  "bundled_vamp_plugins": [],
+  "download_model_manifest_url": "src/packaging/model_manifest.json"
+}

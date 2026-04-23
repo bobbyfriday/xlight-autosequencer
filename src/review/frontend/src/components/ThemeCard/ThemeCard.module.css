@@ -1,0 +1,60 @@
+.card {
+  background: var(--color-surface-2, #1e1e24);
+  border-radius: 8px;
+  border: 2px solid transparent;
+  padding: 12px;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  user-select: none;
+}
+
+.card:hover {
+  border-color: var(--color-border, #555);
+}
+
+.assigned {
+  box-shadow: 0 0 0 1px currentColor;
+}
+
+.swatchRow {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.swatch {
+  flex: 1;
+  height: 12px;
+  border-radius: 2px;
+}
+
+.nameRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text, #f5f5f0);
+}
+
+.assignedPill {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--color-accent, #4ade80);
+  color: #000;
+}
+
+.description {
+  font-size: 12px;
+  color: var(--color-text-muted, #888);
+  margin: 0;
+  line-height: 1.4;
+}

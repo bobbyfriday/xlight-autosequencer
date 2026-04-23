@@ -1,0 +1,75 @@
+.shell {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: var(--bg0);
+  color: var(--ink);
+  font-family: var(--font-sans);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 16px;
+  height: 40px;
+  background: var(--bg1);
+  border-bottom: 1px solid var(--line);
+  flex-shrink: 0;
+}
+
+.wordmark {
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.toolStrip {
+  display: flex;
+  gap: 0;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 12px;
+  height: 40px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--ink2);
+  font-size: 12px;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: color 0.1s, border-color 0.1s;
+}
+
+.tab:hover {
+  color: var(--ink);
+}
+
+.tab[data-active='true'] {
+  color: var(--ink);
+  border-bottom-color: var(--accent);
+}
+
+.tabKey {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  color: var(--ink3);
+}
+
+.content {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+.statusBar {
+  height: 24px;
+  background: var(--bg1);
+  border-top: 1px solid var(--line);
+  flex-shrink: 0;
+}
