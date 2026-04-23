@@ -22,13 +22,27 @@ interface DetectorRow {
 
 interface AnalyzeProps {
   song: Song;
+  /**
+   * When true, run analysis on mount even if the song is already marked
+   * 'analyzed'. Set by the App on re-drop of an existing library file.
+   */
+  forceOnMount?: boolean;
+  /**
+   * Notify the parent when the analysis state changes so it can refresh the
+   * library rail status chip. Called with the latest song shape.
+   */
+  onAnalysisComplete?: (song: Song) => void;
   onComplete: () => void;
 }
 
-export function Analyze({ song, onComplete }: AnalyzeProps) {
+export function Analyze({ song, forceOnMount = false, onAnalysisComplete, onComplete }: AnalyzeProps) {
   const [detectors, setDetectors] = useState<DetectorRow[]>([]);
   const [overall, setOverall] = useState<{ status: string; progress: number } | null>(null);
-  const [analysisComplete, setAnalysisComplete] = useState(song.status === 'analyzed' || song.status === 'themed');
+  // Already analyzed AND not being forced re-analyzed → skip straight to the
+  // "done" view. Otherwise we'll POST /analyze and stream status.
+  const [analysisComplete, setAnalysisComplete] = useState(
+    !forceOnMount && (song.status === 'analyzed' || song.status === 'themed')
+  );
   const esRef = useRef<EventSource | null>(null);
 
   useEffect(() => {
@@ -38,6 +52,8 @@ export function Analyze({ song, onComplete }: AnalyzeProps) {
       try {
         const res = await fetch(`/api/v1/songs/${song.song_id}/analyze`, {
           method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ force: forceOnMount }),
         });
         if (!res.ok) return;
 
@@ -52,6 +68,9 @@ export function Analyze({ song, onComplete }: AnalyzeProps) {
               setOverall(data.overall);
               if (data.overall.status === 'done') {
                 setAnalysisComplete(true);
+                // Update the parent so the library rail status chip turns
+                // green without needing a library re-fetch.
+                onAnalysisComplete?.({ ...song, status: 'analyzed' });
                 es.close();
               }
             } else if (data.detector) {

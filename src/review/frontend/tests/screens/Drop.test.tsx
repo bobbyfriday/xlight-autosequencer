@@ -55,7 +55,13 @@ describe('Drop screen', () => {
     fireEvent.change(input);
 
     await waitFor(() => {
-      expect(onImported).toHaveBeenCalledWith(expect.objectContaining({ song_id: 'abc123' }));
+      // New signature: onSongImported(song, created). Asserting both args
+      // here so future callers keep passing `created` through from the
+      // server response.
+      expect(onImported).toHaveBeenCalledWith(
+        expect.objectContaining({ song_id: 'abc123' }),
+        true,
+      );
     });
   });
 });

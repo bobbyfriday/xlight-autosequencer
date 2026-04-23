@@ -12,7 +12,16 @@ interface Song {
 }
 
 interface DropProps {
-  onSongImported: (song: Song) => void;
+  /**
+   * Called after a successful /api/v1/import response.
+   *
+   * `created` is the server's "this is a new library entry" flag. When
+   * `created: false` the user dropped a file that's already in the library
+   * (deduplicated by SHA-256) and the returned song is the existing record,
+   * typically with status='analyzed'. Callers can use this to decide whether
+   * to force a re-analysis rather than just showing the cached result.
+   */
+  onSongImported: (song: Song, created: boolean) => void;
 }
 
 const ALLOWED_EXTS = new Set(['.mp3', '.wav', '.flac', '.aiff', '.aif']);
@@ -52,7 +61,9 @@ export function Drop({ onSongImported }: DropProps) {
         return;
       }
 
-      onSongImported(body.song);
+      // `created` is truthy only when this is a fresh library entry.
+      // Dropping a file that's already imported returns created: false.
+      onSongImported(body.song, Boolean(body?.created));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Import failed');
     } finally {

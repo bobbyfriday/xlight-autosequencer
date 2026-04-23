@@ -196,6 +196,9 @@ export default function App() {
 
   // Cache purge dialog state (T099)
   const [purgeDialog, setPurgeDialog] = useState<PurgeDialogState | null>(null);
+  // When true, the next Analyze mount will force a re-run even if the song
+  // status reports 'analyzed'. Set by handleSongImported on a re-dropped file.
+  const [forceAnalyze, setForceAnalyze] = useState(false);
 
   // T100: Load preferences + library on mount, then restore last session
   const bootDone = useRef(false);
@@ -281,10 +284,18 @@ export default function App() {
   // ── screen handlers ──
 
   // T087: DROP → ANALYZE
-  const handleSongImported = useCallback((song: Song) => {
+  //
+  // When `created` is false, the dropped file matched an existing library
+  // entry (SHA-256 dedup on the server). The returned song typically has
+  // status='analyzed', which would make the Analyze screen skip straight
+  // to the cached result — confusing if the user's intent was "re-analyze
+  // this file I just dropped". Set forceAnalyze so the Analyze screen
+  // kicks off a fresh run regardless of the cached status.
+  const handleSongImported = useCallback((song: Song, created: boolean) => {
     setData((d) => ({ ...d, song, analysis: null, assignments: [] }));
     setSelectedSongId(song.song_id);
     upsertSong(song);
+    setForceAnalyze(!created);
     setScreen('analyze');
   }, [setScreen, setSelectedSongId, upsertSong]);
 
@@ -396,7 +407,22 @@ export default function App() {
 
       case 'analyze':
         if (!song) return <PlaceholderScreen label="Drop a song first" onDrop={() => setScreen('drop')} />;
-        return <Analyze song={song} onComplete={handleAnalyzeComplete} />;
+        return (
+          <Analyze
+            song={song}
+            forceOnMount={forceAnalyze}
+            onAnalysisComplete={(updated) => {
+              // Clear the one-shot force flag now that we've started a run
+              // (or determined none was needed), and update the parent so
+              // the library rail status chip reflects the latest state.
+              setForceAnalyze(false);
+              upsertSong(updated);
+              setData((d) => (d.song && d.song.song_id === updated.song_id
+                ? { ...d, song: updated } : d));
+            }}
+            onComplete={handleAnalyzeComplete}
+          />
+        );
 
       case 'timeline':
         if (!song || !analysis)
