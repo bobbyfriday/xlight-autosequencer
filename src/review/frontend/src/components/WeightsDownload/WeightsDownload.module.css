@@ -1,0 +1,111 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 1000;
+}
+
+.modal {
+  background: var(--color-surface, #1a1a1a);
+  border: 1px solid var(--color-border, #444);
+  border-radius: 10px;
+  padding: 28px;
+  max-width: 480px;
+  width: 90%;
+  color: var(--color-text, #f5f5f0);
+}
+
+.title {
+  font-size: 17px;
+  font-weight: 600;
+  margin: 0 0 12px;
+}
+
+.body {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--color-text-muted, #bbb);
+  margin: 0 0 16px;
+}
+
+.body code {
+  background: rgba(255, 255, 255, 0.08);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 12px;
+}
+
+.license {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--color-border, #333);
+  border-radius: 6px;
+  padding: 12px 14px;
+  margin-bottom: 20px;
+  font-size: 12px;
+}
+
+.licenseNote {
+  margin: 8px 0 0;
+  color: var(--color-text-muted, #888);
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+.btnCancel {
+  padding: 7px 16px;
+  background: transparent;
+  border: 1px solid var(--color-border, #444);
+  border-radius: 6px;
+  color: var(--color-text, #f5f5f0);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.btnPrimary {
+  padding: 7px 16px;
+  background: var(--color-accent, #4ade80);
+  border: none;
+  border-radius: 6px;
+  color: #000;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.progressTrack {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 16px;
+}
+
+.progressBar {
+  height: 100%;
+  background: var(--color-accent, #4ade80);
+  transition: width 120ms ease-out;
+}
+
+.progressText {
+  font-size: 12px;
+  color: var(--color-text-muted, #888);
+  margin-top: 8px;
+  font-family: var(--font-mono, ui-monospace, monospace);
+}
+
+.errorDetail {
+  color: var(--color-danger, #f87171);
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 12px;
+  word-break: break-word;
+  margin: 8px 0 0;
+}

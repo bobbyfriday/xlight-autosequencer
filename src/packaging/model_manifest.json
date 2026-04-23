@@ -1,0 +1,16 @@
+{
+  "htdemucs_6s": {
+    "description": "Demucs 6-source htdemucs_6s weights (drums, bass, vocals, guitar, piano, other).",
+    "license": "CC BY-NC 4.0",
+    "license_note": "For non-commercial use. A separate license from Meta is required for commercial distribution of stem-separation outputs.",
+    "total_size_bytes": 178257920,
+    "shards": [
+      {
+        "name": "htdemucs_6s-5c4cb92b.th",
+        "url": "https://dl.fbaipublicfiles.com/demucs/hybrid_transformer/5c4cb92b-htdemucs_6s.th",
+        "size_bytes": 178257920,
+        "sha256": "__PLACEHOLDER_REPLACE_AFTER_FIRST_DOWNLOAD__"
+      }
+    ]
+  }
+}

@@ -15,7 +15,37 @@ jobs:
           python-version: '3.11'
       - name: Install dependencies
         run: pip install -e .
+      - name: Check corpus availability
+        id: corpus
+        # The gate compares metrics against a baseline built from real songs
+        # under tests/golden/pro_reference/manifest.json. The manifest
+        # references absolute MP3 paths on the maintainer's machine
+        # (/home/node/xlights/baseline-sequences/...). In GitHub-hosted
+        # runners (and forks) those files don't exist, so skip cleanly
+        # instead of failing with a song-count mismatch.
+        run: |
+          manifest="tests/golden/pro_reference/manifest.json"
+          if [ ! -f "$manifest" ]; then
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "Corpus manifest missing — skipping check."
+            exit 0
+          fi
+          any_exists=false
+          while IFS= read -r mp3; do
+            if [ -f "$mp3" ]; then
+              any_exists=true
+              break
+            fi
+          done < <(python -c "import json, sys; [print(e['mp3_path']) for e in json.load(open('$manifest'))['entries']]")
+          if [ "$any_exists" = "true" ]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+            echo "Corpus audio available — running gate."
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "No corpus MP3s found on this runner — skipping (expected on GitHub-hosted CI)."
+          fi
       - name: Run quality calibration gate
+        if: steps.corpus.outputs.available == 'true'
         run: xlight-evaluate check
         # Exits 0 if all metrics within baseline tolerance.
         # Exits 6 on regression — update baseline.json and commit to fix.

@@ -1,0 +1,40 @@
+"""T075 — /api/v1/manifest returns dev stub in dev, real manifest when bundled."""
+from __future__ import annotations
+
+import pytest
+
+from src.review.server import create_app
+
+
+@pytest.fixture()
+def client_dev(tmp_path, monkeypatch):
+    monkeypatch.setenv("XLIGHT_STATE_HOME", str(tmp_path))
+    monkeypatch.delenv("XLIGHT_PACKAGED", raising=False)
+    app = create_app(testing=True)
+    app.config["TESTING"] = True
+    yield app.test_client()
+
+
+def test_dev_mode_returns_stub(client_dev):
+    resp = client_dev.get("/api/v1/manifest")
+    assert resp.status_code == 200
+    body = resp.get_json()
+    assert body["app_version"] == "dev"
+    assert body["is_bundled"] is False
+
+
+def test_bundled_stub_when_manifest_file_absent(monkeypatch, tmp_path):
+    # Simulate bundled mode but without the manifest file on disk — the
+    # endpoint must fall back to the dev stub (shape-compatible) rather
+    # than crashing.
+    monkeypatch.setenv("XLIGHT_PACKAGED", "1")
+    monkeypatch.setenv("XLIGHT_STATE_HOME", str(tmp_path))
+    app = create_app(testing=True)
+    app.config["TESTING"] = True
+
+    with app.test_client() as client:
+        resp = client.get("/api/v1/manifest")
+        assert resp.status_code == 200
+        body = resp.get_json()
+        # sys._MEIPASS not set in this test env → get_manifest() returns None → stub path.
+        assert body["app_version"] == "dev"

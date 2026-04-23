@@ -54,10 +54,18 @@ class StemCache:
         # Follow project convention: store under song folder
         if cache_root:
             self._cache_root = cache_root
-        elif source_path.parent.name == source_path.stem:
-            self._cache_root = source_path.parent / "stems"
         else:
-            self._cache_root = source_path.parent / source_path.stem / "stems"
+            # In packaged (bundled) mode the source directory may not be
+            # writable (macOS Music/Desktop/iCloud). resolve_cache_root
+            # falls back to Application Support when that happens.
+            from src.packaging.bundled_mode import is_bundled
+            if is_bundled():
+                from src.packaging.stems_paths import resolve_cache_root
+                self._cache_root = resolve_cache_root(source_path)
+            elif source_path.parent.name == source_path.stem:
+                self._cache_root = source_path.parent / "stems"
+            else:
+                self._cache_root = source_path.parent / source_path.stem / "stems"
         self.source_hash = _md5_file(self.source_path)
         self.stem_dir = self._cache_root
 
