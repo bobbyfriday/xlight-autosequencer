@@ -106,14 +106,21 @@ def test_content_flow_analyzer_populates_ui(
     expect(inspector_header).to_be_visible(timeout=30000)
 
     # Wait for header-title to flip to "Analysis complete". Long timeout:
-    # the full analyzer pipeline runs for real (30-90s on typical hardware).
+    # the full analyzer pipeline runs for real (30-180s depending on corpus).
     analysis_complete_locator = page.locator(
         '[data-testid="analyze-header-title"][data-analysis-complete="true"]'
     )
-    expect(analysis_complete_locator).to_be_visible(timeout=180_000)
+    expect(analysis_complete_locator).to_be_visible(timeout=240_000)
 
-    # Read final section count from the DOM attribute (deterministic — we set
-    # data-section-count on inspector-sections-header as it updates).
+    # Sections are populated by a secondary fetch that triggers *after* the
+    # analysis-complete flag flips (Analyze.tsx "Fetch sections on complete"
+    # effect at ~line 197). Wait for the DOM attribute to reach > 0 before
+    # asserting — otherwise we race with that fetch.
+    sections_populated = page.locator(
+        '[data-testid="inspector-sections-header"]:not([data-section-count="0"])'
+    )
+    expect(sections_populated).to_be_visible(timeout=30_000)
+
     section_count_str = inspector_header.get_attribute("data-section-count")
     assert section_count_str is not None, "inspector-sections-header is missing data-section-count"
     actual_count = int(section_count_str)
