@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-04-23T13:51:03.193Z
-> Files: 536 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-04-24T20:39:11.563Z
+> Files: 551 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
 
@@ -958,18 +958,41 @@
 - `vamp_structure.py` — T034: Vamp structural segmentation and tempo algorithms. (~567 tok)
 - `vamp_utils.py` — Shared helper functions for Vamp plugin algorithm wrappers. (~399 tok)
 
+## scripts/
+
+- `boundary_confidence_map.py` — Boundary confidence map — diagnostic tool for section boundary detection. (~8430 tok)
+
+## src/analyzer/
+
+- `genius_segments.py` — Genius lyric segment timing: fetch, parse, and align section headers to audio. (~8841 tok)
+
+## src/review/api/v1/
+
+- `analysis.py` — Analysis endpoints — T047. (~13834 tok)
+- `library.py` — Library endpoints — GET /library, folder CRUD, song delete + purge (T045, T090, T092, T094). (~4808 tok)
+
 ## src/review/frontend/src/
 
 - `App.tsx` — SCREENS (~6875 tok)
 
 ## src/review/frontend/src/screens/
 
-- `Analyze.tsx` — When true, run analysis on mount even if the song is already marked (~7314 tok)
+- `Analyze.tsx` — When true, run analysis on mount even if the song is already marked (~8070 tok)
 - `Drop.tsx` — Called after a successful /api/v1/import response. (~995 tok)
 - `Library.tsx` — ALLOWED_EXTS (~2952 tok)
+- `MetadataBanner.tsx` — ID3-derived display title (from song.title on the Song record). (~2351 tok)
 - `Timeline.tsx` — Returns the beat entry whose t_ms is <= timeMs (last beat at or before playhead) (~7150 tok)
 
 ## src/review/frontend/tests/screens/
 
 - `Analyze.test.tsx` — mockFetch (~547 tok)
 - `Drop.test.tsx` — Mock fetch globally (~616 tok)
+- `MetadataBanner.test.tsx` — Tests for the analyze-screen MetadataBanner: (~1704 tok)
+
+## src/story/
+
+- `builder.py` — Song story builder — top-level orchestration for the song story tool. (~10110 tok)
+
+## tests/review/
+
+- `test_api_metadata_override.py` — Tests for PATCH /api/v1/songs/<id>/metadata and the ``override_artist`` / (~1646 tok)
