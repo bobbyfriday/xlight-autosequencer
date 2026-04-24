@@ -32,8 +32,10 @@ madmom = ["madmom>=0.16"]
 vamp = ["vamp>=1.1"]
 # demucs for stem separation (htdemucs_6s model)
 stems = ["demucs>=4.0"]
-# whisperx for vocal phoneme analysis (--phonemes flag)
-phonemes = ["whisperx>=3.1", "nltk>=3.8"]
+# whisperx for vocal phoneme analysis (--phonemes flag).
+# matplotlib is pulled in by pyannote.audio 3.3.2 at import time
+# (pyannote/audio/tasks/segmentation/mixins.py) even when unused.
+phonemes = ["whisperx>=3.1", "nltk>=3.8", "matplotlib>=3.5"]
 # Install everything: pip install -e ".[all]"
 all = [
     "demucs>=4.0",
@@ -42,6 +44,7 @@ all = [
     "nltk>=3.8",
     "lyricsgenius>=3.0",
     "mutagen>=1.47",
+    "matplotlib>=3.5",
 ]
 dev = [
     "pytest>=7.4",
