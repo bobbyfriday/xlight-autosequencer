@@ -1,14 +1,24 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import styles from './Analyze.module.css';
+import { MetadataBanner } from './MetadataBanner';
 
 interface Song {
   song_id: string;
   title: string;
+  artist?: string | null;
+  override_artist?: string | null;
+  override_title?: string | null;
   status: string;
   duration_ms: number;
   folder_id: string;
   imported_at: string;
   source_paths: string[];
+}
+
+interface GeniusLookup {
+  section_source: string | null;
+  match: { url: string; artist: string; title: string; genius_id?: number } | null;
+  reject_reason: string | null;
 }
 
 interface DetectorRow {
@@ -141,6 +151,18 @@ export function Analyze({ song, forceOnMount = false, onAnalysisComplete, onComp
   const [analysisComplete, setAnalysisComplete] = useState(alreadyAnalyzedAtMount);
   const [error, setError] = useState<string | null>(null);
   const [logLines, setLogLines] = useState<LogLine[]>([]);
+  // Genius provenance: populated either by the `genius_lookup` SSE event
+  // during an in-flight run, or by fetching /analysis for an already-completed
+  // one. Null means "we haven't heard yet" (not "Genius didn't run").
+  const [geniusLookup, setGeniusLookup] = useState<GeniusLookup | null>(null);
+  // Local copy of the song's override fields so MetadataBanner updates
+  // feel instantaneous without requiring a parent-level library re-fetch.
+  const [localOverrideArtist, setLocalOverrideArtist] = useState<string | null>(
+    song.override_artist ?? null,
+  );
+  const [localOverrideTitle, setLocalOverrideTitle] = useState<string | null>(
+    song.override_title ?? null,
+  );
   const [findings, setFindings] = useState<Findings>({
     beats: 0,
     bars: 0,
@@ -188,6 +210,17 @@ export function Analyze({ song, forceOnMount = false, onAnalysisComplete, onComp
       );
       if (secs.length > 0) {
         setFindings((prev) => ({ ...prev, sections: secs, themesAssigned: true }));
+      }
+      // Genius provenance — populated for completed runs; SSE stream delivered
+      // it live for in-flight runs. Either path ends up here.
+      if (data?.section_source !== undefined
+          || data?.genius_match !== undefined
+          || data?.section_source_reject_reason !== undefined) {
+        setGeniusLookup({
+          section_source: data?.section_source ?? null,
+          match: data?.genius_match ?? null,
+          reject_reason: data?.section_source_reject_reason ?? null,
+        });
       }
     } catch {}
   }, [song.song_id]);
@@ -303,6 +336,12 @@ export function Analyze({ song, forceOnMount = false, onAnalysisComplete, onComp
                   { text: `✗ ${data.detector}: ${data.error ?? 'failed'}`, kind: 'err' },
                 ]);
               }
+            } else if (data.genius_lookup) {
+              setGeniusLookup({
+                section_source: data.genius_lookup.section_source ?? null,
+                match: data.genius_lookup.match ?? null,
+                reject_reason: data.genius_lookup.reject_reason ?? null,
+              });
             } else if (data.log) {
               const kind = data.log.level === 'error' ? 'err'
                 : data.log.level === 'warn' ? 'warn'
@@ -375,6 +414,18 @@ export function Analyze({ song, forceOnMount = false, onAnalysisComplete, onComp
             ▶ review timeline →
           </button>
         </div>
+        <MetadataBanner
+          songId={song.song_id}
+          id3Title={song.title}
+          id3Artist={song.artist ?? ''}
+          overrideArtist={localOverrideArtist}
+          overrideTitle={localOverrideTitle}
+          genius={geniusLookup}
+          onSaved={(next) => {
+            setLocalOverrideArtist(next.override_artist);
+            setLocalOverrideTitle(next.override_title);
+          }}
+        />
 
         <div style={{
           padding: '24px 32px',
@@ -453,6 +504,19 @@ export function Analyze({ song, forceOnMount = false, onAnalysisComplete, onComp
           </button>
         )}
       </div>
+
+      <MetadataBanner
+        songId={song.song_id}
+        id3Title={song.title}
+        id3Artist={song.artist ?? ''}
+        overrideArtist={localOverrideArtist}
+        overrideTitle={localOverrideTitle}
+        genius={geniusLookup}
+        onSaved={(next) => {
+          setLocalOverrideArtist(next.override_artist);
+          setLocalOverrideTitle(next.override_title);
+        }}
+      />
 
       {error && (
         <div className={styles.errorBox}>

@@ -86,17 +86,25 @@ def _normalize_genius_label(label: str) -> str:
 def _try_genius_sections(
     audio_path: str,
     duration_ms: int,
-) -> list[tuple[int, int, str]] | None:
+    override_artist: str | None = None,
+    override_title: str | None = None,
+) -> tuple[list[tuple[int, int, str]] | None, dict | None]:
     """Try to get section boundaries from Genius lyrics.
 
-    Returns list of (start_ms, end_ms, role) on success, or None.
+    Returns ``(sections, match_info)`` where:
+      - ``sections`` is a list of (start_ms, end_ms, role) on success, or None.
+      - ``match_info`` is a dict with {url, artist, title, genius_id} describing
+        the Genius page Lyricsgenius returned for this search, or None if no
+        lookup happened (no token, subprocess failure, etc.). Populated even
+        when sections is None, so callers can show the user *what* Genius
+        returned when structure extraction failed.
 
     whisperx and lyricsgenius live in .venv-vamp — run the pipeline there
     via subprocess to avoid import issues in the main venv.
     """
     token = os.environ.get("GENIUS_API_TOKEN", "")
     if not token:
-        return None
+        return None, None
 
     import subprocess as _sp
 
@@ -107,7 +115,7 @@ def _try_genius_sections(
         else repo_root / ".venv-vamp" / "bin" / "python"
     )
     if not vamp_python.exists():
-        return None
+        return None, None
 
     # Small script to run inside .venv-vamp
     script = f'''
@@ -161,18 +169,35 @@ structure, _phonemes, warnings = analyzer.run(
     stem_dir=stem_dir if stem_dir.exists() else None,
     duration_ms={duration_ms},
 )
+match = analyzer.last_match
+match_info = None
+if match is not None:
+    match_info = {{
+        "url": match.url,
+        "artist": match.artist,
+        "title": match.title,
+        "genius_id": match.genius_id,
+    }}
 if structure is None or not structure.segments:
-    print(json.dumps({{"ok": False, "warnings": warnings}}))
+    print(json.dumps({{"ok": False, "warnings": warnings, "match": match_info}}))
 else:
     segs = [{{"label": s.label, "start_ms": s.start_ms, "end_ms": s.end_ms}}
             for s in structure.segments]
-    print(json.dumps({{"ok": True, "segments": segs, "warnings": warnings}}))
+    print(json.dumps({{
+        "ok": True, "segments": segs, "warnings": warnings, "match": match_info,
+    }}))
 '''
     env = {**os.environ, "GENIUS_API_TOKEN": token}
-    # Pass through override artist/title if set (from user prompt)
-    for key in ("_GENIUS_OVERRIDE_ARTIST", "_GENIUS_OVERRIDE_TITLE"):
-        if key in os.environ:
-            env[key] = os.environ[key]
+    # Overrides from function args take precedence over any ambient env vars
+    # (the ambient path is kept for CLI users and pre-existing shell workflows).
+    if override_artist:
+        env["_GENIUS_OVERRIDE_ARTIST"] = override_artist
+    elif "_GENIUS_OVERRIDE_ARTIST" in os.environ:
+        env["_GENIUS_OVERRIDE_ARTIST"] = os.environ["_GENIUS_OVERRIDE_ARTIST"]
+    if override_title:
+        env["_GENIUS_OVERRIDE_TITLE"] = override_title
+    elif "_GENIUS_OVERRIDE_TITLE" in os.environ:
+        env["_GENIUS_OVERRIDE_TITLE"] = os.environ["_GENIUS_OVERRIDE_TITLE"]
 
     import sys
     try:
@@ -187,14 +212,14 @@ else:
             "first whisperx run can take several minutes for model download]",
             file=sys.stderr,
         )
-        return None
+        return None, None
     except Exception as exc:
         print(f"[genius subprocess exception: {exc}]", file=sys.stderr)
-        return None
+        return None, None
 
     if proc.returncode != 0:
         print(f"[genius subprocess stderr]\n{proc.stderr[:800]}", file=sys.stderr)
-        return None
+        return None, None
     try:
         data = json.loads(proc.stdout.strip().split("\n")[-1])
     except (json.JSONDecodeError, IndexError) as exc:
@@ -204,59 +229,61 @@ else:
             f"stderr tail: {proc.stderr[-400:]}",
             file=sys.stderr,
         )
-        return None
+        return None, None
+    match_info = data.get("match")
     if not data.get("ok"):
         warnings = data.get("warnings") or []
         if warnings:
             print("[genius subprocess returned no sections]", file=sys.stderr)
             for w in warnings[:5]:
                 print(f"  warning: {w}", file=sys.stderr)
-        return None
+        return None, match_info
     result: list[tuple[int, int, str]] = []
     for seg in data["segments"]:
         role = _normalize_genius_label(seg["label"])
         result.append((seg["start_ms"], seg["end_ms"], role))
-    return result
+    return result, match_info
 
 
-def _genius_quality_ok(
+def _genius_quality_check(
     genius_sections: list[tuple[int, int, str]],
     duration_ms: int,
-) -> bool:
-    """Return True if Genius sections are good enough to use as primary source.
+) -> tuple[bool, str | None]:
+    """Return (ok, reject_reason). ``reject_reason`` is a short human-readable
+    string explaining why the Genius result was rejected, or None on accept.
 
     Rejects Genius data when:
+    - No sections at all
     - Too few sections (<3 for songs >60s)
     - Any single section covers >60% of the song
     - Fewer than 2 distinct roles (e.g. all mapped to "verse")
     - Most sections are very short (<3s), suggesting bad alignment
     """
     if not genius_sections:
-        return False
+        return False, "no sections returned"
 
     n = len(genius_sections)
     dur_s = duration_ms / 1000.0
 
-    # Too few sections for a non-trivial song
     if dur_s > 60 and n < 3:
-        return False
+        return False, f"only {n} section(s) for a {int(dur_s)}s song — likely a wrong-song match"
 
-    # Any section covers >60% of total duration
     for start, end, _role in genius_sections:
+        pct = (end - start) / duration_ms * 100 if duration_ms else 0
         if (end - start) > duration_ms * 0.6:
-            return False
+            return False, f"one section covers {pct:.0f}% of the song — likely a wrong-song match"
 
-    # Need at least 2 distinct roles
     roles = set(r for _, _, r in genius_sections)
     if len(roles) < 2:
-        return False
+        return False, f"only one distinct section role ({next(iter(roles))!r})"
 
-    # Most sections are too short (bad alignment)
     short_count = sum(1 for s, e, _ in genius_sections if (e - s) < 3_000)
     if short_count > n * 0.5:
-        return False
+        return False, (
+            f"{short_count} of {n} sections are under 3s — poor WhisperX alignment"
+        )
 
-    return True
+    return True, None
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
@@ -285,7 +312,12 @@ def _compute_moment_pattern(moments_in_section: list[dict]) -> str:
 
 # ── Main builder ───────────────────────────────────────────────────────────────
 
-def build_song_story(hierarchy: dict, audio_path: str) -> dict:
+def build_song_story(
+    hierarchy: dict,
+    audio_path: str,
+    override_artist: str | None = None,
+    override_title: str | None = None,
+) -> dict:
     """Orchestrate all foundational modules to produce a complete song story dict.
 
     Parameters
@@ -320,8 +352,17 @@ def build_song_story(hierarchy: dict, audio_path: str) -> dict:
     # When Genius API is available, it provides ground-truth section labels
     # (chorus, verse, bridge, etc.) with WhisperX-aligned timestamps.
     # Fall back to segmentino + energy heuristics when Genius isn't available.
-    genius_sections = _try_genius_sections(audio_path, duration_ms)
-    genius_ok = genius_sections and _genius_quality_ok(genius_sections, duration_ms)
+    genius_sections, genius_match = _try_genius_sections(
+        audio_path, duration_ms,
+        override_artist=override_artist, override_title=override_title,
+    )
+    if genius_sections:
+        genius_ok, genius_reject_reason = _genius_quality_check(
+            genius_sections, duration_ms,
+        )
+    else:
+        genius_ok = False
+        genius_reject_reason = None if genius_match is None else "no sections returned"
     section_source = "genius" if genius_ok else "heuristic"
 
     if genius_ok:
@@ -675,6 +716,8 @@ def build_song_story(hierarchy: dict, audio_path: str) -> dict:
             "onset_density_avg": round(onset_density_avg, 4),
             "stems_available": stems_available,
             "section_source": section_source,
+            "genius_match": genius_match,
+            "section_source_reject_reason": genius_reject_reason,
         },
         "preferences": {
             "mood": None,

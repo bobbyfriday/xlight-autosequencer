@@ -326,7 +326,7 @@ def fetch_genius_boundaries(
         return [], [*notes, "Genius match had no parseable sections."]
 
     # ── Quality gate ──────────────────────────────────────────────────────────
-    # Adapted from src/story/builder.py:_genius_quality_ok(). Runs before
+    # Adapted from src/story/builder.py:_genius_quality_check(). Runs before
     # alignment so we reject a clearly-wrong match before showing it in the
     # report. Uses proportional estimates for timing-based checks so bad
     # matches (like false-positive Russian rap on TSO instrumentals) are

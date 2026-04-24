@@ -178,7 +178,9 @@ def _analyze_stub(state: "_RunState", source_path: str, song_id: str) -> None:
 
 
 def _analyze_in_background(state: "_RunState", source_path: str, song_id: str,
-                            audio_bytes: bytes | None) -> None:
+                            audio_bytes: bytes | None,
+                            override_artist: str | None = None,
+                            override_title: str | None = None) -> None:
     """Run the full hierarchy analysis pipeline in a background thread.
 
     Calls run_orchestrator() with a progress_callback that streams SSE events,
@@ -284,8 +286,23 @@ def _analyze_in_background(state: "_RunState", source_path: str, song_id: str,
                     "status": "running", "progress": 0.0})
         try:
             from src.story.builder import build_song_story
-            story = build_song_story(hierarchy.to_dict(), str(src))
+            story = build_song_story(
+                hierarchy.to_dict(), str(src),
+                override_artist=override_artist, override_title=override_title,
+            )
             story_sections = story.get("sections", [])
+            # Emit the Genius match / reject info so the UI can display it
+            # the moment the story step completes — the user can then
+            # confirm or edit the artist/title without waiting for the full
+            # analysis to finish.
+            _g = story.get("global", {})
+            state.push({
+                "genius_lookup": {
+                    "section_source": _g.get("section_source"),
+                    "match": _g.get("genius_match"),
+                    "reject_reason": _g.get("section_source_reject_reason"),
+                },
+            })
             state.push({"detector": "song story (genius + roles)", "library": "story",
                         "status": "done", "confidence": 1.0,
                         "marks": len(story_sections)})
@@ -446,6 +463,8 @@ def _analyze_in_background(state: "_RunState", source_path: str, song_id: str,
 
         pipeline_version = f"full-{hierarchy.schema_version}"
 
+        story_global = (story or {}).get("global", {})
+
         result: dict[str, Any] = {
             "song_id": song_id,
             "detected_sections": sections,
@@ -468,6 +487,13 @@ def _analyze_in_background(state: "_RunState", source_path: str, song_id: str,
             "estimated_bpm": hierarchy.estimated_bpm,
             "capabilities": hierarchy.capabilities,
             "warnings": hierarchy.warnings,
+            # Section source provenance — lets the UI show whether the labels
+            # came from Genius lyric headers or the heuristic classifier, plus
+            # the Genius page that was matched (for user confirmation) and the
+            # reason Genius was rejected when it ran but the result looked bad.
+            "section_source": story_global.get("section_source"),
+            "genius_match": story_global.get("genius_match"),
+            "section_source_reject_reason": story_global.get("section_source_reject_reason"),
         }
 
         # ── Persist to session (unless force=True — wait for commit) ─────────
@@ -545,10 +571,14 @@ def start_analyze(song_id: str):
         state = _RunState(_run_id(), song_id, force=force)
         _runs[song_id] = state
 
-    # Audio bytes not needed since we use the file path directly
+    # Audio bytes not needed since we use the file path directly. Pass the
+    # user-supplied Genius metadata overrides (set via PATCH .../metadata) so
+    # the Genius step hits the right song.
+    override_artist = song.get("override_artist")
+    override_title = song.get("override_title")
     t = threading.Thread(
         target=_analyze_in_background,
-        args=(state, source_path, song_id, None),
+        args=(state, source_path, song_id, None, override_artist, override_title),
         daemon=True,
     )
     t.start()
