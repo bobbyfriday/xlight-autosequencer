@@ -437,7 +437,11 @@ export function Analyze({ song, forceOnMount = false, onAnalysisComplete, onComp
           or re-analyze to run the pipeline again.
           {findings.sections.length > 0 && (
             <>
-              <div style={{ marginTop: 16, fontWeight: 600, color: 'var(--color-text, #f5f5f0)' }}>
+              <div
+                data-testid="sections-detected-count"
+                data-section-count={findings.sections.length}
+                style={{ marginTop: 16, fontWeight: 600, color: 'var(--color-text, #f5f5f0)' }}
+              >
                 {findings.sections.length} sections detected
               </div>
               <div style={{
@@ -476,10 +480,19 @@ export function Analyze({ song, forceOnMount = false, onAnalysisComplete, onComp
     <div data-testid="analyze-screen" className={styles.root}>
       {/* Header row */}
       <div className={styles.header}>
-        <div className={styles.headerTitle}>
+        <div
+          data-testid="analyze-header-title"
+          data-analysis-complete={analysisComplete}
+          className={styles.headerTitle}
+        >
           {analysisComplete ? 'Analysis complete' : 'Analyzing…'}
         </div>
-        <div className={styles.headerMeta}>
+        <div
+          data-testid="analyze-header-meta"
+          data-song-title={song.title}
+          data-duration-ms={song.duration_ms}
+          className={styles.headerMeta}
+        >
           {song.title} · {fmtDuration(song.duration_ms)}
         </div>
         <div className={styles.spacer} />
@@ -704,7 +717,11 @@ export function Analyze({ song, forceOnMount = false, onAnalysisComplete, onComp
 
           {/* Sections list */}
           <div className={styles.inspectorSectionsWrap}>
-            <div className={styles.inspectorSectionHeader}>
+            <div
+              data-testid="inspector-sections-header"
+              data-section-count={findings.sections.length}
+              className={styles.inspectorSectionHeader}
+            >
               SECTIONS · {findings.sections.length}
             </div>
             {findings.sections.length === 0 && (

@@ -381,3 +381,93 @@ def compare(corpus: str, json_only: bool, song_ids: tuple[str, ...]) -> None:
     if has_our_errors:
         sys.exit(3)
     sys.exit(0)
+
+
+# ---------------------------------------------------------------------------
+# gate — unified acceptance gate (analyzer + generator + UI)
+# ---------------------------------------------------------------------------
+
+@cli.command()
+@click.option("--quick", is_flag=True, help="Run against a single fixture; skip UI.")
+@click.option("--skip-ui", is_flag=True, help="Skip the UI flow suite.")
+@click.option("--fixture", "fixture_slug", type=str, default=None,
+              help="Restrict to a single corpus entry by slug.")
+@click.option("--report", "report_path", type=click.Path(), default=None,
+              help="Path to write the JSON report. Default: tests/golden/reports/gate-<ts>.json")
+@click.option("--analyzer-baseline", "analyzer_baseline_path",
+              type=click.Path(), default=None,
+              help="Path to analyzer baseline.json. Default: tests/golden/analyzer/baseline.json")
+def gate(
+    quick: bool,
+    skip_ui: bool,
+    fixture_slug: str | None,
+    report_path: str | None,
+    analyzer_baseline_path: str | None,
+) -> None:
+    """Run the full acceptance gate: analyzer + generator + UI suites."""
+    from src.evaluation.acceptance_gate import (
+        GateOptions,
+        format_summary,
+        run_gate,
+    )
+    from src.evaluation import analyzer_baseline as ab
+
+    opts = GateOptions(
+        quick=quick,
+        skip_ui=skip_ui,
+        fixture_slug=fixture_slug,
+        report_path=Path(report_path) if report_path else None,
+        analyzer_baseline_path=(
+            Path(analyzer_baseline_path) if analyzer_baseline_path
+            else ab.DEFAULT_BASELINE_PATH
+        ),
+    )
+
+    report = run_gate(opts)
+    click.echo(format_summary(report))
+    sys.exit(report.exit_code)
+
+
+# ---------------------------------------------------------------------------
+# snapshot-analyzer — populate tests/golden/analyzer/baseline.json
+# ---------------------------------------------------------------------------
+
+@cli.command(name="snapshot-analyzer")
+@click.option("--baseline", "baseline_path", type=click.Path(), default=None,
+              help="Path to analyzer baseline.json. Default: tests/golden/analyzer/baseline.json")
+@click.option("--fixture", "fixture_slug", type=str, default=None,
+              help="Only snapshot a single corpus entry by slug.")
+def snapshot_analyzer(baseline_path: str | None, fixture_slug: str | None) -> None:
+    """Run the analyzer on every corpus fixture and write/update the analyzer baseline."""
+    from src.evaluation import analyzer_baseline as ab
+    from src.evaluation.acceptance_gate import _snapshot_fixture_live
+    from src.evaluation.corpus_resolver import resolve_corpus
+
+    path = Path(baseline_path) if baseline_path else ab.DEFAULT_BASELINE_PATH
+
+    try:
+        corpus = resolve_corpus(fixture_slug=fixture_slug)
+    except (FileNotFoundError, ValueError) as exc:
+        click.echo(f"ERROR: could not resolve corpus: {exc}", err=True)
+        sys.exit(8)
+
+    # Restrict to CC0 entries — local corpus is not baselined.
+    corpus = [e for e in corpus if e.source == "cc0"]
+    if not corpus:
+        click.echo("No CC0 corpus entries to snapshot.", err=True)
+        sys.exit(8)
+
+    try:
+        existing = ab.load(path)
+    except ab.BaselineMissingError:
+        existing = ab.AnalyzerBaseline()
+
+    for entry in corpus:
+        click.echo(f"  snapshotting: {entry.slug} ({entry.path.name}) ...", nl=False)
+        snapshot = _snapshot_fixture_live(entry)
+        existing.fixtures[entry.slug] = snapshot
+        click.echo(f" {len(snapshot.algorithms)} algorithms")
+
+    ab.save(existing, path)
+    click.echo(f"\nAnalyzer baseline written to {path} "
+               f"({len(existing.fixtures)} fixture(s)).")
