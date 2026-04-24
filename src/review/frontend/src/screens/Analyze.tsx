@@ -200,7 +200,10 @@ export function Analyze({ song, forceOnMount = false, onAnalysisComplete, onComp
       const res = await fetch(`/api/v1/songs/${song.song_id}/analysis`);
       if (!res.ok) return;
       const data = await res.json();
-      const secs: Section[] = (data?.sections ?? data?.song_story?.sections ?? []).map(
+      // Backend returns detected sections under `detected_sections` (see
+      // src/review/api/v1/analysis.py:471). The `sections` / `song_story.sections`
+      // fallbacks cover legacy response shapes and pending-commit drafts.
+      const secs: Section[] = (data?.detected_sections ?? data?.sections ?? data?.song_story?.sections ?? []).map(
         (s: { label?: string; kind?: string; start_ms?: number; end_ms?: number; start?: number; end?: number }) => ({
           label: s.label ?? s.kind ?? 'section',
           kind: s.kind ?? '',
