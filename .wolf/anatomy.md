@@ -7,7 +7,7 @@
 
 - `.DS_Store` (~1640 tok)
 - `.gitignore` — Git ignore rules (~420 tok)
-- `CLAUDE.md` — OpenWolf (~5686 tok)
+- `CLAUDE.md` — OpenWolf (~6579 tok)
 - `LICENSE` — Project license (~285 tok)
 - `pyproject.toml` — Python project configuration (~525 tok)
 - `README.md` — Project documentation (~3264 tok)
@@ -20,6 +20,7 @@
 
 ## .claude/commands/
 
+- `pre-mortem.md` — User Input (~483 tok)
 - `review-diff.md` — User Input (~1250 tok)
 - `speckit.analyze.md` — User Input (~1793 tok)
 - `speckit.checklist.md` — Checklist Purpose: "Unit Tests for English" (~4232 tok)
@@ -34,6 +35,10 @@
 ## .claude/rules/
 
 - `openwolf.md` (~313 tok)
+
+## .claude/skills/pre-mortem/
+
+- `SKILL.md` — Input (~2104 tok)
 
 ## .claude/worktrees/024-story-review-flyouts/.pytest_cache/
 
@@ -957,6 +962,20 @@
 - `vamp_segmentation.py` — Segmentino Vamp plugin wrapper: automatic structural segmentation. (~609 tok)
 - `vamp_structure.py` — T034: Vamp structural segmentation and tempo algorithms. (~567 tok)
 - `vamp_utils.py` — Shared helper functions for Vamp plugin algorithm wrappers. (~399 tok)
+
+## openspec/changes/design-first-gate/
+
+- `design.md` — Context (~1978 tok)
+- `proposal.md` — Why (~840 tok)
+- `tasks.md` — 1. CLAUDE.md gate (~840 tok)
+
+## openspec/changes/design-first-gate/specs/design-gate/
+
+- `spec.md` — ADDED Requirements (~1095 tok)
+
+## openspec/changes/design-first-gate/specs/pre-mortem-review/
+
+- `spec.md` — ADDED Requirements (~1018 tok)
 
 ## scripts/
 

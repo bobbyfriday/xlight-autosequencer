@@ -305,6 +305,79 @@ already been tried and why.
 - Test each on different prop types (1D strings, 2D matrices, custom shapes)
   to determine suitability before adding to the effect pool.
 
+## Design-First Gate
+
+Before writing or editing project code for any change that does **not** qualify as
+trivial (criteria below), you must produce a written design and receive explicit
+user approval. This exists because jumping to implementation too fast has produced
+silent regressions in shared modules and shallow designs that missed obvious edges.
+
+### Trivial-path carve-out
+
+A change qualifies as trivial — and may skip the full design phase — only when
+**all** of the following are true:
+
+1. Modifies exactly one file.
+2. Fewer than ~30 lines changed (added + removed combined).
+3. You can state the root cause in one sentence: *"X happens because Y."*
+4. Does NOT modify any public API signature, CLI command or flag, JSON/XML schema
+   field, or any file under the shared modules listed below.
+
+If any condition fails, the full gate applies.
+
+### Shared modules (always require the full gate)
+
+These modules are each imported by 32+ files outside themselves. A 10-line change
+inside them can silently break many downstream callers, so size is not a safe
+proxy for risk. Any change — regardless of line count — requires a design:
+
+- `src/analyzer/`
+- `src/effects/`
+- `src/generator/`
+- `src/review/`
+- `src/themes/`
+
+### Required contents of the design artifact
+
+The design may be an OpenSpec change directory (`openspec/changes/<name>/` with
+`proposal.md` + `design.md`) or an inline plan in the conversation. Either form
+must cover:
+
+- **Goal** — one sentence of what problem this solves.
+- **Approach** — the chosen solution, with at least one **alternative considered**
+  and a one-sentence rationale for rejecting it.
+- **Files touched** — specific paths, with whether each is added/modified/removed.
+- **Regression surface** — for every modified public symbol (module-level function,
+  class method, CLI flag, schema field), list the callers found via grep across
+  `src/` and `tests/`. State which are updated and which should be untouched.
+- **Historical echoes** — scan `.wolf/buglog.json` and `.wolf/cerebrum.md`
+  Do-Not-Repeat for entries matching the change's files, symbols, or topic.
+  Reference matching bug IDs and summarize their fixes. No matches found should
+  be stated explicitly, not omitted.
+
+After producing the design, pause and wait for the user to approve before editing
+any project file. Do not auto-proceed.
+
+### Stress-testing the design
+
+Use the `/pre-mortem` slash command (or the `pre-mortem` skill directly) to run
+an adversarial pass over a design before implementation. The skill produces a
+structured report: Regression surface, Hidden assumptions, Historical echoes,
+Alternatives not considered, Test gap, and a Verdict. Use it when a design
+touches shared modules, is architecturally ambiguous, or feels risky.
+
+The pre-mortem is complementary to `/review-diff` and `/ultrareview`: pre-mortem
+reviews the **plan** (pre-code); the others review the **diff** (post-code).
+Running both at their respective stages is the recommended path for non-trivial
+changes.
+
+### Explicit override
+
+If the user explicitly says "just do it," "skip the design," or similar, comply
+and proceed directly to implementation. Note the skipped gate in the
+end-of-session summary so the override is visible for future reference. The gate
+is a default, not a wall.
+
 ## Engineering Principles
 
 - **Favor real solutions over hacks.** Fix root causes, not symptoms. No `# HACK`,

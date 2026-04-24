@@ -18,7 +18,8 @@
 
 - **Project:** xlight-autosequencer — MP3 → xLights sequence generator pipeline. Python 3.11+, vamp/librosa/madmom analysis, Flask review UI, click CLI.
 - **Review surface:** OPENWOLF.md now carries Branch Discipline and Code Review Discipline sections. `/review-diff` slash command runs the adversarial review against `git diff main...HEAD`.
-- **Shared-infrastructure modules** (touching any of these requires cross-feature regression check): `src/generator/`, `src/analyzer/`, `src/story/`, `src/themes/`, `src/effects/`.
+- **Shared-infrastructure modules** (touching any of these requires cross-feature regression check and the full design-first gate — size is NOT a safe proxy for risk here): `src/analyzer/` (86 importers), `src/effects/` (54), `src/generator/` (44), `src/review/` (32), `src/themes/` (38). Measured 2026-04-24 by grepping callers outside each module.
+- **Design-First Gate** (CLAUDE.md → "Design-First Gate" section): for any change beyond a single-file bug fix < ~30 lines with a stated root cause and no shared-module touch, produce a written design (OpenSpec change or inline plan) covering goal, approach, files touched, alternatives considered, regression surface (with grepped callers), and historical echoes from `.wolf/buglog.json` + cerebrum Do-Not-Repeat. Wait for user approval before editing project files. Use `/pre-mortem <change>` to stress-test the design before implementation. If the user says "just do it" — comply and note the override in the session summary.
 
 ## Do-Not-Repeat
 
