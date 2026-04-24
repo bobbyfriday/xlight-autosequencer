@@ -53,6 +53,7 @@ class GeniusMatch:
     title: str
     artist: str
     raw_lyrics: str
+    url: str = ""
 
 
 # ── Title sanitisation ────────────────────────────────────────────────────────
@@ -212,6 +213,7 @@ def fetch_genius_lyrics(title: str, artist: str, token: str) -> Optional[GeniusM
         title=song.title,
         artist=song.artist,
         raw_lyrics=song.lyrics,
+        url=getattr(song, "url", "") or "",
     )
 
 
@@ -346,7 +348,13 @@ class GeniusSegmentAnalyzer:
             stem_dir=Path("stems/"),
             duration_ms=210_000,
         )
+        # analyzer.last_match holds the GeniusMatch used for this run (or None)
     """
+
+    # Last successful Genius match from the most recent run() call. Read by the
+    # builder subprocess so the match URL/artist/title can reach the UI for user
+    # confirmation. Set to None before fetch; populated on success.
+    last_match: Optional[GeniusMatch] = None
 
     def run(
         self,
@@ -404,6 +412,7 @@ class GeniusSegmentAnalyzer:
         log.info("Genius lookup: artist=%r title=%r clean_title=%r", artist, title, clean_title)
 
         # ── Fetch lyrics from Genius ──────────────────────────────────────────
+        self.last_match = None
         try:
             match = fetch_genius_lyrics(clean_title, artist, token)
         except ImportError:
@@ -419,6 +428,7 @@ class GeniusSegmentAnalyzer:
             )
             return None, None, warnings
 
+        self.last_match = match
         if match is None:
             warnings.append(
                 f"No Genius match found for '{clean_title}' by '{artist}'. "
