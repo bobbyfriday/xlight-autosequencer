@@ -120,6 +120,7 @@ export function Library({ songs, folders, onSelectSong, onFileDrop }: Props) {
           accept=".mp3,.wav,.flac,.aiff,.aif"
           style={{ display: 'none' }}
           onChange={(e) => { const f = e.target.files?.[0]; if (f) handleDroppedFile(f); }}
+          data-testid="library-file-input"
         />
         <div
           onDrop={(e) => { e.preventDefault(); e.stopPropagation(); setDragging(false); const f = e.dataTransfer.files[0]; if (f) handleDroppedFile(f); }}

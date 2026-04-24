@@ -53,6 +53,12 @@ dev = [
     "pyinstaller>=6,<7",
     "requests>=2.31",
 ]
+# Install the UI flow regression suite: pip install -e ".[ui-tests]"
+ui-tests = [
+    "playwright>=1.48",
+    "pytest-playwright>=0.5",
+    "pytest-rerunfailures>=14.0",
+]
 
 [tool.setuptools.packages.find]
 where = ["."]
@@ -69,6 +75,10 @@ markers = [
     "vamp: marks tests requiring Vamp plugins (skipped if plugins not installed)",
     "slow: marks tests that take more than 10 seconds",
     "capture_only: one-shot golden capture helpers; skipped by default",
+    "ui: marks browser-driven UI flow tests (requires pip install -e '.[ui-tests]' + npm run build). Skipped by default; select with `-m ui` or via `xlight-evaluate gate`.",
+    "content: marks UI tests that trigger the real analyzer pipeline and assert the displayed content matches the manifest. Slower but catches backend→UI data-plumbing regressions. Select with `-m content` or `-m 'ui and content'`.",
 ]
-# Skip capture_only tests unless explicitly selected with `-m capture_only`.
-addopts = "-m 'not capture_only'"
+# Skip capture_only and ui tests unless explicitly selected.
+# UI flows require Playwright + a built frontend (npm run build) and are slow;
+# the acceptance gate (`xlight-evaluate gate`) opts them in via `pytest -m ui`.
+addopts = "-m 'not capture_only and not ui'"

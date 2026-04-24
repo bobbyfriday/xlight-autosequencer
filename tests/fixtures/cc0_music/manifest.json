@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "note": "CC0 corpus for the xlight-evaluate acceptance gate. MP3s are not committed (.gitignore excludes *.mp3); run `python -m tests.validation.download_fixtures` to fetch. Hashes are verified on every download to defend against silent upstream replacements. To rotate the corpus deliberately: edit URLs/entries here, then run with --update-hashes.",
+  "tracks": [
+    {
+      "slug": "space_ambience",
+      "filename": "space_ambience.mp3",
+      "source_url": "https://raw.githubusercontent.com/SoundSafari/CC0-1.0-Music/main/freepd.com/Space%20Ambience.mp3",
+      "genre": "ambient",
+      "tempo_bpm": 140,
+      "duration_seconds": 276,
+      "expected_section_count": 2,
+      "license": "CC0",
+      "source": "FreePD",
+      "sha256": "7b65926a73b259da8b3111791fac037f956d3c0ace379b076a1bbf780a049828"
+    },
+    {
+      "slug": "nostalgic_piano",
+      "filename": "nostalgic_piano.mp3",
+      "source_url": "https://raw.githubusercontent.com/SoundSafari/CC0-1.0-Music/main/freepd.com/Nostalgic%20Piano.mp3",
+      "genre": "piano",
+      "tempo_bpm": 59,
+      "duration_seconds": 196,
+      "expected_section_count": 3,
+      "license": "CC0",
+      "source": "FreePD",
+      "sha256": "5d932737a07dc1f0fadc713d188a059964bc156371e1569f5a6267dc39547865"
+    },
+    {
+      "slug": "maple_leaf_rag",
+      "filename": "maple_leaf_rag.mp3",
+      "source_url": "https://raw.githubusercontent.com/SoundSafari/CC0-1.0-Music/main/freepd.com/Maple%20Leaf%20Rag.mp3",
+      "genre": "ragtime",
+      "tempo_bpm": 99,
+      "duration_seconds": 179,
+      "expected_section_count": 4,
+      "license": "CC0",
+      "source": "FreePD",
+      "sha256": "fc7063803e8203dbecfce1396296dc4c78fbb82ca47b86ceb2df8e6b0c500f81"
+    },
+    {
+      "slug": "funshine",
+      "filename": "funshine.mp3",
+      "source_url": "https://raw.githubusercontent.com/SoundSafari/CC0-1.0-Music/main/freepd.com/Funshine.mp3",
+      "genre": "pop-funk",
+      "tempo_bpm": 96,
+      "duration_seconds": 165,
+      "expected_section_count": 3,
+      "license": "CC0",
+      "source": "FreePD",
+      "sha256": "b98b226927367a977377fe4f75d1cf59e4366ca2f444c2c7d23d13e7f506f532"
+    }
+  ],
+  "quick_mode_default_slug": "maple_leaf_rag"
+}
