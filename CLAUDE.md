@@ -371,6 +371,33 @@ reviews the **plan** (pre-code); the others review the **diff** (post-code).
 Running both at their respective stages is the recommended path for non-trivial
 changes.
 
+### Pre-merge acceptance gate
+
+Before opening a pull request for any non-trivial change, run the acceptance
+gate locally:
+
+```bash
+xlight-evaluate gate            # full gate (analyzer + generator + UI)  ~3-5 min
+xlight-evaluate gate --quick    # quick mode: 1 fixture + content UI flow only
+xlight-evaluate gate --skip-ui  # skip UI suite (e.g. when Playwright not installed)
+```
+
+CI runs the **cheap tier** automatically on every PR (unit tests, generator
+quality check, UI smoke flows). The **expensive tier** (full analyzer pipeline
+on the CC0 corpus, content-validating UI flow with real analysis) requires
+the `.venv-vamp` sidecar with madmom/vamp installed and is intentionally
+**not** run in CI — install complexity + runtime cost outweigh the benefit
+on a fresh runner. Developers exercise that locally before opening a PR.
+
+Exit codes from the gate, in priority order:
+
+- `0` — all suites pass
+- `6` — at least one suite detected a regression
+- `4` — no baseline exists for one or more suites (run `xlight-evaluate
+        snapshot-analyzer` first)
+- `8` — infrastructure failure (Playwright missing, corpus download
+        failed, etc.)
+
 ### Explicit override
 
 If the user explicitly says "just do it," "skip the design," or similar, comply
