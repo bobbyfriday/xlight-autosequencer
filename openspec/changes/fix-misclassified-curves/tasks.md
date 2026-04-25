@@ -39,10 +39,10 @@
 
 ## 7. Baseline + gate
 
-- [ ] 7.1 Run `xlight-evaluate snapshot-analyzer` against the CC0 corpus to regenerate `tests/golden/analyzer/baseline.json`. Verify nnls_chroma and bbc_rhythm appear with `element_type="value_curve"` and the new `chroma_curve` field is present.
-- [ ] 7.2 Run `xlight-evaluate snapshot-analyzer` a second time and `git diff` the result against the first regeneration. Any non-skip_check field that differs is non-determinism that must be tracked down before this change ships. Acceptable to add specific algorithm names to `skip_check` only if they were already non-deterministic before this change (verify via git blame on existing skip_check entries).
-- [ ] 7.3 Run `xlight-evaluate gate` (full Tier B local) and confirm exit code 0. Pay attention to L0 impact / drop / gap counts on the corpus — significant drift indicates the smoothing changed downstream behavior. If counts shift outside acceptable tolerance, decide: accept (re-snapshot) or revisit smoothing (D2 weight).
-- [ ] 7.4 Update `src/evaluation/analyzer_baseline.py` if the curve algorithms need new tolerance entries (likely already covered by the existing curve-algorithm path, but verify).
+- [x] 7.1 Run `xlight-evaluate snapshot-analyzer` against the CC0 corpus to regenerate `tests/golden/analyzer/baseline.json`. Verify nnls_chroma and bbc_rhythm appear with `element_type="value_curve"` and the new `chroma_curve` field is present.
+- [x] 7.2 Run `xlight-evaluate snapshot-analyzer` a second time and `git diff` the result against the first regeneration. Any non-skip_check field that differs is non-determinism that must be tracked down before this change ships. Acceptable to add specific algorithm names to `skip_check` only if they were already non-deterministic before this change (verify via git blame on existing skip_check entries).
+- [x] 7.3 Run `xlight-evaluate gate` (full Tier B local) and confirm exit code 0. Pay attention to L0 impact / drop / gap counts on the corpus — significant drift indicates the smoothing changed downstream behavior. If counts shift outside acceptable tolerance, decide: accept (re-snapshot) or revisit smoothing (D2 weight).
+- [x] 7.4 Update `src/evaluation/analyzer_baseline.py` if the curve algorithms need new tolerance entries (likely already covered by the existing curve-algorithm path, but verify).
 
 ## 8. Documentation
 
