@@ -21,6 +21,11 @@ jobs:
         with:
           python-version: '3.11'
           cache: 'pip'
+      - name: Install ffmpeg
+        # Required by stem cache, audio import, and any test that loads MP3
+        # bytes via librosa/audioread. Tests that fail with
+        # "FileNotFoundError: ffmpeg not found" are the symptom.
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
       - name: Install package
         run: |
           pip install --upgrade pip
