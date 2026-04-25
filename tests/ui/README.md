@@ -51,6 +51,7 @@ don't hit import errors on unrelated work.
 | `test_multi_song_flow.py` | `ui` | Seeds two fixtures via API → navigates via Chrome "Library" tab between distinct song-row contexts → verifies library state survives round-trips |
 | `test_metadata_edit_flow.py` | `ui` | Uploads → edits `metadata-artist` on banner → Tab to trigger save → awaits PATCH response → asserts `metadata-saved` indicator + persistence via `/api/v1/library` |
 | `test_folder_filter_flow.py` | `ui` | (a) Folder-toggle-unfiled click hides/reveals song row; (b) filter pills (All/Imported/Analyzed) update `data-active` on click |
+| `test_timeline_flow.py` | `ui` | Chrome's Timeline tab — placeholder when no song; analysis-required state for imported-but-unanalyzed song. Full timeline (waveform + zoom + sections) is exercised by `test_content_flow.py`. |
 
 All flows are marked `@pytest.mark.slow` and use `@pytest.mark.flaky(reruns=2)`
 for 3-strike flake tolerance per the spec.

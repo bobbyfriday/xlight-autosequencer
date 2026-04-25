@@ -141,3 +141,24 @@ def test_content_flow_analyzer_populates_ui(
     assert int(match.group(1)) == actual_count, (
         f"DOM attribute ({actual_count}) disagrees with visible text ({match.group(1)})"
     )
+
+    # ---- Click through to Timeline + verify it renders -------------------------
+    # Timeline only renders for an analyzed song, so this is the right place to
+    # exercise it. The "review timeline" button has no test-id; locate it by
+    # accessible name (text content).
+    review_btn = page.get_by_role("button", name=re.compile(r"review timeline", re.I)).first
+    expect(review_btn).to_be_visible(timeout=5000)
+    review_btn.click()
+
+    # Timeline screen has no data-testid, but its zoom controls are uniquely
+    # identified by the "ZOOM" label + "+"/"−" buttons. Wait for those.
+    expect(page.get_by_text("ZOOM", exact=False).first).to_be_visible(timeout=10000)
+    expect(page.get_by_text("WAVEFORM", exact=False).first).to_be_visible(timeout=5000)
+    snapshot("timeline-rendered")
+
+    # Exercise zoom-in: click the "+" button next to ZOOM, verify level changes.
+    # The zoomLevel display reads "1×" initially, "2×" after one zoom-in.
+    zoom_in = page.get_by_role("button", name="+").first
+    zoom_in.click()
+    expect(page.get_by_text(re.compile(r"\b2×"))).to_be_visible(timeout=3000)
+    snapshot("timeline-zoomed-2x")
