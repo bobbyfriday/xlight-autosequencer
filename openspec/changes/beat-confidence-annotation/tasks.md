@@ -34,21 +34,21 @@
 
 ## 5. Generator consumer — `_place_per_beat`
 
-- [ ] 5.1 In `src/generator/effect_placer.py::_place_per_beat` (~line 1099), inside the `for i, mark in enumerate(marks)` loop, branch on `mark.confidence`. Define `is_high_confidence = mark.confidence is not None and mark.confidence >= 0.7`.
-- [ ] 5.2 When `is_high_confidence` is True, route the placement to the existing accent path (Strobe / Shockwave). When False or None, fall through to the default path (preserves pre-change behavior bit-for-bit).
-- [ ] 5.3 Audit-trace the existing function: identify exactly which params dict / effect_def is the punch path vs the wash path. Implementation choice is internal but must not change the function's signature or its callers.
+- [x] 5.1 In `src/generator/effect_placer.py::_place_per_beat` (~line 1099), inside the `for i, mark in enumerate(marks)` loop, branch on `mark.confidence`. Define `is_high_confidence = mark.confidence is not None and mark.confidence >= 0.7`.
+- [x] 5.2 When `is_high_confidence` is True, route the placement to the existing accent path (Strobe / Shockwave). When False or None, fall through to the default path (preserves pre-change behavior bit-for-bit).
+- [x] 5.3 Audit-trace the existing function: identify exactly which params dict / effect_def is the punch path vs the wash path. Implementation choice is internal but must not change the function's signature or its callers.
 
 ## 6. Integration test
 
-- [ ] 6.1 Create `tests/integration/test_orchestrator_beat_confidence.py`.
-- [ ] 6.2 Test: run the hierarchy on the existing analyzer fixture (`tests/fixtures/...`); assert at least one L3 beat mark has `confidence != report['beats']['score']` (proves per-mark annotation took effect, not just track-level fallback).
-- [ ] 6.3 Test: run with `profile="quick"`; assert every L3 beat mark has `confidence == report['beats']['score']` (single-tracker fallback path).
-- [ ] 6.4 Test: assert `report['beats']['score']` value is unchanged from the pre-change value on the same fixture (regression guard for the validator change).
+- [x] 6.1 Create `tests/integration/test_orchestrator_beat_confidence.py`.
+- [x] 6.2 Test: run the hierarchy on the existing analyzer fixture (`tests/fixtures/...`); assert at least one L3 beat mark has `confidence != report['beats']['score']` (proves per-mark annotation took effect, not just track-level fallback).
+- [x] 6.3 Test: run with `profile="quick"`; assert every L3 beat mark has `confidence == report['beats']['score']` (single-tracker fallback path).
+- [x] 6.4 Test: assert `report['beats']['score']` value is unchanged from the pre-change value on the same fixture (regression guard for the validator change).
 
 ## 7. Generator regression test
 
-- [ ] 7.1 In the existing effect-placer tests (path TBD; verify against `tests/`), add: stub a `HierarchyResult` with one beat at `confidence=0.9` and one at `confidence=0.3`; call `_place_per_beat`; assert the two placements have distinguishable effect types.
-- [ ] 7.2 Add: stub all beats with `confidence=None`; assert placements are bit-for-bit identical to a control run on the pre-change implementation (use a recorded snapshot).
+- [x] 7.1 In the existing effect-placer tests (path TBD; verify against `tests/`), add: stub a `HierarchyResult` with one beat at `confidence=0.9` and one at `confidence=0.3`; call `_place_per_beat`; assert the two placements have distinguishable effect types.
+- [x] 7.2 Add: stub all beats with `confidence=None`; assert placements are bit-for-bit identical to a control run on the pre-change implementation (use a recorded snapshot).
 
 ## 8. Golden baseline + acceptance gate
 
