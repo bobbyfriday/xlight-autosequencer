@@ -1,13 +1,13 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-04-25T03:00:11.416Z
-> Files: 573 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-04-25T04:09:04.662Z
+> Files: 574 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
 
 - `.DS_Store` (~1640 tok)
 - `.gitignore` — Git ignore rules (~420 tok)
-- `CLAUDE.md` — OpenWolf (~6579 tok)
+- `CLAUDE.md` — OpenWolf (~6866 tok)
 - `LICENSE` — Project license (~285 tok)
 - `pyproject.toml` — Automatically generate xLights sequences from audio files (~752 tok)
 - `README.md` — Project documentation (~3264 tok)
@@ -962,6 +962,10 @@
 - `vamp_segmentation.py` — Segmentino Vamp plugin wrapper: automatic structural segmentation. (~609 tok)
 - `vamp_structure.py` — T034: Vamp structural segmentation and tempo algorithms. (~567 tok)
 - `vamp_utils.py` — Shared helper functions for Vamp plugin algorithm wrappers. (~399 tok)
+
+## .github/workflows/
+
+- `evaluate.yml` — CI: Acceptance Gate (Tier A) (~1647 tok)
 
 ## openspec/changes/acceptance-gate/
 

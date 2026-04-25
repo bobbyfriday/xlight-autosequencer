@@ -166,6 +166,11 @@
       "count": 1,
       "tokens": 0,
       "first_read": "2026-04-25T02:58:22.329Z"
+    },
+    "/Users/rob/git/xlight-autosequencer/.github/workflows/evaluate.yml": {
+      "count": 1,
+      "tokens": 0,
+      "first_read": "2026-04-25T04:08:33.634Z"
     }
   },
   "files_written": [
@@ -930,6 +935,18 @@
       "action": "edit",
       "tokens": 114,
       "at": "2026-04-25T03:00:11.429Z"
+    },
+    {
+      "file": "/Users/rob/git/xlight-autosequencer/CLAUDE.md",
+      "action": "edit",
+      "tokens": 517,
+      "at": "2026-04-25T04:08:15.555Z"
+    },
+    {
+      "file": "/Users/rob/git/xlight-autosequencer/.github/workflows/evaluate.yml",
+      "action": "create",
+      "tokens": 1647,
+      "at": "2026-04-25T04:09:04.680Z"
     }
   ],
   "edit_counts": {
@@ -971,11 +988,13 @@
     "tests/ui/flows/test_multi_song_flow.py": 8,
     "tests/ui/flows/test_metadata_edit_flow.py": 9,
     "tests/ui/flows/test_folder_filter_flow.py": 5,
-    "tests/ui/flows/test_timeline_flow.py": 1
+    "tests/ui/flows/test_timeline_flow.py": 1,
+    "CLAUDE.md": 1,
+    ".github/workflows/evaluate.yml": 1
   },
   "anatomy_hits": 7,
-  "anatomy_misses": 26,
+  "anatomy_misses": 27,
   "repeated_reads_warned": 31,
   "cerebrum_warnings": 0,
-  "stop_count": 48
+  "stop_count": 49
 }
