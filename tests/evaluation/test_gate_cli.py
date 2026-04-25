@@ -108,16 +108,25 @@ def _matching_baseline(slugs: list[str]) -> AnalyzerBaseline:
     )
 
 
+def _save_section_fidelity_baseline(path: Path) -> None:
+    """Save a permissive section_fidelity baseline so tests don't trip the suite."""
+    from src.evaluation import section_fidelity as sf
+    sf.save_baseline(sf.FidelityBaseline(library_mean=0.0), path)
+
+
 def test_run_gate_all_pass(tmp_path: Path) -> None:
     baseline_path = tmp_path / "analyzer_baseline.json"
     report_path = tmp_path / "gate-report.json"
     analyzer_baseline.save(_matching_baseline(["maple_leaf_rag"]), baseline_path)
+    sf_baseline = tmp_path / "section_fidelity_baseline.json"
+    _save_section_fidelity_baseline(sf_baseline)
 
     opts = GateOptions(
         quick=True,
         skip_ui=True,
         report_path=report_path,
         analyzer_baseline_path=baseline_path,
+        section_fidelity_baseline_path=sf_baseline,
     )
 
     # Mock: analyzer snapshot returns matching data; generator + UI short-circuit.
@@ -136,6 +145,10 @@ def test_run_gate_all_pass(tmp_path: Path) -> None:
     assert data["exit_code"] == 0
     assert data["suites"]["analyzer"]["status"] == "pass"
     assert data["suites"]["ui"]["status"] == "skip"
+    # Section-fidelity suite is wired in but corpus has no _story.json on disk
+    # (the corpus entry is a real CC0 fixture, not a built story); the suite
+    # therefore reports "skip" rather than fail/no-baseline. Still passes.
+    assert data["suites"]["section_fidelity"]["status"] in ("pass", "skip")
 
 
 def test_run_gate_no_analyzer_baseline_returns_four(tmp_path: Path) -> None:
@@ -158,11 +171,14 @@ def test_run_gate_no_analyzer_baseline_returns_four(tmp_path: Path) -> None:
 def test_run_gate_analyzer_regression_returns_six(tmp_path: Path) -> None:
     baseline_path = tmp_path / "analyzer_baseline.json"
     analyzer_baseline.save(_matching_baseline(["maple_leaf_rag"]), baseline_path)
+    sf_baseline = tmp_path / "section_fidelity_baseline.json"
+    _save_section_fidelity_baseline(sf_baseline)
     opts = GateOptions(
         quick=True,
         skip_ui=True,
         report_path=tmp_path / "gate-report.json",
         analyzer_baseline_path=baseline_path,
+        section_fidelity_baseline_path=sf_baseline,
     )
 
     # Mock a fixture snapshot that drifts badly — 1 event instead of 4 (count fail).
@@ -289,11 +305,14 @@ def test_report_path_respected(tmp_path: Path) -> None:
     custom = tmp_path / "custom-report.json"
     baseline = tmp_path / "baseline.json"
     analyzer_baseline.save(AnalyzerBaseline(), baseline)
+    sf_baseline = tmp_path / "sf_baseline.json"
+    _save_section_fidelity_baseline(sf_baseline)
 
     opts = GateOptions(
         quick=True, skip_ui=True,
         report_path=custom,
         analyzer_baseline_path=baseline,
+        section_fidelity_baseline_path=sf_baseline,
     )
     with patch(
         "src.evaluation.acceptance_gate.run_generator_suite",
@@ -313,10 +332,13 @@ def test_report_path_respected(tmp_path: Path) -> None:
 def test_skip_ui_flag_does_not_invoke_pytest(tmp_path: Path) -> None:
     baseline = tmp_path / "baseline.json"
     analyzer_baseline.save(AnalyzerBaseline(), baseline)
+    sf_baseline = tmp_path / "sf_baseline.json"
+    _save_section_fidelity_baseline(sf_baseline)
     opts = GateOptions(
         quick=True, skip_ui=True,
         report_path=tmp_path / "r.json",
         analyzer_baseline_path=baseline,
+        section_fidelity_baseline_path=sf_baseline,
     )
 
     with patch(

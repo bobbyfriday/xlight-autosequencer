@@ -694,6 +694,88 @@ def build_song_story(
         }
         sections_out.append(section_dict)
 
+    # ── Step 15b: SSM Chorus validator ────────────────────────────────────────
+    # Per design D1 in
+    # ``openspec/changes/agreement-score-operationalization/design.md``,
+    # SSM is a Chorus validator only — it cannot promote a Verse to a
+    # Chorus or vice versa. We tag every Chorus section with
+    # ``chorus_ssm_supported``: True iff at least one other Chorus is
+    # in the same repetition group, OR if the section's time-span
+    # overlaps any group with two-or-more members (the latter covers
+    # the case where the SSM detects a repeat but Genius only labels
+    # one of the occurrences as Chorus).
+    #
+    # Tri-state ``repetition_groups`` source semantics (see HierarchyResult
+    # docstring): None = SSM skipped/errored; [] = SSM ran, no groups;
+    # populated list = groups detected. For both None and [] we default
+    # every Chorus to supported per spec ("absence of evidence is not
+    # evidence of absence").
+    rg_data = hierarchy.get("repetition_groups")
+    repetition_groups: list[dict] = []
+    if isinstance(rg_data, list):
+        repetition_groups = rg_data
+    has_ssm_evidence = bool(repetition_groups)
+
+    if has_ssm_evidence:
+        # Build a quick index: section_index → list of group_ids it
+        # overlaps.  Overlap = section's [start_ms, end_ms] intersects
+        # any group member's [start_ms, end_ms].
+        section_to_groups: dict[int, list[int]] = {}
+        for sec_idx, ((sec_start_ms, sec_end_ms), _role_info, _profile, _lighting) in enumerate(
+            zip(sections_ms, roles, profiles, section_lightings)
+        ):
+            overlap_groups: list[int] = []
+            for group in repetition_groups:
+                gid = int(group.get("id", -1))
+                members = group.get("members") or []
+                for member in members:
+                    # Member is [start_ms, end_ms] (list after JSON
+                    # round-trip) or (start_ms, end_ms) tuple.
+                    if not member or len(member) != 2:
+                        continue
+                    m_start, m_end = int(member[0]), int(member[1])
+                    if m_start < sec_end_ms and m_end > sec_start_ms:
+                        overlap_groups.append(gid)
+                        break
+            section_to_groups[sec_idx] = overlap_groups
+
+        # Group sizes (number of distinct member spans) for the overlap
+        # rule: a Chorus is supported by any group with ≥ 2 members
+        # that it overlaps.
+        group_sizes: dict[int, int] = {
+            int(g.get("id", -1)): len(g.get("members") or [])
+            for g in repetition_groups
+        }
+
+        # Choruses sharing groups with each other.
+        chorus_indices = [
+            i for i, sec in enumerate(sections_out) if sec.get("role") == "chorus"
+        ]
+
+        for sec_idx in chorus_indices:
+            my_groups = set(section_to_groups.get(sec_idx, []))
+            supported = False
+            # Rule (a): another Chorus shares a group.
+            for other_idx in chorus_indices:
+                if other_idx == sec_idx:
+                    continue
+                if my_groups & set(section_to_groups.get(other_idx, [])):
+                    supported = True
+                    break
+            # Rule (b): overlap any group with ≥ 2 members.
+            if not supported:
+                for gid in my_groups:
+                    if group_sizes.get(gid, 0) >= 2:
+                        supported = True
+                        break
+            sections_out[sec_idx]["chorus_ssm_supported"] = supported
+    else:
+        # No SSM evidence available → spec default: every Chorus is
+        # supported (absence of evidence is not evidence of absence).
+        for sec in sections_out:
+            if sec.get("role") == "chorus":
+                sec["chorus_ssm_supported"] = True
+
     # ── Assemble the complete story dict ──────────────────────────────────────
     story: dict = {
         "schema_version": SCHEMA_VERSION,

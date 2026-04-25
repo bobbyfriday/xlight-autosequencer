@@ -1,0 +1,137 @@
+{
+  "schema_version": 1,
+  "library_mean": 0.751410742035742,
+  "library_median": 0.0,
+  "n_zero_pct": 68.27586206896552,
+  "per_fixture": {
+    "01___holiday_road": {
+      "source": "genius",
+      "n_sections": 6,
+      "mean_score": 0,
+      "median_score": 0.0,
+      "n_zero": 6,
+      "n_strong": 0
+    },
+    "01___like_its_christmas": {
+      "source": "genius",
+      "n_sections": 10,
+      "mean_score": 0,
+      "median_score": 0.0,
+      "n_zero": 10,
+      "n_strong": 0
+    },
+    "01___santa_tell_me": {
+      "source": "genius",
+      "n_sections": 11,
+      "mean_score": 0,
+      "median_score": 0,
+      "n_zero": 11,
+      "n_strong": 0
+    },
+    "01___uprisingedit": {
+      "source": "genius",
+      "n_sections": 11,
+      "mean_score": 0,
+      "median_score": 0,
+      "n_zero": 11,
+      "n_strong": 0
+    },
+    "02___candy_cane_lane": {
+      "source": "genius",
+      "n_sections": 10,
+      "mean_score": 1.4,
+      "median_score": 1.5,
+      "n_zero": 3,
+      "n_strong": 2
+    },
+    "04___carol_of_the_bells": {
+      "source": "heuristic",
+      "n_sections": 9,
+      "mean_score": 2.5555555555555554,
+      "median_score": 3,
+      "n_zero": 0,
+      "n_strong": 5
+    },
+    "04___first_snow": {
+      "source": "heuristic",
+      "n_sections": 4,
+      "mean_score": 2.75,
+      "median_score": 3.0,
+      "n_zero": 0,
+      "n_strong": 3
+    },
+    "05___let_it_go_from__frozen__soundtrack_version": {
+      "source": "heuristic",
+      "n_sections": 9,
+      "mean_score": 0,
+      "median_score": 0,
+      "n_zero": 9,
+      "n_strong": 0
+    },
+    "12___carmina_burana": {
+      "source": "genius",
+      "n_sections": 4,
+      "mean_score": 0,
+      "median_score": 0.0,
+      "n_zero": 4,
+      "n_strong": 0
+    },
+    "14___ghostbusters": {
+      "source": "genius",
+      "n_sections": 13,
+      "mean_score": 0,
+      "median_score": 0,
+      "n_zero": 13,
+      "n_strong": 0
+    },
+    "believe": {
+      "source": "genius",
+      "n_sections": 11,
+      "mean_score": 2.727272727272727,
+      "median_score": 3,
+      "n_zero": 1,
+      "n_strong": 8
+    },
+    "cher_dj_play_a_christmas_song": {
+      "source": "genius",
+      "n_sections": 11,
+      "mean_score": 0,
+      "median_score": 0,
+      "n_zero": 11,
+      "n_strong": 0
+    },
+    "crazy_train": {
+      "source": "genius",
+      "n_sections": 13,
+      "mean_score": 0.9230769230769231,
+      "median_score": 1,
+      "n_zero": 5,
+      "n_strong": 1
+    },
+    "down_with_the_sickness___disturbed": {
+      "source": "genius",
+      "n_sections": 9,
+      "mean_score": 1.6666666666666667,
+      "median_score": 2,
+      "n_zero": 1,
+      "n_strong": 1
+    },
+    "excision__sullivan_king___hoist_the_colours_remix": {
+      "source": "heuristic",
+      "n_sections": 8,
+      "mean_score": 0,
+      "median_score": 0.0,
+      "n_zero": 8,
+      "n_strong": 0
+    },
+    "mad_russian_christmas": {
+      "source": "heuristic",
+      "n_sections": 6,
+      "mean_score": 0,
+      "median_score": 0.0,
+      "n_zero": 6,
+      "n_strong": 0
+    }
+  },
+  "generated_at": "2026-04-25T17:11:10.350265+00:00"
+}

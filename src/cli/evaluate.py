@@ -471,3 +471,61 @@ def snapshot_analyzer(baseline_path: str | None, fixture_slug: str | None) -> No
     ab.save(existing, path)
     click.echo(f"\nAnalyzer baseline written to {path} "
                f"({len(existing.fixtures)} fixture(s)).")
+
+
+# ---------------------------------------------------------------------------
+# snapshot-section-fidelity — populate tests/golden/section_fidelity/baseline.json
+# ---------------------------------------------------------------------------
+
+@cli.command(name="snapshot-section-fidelity")
+@click.option("--baseline", "baseline_path", type=click.Path(), default=None,
+              help="Path to section-fidelity baseline.json. "
+                   "Default: tests/golden/section_fidelity/baseline.json")
+def snapshot_section_fidelity(baseline_path: str | None) -> None:
+    """Capture a section-fidelity baseline from the resolved corpus's stories.
+
+    Reads ``_story.json`` next to each MP3 in the corpus, computes the
+    library-wide mean / median / per-fixture breakdown, and writes the
+    snapshot file consumed by the acceptance gate's
+    ``section_fidelity`` suite.
+
+    Per design D5 in
+    ``openspec/changes/agreement-score-operationalization/design.md`` this
+    is run *before* any code change that could move the library-mean
+    (e.g. SSM wiring), so the gate's first run after the implementation
+    PR compares apples to apples.
+    """
+    import datetime as _dt
+
+    from src.evaluation import section_fidelity as sf
+    from src.evaluation.corpus_resolver import resolve_corpus
+
+    path = Path(baseline_path) if baseline_path else sf.DEFAULT_BASELINE_PATH
+
+    try:
+        corpus = resolve_corpus()
+    except (FileNotFoundError, ValueError) as exc:
+        click.echo(f"ERROR: could not resolve corpus: {exc}", err=True)
+        sys.exit(8)
+
+    stories = sf.load_stories_for_corpus(corpus)
+    if not stories:
+        click.echo("No _story.json files found for any corpus fixture.", err=True)
+        click.echo(
+            "Run the analyzer + story builder on the corpus first "
+            "(e.g. via `xlight-analyze analyze` per fixture).",
+            err=True,
+        )
+        sys.exit(8)
+
+    per_song = [sf.summarize_song(name, story) for name, story in stories]
+    baseline = sf.build_baseline(per_song)
+    baseline.generated_at = _dt.datetime.now(_dt.timezone.utc).isoformat()
+    sf.save_baseline(baseline, path)
+    click.echo(
+        f"Section-fidelity baseline written to {path}\n"
+        f"  fixtures: {len(per_song)}\n"
+        f"  library_mean:   {baseline.library_mean:.4f}\n"
+        f"  library_median: {baseline.library_median:.4f}\n"
+        f"  zero-section %: {baseline.n_zero_pct:.1f}%"
+    )

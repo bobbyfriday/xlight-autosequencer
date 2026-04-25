@@ -41,6 +41,16 @@ interface Section {
   kind: string;
   start_ms: number;
   end_ms: number;
+  // PR #84 ships the integer; this change surfaces it to the UI. Default
+  // 0 for legacy stories written before PR #84 (per the spec contract).
+  agreement_score: number;
+  // Derived in the API as `agreement_score <= 1`. The boolean is what
+  // the UI renders against; the integer is kept for tooltip display.
+  low_confidence: boolean;
+  // SSM Chorus validator (`src/story/builder.py`). Present only on
+  // Chorus sections; absent on non-Chorus and on legacy stories. Per
+  // the spec, missing → treated as supported (do not flag).
+  chorus_ssm_supported?: boolean;
 }
 
 interface Findings {
@@ -204,12 +214,40 @@ export function Analyze({ song, forceOnMount = false, onAnalysisComplete, onComp
       // src/review/api/v1/analysis.py:471). The `sections` / `song_story.sections`
       // fallbacks cover legacy response shapes and pending-commit drafts.
       const secs: Section[] = (data?.detected_sections ?? data?.sections ?? data?.song_story?.sections ?? []).map(
-        (s: { label?: string; kind?: string; start_ms?: number; end_ms?: number; start?: number; end?: number }) => ({
-          label: s.label ?? s.kind ?? 'section',
-          kind: s.kind ?? '',
-          start_ms: s.start_ms ?? (s.start ? s.start * 1000 : 0),
-          end_ms: s.end_ms ?? (s.end ? s.end * 1000 : 0),
-        })
+        (s: {
+          label?: string;
+          kind?: string;
+          start_ms?: number;
+          end_ms?: number;
+          start?: number;
+          end?: number;
+          agreement_score?: number;
+          low_confidence?: boolean;
+          chorus_ssm_supported?: boolean;
+        }) => {
+          // Defaults match the spec's "legacy story" contract: missing
+          // agreement_score → 0, low_confidence → derived from score.
+          const agreement_score =
+            typeof s.agreement_score === 'number' ? s.agreement_score : 0;
+          const low_confidence =
+            typeof s.low_confidence === 'boolean'
+              ? s.low_confidence
+              : agreement_score <= 1;
+          return {
+            label: s.label ?? s.kind ?? 'section',
+            kind: s.kind ?? '',
+            start_ms: s.start_ms ?? (s.start ? s.start * 1000 : 0),
+            end_ms: s.end_ms ?? (s.end ? s.end * 1000 : 0),
+            agreement_score,
+            low_confidence,
+            // Pass through only when the field is present — `undefined`
+            // means "no SSM evidence" which the UI must NOT flag (per
+            // spec D1: absent SSM → supported).
+            ...(typeof s.chorus_ssm_supported === 'boolean'
+              ? { chorus_ssm_supported: s.chorus_ssm_supported }
+              : {}),
+          } satisfies Section;
+        }
       );
       if (secs.length > 0) {
         setFindings((prev) => ({ ...prev, sections: secs, themesAssigned: true }));
@@ -730,19 +768,55 @@ export function Analyze({ song, forceOnMount = false, onAnalysisComplete, onComp
             {findings.sections.length === 0 && (
               <div className={styles.emptyNote}>waiting for structure…</div>
             )}
-            {findings.sections.map((s, i) => (
-              <div key={i} className={styles.sectionRow}>
-                <i
-                  className={styles.sectionDot}
-                  style={{ background: kindColor(s.kind) }}
-                />
-                <span className={styles.sectionIdx}>{String(i + 1).padStart(2, '0')}</span>
-                <span className={styles.sectionLabel}>{s.label}</span>
-                <span className={styles.sectionDur}>
-                  {Math.round((s.end_ms - s.start_ms) / 1000)}s
-                </span>
-              </div>
-            ))}
+            {findings.sections.map((s, i) => {
+              // Visual treatment for sections that need human review:
+              //   - `low_confidence` (boundary): agreement_score <= 1
+              //     means 0 or 1 independent sources corroborated the
+              //     section start. The score saturates at 4-5 sources
+              //     so D3 chose a boolean over the raw integer.
+              //   - `chorus_ssm_supported === false` (Chorus role):
+              //     SSM validator found no repetition peer for this
+              //     Chorus. Absent → treated as supported.
+              // Either signal renders the same "verify this section"
+              // marker (a small "!" badge) so reviewers don't have to
+              // disambiguate which check failed at a glance; the
+              // tooltip lists the active check(s).
+              const ssmUnsupported = s.chorus_ssm_supported === false;
+              const needsReview = s.low_confidence || ssmUnsupported;
+              const tooltipParts: string[] = [];
+              if (s.low_confidence) {
+                tooltipParts.push(
+                  `Low multi-source agreement — verify boundary (score ${s.agreement_score})`
+                );
+              }
+              if (ssmUnsupported) {
+                tooltipParts.push('No SSM repetition peer — verify Chorus label');
+              }
+              const tooltip = tooltipParts.join(' · ');
+              return (
+                <div key={i} className={styles.sectionRow}>
+                  <i
+                    className={styles.sectionDot}
+                    style={{ background: kindColor(s.kind) }}
+                  />
+                  <span className={styles.sectionIdx}>{String(i + 1).padStart(2, '0')}</span>
+                  <span className={styles.sectionLabel}>{s.label}</span>
+                  {needsReview && (
+                    <span
+                      className={styles.sectionFlag}
+                      data-testid={`section-flag-${i}`}
+                      title={tooltip}
+                      aria-label={tooltip}
+                    >
+                      !
+                    </span>
+                  )}
+                  <span className={styles.sectionDur}>
+                    {Math.round((s.end_ms - s.start_ms) / 1000)}s
+                  </span>
+                </div>
+              );
+            })}
           </div>
 
           {/* Bottom button */}
