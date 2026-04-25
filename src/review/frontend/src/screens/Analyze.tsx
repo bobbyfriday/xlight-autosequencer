@@ -36,7 +36,7 @@ interface LogLine {
   kind: 'info' | 'ok' | 'err' | 'warn' | 'meta' | 'progress';
 }
 
-interface Section {
+export interface Section {
   label: string;
   kind: string;
   start_ms: number;
@@ -44,13 +44,45 @@ interface Section {
   // PR #84 ships the integer; this change surfaces it to the UI. Default
   // 0 for legacy stories written before PR #84 (per the spec contract).
   agreement_score: number;
-  // Derived in the API as `agreement_score <= 1`. The boolean is what
-  // the UI renders against; the integer is kept for tooltip display.
+  // Derived in the API as `agreement_score <= 0` (retuned 2026-04-25
+  // from <= 1 — corpus measurement showed <= 1 flagged 38% of sections,
+  // <= 0 flags only the 11% genuinely uncorroborated boundaries). The
+  // boolean is what the UI renders against; the integer is kept for
+  // tooltip display.
   low_confidence: boolean;
   // SSM Chorus validator (`src/story/builder.py`). Present only on
   // Chorus sections; absent on non-Chorus and on legacy stories. Per
   // the spec, missing → treated as supported (do not flag).
   chorus_ssm_supported?: boolean;
+}
+
+/**
+ * Pure function: derive the review-status indicator + tooltip for a
+ * section. Exported for unit testing the rendering logic without spinning
+ * up the full Analyze component (which forks into a "summary" branch when
+ * status='analyzed' that doesn't render the section list at all).
+ *
+ * - low_confidence (boundary score=0) → flag, tooltip mentions boundary
+ * - chorus_ssm_supported===false (Chorus has no SSM peer) → flag,
+ *   tooltip mentions Chorus label. Absent (undefined) → treated as
+ *   supported (do not flag).
+ * - Both → flag, tooltip joins both reasons with a middot.
+ */
+export function deriveSectionReviewStatus(
+  s: Pick<Section, 'low_confidence' | 'agreement_score' | 'chorus_ssm_supported'>,
+): { needsReview: boolean; tooltip: string } {
+  const ssmUnsupported = s.chorus_ssm_supported === false;
+  const needsReview = s.low_confidence || ssmUnsupported;
+  const parts: string[] = [];
+  if (s.low_confidence) {
+    parts.push(
+      `Low multi-source agreement — verify boundary (score ${s.agreement_score})`,
+    );
+  }
+  if (ssmUnsupported) {
+    parts.push('No SSM repetition peer — verify Chorus label');
+  }
+  return { needsReview, tooltip: parts.join(' · ') };
 }
 
 interface Findings {
@@ -232,7 +264,7 @@ export function Analyze({ song, forceOnMount = false, onAnalysisComplete, onComp
           const low_confidence =
             typeof s.low_confidence === 'boolean'
               ? s.low_confidence
-              : agreement_score <= 1;
+              : agreement_score <= 0;
           return {
             label: s.label ?? s.kind ?? 'section',
             kind: s.kind ?? '',
@@ -769,30 +801,7 @@ export function Analyze({ song, forceOnMount = false, onAnalysisComplete, onComp
               <div className={styles.emptyNote}>waiting for structure…</div>
             )}
             {findings.sections.map((s, i) => {
-              // Visual treatment for sections that need human review:
-              //   - `low_confidence` (boundary): agreement_score <= 1
-              //     means 0 or 1 independent sources corroborated the
-              //     section start. The score saturates at 4-5 sources
-              //     so D3 chose a boolean over the raw integer.
-              //   - `chorus_ssm_supported === false` (Chorus role):
-              //     SSM validator found no repetition peer for this
-              //     Chorus. Absent → treated as supported.
-              // Either signal renders the same "verify this section"
-              // marker (a small "!" badge) so reviewers don't have to
-              // disambiguate which check failed at a glance; the
-              // tooltip lists the active check(s).
-              const ssmUnsupported = s.chorus_ssm_supported === false;
-              const needsReview = s.low_confidence || ssmUnsupported;
-              const tooltipParts: string[] = [];
-              if (s.low_confidence) {
-                tooltipParts.push(
-                  `Low multi-source agreement — verify boundary (score ${s.agreement_score})`
-                );
-              }
-              if (ssmUnsupported) {
-                tooltipParts.push('No SSM repetition peer — verify Chorus label');
-              }
-              const tooltip = tooltipParts.join(' · ');
+              const { needsReview, tooltip } = deriveSectionReviewStatus(s);
               return (
                 <div key={i} className={styles.sectionRow}>
                   <i
