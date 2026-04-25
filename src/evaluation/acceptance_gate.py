@@ -233,7 +233,18 @@ def run_ui_suite(skip: bool = False, quick: bool = False) -> SuiteResult:
         )
 
     marker = "ui and content" if quick else "ui"
-    cmd = ["pytest", "-m", marker, "--tb=short", "-v"]
+    # Auto-capture artifacts on failure for post-hoc debugging:
+    #   --screenshot=only-on-failure       → PNG of final state
+    #   --video=retain-on-failure          → WebM of full run
+    #   --tracing=retain-on-failure        → Playwright trace.zip (timeline replay)
+    # Lands under test-results/<test-id>/. View traces with `playwright show-trace`.
+    cmd = [
+        "pytest", "-m", marker, "--tb=short", "-v",
+        "--screenshot=only-on-failure",
+        "--video=retain-on-failure",
+        "--tracing=retain-on-failure",
+        "--full-page-screenshot",
+    ]
     try:
         proc = subprocess.run(cmd, capture_output=True, text=True, timeout=900)
     except (FileNotFoundError, subprocess.TimeoutExpired) as exc:

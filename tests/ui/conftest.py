@@ -131,3 +131,54 @@ def _reset_library_between_tests(flask_server: str) -> Generator[None, None, Non
 def fixture_mp3() -> Path:
     """Path to a mid-sized CC0 fixture suitable for quick upload tests."""
     return FIXTURES_DIR / "maple_leaf_rag.mp3"
+
+
+# ---------- Milestone screenshot helper ----------
+
+SCREENSHOTS_DIR = (
+    Path(__file__).resolve().parent.parent / "golden" / "ui" / "screenshots"
+)
+
+
+@pytest.fixture
+def snapshot(request: pytest.FixtureRequest, page):
+    """Capture a milestone screenshot at named test waypoints.
+
+    Stored under `tests/golden/ui/screenshots/<test-name>/<NN-name>.png`,
+    with a numeric prefix derived from call order so screenshots line up in
+    file-listing order with the test's flow.
+
+    Usage:
+        def test_foo(page, base_url, snapshot):
+            page.goto(base_url)
+            snapshot("library-empty")   # 01-library-empty.png
+            ...
+            snapshot("analyze-rendered")   # 02-analyze-rendered.png
+
+    Screenshots compress reasonably (~50-200 KB per shot, JPEG quality 80,
+    full-page) — committable as visual documentation of each flow's path
+    without bloating the repo.
+    """
+    test_name = request.node.name.split("[")[0]  # strip parametrize suffix
+    flow_dir = SCREENSHOTS_DIR / test_name
+    # Wipe stale shots at fixture setup — fires once per test invocation,
+    # so reruns from pytest-rerunfailures get a clean slate (no orphan
+    # screenshots from a failing earlier attempt).
+    if flow_dir.exists():
+        for old in list(flow_dir.glob("*.png")) + list(flow_dir.glob("*.jpg")):
+            old.unlink()
+    flow_dir.mkdir(parents=True, exist_ok=True)
+    counter = {"n": 0}
+
+    def _take(name: str) -> Path:
+        counter["n"] += 1
+        idx = f"{counter['n']:02d}"
+        # Slugify name minimally so it's safe as a filename.
+        safe = "".join(c if c.isalnum() or c in "-_" else "-" for c in name)
+        path = flow_dir / f"{idx}-{safe}.jpg"
+        # JPEG compresses much better than PNG for screenshots and is
+        # adequate for visual review at this resolution.
+        page.screenshot(path=str(path), full_page=True, type="jpeg", quality=80)
+        return path
+
+    return _take

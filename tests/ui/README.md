@@ -51,6 +51,7 @@ don't hit import errors on unrelated work.
 | `test_multi_song_flow.py` | `ui` | Seeds two fixtures via API → navigates via Chrome "Library" tab between distinct song-row contexts → verifies library state survives round-trips |
 | `test_metadata_edit_flow.py` | `ui` | Uploads → edits `metadata-artist` on banner → Tab to trigger save → awaits PATCH response → asserts `metadata-saved` indicator + persistence via `/api/v1/library` |
 | `test_folder_filter_flow.py` | `ui` | (a) Folder-toggle-unfiled click hides/reveals song row; (b) filter pills (All/Imported/Analyzed) update `data-active` on click |
+| `test_timeline_flow.py` | `ui` | Chrome's Timeline tab — placeholder when no song; analysis-required state for imported-but-unanalyzed song. Full timeline (waveform + zoom + sections) is exercised by `test_content_flow.py`. |
 
 All flows are marked `@pytest.mark.slow` and use `@pytest.mark.flaky(reruns=2)`
 for 3-strike flake tolerance per the spec.
@@ -120,6 +121,55 @@ Tests use `data-testid` attributes already present in the React components
 `library-empty-drop`, `song-row-<id>`, `export-form`, etc.). These are
 behavior-oriented, so UI refactors that don't change user-facing structure
 won't break the tests.
+
+## Screenshots
+
+Two layers of capture, complementary:
+
+### Auto-capture on failure (Tier 1 — debugging)
+
+The acceptance gate's `pytest -m ui` invocation passes:
+
+```
+--screenshot=only-on-failure
+--video=retain-on-failure
+--tracing=retain-on-failure
+--full-page-screenshot
+```
+
+On any UI test failure, you get:
+
+- A full-page PNG of the moment the assertion fired
+- A WebM video of the entire test run
+- A Playwright trace.zip you can open with `playwright show-trace`
+
+Artifacts land under `test-results/<test-id>/` (gitignored — debug only).
+
+### Milestone screenshots (Tier 2 — visual log, committed)
+
+Tests can take the `snapshot` fixture and call it at narrative waypoints:
+
+```python
+def test_foo(page, base_url, fixture_mp3, snapshot):
+    page.goto(base_url)
+    snapshot("library-empty")             # 01-library-empty.jpg
+    ...
+    snapshot("analyze-rendered")          # 02-analyze-rendered.jpg
+```
+
+Screenshots land under
+`tests/golden/ui/screenshots/<test-name>/<NN-name>.jpg` (JPEG quality 80,
+full-page, ~30-100 KB each). The directory is wiped at the start of each
+test invocation so reruns from `pytest-rerunfailures` produce a clean set.
+
+These are **committed** to the repo and serve as visual documentation of
+what each flow expects to see at each step. PR reviewers can browse
+the screenshot diff to spot UI regressions humans would notice but
+selector-based tests would miss.
+
+The current set covers all 9 UI flows with 1-4 screenshots per test
+(~700 KB total). Updating them is a side-effect of running the suite
+locally — `pytest -m ui --browser chromium` regenerates them.
 
 ## Debugging flakes
 
