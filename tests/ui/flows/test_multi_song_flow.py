@@ -41,7 +41,7 @@ def _upload_via_api(base_url: str, mp3_path: Path) -> str:
 
 @pytest.mark.flaky(reruns=2, reruns_delay=1)
 def test_multi_song_library_click_navigation(
-    page: Page, base_url: str
+    page: Page, base_url: str, snapshot
 ) -> None:
     # Seed two songs via the API so the library is non-empty from the start.
     song_a = _upload_via_api(base_url, FIXTURES_DIR / "maple_leaf_rag.mp3")
@@ -56,10 +56,12 @@ def test_multi_song_library_click_navigation(
     row_b = page.get_by_test_id(f"song-row-{song_b}")
     expect(row_a).to_be_visible(timeout=5000)
     expect(row_b).to_be_visible(timeout=5000)
+    snapshot("library-with-two-songs")
 
     # Click song A → navigate away from library.
     row_a.click()
     expect(page.get_by_test_id("library-screen")).not_to_be_visible(timeout=10000)
+    snapshot("after-click-song-a")
 
     # Return to library via the Chrome's "Library" nav tab (aria-label).
     # The app manages screen state internally, so browser back/goto are not
@@ -74,9 +76,11 @@ def test_multi_song_library_click_navigation(
     # Click song B → navigate to a distinct song's context.
     page.get_by_test_id(f"song-row-{song_b}").click()
     expect(page.get_by_test_id("library-screen")).not_to_be_visible(timeout=10000)
+    snapshot("after-click-song-b")
 
     # Final round-trip via nav tab: library state survives.
     page.get_by_role("tab", name="Library").click()
     expect(page.get_by_test_id("library-screen")).to_be_visible(timeout=10000)
     expect(page.get_by_test_id(f"song-row-{song_a}")).to_be_visible()
     expect(page.get_by_test_id(f"song-row-{song_b}")).to_be_visible()
+    snapshot("library-after-round-trips")

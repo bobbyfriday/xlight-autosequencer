@@ -48,7 +48,7 @@ def _section_detection_available() -> bool:
 
 @pytest.mark.flaky(reruns=2, reruns_delay=1)
 def test_content_flow_analyzer_populates_ui(
-    page: Page, base_url: str, fixture_mp3: Path
+    page: Page, base_url: str, fixture_mp3: Path, snapshot
 ) -> None:
     if not _section_detection_available():
         pytest.skip(
@@ -120,6 +120,7 @@ def test_content_flow_analyzer_populates_ui(
         '[data-testid="inspector-sections-header"]:not([data-section-count="0"])'
     )
     expect(sections_populated).to_be_visible(timeout=30_000)
+    snapshot("analysis-complete-with-sections")
 
     section_count_str = inspector_header.get_attribute("data-section-count")
     assert section_count_str is not None, "inspector-sections-header is missing data-section-count"

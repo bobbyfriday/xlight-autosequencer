@@ -15,7 +15,7 @@ pytestmark = [pytest.mark.ui, pytest.mark.slow]
 
 @pytest.mark.flaky(reruns=2, reruns_delay=1)
 def test_analyze_flow_populates_section_and_beat_data(
-    page: Page, base_url: str, fixture_mp3: Path
+    page: Page, base_url: str, fixture_mp3: Path, snapshot
 ) -> None:
     page.goto(base_url)
 
@@ -38,9 +38,11 @@ def test_analyze_flow_populates_section_and_beat_data(
     # beat indicator to appear. The precise test-id depends on the screen's
     # layout; at minimum the metadata banner must stay present.
     expect(page.get_by_test_id("metadata-banner")).to_be_visible(timeout=5000)
+    snapshot("analyze-screen-active")
 
     # Status chip should eventually reach "analyzed" or equivalent. The screen
     # uses `status-chip-<status>` test-ids. Look for any non-pending status.
     # This is a lenient check: we just assert the UI is still coherent after
     # the analysis step completes.
     page.wait_for_load_state("networkidle", timeout=30000)
+    snapshot("analyze-screen-network-idle")

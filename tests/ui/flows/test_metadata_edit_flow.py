@@ -22,7 +22,7 @@ pytestmark = [pytest.mark.ui, pytest.mark.slow]
 
 @pytest.mark.flaky(reruns=2, reruns_delay=1)
 def test_metadata_artist_override_persists(
-    page: Page, base_url: str, fixture_mp3: Path
+    page: Page, base_url: str, fixture_mp3: Path, snapshot
 ) -> None:
     page.goto(base_url)
 
@@ -41,6 +41,7 @@ def test_metadata_artist_override_persists(
 
     artist_input = page.get_by_test_id("metadata-artist")
     expect(artist_input).to_be_visible()
+    snapshot("banner-before-edit")
 
     # Replace whatever the ID3-derived artist is with a known test value.
     # Wrap the blur-triggering action in an expect_response context so we
@@ -61,6 +62,7 @@ def test_metadata_artist_override_persists(
     assert not page.get_by_test_id("metadata-save-error").is_visible()
     # Saved indicator appears after React re-renders with the updated props.
     expect(page.get_by_test_id("metadata-saved")).to_be_visible(timeout=15000)
+    snapshot("banner-saved-indicator")
 
     # Verify the input's current value matches what we saved.
     expect(artist_input).to_have_value(new_artist)

@@ -35,7 +35,7 @@ def _upload_via_api(base_url: str, mp3_path: Path) -> str:
 
 @pytest.mark.flaky(reruns=2, reruns_delay=1)
 def test_folder_toggle_hides_and_reveals_songs(
-    page: Page, base_url: str
+    page: Page, base_url: str, snapshot
 ) -> None:
     song_id = _upload_via_api(base_url, FIXTURES_DIR / "maple_leaf_rag.mp3")
 
@@ -48,10 +48,12 @@ def test_folder_toggle_hides_and_reveals_songs(
     # Songs land in the default "unfiled" folder on fresh upload.
     folder_toggle = page.get_by_test_id("folder-toggle-unfiled")
     expect(folder_toggle).to_be_visible(timeout=5000)
+    snapshot("folder-expanded")
 
     # Click to collapse — song row should disappear.
     folder_toggle.click()
     expect(row).not_to_be_visible(timeout=5000)
+    snapshot("folder-collapsed")
 
     # Click again to expand — song row returns.
     folder_toggle.click()
@@ -60,7 +62,7 @@ def test_folder_toggle_hides_and_reveals_songs(
 
 @pytest.mark.flaky(reruns=2, reruns_delay=1)
 def test_filter_pill_active_state_updates(
-    page: Page, base_url: str
+    page: Page, base_url: str, snapshot
 ) -> None:
     _upload_via_api(base_url, FIXTURES_DIR / "maple_leaf_rag.mp3")
 
@@ -79,11 +81,13 @@ def test_filter_pill_active_state_updates(
     # Initial state: "All" is active.
     expect(all_pill).to_have_attribute("data-active", "true")
     expect(analyzed_pill).to_have_attribute("data-active", "false")
+    snapshot("filter-all-active")
 
     # Click "Analyzed" — active state moves.
     analyzed_pill.click()
     expect(analyzed_pill).to_have_attribute("data-active", "true", timeout=2000)
     expect(all_pill).to_have_attribute("data-active", "false")
+    snapshot("filter-analyzed-active")
 
     # Click back to "All" — active state returns.
     all_pill.click()

@@ -16,7 +16,7 @@ pytestmark = [pytest.mark.ui, pytest.mark.slow]
 
 @pytest.mark.flaky(reruns=2, reruns_delay=1)
 def test_view_flow_library_to_analyze_roundtrip(
-    page: Page, base_url: str, fixture_mp3: Path
+    page: Page, base_url: str, fixture_mp3: Path, snapshot
 ) -> None:
     page.goto(base_url)
 
@@ -34,6 +34,7 @@ def test_view_flow_library_to_analyze_roundtrip(
 
     # Arrive at the analyze screen.
     expect(page.get_by_test_id("analyze-screen").first).to_be_visible(timeout=30000)
+    snapshot("analyze-after-upload")
 
     # Navigate back to library and confirm the song row is present.
     page.goto(base_url)
@@ -43,6 +44,7 @@ def test_view_flow_library_to_analyze_roundtrip(
     song_rows = page.locator('[data-testid^="song-row-"]')
     expect(song_rows.first).to_be_visible(timeout=5000)
     assert song_rows.count() >= 1
+    snapshot("library-with-uploaded-song")
 
     # Click the first song row. The app routes by status — for a just-uploaded
     # unanalyzed song, this may land on analyze-screen or on an intermediate

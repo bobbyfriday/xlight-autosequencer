@@ -17,7 +17,7 @@ pytestmark = [pytest.mark.ui, pytest.mark.slow]
 
 @pytest.mark.flaky(reruns=2, reruns_delay=1)
 def test_export_flow_screen_renders_coherent_state(
-    page: Page, base_url: str, fixture_mp3: Path
+    page: Page, base_url: str, fixture_mp3: Path, snapshot
 ) -> None:
     page.goto(base_url)
 
@@ -74,3 +74,4 @@ def test_export_flow_screen_renders_coherent_state(
         "Export flow ended in no recognized screen state; "
         "expected one of analyze-screen, library-screen, or export-form/guard."
     )
+    snapshot("export-flow-final-state")

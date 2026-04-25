@@ -14,7 +14,7 @@ pytestmark = [pytest.mark.ui, pytest.mark.slow]
 
 @pytest.mark.flaky(reruns=2, reruns_delay=1)
 def test_upload_flow_renders_analyze_screen(
-    page: Page, base_url: str, fixture_mp3: Path
+    page: Page, base_url: str, fixture_mp3: Path, snapshot
 ) -> None:
     # Navigate to the library (drop) screen.
     page.goto(base_url)
@@ -22,6 +22,7 @@ def test_upload_flow_renders_analyze_screen(
     # The empty library shows the drop target.
     drop = page.get_by_test_id("library-empty-drop").or_(page.get_by_test_id("drop-target")).first
     expect(drop).to_be_visible(timeout=5000)
+    snapshot("library-empty")
 
     # Upload via the Library's hidden file input (wrapped by the drop area).
     file_input = page.get_by_test_id("library-file-input")
@@ -34,3 +35,4 @@ def test_upload_flow_renders_analyze_screen(
     # Minimum sanity: the metadata banner rendered with a title derived from the MP3.
     banner = page.get_by_test_id("metadata-banner").first
     expect(banner).to_be_visible()
+    snapshot("analyze-rendered-after-upload")
