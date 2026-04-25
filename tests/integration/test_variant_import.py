@@ -26,7 +26,10 @@ def tmp_custom_dir(tmp_path):
 
 @pytest.fixture(autouse=True)
 def inject_libs(tmp_custom_dir, monkeypatch):
-    import src.cli as cli_module
+    # Variant CLI commands live in src.cli_old (re-exported through src.cli).
+    # _get_variant_lib() reads the override from src.cli_old, so we must
+    # patch there. Patching src.cli only updates the re-exported reference.
+    import src.cli_old as cli_module
 
     effect_lib = load_effect_library(builtin_path=EFFECTS_FIXTURE)
     lib = load_variant_library(
