@@ -52,17 +52,17 @@
 
 ## 8. Golden baseline + acceptance gate
 
-- [ ] 8.1 Run `xlight-evaluate snapshot-analyzer` to regenerate `tests/golden/analyzer/baseline.json`.
-- [ ] 8.2 Manually inspect the diff to confirm changes are confined to per-mark `confidence` values on L2 / L3 tracks. Flag any other field changes for investigation.
+- [x] 8.1 Run `xlight-evaluate snapshot-analyzer` to regenerate `tests/golden/analyzer/baseline.json`.
+- [x] 8.2 Manually inspect the diff to confirm changes are confined to per-mark `confidence` values on L2 / L3 tracks. Flag any other field changes for investigation.
 - [ ] 8.3 Run `xlight-evaluate gate` (full mode) and confirm exit code 0.
-- [ ] 8.4 If the analyzer baseline gate fails with exit code 6 (regression), inspect whether the regression is the intended confidence-value change or an unrelated drift.
+- [x] 8.4 If the analyzer baseline gate fails with exit code 6 (regression), inspect whether the regression is the intended confidence-value change or an unrelated drift.
 
 ## 9. Docs
 
-- [ ] 9.1 Update `docs/musical-analysis-design.md:77` to mark the cross-tracker agreement annotation as shipped (small doc-only diff bundled in the same PR).
-- [ ] 9.2 Append a one-line changelog entry to `docs/segment-classification-changelog.md` only if the change touches segment / section classification — verify it does not (this proposal is L2/L3 only) and skip if so.
+- [x] 9.1 Update `docs/musical-analysis-design.md:77` to mark the cross-tracker agreement annotation as shipped (small doc-only diff bundled in the same PR).
+- [x] 9.2 Append a one-line changelog entry to `docs/segment-classification-changelog.md` only if the change touches segment / section classification — verify it does not (this proposal is L2/L3 only) and skip if so.
 
 ## 10. Cerebrum + buglog hygiene
 
-- [ ] 10.1 Append a `Key Learnings` entry to `.wolf/cerebrum.md` documenting that `validator.py` now respects pre-existing per-mark confidence values, so future writers (e.g. an L4 event-confidence proposal) follow the same `if confidence is None` guard pattern.
-- [ ] 10.2 No buglog entry expected at proposal time; add one only if implementation surfaces an unexpected regression.
+- [x] 10.1 Append a `Key Learnings` entry to `.wolf/cerebrum.md` documenting that `validator.py` now respects pre-existing per-mark confidence values, so future writers (e.g. an L4 event-confidence proposal) follow the same `if confidence is None` guard pattern.
+- [x] 10.2 No buglog entry expected at proposal time; add one only if implementation surfaces an unexpected regression.
