@@ -461,6 +461,16 @@ def snapshot_analyzer(baseline_path: str | None, fixture_slug: str | None) -> No
         existing = ab.load(path)
     except ab.BaselineMissingError:
         existing = ab.AnalyzerBaseline()
+    except ValueError as exc:
+        # Schema mismatch (e.g., user upgraded after a schema bump).
+        # Start from a fresh baseline rather than refusing to write —
+        # that's the whole point of running snapshot-analyzer.
+        click.echo(
+            f"  note: existing baseline rejected ({exc}); "
+            f"starting from a fresh baseline.",
+            err=True,
+        )
+        existing = ab.AnalyzerBaseline()
 
     for entry in corpus:
         click.echo(f"  snapshotting: {entry.slug} ({entry.path.name}) ...", nl=False)

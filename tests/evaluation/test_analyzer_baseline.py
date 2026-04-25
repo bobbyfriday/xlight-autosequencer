@@ -81,6 +81,94 @@ def test_load_schema_mismatch_raises(tmp_path: Path) -> None:
         load(path)
 
 
+def test_load_v1_baseline_fails_clearly_so_users_re_snapshot(tmp_path: Path) -> None:
+    """Schema bump 1 → 2 (2026-04-25) added per-fixture repetition_groups.
+
+    A v1 baseline.json on disk should trigger a clear schema-mismatch
+    error rather than silently loading partial data — users need a
+    visible signal to run `xlight-evaluate snapshot-analyzer` against
+    their refreshed code.
+    """
+    path = tmp_path / "v1.json"
+    # Old baselines were schema_version=1 (no per-fixture repetition_groups field).
+    path.write_text(json.dumps({
+        "schema_version": 1,
+        "fixtures": {
+            "maple_leaf_rag": {
+                "fixture_slug": "maple_leaf_rag",
+                "algorithms": {},
+            },
+        },
+    }))
+    with pytest.raises(ValueError, match="schema mismatch"):
+        load(path)
+
+
+def test_repetition_groups_round_trip(tmp_path: Path) -> None:
+    """Schema v2 captures HierarchyResult.repetition_groups per fixture.
+
+    None survives serialization (SSM didn't run / errored).
+    Empty list survives serialization (SSM ran, found no repetition).
+    Populated list survives serialization (one or more groups).
+    """
+    baseline = AnalyzerBaseline(
+        fixtures={
+            "no_ssm": FixtureSnapshot(
+                fixture_slug="no_ssm",
+                algorithms={"librosa_beats": _snap("librosa_beats", [500])},
+                repetition_groups=None,
+            ),
+            "no_repetition": FixtureSnapshot(
+                fixture_slug="no_repetition",
+                algorithms={"librosa_beats": _snap("librosa_beats", [500])},
+                repetition_groups=[],
+            ),
+            "two_groups": FixtureSnapshot(
+                fixture_slug="two_groups",
+                algorithms={"librosa_beats": _snap("librosa_beats", [500])},
+                repetition_groups=[
+                    {"id": 0, "members": [[0, 8000], [40000, 48000]]},
+                    {"id": 1, "members": [[20000, 28000], [60000, 68000]]},
+                ],
+            ),
+        },
+    )
+    path = tmp_path / "baseline.json"
+    save(baseline, path)
+    loaded = load(path)
+
+    assert loaded.fixtures["no_ssm"].repetition_groups is None
+    assert loaded.fixtures["no_repetition"].repetition_groups == []
+    two = loaded.fixtures["two_groups"].repetition_groups
+    assert two is not None and len(two) == 2
+    assert two[0]["id"] == 0
+    assert two[0]["members"] == [[0, 8000], [40000, 48000]]
+
+
+def test_repetition_groups_omitted_from_dict_when_none() -> None:
+    """to_dict() should not emit `repetition_groups` when the field is
+    None — keeps the JSON diff minimal for fixtures whose SSM didn't run.
+    """
+    fs = FixtureSnapshot(
+        fixture_slug="x",
+        algorithms={},
+        repetition_groups=None,
+    )
+    d = fs.to_dict()
+    assert "repetition_groups" not in d
+
+
+def test_repetition_groups_emitted_as_empty_list_when_empty() -> None:
+    """Empty list IS distinct from None and must round-trip."""
+    fs = FixtureSnapshot(
+        fixture_slug="x",
+        algorithms={},
+        repetition_groups=[],
+    )
+    d = fs.to_dict()
+    assert d["repetition_groups"] == []
+
+
 # ---------- count tolerance at boundaries ----------
 
 def test_count_within_tolerance_passes() -> None:

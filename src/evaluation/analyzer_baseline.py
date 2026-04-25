@@ -23,7 +23,7 @@ from typing import Any, Optional
 
 from src.analyzer.result import TimingTrack
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2  # bumped 2026-04-25: add per-fixture repetition_groups
 DEFAULT_BASELINE_PATH = Path("tests/golden/analyzer/baseline.json")
 
 DEFAULT_COUNT_TOLERANCE_PCT = 5.0
@@ -133,16 +133,30 @@ class TrackSnapshot:
 
 @dataclass
 class FixtureSnapshot:
-    """All algorithm snapshots for a single fixture."""
+    """All algorithm snapshots for a single fixture.
+
+    `repetition_groups` (added in schema v2) captures the SSM Chorus
+    validator's output (`HierarchyResult.repetition_groups`) — which is
+    a per-fixture field, not a per-algorithm one, so it lives at this
+    level rather than nested under `algorithms`. Each element is the
+    serialized form of `RepetitionGroup.to_dict()`. None means the SSM
+    pass either errored or wasn't run; an empty list means SSM ran and
+    found no repetition.
+    """
 
     fixture_slug: str
     algorithms: dict[str, TrackSnapshot] = field(default_factory=dict)
+    repetition_groups: Optional[list[dict]] = None
 
     def to_dict(self) -> dict:
-        return {
+        d: dict[str, Any] = {
             "fixture_slug": self.fixture_slug,
             "algorithms": {name: snap.to_dict() for name, snap in self.algorithms.items()},
         }
+        # Only emit when not None so v1-equivalent fixtures stay diff-friendly.
+        if self.repetition_groups is not None:
+            d["repetition_groups"] = self.repetition_groups
+        return d
 
     @classmethod
     def from_dict(cls, d: dict) -> "FixtureSnapshot":
@@ -152,6 +166,7 @@ class FixtureSnapshot:
                 name: TrackSnapshot.from_dict(data)
                 for name, data in d.get("algorithms", {}).items()
             },
+            repetition_groups=d.get("repetition_groups"),  # None when absent (v1 baseline)
         )
 
 

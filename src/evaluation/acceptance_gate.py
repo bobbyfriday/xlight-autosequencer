@@ -20,6 +20,7 @@ from __future__ import annotations
 import importlib.util
 import json
 import subprocess
+import sys
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -102,8 +103,18 @@ def _snapshot_fixture_live(entry: CorpusEntry) -> FixtureSnapshot:
 
     Imported lazily so unit tests of the orchestrator don't pay the
     analyzer import cost unless they exercise this path.
+
+    Schema v2 also captures `repetition_groups` (the SSM Chorus
+    validator's output, which lives on HierarchyResult, not on
+    timing_tracks). The legacy AnalysisRunner doesn't run SSM, so we
+    invoke it here directly. Failures are non-fatal: a None
+    repetition_groups field signals "SSM didn't run or errored" — the
+    gate doesn't currently regression-check the field, just records it
+    for forensic value.
     """
+    from src.analyzer.audio import load
     from src.analyzer.runner import AnalysisRunner, default_algorithms
+    from src.analyzer.self_similarity import compute_repetition_groups
     from src.evaluation.analyzer_baseline import TrackSnapshot
 
     runner = AnalysisRunner(algorithms=default_algorithms())
@@ -111,7 +122,21 @@ def _snapshot_fixture_live(entry: CorpusEntry) -> FixtureSnapshot:
     algorithms = {
         t.algorithm_name: TrackSnapshot.from_track(t) for t in result.timing_tracks
     }
-    return FixtureSnapshot(fixture_slug=entry.slug, algorithms=algorithms)
+
+    repetition_groups: Optional[list[dict]] = None
+    try:
+        audio, sr, _meta = load(str(entry.path))
+        groups = compute_repetition_groups(audio, sr)
+        repetition_groups = [g.to_dict() for g in groups]
+    except Exception as exc:
+        print(f"  warning: SSM failed for {entry.slug}: {exc}", file=sys.stderr)
+        repetition_groups = None
+
+    return FixtureSnapshot(
+        fixture_slug=entry.slug,
+        algorithms=algorithms,
+        repetition_groups=repetition_groups,
+    )
 
 
 def run_analyzer_suite(
