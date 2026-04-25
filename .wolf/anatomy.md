@@ -1,15 +1,15 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-04-24T20:39:11.563Z
-> Files: 551 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-04-25T04:09:04.662Z
+> Files: 574 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
 
 - `.DS_Store` (~1640 tok)
 - `.gitignore` — Git ignore rules (~420 tok)
-- `CLAUDE.md` — OpenWolf (~6579 tok)
+- `CLAUDE.md` — OpenWolf (~6866 tok)
 - `LICENSE` — Project license (~285 tok)
-- `pyproject.toml` — Python project configuration (~525 tok)
+- `pyproject.toml` — Automatically generate xLights sequences from audio files (~752 tok)
 - `README.md` — Project documentation (~3264 tok)
 - `xlights_rgbeffects.xml` (~106466 tok)
 
@@ -963,6 +963,14 @@
 - `vamp_structure.py` — T034: Vamp structural segmentation and tempo algorithms. (~567 tok)
 - `vamp_utils.py` — Shared helper functions for Vamp plugin algorithm wrappers. (~399 tok)
 
+## .github/workflows/
+
+- `evaluate.yml` — CI: Acceptance Gate (Tier A) (~1647 tok)
+
+## openspec/changes/acceptance-gate/
+
+- `tasks.md` — 1. Corpus wiring (reuse existing CC0 pattern) (~2580 tok)
+
 ## openspec/changes/design-first-gate/
 
 - `design.md` — Context (~1978 tok)
@@ -985,6 +993,16 @@
 
 - `genius_segments.py` — Genius lyric segment timing: fetch, parse, and align section headers to audio. (~8841 tok)
 
+## src/cli/
+
+- `evaluate.py` — xlight-evaluate CLI — quality calibration subcommands. (~4748 tok)
+
+## src/evaluation/
+
+- `acceptance_gate.py` — Acceptance-gate orchestrator. (~3802 tok)
+- `analyzer_baseline.py` — Analyzer-layer regression baseline. (~3292 tok)
+- `corpus_resolver.py` — Corpus resolver for the acceptance gate. (~1310 tok)
+
 ## src/review/api/v1/
 
 - `analysis.py` — Analysis endpoints — T047. (~13834 tok)
@@ -996,9 +1014,9 @@
 
 ## src/review/frontend/src/screens/
 
-- `Analyze.tsx` — When true, run analysis on mount even if the song is already marked (~8070 tok)
+- `Analyze.tsx` — When true, run analysis on mount even if the song is already marked (~8302 tok)
 - `Drop.tsx` — Called after a successful /api/v1/import response. (~995 tok)
-- `Library.tsx` — ALLOWED_EXTS (~2952 tok)
+- `Library.tsx` — ALLOWED_EXTS (~2965 tok)
 - `MetadataBanner.tsx` — ID3-derived display title (from song.title on the Song record). (~2351 tok)
 - `Timeline.tsx` — Returns the beat entry whose t_ms is <= timeMs (last beat at or before playhead) (~7150 tok)
 
@@ -1012,6 +1030,38 @@
 
 - `builder.py` — Song story builder — top-level orchestration for the song story tool. (~10110 tok)
 
+## tests/evaluation/
+
+- `test_analyzer_baseline.py` — Tests for src/evaluation/analyzer_baseline.py. (~2479 tok)
+- `test_gate_cli.py` — Tests for `xlight-evaluate gate` — orchestration + exit code + JSON report. (~3073 tok)
+
+## tests/fixtures/cc0_music/
+
+- `manifest.json` (~568 tok)
+- `README.md` — Project documentation (~616 tok)
+
 ## tests/review/
 
 - `test_api_metadata_override.py` — Tests for PATCH /api/v1/songs/<id>/metadata and the ``override_artist`` / (~1646 tok)
+
+## tests/ui/
+
+- `conftest.py` — Shared fixtures for browser-driven UI flow tests. (~1887 tok)
+- `README.md` — Project documentation (~1929 tok)
+
+## tests/ui/flows/
+
+- `__init__.py` (~0 tok)
+- `test_analyze_flow.py` — Analyze flow: uploaded song progresses through analysis to a populated view. (~572 tok)
+- `test_content_flow.py` — Content verification flow: upload → real analysis → assert content matches manifest. (~2184 tok)
+- `test_export_flow.py` — Export flow: the export screen renders without crash for an analyzed song. (~878 tok)
+- `test_folder_filter_flow.py` — Folder toggle + filter pill interactions on the library screen. (~980 tok)
+- `test_metadata_edit_flow.py` — Metadata override flow: edit artist/title on the analyze-screen banner, (~934 tok)
+- `test_multi_song_flow.py` — Multi-song library navigation: upload two songs, navigate between them, (~1028 tok)
+- `test_timeline_flow.py` — Timeline screen navigation: tab access + analysis-gated placeholder. (~1108 tok)
+- `test_upload_flow.py` — Upload flow: pick a fixture MP3, POST /api/v1/import, verify analyze screen. (~398 tok)
+- `test_view_flow.py` — View flow: analyzed content renders in the UI coherently. (~602 tok)
+
+## tests/validation/
+
+- `download_fixtures.py` — Download CC0 music fixtures for end-to-end validation testing. (~1546 tok)

@@ -1856,6 +1856,358 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-04-23T13:51:03.202Z"
+    },
+    {
+      "id": "bug-117",
+      "timestamp": "2026-04-24T21:32:17.181Z",
+      "error_message": "Significant refactor of ",
+      "file": "openspec/changes/acceptance-gate/tasks.md",
+      "root_cause": "5 lines replaced/restructured",
+      "fix": "Rewrote 7→7 lines (5 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-04-24T21:32:17.181Z"
+    },
+    {
+      "id": "bug-118",
+      "timestamp": "2026-04-24T21:36:29.302Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/evaluation/acceptance_gate.py",
+      "root_cause": "17 lines replaced/restructured",
+      "fix": "Rewrote 20→6 lines (17 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-04-24T21:36:29.302Z"
+    },
+    {
+      "id": "bug-119",
+      "timestamp": "2026-04-24T21:39:51.468Z",
+      "error_message": "Significant refactor of ",
+      "file": "openspec/changes/acceptance-gate/tasks.md",
+      "root_cause": "6 lines replaced/restructured",
+      "fix": "Rewrote 8→8 lines (6 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-04-24T21:39:51.468Z"
+    },
+    {
+      "id": "bug-120",
+      "timestamp": "2026-04-24T21:44:02.113Z",
+      "error_message": "Significant refactor of ",
+      "file": "pyproject.toml",
+      "root_cause": "2 lines replaced/restructured",
+      "fix": "Rewrote 7→10 lines (2 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "toml"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-04-24T21:44:02.113Z"
+    },
+    {
+      "id": "bug-121",
+      "timestamp": "2026-04-24T21:46:42.504Z",
+      "error_message": "Significant refactor of ",
+      "file": "openspec/changes/acceptance-gate/tasks.md",
+      "root_cause": "10 lines replaced/restructured",
+      "fix": "Rewrote 10→10 lines (10 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-04-24T21:46:42.504Z"
+    },
+    {
+      "id": "bug-122",
+      "timestamp": "2026-04-24T21:54:39.590Z",
+      "error_message": "Incorrect value in code",
+      "file": "tests/ui/flows/test_upload_flow.py",
+      "root_cause": "Had \"file-input\"",
+      "fix": "Changed to 's hidden file input (wrapped by the drop area).\n ",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-04-24T21:54:39.590Z"
+    },
+    {
+      "id": "bug-123",
+      "timestamp": "2026-04-24T21:54:44.481Z",
+      "error_message": "Incorrect value in code",
+      "file": "tests/ui/flows/test_analyze_flow.py",
+      "root_cause": "Had \"file-input\"",
+      "fix": "Changed to \"library-file-input\"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-04-24T21:54:44.481Z"
+    },
+    {
+      "id": "bug-124",
+      "timestamp": "2026-04-24T22:01:57.772Z",
+      "error_message": "Significant refactor of ",
+      "file": "tests/ui/conftest.py",
+      "root_cause": "6 lines replaced/restructured",
+      "fix": "Rewrote 18→26 lines (6 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-04-24T22:01:57.772Z"
+    },
+    {
+      "id": "bug-125",
+      "timestamp": "2026-04-24T22:10:33.978Z",
+      "error_message": "Significant refactor of ",
+      "file": "tests/ui/flows/test_view_flow.py",
+      "root_cause": "2 lines replaced/restructured",
+      "fix": "Rewrote 9→13 lines (2 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-04-24T22:10:33.978Z"
+    },
+    {
+      "id": "bug-126",
+      "timestamp": "2026-04-24T22:15:36.458Z",
+      "error_message": "Significant refactor of ",
+      "file": "tests/ui/conftest.py",
+      "root_cause": "21 lines replaced/restructured",
+      "fix": "Rewrote 26→8 lines (21 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-04-24T22:15:36.458Z"
+    },
+    {
+      "id": "bug-127",
+      "timestamp": "2026-04-24T22:17:39.718Z",
+      "error_message": "Significant refactor of ",
+      "file": "tests/ui/flows/test_view_flow.py",
+      "root_cause": "2 lines replaced/restructured",
+      "fix": "Rewrote 3→6 lines (2 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-04-24T22:17:39.718Z"
+    },
+    {
+      "id": "bug-128",
+      "timestamp": "2026-04-24T22:26:43.601Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/review/frontend/src/screens/Analyze.tsx",
+      "root_cause": "2 lines replaced/restructured",
+      "fix": "Rewrote 6→15 lines (2 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-04-24T22:26:43.601Z"
+    },
+    {
+      "id": "bug-129",
+      "timestamp": "2026-04-24T22:27:51.652Z",
+      "error_message": "Missing error handling in unknown",
+      "file": "pyproject.toml",
+      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "fix": "Added try/catch block",
+      "tags": [
+        "auto-detected",
+        "error-handling",
+        "toml"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-04-24T22:27:51.652Z"
+    },
+    {
+      "id": "bug-130",
+      "timestamp": "2026-04-24T22:28:02.082Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/evaluation/acceptance_gate.py",
+      "root_cause": "2 lines replaced/restructured",
+      "fix": "Rewrote 13→21 lines (2 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-04-24T22:28:02.082Z"
+    },
+    {
+      "id": "bug-131",
+      "timestamp": "2026-04-24T22:35:12.956Z",
+      "error_message": "Missing error handling in unknown",
+      "file": "tests/ui/README.md",
+      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "fix": "Added try/catch block",
+      "tags": [
+        "auto-detected",
+        "error-handling",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-04-24T22:35:12.956Z"
+    },
+    {
+      "id": "bug-132",
+      "timestamp": "2026-04-24T22:46:46.141Z",
+      "error_message": "Significant refactor of ",
+      "file": "tests/ui/flows/test_content_flow.py",
+      "root_cause": "4 lines replaced/restructured",
+      "fix": "Rewrote 12→19 lines (4 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-04-24T22:46:46.141Z"
+    },
+    {
+      "id": "bug-133",
+      "timestamp": "2026-04-24T22:54:09.965Z",
+      "error_message": "CSS fix: secs",
+      "file": "src/review/frontend/src/screens/Analyze.tsx",
+      "root_cause": "secs: Section[] = (data?.sections ?? data?.song_story?.sections ?? []).map( → Section[] = (data?.detected_sections ?? data?.sections ?? data?.song_story?.sections ?? []).map(",
+      "fix": "Changed secs: Section[] = (data?.sections ?? data?.song_story?.sections ?? []).map( → Section[] = (data?.detected_sections ?? data?.sections ?? data?.song_story?.sections ?? []).map(",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-04-24T22:54:09.965Z"
+    },
+    {
+      "id": "bug-134",
+      "timestamp": "2026-04-24T23:14:23.243Z",
+      "error_message": "Incorrect value in code",
+      "file": "tests/ui/flows/test_multi_song_flow.py",
+      "root_cause": "Had \"library-screen\"",
+      "fix": "Changed to \"button\"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-04-24T23:14:23.243Z"
+    },
+    {
+      "id": "bug-135",
+      "timestamp": "2026-04-24T23:21:50.997Z",
+      "error_message": "Incorrect value in code",
+      "file": "tests/ui/flows/test_multi_song_flow.py",
+      "root_cause": "Had \"button\"",
+      "fix": "Changed to \"tab\"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-04-24T23:21:50.997Z"
+    },
+    {
+      "id": "bug-136",
+      "timestamp": "2026-04-24T23:26:05.989Z",
+      "error_message": "Significant refactor of ",
+      "file": "tests/ui/flows/test_metadata_edit_flow.py",
+      "root_cause": "4 lines replaced/restructured",
+      "fix": "Rewrote 9→12 lines (4 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-04-24T23:26:05.989Z"
+    },
+    {
+      "id": "bug-137",
+      "timestamp": "2026-04-24T23:32:39.327Z",
+      "error_message": "Wrong operator: && should be ==",
+      "file": "tests/ui/flows/test_metadata_edit_flow.py",
+      "root_cause": "Used \"&&\" instead of \"==\"",
+      "fix": "Changed operator && → ==",
+      "tags": [
+        "auto-detected",
+        "operator-fix",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-04-24T23:32:39.327Z"
+    },
+    {
+      "id": "bug-138",
+      "timestamp": "2026-04-25T02:46:37.682Z",
+      "error_message": "Wrong reference: None should be snapshot",
+      "file": "tests/ui/flows/test_folder_filter_flow.py",
+      "root_cause": "Used \"None\" instead of \"snapshot\"",
+      "fix": "Changed None → snapshot",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-04-25T02:46:49.570Z"
     }
   ]
 }

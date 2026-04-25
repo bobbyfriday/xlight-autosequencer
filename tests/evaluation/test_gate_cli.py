@@ -323,6 +323,9 @@ def test_skip_ui_flag_does_not_invoke_pytest(tmp_path: Path) -> None:
         "src.evaluation.acceptance_gate.run_generator_suite",
         return_value=SuiteResult("generator", "pass"),
     ), patch(
+        "src.evaluation.acceptance_gate._snapshot_fixture_live",
+        side_effect=_mock_fixture_snapshot,
+    ), patch(
         "subprocess.run",
     ) as mock_run:
         report = run_gate(opts)
