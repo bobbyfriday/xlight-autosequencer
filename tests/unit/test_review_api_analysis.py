@@ -80,7 +80,7 @@ def _seed_session(song_id: str, sections: list[dict]) -> None:
 
 @pytest.mark.parametrize("score,expected_low", [
     (0, True),
-    (1, True),
+    (1, False),  # retuned 2026-04-25 from <=1 → <=0 based on corpus measurement
     (2, False),
     (3, False),
     (5, False),
@@ -88,20 +88,18 @@ def _seed_session(song_id: str, sections: list[dict]) -> None:
 def test_low_confidence_derived_from_agreement_score(score, expected_low):
     """Pure logic test mirroring `analysis.py`'s derivation rule.
 
-    The derivation lives inline in two places (`_run_analysis_real`
-    and the GET endpoint). This test asserts the contract per the spec
-    scenarios "Score 0 or 1 sets low_confidence true" / "Score 2 or
-    higher sets low_confidence false".
+    Threshold ≤ 0: only sections where no other source corroborates the
+    boundary are flagged. The original design proposed ≤ 1 but corpus
+    measurement on 16 songs / 145 sections showed that flagged 38% of
+    sections. Distribution: 0=11% / 1=27% / 2=28% / 3=24% / 4=9% / 5=1%.
+    Flagging only score=0 (11%) keeps the indicator meaningful.
     """
-    # Reproduce exactly the formula the API uses. Keeping this as a unit
-    # test (not an integration test) keeps it fast and avoids spinning
-    # up the whole pipeline.
-    low_confidence = score <= 1
+    low_confidence = score <= 0
     assert low_confidence is expected_low
 
 
 def test_low_confidence_default_for_legacy_section_without_field():
-    """Legacy sections (no `agreement_score`) must default to score 0 / low=True.
+    """Legacy sections (no `agreement_score`) default to score 0 → low=True.
 
     Per spec scenario "Legacy story without agreement_score defaults
     to 0".
@@ -109,7 +107,7 @@ def test_low_confidence_default_for_legacy_section_without_field():
     legacy_section = {"role": "verse", "start": 0.0, "end": 10.0}
     score = int(legacy_section.get("agreement_score", 0))
     assert score == 0
-    assert (score <= 1) is True
+    assert (score <= 0) is True
 
 
 # ---------------------------------------------------------------------------
@@ -137,6 +135,6 @@ def test_session_section_default_preserves_agreement_score():
     ]
     for sec, (exp_score, exp_low) in zip(session_sections, expected):
         score = int(sec.get("agreement_score", 0))
-        low = bool(sec.get("low_confidence", score <= 1))
+        low = bool(sec.get("low_confidence", score <= 0))
         assert score == exp_score
         assert low is exp_low

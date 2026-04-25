@@ -330,11 +330,16 @@ def _analyze_in_background(state: "_RunState", source_path: str, song_id: str,
                 # ("Legacy story without agreement_score defaults to 0").
                 # `low_confidence` is the boolean the UI renders against; the
                 # raw integer is kept for tooltips and inspector display.
-                # Threshold ≤ 1 is per design D3 — 0 means "no other source
-                # corroborates this boundary", 1 is borderline (single
-                # corroborator); both warrant a "verify this boundary" hint.
+                # Threshold ≤ 0 — 0 means "no other source corroborates this
+                # boundary". Original design proposed ≤ 1 but corpus
+                # measurement on 16 songs / 145 sections showed that flagged
+                # 38% of all sections, drowning the signal. Distribution:
+                #   0: 11.0%   1: 26.9%   2: 28.3%   3: 24.1%   4: 9.0%   5: 0.7%
+                # Flagging only score=0 (the 11% of genuinely uncorroborated
+                # boundaries) keeps the indicator meaningful. See
+                # https://github.com/bobbyfriday/xlight-autosequencer/pull/108#issuecomment-4320505368
                 agreement_score = int(sec.get("agreement_score", 0))
-                low_confidence = agreement_score <= 1
+                low_confidence = agreement_score <= 0
                 section_payload = {
                     "index": i,
                     "start_ms": start_ms,

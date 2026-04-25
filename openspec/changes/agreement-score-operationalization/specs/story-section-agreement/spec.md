@@ -2,7 +2,7 @@
 
 ### Requirement: Per-section agreement_score is propagated end-to-end to the analyze-step API
 
-The analyze-step API payload SHALL include the per-section integer `agreement_score` for every section emitted by the story builder, and SHALL include a derived boolean `low_confidence` field equal to `agreement_score <= 1`. When `_story.json` carries `agreement_score` it SHALL be copied verbatim; when the field is absent (legacy file written before PR #84) the API SHALL substitute `0` and set `low_confidence` to `true`.
+The analyze-step API payload SHALL include the per-section integer `agreement_score` for every section emitted by the story builder, and SHALL include a derived boolean `low_confidence` field equal to `agreement_score <= 0`. When `_story.json` carries `agreement_score` it SHALL be copied verbatim; when the field is absent (legacy file written before PR #84) the API SHALL substitute `0` and set `low_confidence` to `true`. The `<= 0` threshold was tuned 2026-04-25 from the original `<= 1` proposal — corpus measurement on 16 songs / 145 sections showed `<= 1` flagged 38% of all sections, drowning the signal; `<= 0` flags only the 11% of boundaries where no other source corroborates.
 
 #### Scenario: Story with agreement_score is propagated unchanged
 
@@ -11,14 +11,14 @@ The analyze-step API payload SHALL include the per-section integer `agreement_sc
 - **THEN** the corresponding section in the API payload SHALL have
   `agreement_score: 4` and `low_confidence: false`
 
-#### Scenario: Score 0 or 1 sets low_confidence true
+#### Scenario: Score 0 sets low_confidence true
 
-- **WHEN** a section's `agreement_score` is `0` or `1`
+- **WHEN** a section's `agreement_score` is `0`
 - **THEN** the API SHALL set `low_confidence: true` for that section
 
-#### Scenario: Score 2 or higher sets low_confidence false
+#### Scenario: Score 1 or higher sets low_confidence false
 
-- **WHEN** a section's `agreement_score` is `2`, `3`, `4`, or higher
+- **WHEN** a section's `agreement_score` is `1`, `2`, `3`, `4`, or higher
 - **THEN** the API SHALL set `low_confidence: false` for that section
 
 #### Scenario: Legacy story without agreement_score defaults to 0
