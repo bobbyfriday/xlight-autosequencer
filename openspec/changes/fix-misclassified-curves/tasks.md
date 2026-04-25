@@ -19,23 +19,23 @@
 
 ## 4. Orchestrator wiring — energy smoothing
 
-- [ ] 4.1 In `src/analyzer/orchestrator.py` after line 479 (where `energy_curves[stem]` is populated from `bbc_energy`), add a sibling loop that reads `bbc_rhythm` tracks via `_get_value_curve`. For each stem present in *both* dicts, replace `energy_curves[stem]` with a per-frame mean `ValueCurve`. Keep stems present in only one of the two unchanged.
-- [ ] 4.2 If frame counts differ, use `min(len(energy), len(rhythm))` and append a warning to `warnings`. Cite spec scenario "Frame count mismatch falls back to shorter length".
-- [ ] 4.3 Add `bbc_rhythm` to the algorithm inclusion list in `_build_algorithm_list` (around line 154 where `bbc_energy` is added) for the same stems that get `bbc_energy`. Verify `bbc_rhythm` is registered in the algorithm registry.
-- [ ] 4.4 Add an integration test in `tests/integration/test_orchestrator_energy_smoothing.py` (new file) that constructs synthetic `bbc_energy` and `bbc_rhythm` ValueCurves, runs the smoothing logic in isolation, and asserts the per-frame mean is correct.
+- [x] 4.1 In `src/analyzer/orchestrator.py` after line 479 (where `energy_curves[stem]` is populated from `bbc_energy`), add a sibling loop that reads `bbc_rhythm` tracks via `_get_value_curve`. For each stem present in *both* dicts, replace `energy_curves[stem]` with a per-frame mean `ValueCurve`. Keep stems present in only one of the two unchanged.
+- [x] 4.2 If frame counts differ, use `min(len(energy), len(rhythm))` and append a warning to `warnings`. Cite spec scenario "Frame count mismatch falls back to shorter length".
+- [x] 4.3 Add `bbc_rhythm` to the algorithm inclusion list in `_build_algorithm_list` (around line 154 where `bbc_energy` is added) for the same stems that get `bbc_energy`. Verify `bbc_rhythm` is registered in the algorithm registry.
+- [x] 4.4 Add an integration test in `tests/integration/test_orchestrator_energy_smoothing.py` (new file) that constructs synthetic `bbc_energy` and `bbc_rhythm` ValueCurves, runs the smoothing logic in isolation, and asserts the per-frame mean is correct.
 
 ## 5. Orchestrator wiring — chroma curve population
 
-- [ ] 5.1 In `src/analyzer/orchestrator.py` near the L6 Harmony assembly, read `nnls_chroma` track via `tracks_by_name.get("nnls_chroma", [])`. If a track exists and its `value_curve` is a `ChromaCurve`, assign to `HierarchyResult.chroma_curve`.
-- [ ] 5.2 Add `nnls_chroma` to the algorithm inclusion list in `_build_algorithm_list`. Verify it routes to the appropriate stem (probably `full_mix` per the existing stem affinity table).
-- [ ] 5.3 If `nnls_chroma` is unavailable, append a warning to `HierarchyResult.warnings` ("L6 Chroma: skipped — NNLS Chroma vamp plugin not available") and leave `chroma_curve = None`.
+- [x] 5.1 In `src/analyzer/orchestrator.py` near the L6 Harmony assembly, read `nnls_chroma` track via `tracks_by_name.get("nnls_chroma", [])`. If a track exists and its `value_curve` is a `ChromaCurve`, assign to `HierarchyResult.chroma_curve`.
+- [x] 5.2 Add `nnls_chroma` to the algorithm inclusion list in `_build_algorithm_list`. Verify it routes to the appropriate stem (probably `full_mix` per the existing stem affinity table).
+- [x] 5.3 If `nnls_chroma` is unavailable, append a warning to `HierarchyResult.warnings` ("L6 Chroma: skipped — NNLS Chroma vamp plugin not available") and leave `chroma_curve = None`.
 
 ## 6. Generator consumer — chroma-aware chord color
 
-- [ ] 6.1 Add `chord_color_for_time(t_ms, chords, chroma_curve)` helper to `src/generator/chord_colors.py` (or a new sibling module — implementation choice). Implement Chordino-primary / chroma-fallback logic per spec: Chordino color when within 4000 ms of a chord event; chroma-derived color from the dominant pitch class when gap > 4000 ms AND `chroma_curve` is not None; held Chordino color otherwise.
-- [ ] 6.2 Implement chroma → color: pick the pitch class with the maximum value at the frame nearest `t_ms`, map through the existing `CIRCLE_OF_FIFTHS` hue table.
-- [ ] 6.3 Wire the new helper into `src/generator/effect_placer.py` at the call site that currently does step-change chord color lookup. Old behavior (no chroma) preserved when `chroma_curve` is None.
-- [ ] 6.4 Add a unit test in `tests/unit/test_chord_colors.py` covering all three scenarios from the spec: Chordino covers timestamp, long gap with chroma, long gap without chroma.
+- [x] 6.1 Add `chord_color_for_time(t_ms, chords, chroma_curve)` helper to `src/generator/chord_colors.py` (or a new sibling module — implementation choice). Implement Chordino-primary / chroma-fallback logic per spec: Chordino color when within 4000 ms of a chord event; chroma-derived color from the dominant pitch class when gap > 4000 ms AND `chroma_curve` is not None; held Chordino color otherwise.
+- [x] 6.2 Implement chroma → color: pick the pitch class with the maximum value at the frame nearest `t_ms`, map through the existing `CIRCLE_OF_FIFTHS` hue table.
+- [x] 6.3 Wire the new helper into `src/generator/effect_placer.py` at the call site that currently does step-change chord color lookup. Old behavior (no chroma) preserved when `chroma_curve` is None.
+- [x] 6.4 Add a unit test in `tests/unit/test_chord_colors.py` covering all three scenarios from the spec: Chordino covers timestamp, long gap with chroma, long gap without chroma.
 
 ## 7. Baseline + gate
 
@@ -46,8 +46,8 @@
 
 ## 8. Documentation
 
-- [ ] 8.1 Update `docs/musical-analysis-design.md §2` to mark the misclassification of `bbc_rhythm` and `nnls_chroma` as resolved, with a back-reference to this change. Keep the historical context (the original §2 finding); add a "Resolved 2026-04-25 in change `fix-misclassified-curves`" note. Do NOT touch §5 or other sections.
-- [ ] 8.2 Confirm the `docs/analyzer-coverage.md` audit doc does not exist yet (it was a hypothetical Proposal A artifact); if a session creates it later, it should reference this change.
+- [x] 8.1 Update `docs/musical-analysis-design.md §2` to mark the misclassification of `bbc_rhythm` and `nnls_chroma` as resolved, with a back-reference to this change. Keep the historical context (the original §2 finding); add a "Resolved 2026-04-25 in change `fix-misclassified-curves`" note. Do NOT touch §5 or other sections.
+- [x] 8.2 Confirm the `docs/analyzer-coverage.md` audit doc does not exist yet (it was a hypothetical Proposal A artifact); if a session creates it later, it should reference this change.
 
 ## 9. PR + ship
 
