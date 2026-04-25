@@ -235,3 +235,48 @@ def test_tolerance_for_unknown_algorithm_uses_defaults() -> None:
 def test_tolerance_for_chordino_has_enharmonic_flag() -> None:
     tol = tolerance_for("chordino")
     assert tol.get("enharmonic_equivalents") is True
+
+
+def test_skip_check_tolerance_returns_no_violations() -> None:
+    """Algorithms marked skip_check=True don't gate even on wild drift."""
+    base = _snap("qm_segments", [0, 30000, 60000, 90000, 120000, 180000])
+    curr = _snap("qm_segments", [0, 5000, 12000, 25000, 40000])  # totally different
+    # Confirm tolerance has skip_check flag
+    assert base.tolerance.get("skip_check") is True
+    violations = check_track(base, curr, "fixture")
+    assert violations == [], (
+        f"skip_check=True should suppress all violations; got {violations}"
+    )
+
+
+def test_skip_check_honors_live_config_when_baseline_lacks_flag() -> None:
+    """Old baselines that pre-date skip_check still get skipped via live config.
+
+    Forward-compat: bumping ALGORITHM_TOLERANCES to mark a flaky algorithm
+    `skip_check` should take effect immediately, without forcing a
+    re-snapshot of every baseline. check_track reads the flag from BOTH
+    the saved baseline tolerance AND the current live config.
+    """
+    # Simulate an old baseline: qm_segments with default tolerance, no skip_check.
+    legacy_tol = {"count_tolerance_pct": 5.0, "timing_tolerance_ms": 50}
+    base = _snap("qm_segments", [0, 30000, 60000], tolerance=legacy_tol)
+    curr = _snap("qm_segments", [0, 50000, 100000], tolerance=legacy_tol)
+    # Saved tolerance lacks skip_check, but qm_segments has skip_check
+    # in the live ALGORITHM_TOLERANCES — so checks should still skip.
+    assert "skip_check" not in base.tolerance
+    violations = check_track(base, curr, "fixture")
+    assert violations == [], (
+        f"Live config skip_check should suppress violations; got {violations}"
+    )
+
+
+def test_qm_segments_marked_as_skip_check() -> None:
+    """qm_segments has run-to-run variance too large for tolerance to absorb;
+    documented as skip_check in ALGORITHM_TOLERANCES."""
+    tol = tolerance_for("qm_segments")
+    assert tol.get("skip_check") is True
+
+
+def test_segmentino_marked_as_skip_check() -> None:
+    tol = tolerance_for("segmentino")
+    assert tol.get("skip_check") is True
