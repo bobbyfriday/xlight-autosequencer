@@ -1,21 +1,21 @@
 ## 1. Data model
 
-- [ ] 1.1 Add `ChromaCurve` dataclass to `src/analyzer/result.py` mirroring `ValueCurve` but with `values: list[list[int]]` (12 ints per frame, 0–100). Implement `to_dict` / `from_dict` round-trip; add `duration_ms` property. Place near the existing `ValueCurve` definition (~line 414).
-- [ ] 1.2 Add `chroma_curve: Optional[ChromaCurve] = None` field to `HierarchyResult` in the L6 Harmony block (next to `chords` and `key_changes`, ~line 497).
-- [ ] 1.3 Add unit tests for `ChromaCurve` round-trip serialization and `duration_ms` math in `tests/unit/test_analysis_result.py` (or whichever file currently tests `ValueCurve` — verify path before writing).
+- [x] 1.1 Add `ChromaCurve` dataclass to `src/analyzer/result.py` mirroring `ValueCurve` but with `values: list[list[int]]` (12 ints per frame, 0–100). Implement `to_dict` / `from_dict` round-trip; add `duration_ms` property. Place near the existing `ValueCurve` definition (~line 414).
+- [x] 1.2 Add `chroma_curve: Optional[ChromaCurve] = None` field to `HierarchyResult` in the L6 Harmony block (next to `chords` and `key_changes`, ~line 497).
+- [x] 1.3 Add unit tests for `ChromaCurve` round-trip serialization and `duration_ms` math in `tests/unit/test_analysis_result.py` (or whichever file currently tests `ValueCurve` — verify path before writing).
 
 ## 2. BBC Rhythm reclassification
 
-- [ ] 2.1 In `src/analyzer/algorithms/vamp_bbc.py:127`, change `BBCRhythmAlgorithm.element_type` from `"onset"` to `"value_curve"`.
-- [ ] 2.2 Rewrite `BBCRhythmAlgorithm._run` to follow the same pattern as `bbc_energy` / `bbc_spectral_flux` / `bbc_peaks` (lines 46-119): collect vamp output as a vector, normalize via `_vamp_vector_to_curve`, attach a `ValueCurve` to `track.value_curve`, return `TimingTrack` with empty `marks`.
-- [ ] 2.3 Add a unit test in `tests/unit/test_vamp_bbc.py` (create file if absent) that mocks `vamp.collect` to return a synthetic vector and asserts the algorithm returns `element_type="value_curve"` with a populated `value_curve` and empty `marks`. Test must not require the real vamp plugin (CI doesn't have it).
+- [x] 2.1 In `src/analyzer/algorithms/vamp_bbc.py:127`, change `BBCRhythmAlgorithm.element_type` from `"onset"` to `"value_curve"`.
+- [x] 2.2 Rewrite `BBCRhythmAlgorithm._run` to follow the same pattern as `bbc_energy` / `bbc_spectral_flux` / `bbc_peaks` (lines 46-119): collect vamp output as a vector, normalize via `_vamp_vector_to_curve`, attach a `ValueCurve` to `track.value_curve`, return `TimingTrack` with empty `marks`.
+- [x] 2.3 Add a unit test in `tests/unit/test_vamp_bbc.py` (create file if absent) that mocks `vamp.collect` to return a synthetic vector and asserts the algorithm returns `element_type="value_curve"` with a populated `value_curve` and empty `marks`. Test must not require the real vamp plugin (CI doesn't have it).
 
 ## 3. NNLS Chroma reclassification
 
-- [ ] 3.1 In `src/analyzer/algorithms/vamp_harmony.py:45`, change `NNLSChromaAlgorithm.element_type` from `"harmonic"` to `"value_curve"`.
-- [ ] 3.2 Rewrite `NNLSChromaAlgorithm._run` to capture `frame["values"]` (the 12-bin chroma vector, currently discarded). Determine fps from frame timestamps (vamp typically returns at fixed fps; compute from first two timestamps). Normalize floats to 0–100 ints (multiply by 100, round, clamp). Build a `ChromaCurve(name=self.name, stem_source=stem, fps=fps, values=values)` and attach to `track.value_curve`. Return `TimingTrack` with empty `marks`.
-- [ ] 3.3 Note: `TimingTrack.value_curve` field type widens from `Optional[ValueCurve]` to `Optional[ValueCurve | ChromaCurve]`. Update the type annotation in `src/analyzer/result.py` (~line 145 area) and verify mypy / runtime doesn't break.
-- [ ] 3.4 Add a unit test in `tests/unit/test_vamp_harmony.py` mocking `vamp.process_audio` to return synthetic chroma frames and asserting the algorithm returns `element_type="value_curve"`, populated `value_curve` of type `ChromaCurve`, empty `marks`. Add the regression assertion that `NameError` cannot recur (importing the algorithm class succeeds — the bug-139 echo).
+- [x] 3.1 In `src/analyzer/algorithms/vamp_harmony.py:45`, change `NNLSChromaAlgorithm.element_type` from `"harmonic"` to `"value_curve"`.
+- [x] 3.2 Rewrite `NNLSChromaAlgorithm._run` to capture `frame["values"]` (the 12-bin chroma vector, currently discarded). Determine fps from frame timestamps (vamp typically returns at fixed fps; compute from first two timestamps). Normalize floats to 0–100 ints (multiply by 100, round, clamp). Build a `ChromaCurve(name=self.name, stem_source=stem, fps=fps, values=values)` and attach to `track.value_curve`. Return `TimingTrack` with empty `marks`.
+- [x] 3.3 Note: `TimingTrack.value_curve` field type widens from `Optional[ValueCurve]` to `Optional[ValueCurve | ChromaCurve]`. Update the type annotation in `src/analyzer/result.py` (~line 145 area) and verify mypy / runtime doesn't break.
+- [x] 3.4 Add a unit test in `tests/unit/test_vamp_harmony.py` mocking `vamp.process_audio` to return synthetic chroma frames and asserting the algorithm returns `element_type="value_curve"`, populated `value_curve` of type `ChromaCurve`, empty `marks`. Add the regression assertion that `NameError` cannot recur (importing the algorithm class succeeds — the bug-139 echo).
 
 ## 4. Orchestrator wiring — energy smoothing
 
