@@ -51,7 +51,7 @@
 
 ## 9. PR + ship
 
-- [ ] 9.1 Run `/review-diff main` against the branch and address every CRITICAL / HIGH finding before opening the PR.
-- [ ] 9.2 Open PR with title `feat(analyzer): reclassify nnls_chroma and bbc_rhythm as value curves`. Body should reference `docs/musical-analysis-design.md §2` (the finding) and link this change directory. Include "Test plan" with the gate exit-code expectation and the L0 metric check.
+- [x] 9.1 Run `/review-diff main` against the branch and address every CRITICAL / HIGH finding before opening the PR.
+- [x] 9.2 Open PR with title `feat(analyzer): reclassify nnls_chroma and bbc_rhythm as value curves`. Body should reference `docs/musical-analysis-design.md §2` (the finding) and link this change directory. Include "Test plan" with the gate exit-code expectation and the L0 metric check.
 - [ ] 9.3 If CI Tier A fails, fix root causes (no xfail / skip / --ignore — per cerebrum 2026-04-25 Do-Not-Repeat).
 - [ ] 9.4 After merge, run `/opsx:archive fix-misclassified-curves` to fold this change's specs into `openspec/specs/analyzer-value-curves/`.
