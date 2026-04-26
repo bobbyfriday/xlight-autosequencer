@@ -511,6 +511,35 @@
         "scope": "single-prop",
         "genre_affinity": "any"
       }
+    },
+    {
+      "name": "Radial Bloom",
+      "base_effect": "Single Strand",
+      "description": "Center-out fireworks chase across radial subModels (Ring 1 → Ring 2 → Ring 3). Best on flakes / snowflakes / gingerbread custom models.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Chase_Group_All": 0,
+        "E_CHOICE_Chase_Type1": "From Middle",
+        "E_CHOICE_SingleStrand_Colors": "Palette",
+        "E_CHOICE_SingleStrand_FX": "Fireworks 1D",
+        "E_CHOICE_SingleStrand_FX_Palette": "* Colors Only",
+        "E_SLIDER_Color_Mix1": 75,
+        "E_SLIDER_FX_Intensity": 160,
+        "E_SLIDER_FX_Speed": 160,
+        "E_SLIDER_Number_Chases": 1
+      },
+      "tags": {
+        "tier_affinity": "foreground",
+        "energy_level": "high",
+        "speed_feel": "fast",
+        "direction": null,
+        "section_roles": [
+          "chorus",
+          "drop",
+          "build"
+        ],
+        "scope": "group",
+        "genre_affinity": "any"
+      }
     }
   ]
 }

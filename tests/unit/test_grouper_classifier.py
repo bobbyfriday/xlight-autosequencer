@@ -6,19 +6,27 @@ from pathlib import Path
 import pytest
 
 from src.grouper.classifier import classify_props, detect_heroes, normalize_coords
-from src.grouper.layout import Prop, parse_layout
+from src.grouper.layout import Prop, SubModel, parse_layout
 
 FIXTURES = Path(__file__).parent.parent / "fixtures" / "grouper"
 
 
 def make_prop(name="Prop", world_x=0.0, world_y=0.0, scale_x=1.0, scale_y=1.0,
               parm1=1, parm2=1, sub_models=None) -> Prop:
+    # Accept either a list of strings (for legacy test brevity) or a list of
+    # SubModel instances; normalize to SubModel for the canonical Prop shape.
+    sm_list: list[SubModel] = []
+    for sm in sub_models or []:
+        if isinstance(sm, SubModel):
+            sm_list.append(sm)
+        else:
+            sm_list.append(SubModel(name=str(sm), pixel_indices=()))
     return Prop(
         name=name, display_as="Arch",
         world_x=world_x, world_y=world_y, world_z=0.0,
         scale_x=scale_x, scale_y=scale_y,
         parm1=parm1, parm2=parm2,
-        sub_models=sub_models or [],
+        sub_models=sm_list,
     )
 
 
@@ -102,8 +110,10 @@ class TestDetectHeroes:
         groups = detect_heroes(props)
         assert len(groups) == 1
         assert groups[0].name == "08_HERO_SingingFace"
-        assert "Eyes" in groups[0].members
-        assert "Mouth" in groups[0].members
+        # SubModels are exposed as fully-qualified "Parent/SubModel" addresses
+        # so xLights resolves them as Element targets in the .xsq output.
+        assert "SingingFace/Eyes" in groups[0].members
+        assert "SingingFace/Mouth" in groups[0].members
 
     def test_megatree_keyword_detected(self):
         props = [make_prop("MegaTree", sub_models=[])]

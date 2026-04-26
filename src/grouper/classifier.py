@@ -136,11 +136,17 @@ def detect_heroes(
             if name in prop_names:
                 hero_names.add(name)
 
-    # Build groups in prop order (stable)
+    # Build groups in prop order (stable).  When a hero prop has named
+    # subModels (e.g. a singing face with Eyes / Mouth), expose each
+    # subModel as a fully-qualified "Parent/SubModel" target so the xsq
+    # writer emits an addressable Element per region.
     groups = []
     for p in props:
         if p.name in hero_names:
-            members = p.sub_models if p.sub_models else [p.name]
+            if p.sub_models:
+                members = [f"{p.name}/{sm.name}" for sm in p.sub_models]
+            else:
+                members = [p.name]
             label = _sanitize_group_label(p.name)
             groups.append(PowerGroup(
                 name=f"08_HERO_{label}",

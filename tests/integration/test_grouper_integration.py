@@ -124,8 +124,10 @@ class TestHeroLayout:
         shutil.copy(FIXTURES / "hero_layout.xml", dest)
         groups = _run_full_pipeline(dest, dest)
         face_group = next(g for g in groups if g.name == "08_HERO_SingingFace")
-        assert "Eyes" in face_group.members
-        assert "Mouth" in face_group.members
+        # SubModels are exposed as fully-qualified "Parent/SubModel"
+        # addresses so xLights resolves them as Element targets.
+        assert "SingingFace/Eyes" in face_group.members
+        assert "SingingFace/Mouth" in face_group.members
 
 
 class TestMinimalLayout:

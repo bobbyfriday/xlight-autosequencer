@@ -660,6 +660,26 @@ def place_effects(
                     if variant is not None:
                         rot_params = dict(variant.parameter_overrides)
                         rot_direction_cycle = variant.direction_cycle
+
+                    # Radial sub-groups: chase across members on the beat
+                    # rather than firing a single section-span placement on
+                    # the parent.  Members are "Parent/SubModel" addresses;
+                    # each beat lights one ring in declaration order.
+                    if getattr(group, "prop_type", None) == "radial" and len(group.members) >= 2:
+                        rad_placements = _place_radial_chase_on_subgroup(
+                            effect_def=rotated_def,
+                            layer=layer,
+                            group=group,
+                            section=assignment.section,
+                            hierarchy=hierarchy,
+                            palette=tier_palette,
+                            params=rot_params,
+                            direction_cycle=rot_direction_cycle,
+                        )
+                        for p in rad_placements:
+                            result.setdefault(p.model_or_group, []).append(p)
+                        continue
+
                     rot_placements = _place_effect_on_group(
                         effect_def=rotated_def,
                         layer=layer,
@@ -707,6 +727,30 @@ def place_effects(
                         ws_def = effect_library.effects.get(ws_entry.effect_name)
                         if ws_def is None:
                             ws_def = effect_def  # fallback to layer effect
+
+                        # Radial sub-groups: chase across members on the beat.
+                        if getattr(group, "prop_type", None) == "radial" and len(group.members) >= 2:
+                            ws_params: dict[str, Any] = {}
+                            ws_dc = None
+                            if variant_library is not None:
+                                ws_variant = variant_library.get(layer.variant)
+                                if ws_variant is not None:
+                                    ws_params = dict(ws_variant.parameter_overrides)
+                                    ws_dc = ws_variant.direction_cycle
+                            rad_placements = _place_radial_chase_on_subgroup(
+                                effect_def=ws_def,
+                                layer=layer,
+                                group=group,
+                                section=assignment.section,
+                                hierarchy=hierarchy,
+                                palette=tier_palette,
+                                params=ws_params,
+                                direction_cycle=ws_dc,
+                            )
+                            for p in rad_placements:
+                                result.setdefault(p.model_or_group, []).append(p)
+                            continue
+
                         rot_placements = _place_effect_on_group(
                             effect_def=ws_def,
                             layer=layer,
@@ -730,6 +774,33 @@ def place_effects(
                     # Original: cycle through prop-effect pool (T023: per-group prop_type filter)
                     for gi, group in enumerate(groups_for_tier):
                         group_prop_type = getattr(group, "prop_type", None)
+
+                        # Radial sub-groups: chase the layer's effect across
+                        # members on the beat.  Bypass the pool entirely —
+                        # the radial sequence wants the same effect on every
+                        # ring, not a rotated alternative.
+                        if group_prop_type == "radial" and len(group.members) >= 2:
+                            pool_params: dict[str, Any] = {}
+                            pool_dc = None
+                            if variant_library is not None:
+                                pool_variant = variant_library.get(layer.variant)
+                                if pool_variant is not None:
+                                    pool_params = dict(pool_variant.parameter_overrides)
+                                    pool_dc = pool_variant.direction_cycle
+                            rad_placements = _place_radial_chase_on_subgroup(
+                                effect_def=effect_def,
+                                layer=layer,
+                                group=group,
+                                section=assignment.section,
+                                hierarchy=hierarchy,
+                                palette=tier_palette,
+                                params=pool_params,
+                                direction_cycle=pool_dc,
+                            )
+                            for p in rad_placements:
+                                result.setdefault(p.model_or_group, []).append(p)
+                            continue
+
                         pool = _build_effect_pool(
                             effect_library,
                             exclude={layer_variant.base_effect},
@@ -738,6 +809,7 @@ def place_effects(
                         if not pool:
                             continue
                         rotated_def = pool[gi % len(pool)]
+
                         rot_placements = _place_effect_on_group(
                             effect_def=rotated_def,
                             layer=layer,
@@ -1133,6 +1205,66 @@ def _place_chase_across_groups(
         result.setdefault(group.name, []).append(placement)
 
     return result
+
+
+def _place_radial_chase_on_subgroup(
+    effect_def: EffectDefinition,
+    layer: EffectLayer,
+    group: PowerGroup,
+    section: SectionEnergy,
+    hierarchy: HierarchyResult,
+    palette: list[str],
+    params: dict[str, Any],
+    direction_cycle: dict | None = None,
+) -> list[EffectPlacement]:
+    """Sequence a radial group's members on successive beats.
+
+    Used for tier-6 radial sub-groups (Ring 1, Ring 2, …) where each
+    member is a fully-qualified ``"Parent/SubModel"`` address.  Beat i
+    fires on ``members[i % len(members)]`` so the rings light up in
+    declaration order, producing a center-out (or rotational) bloom.
+
+    Falls back to a single section-span placement on the whole group
+    name when the hierarchy has no beats track.  This keeps the radial
+    group from going dark in songs that lack reliable beat detection.
+    """
+    members = group.members
+    if not members:
+        return []
+
+    beats_track = getattr(hierarchy, "beats", None)
+    if beats_track is None:
+        return [_make_placement(
+            effect_def, group.name, section.start_ms, section.end_ms,
+            params, palette, layer.blend_mode, "section",
+            direction_cycle=direction_cycle,
+        )]
+
+    marks = _marks_in_range(beats_track.marks, section.start_ms, section.end_ms)
+    marks = _apply_density_filter(marks, section.energy_score)
+    if not marks:
+        return [_make_placement(
+            effect_def, group.name, section.start_ms, section.end_ms,
+            params, palette, layer.blend_mode, "section",
+            direction_cycle=direction_cycle,
+        )]
+
+    placements: list[EffectPlacement] = []
+    for i, mark in enumerate(marks):
+        member = members[i % len(members)]
+        beat_start = mark.time_ms
+        beat_end = marks[i + 1].time_ms if i + 1 < len(marks) else min(
+            beat_start + 500, section.end_ms
+        )
+        if beat_end <= beat_start:
+            continue
+        placements.append(_make_placement(
+            effect_def, member, beat_start, beat_end,
+            params, palette, layer.blend_mode, "beat",
+            direction_cycle=direction_cycle,
+            instance_index=i,
+        ))
+    return placements
 
 
 def _substitute_bounding_box_effect(

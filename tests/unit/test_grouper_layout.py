@@ -52,8 +52,9 @@ class TestParseLayout:
     def test_sub_models_parsed(self):
         layout = parse_layout(FIXTURES / "hero_layout.xml")
         face = next(p for p in layout.props if p.name == "SingingFace")
-        assert "Eyes" in face.sub_models
-        assert "Mouth" in face.sub_models
+        names = {sm.name for sm in face.sub_models}
+        assert "Eyes" in names
+        assert "Mouth" in names
 
     def test_no_sub_models_on_regular_prop(self):
         layout = parse_layout(FIXTURES / "simple_layout.xml")
