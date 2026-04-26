@@ -26,6 +26,9 @@ htmlcov/
 *_selected.json
 *_top*.json
 
+# Per-song _story.json history archives (auto-rotated, see src/story/builder.py)
+*_story.history/
+
 # Audio files (don't commit user songs; fixtures are generated)
 *.mp3
 *.mp4
@@ -95,3 +98,6 @@ songs/
 docs/bcm/
 docs/qm_sweep/
 docs/ssm/
+
+# Diagnostic screenshots from tests/ui/flows/test_screenshot_all_timelines.py — opt-in via -m screenshot_all
+tests/golden/timeline-screenshots/
