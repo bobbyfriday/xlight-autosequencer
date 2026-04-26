@@ -353,10 +353,18 @@ def _populate_assignment_decisions(
         # Group density — fraction of groups per tier to activate.
         # Low-energy sections leave most props dark; only the prominent hero/focal
         # props are lit, matching pro sequences where quiet passages use ≤30% of models.
+        #
+        # Lower bracket boundary tightened from `<= 50` → `<= 35` (Apr 2026): the
+        # original `<= 50` lumped most mid-tempo pop sections (energy 40-50) into
+        # the 0.40 bucket, culling 60% of tier-6 groups in songs that should still
+        # look populated. Empirical evidence in
+        # openspec/changes/dim-section-real-cause/design.md: Baby Shark sections
+        # at energy 47-50 were rendering at 3-6% channel activation. The middle
+        # band now covers energy 36-70 where most pop / mid-tempo / kid songs sit.
         energy = section.energy_score
-        if energy <= 50:
+        if energy <= 35:
             assignment.group_density = 0.40
-        elif energy <= 75:
+        elif energy <= 70:
             assignment.group_density = 0.70
         else:
             assignment.group_density = 1.0
