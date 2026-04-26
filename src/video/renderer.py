@@ -9,38 +9,7 @@ import numpy as np
 from scipy.ndimage import gaussian_filter
 
 from .fseq import FseqHeader, load_fseq
-from .layout import Controller, Model, model_local_pixels, parse_controllers, parse_models
-
-
-def _rotation_matrix(rx_deg: float, ry_deg: float, rz_deg: float) -> np.ndarray:
-    """Z-Y-X intrinsic Tait-Bryan order (matches xLights)."""
-    rx, ry, rz = np.deg2rad([rx_deg, ry_deg, rz_deg])
-    cx, sx = np.cos(rx), np.sin(rx)
-    cy, sy = np.cos(ry), np.sin(ry)
-    cz, sz = np.cos(rz), np.sin(rz)
-    Rx = np.array([[1, 0, 0], [0, cx, -sx], [0, sx, cx]], dtype=np.float32)
-    Ry = np.array([[cy, 0, sy], [0, 1, 0], [-sy, 0, cy]], dtype=np.float32)
-    Rz = np.array([[cz, -sz, 0], [sz, cz, 0], [0, 0, 1]], dtype=np.float32)
-    return Rz @ Ry @ Rx
-
-
-def _model_to_world(local: np.ndarray, default_size: tuple, model: Model) -> np.ndarray:
-    """Center on origin → scale by Scale × default → rotate → translate to WorldPos."""
-    w, h, d = default_size
-    pts = local.copy()
-    pts[:, 0] -= w / 2
-    pts[:, 1] -= h / 2
-    pts[:, 2] -= d / 2
-    pts[:, 0] *= model.scale_x
-    pts[:, 1] *= model.scale_y
-    pts[:, 2] *= model.scale_z
-    if abs(model.rotate_x) + abs(model.rotate_y) + abs(model.rotate_z) > 0.01:
-        R = _rotation_matrix(model.rotate_x, model.rotate_y, model.rotate_z)
-        pts = pts @ R.T
-    pts[:, 0] += model.world_x
-    pts[:, 1] += model.world_y
-    pts[:, 2] += model.world_z
-    return pts
+from .layout import Controller, Model, model_world_pixels, parse_controllers, parse_models
 
 
 def render_video(
@@ -76,10 +45,9 @@ def render_video(
     all_world = []
     all_channels = []
     for m in models:
-        local, default_size = model_local_pixels(m)
-        if local.shape[0] == 0:
+        world = model_world_pixels(m)
+        if world.shape[0] == 0:
             continue
-        world = _model_to_world(local, default_size, m)
         all_world.append(world)
         all_channels.append(m.start_channel + 3 * np.arange(m.n_pixels))
     world_pts = np.concatenate(all_world, axis=0)
