@@ -2463,6 +2463,170 @@ def story_review_cmd(story_path: str, port: int, no_browser: bool) -> None:
 
 
 # ──────────────────────────────────────────────────────────────────────────────
+# story-history / story-diff commands — per-song archive of prior _story.json
+# (see src/story/builder.py: _archive_existing_story, list_story_history)
+# ──────────────────────────────────────────────────────────────────────────────
+
+
+def _resolve_story_path(audio_or_story: str) -> Path:
+    """Accept either a story JSON path or an audio file path; return the story path.
+
+    For an audio path (.mp3/.wav/.flac/.ogg/.m4a), returns the sibling
+    ``<stem>_story.json``. The returned path may not exist yet.
+    """
+    p = Path(audio_or_story)
+    if p.suffix.lower() in (".mp3", ".wav", ".flac", ".ogg", ".m4a"):
+        return p.parent / (p.stem + "_story.json")
+    return p
+
+
+def _summarize_story(story: dict) -> str:
+    """Return a short one-line summary of a loaded story dict."""
+    n_sections = len(story.get("sections", []))
+    sources = story.get("section_sources") or story.get("sources") or {}
+    src_label = ""
+    if isinstance(sources, dict):
+        srcs = sources.get("sections") or list(sources.keys()) or []
+        if isinstance(srcs, list) and srcs:
+            src_label = ",".join(sorted({str(s) for s in srcs}))
+    elif sources:
+        src_label = str(sources)
+    if not src_label:
+        per_section = {
+            s.get("source") for s in story.get("sections", [])
+            if isinstance(s, dict) and s.get("source")
+        }
+        if per_section:
+            src_label = ",".join(sorted(str(s) for s in per_section))
+    suffix = f" ({src_label})" if src_label else ""
+    return f"{n_sections} sections{suffix}"
+
+
+@cli.command("story-history")
+@click.argument("audio_or_story", type=click.Path(dir_okay=False))
+def story_history_cmd(audio_or_story: str) -> None:
+    """List archived ``_story.json`` snapshots for a song.
+
+    AUDIO_OR_STORY may be the source audio file or the story JSON path.
+    """
+    from src.story.builder import list_story_history
+
+    story_path = _resolve_story_path(audio_or_story)
+    entries = list_story_history(story_path)
+
+    if not entries:
+        click.echo(f"No story history for {story_path}")
+        if story_path.exists():
+            click.echo("(current story exists; archives are created on overwrite)")
+        return
+
+    click.echo(f"Story history for {story_path}:")
+    for entry in entries:
+        try:
+            data = json.loads(entry.read_text(encoding="utf-8"))
+            summary = _summarize_story(data)
+        except (json.JSONDecodeError, OSError) as exc:
+            summary = f"<unreadable: {exc}>"
+        ts = entry.stem
+        click.echo(f"  {ts}  —  {summary}")
+
+    if story_path.exists():
+        try:
+            current = json.loads(story_path.read_text(encoding="utf-8"))
+            click.echo(f"  current     —  {_summarize_story(current)}")
+        except (json.JSONDecodeError, OSError):
+            pass
+
+
+@cli.command("story-diff")
+@click.argument("audio_or_story", type=click.Path(dir_okay=False))
+@click.option(
+    "--from", "from_ref", required=True,
+    help="Source revision: a timestamp prefix from `story-history`.",
+)
+@click.option(
+    "--to", "to_ref", default="current",
+    help="Target revision: timestamp prefix or 'current' (default).",
+)
+def story_diff_cmd(audio_or_story: str, from_ref: str, to_ref: str) -> None:
+    """Compare two ``_story.json`` revisions for a song.
+
+    Output is a unified text diff of pretty-printed JSON, plus a short
+    semantic summary listing which sections changed (role, agreement_score,
+    chorus_ssm_supported, boundaries).
+
+    AUDIO_OR_STORY may be the source audio file or the story JSON path.
+    """
+    import difflib
+
+    from src.story.builder import resolve_history_entry
+
+    story_path = _resolve_story_path(audio_or_story)
+
+    try:
+        from_path = resolve_history_entry(story_path, from_ref)
+        to_path = resolve_history_entry(story_path, to_ref)
+    except (FileNotFoundError, ValueError) as exc:
+        click.echo(f"ERROR: {exc}", err=True)
+        sys.exit(1)
+
+    try:
+        from_data = json.loads(from_path.read_text(encoding="utf-8"))
+        to_data = json.loads(to_path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError) as exc:
+        click.echo(f"ERROR: Cannot read story file: {exc}", err=True)
+        sys.exit(1)
+
+    from_sections = {s.get("id"): s for s in from_data.get("sections", []) if isinstance(s, dict)}
+    to_sections = {s.get("id"): s for s in to_data.get("sections", []) if isinstance(s, dict)}
+
+    added_ids = sorted(to_sections.keys() - from_sections.keys())
+    removed_ids = sorted(from_sections.keys() - to_sections.keys())
+    common_ids = sorted(from_sections.keys() & to_sections.keys())
+
+    tracked_fields = (
+        "role", "agreement_score", "chorus_ssm_supported",
+        "start_ms", "end_ms", "label", "source",
+    )
+    changes: list[str] = []
+    for sid in common_ids:
+        fa, fb = from_sections[sid], to_sections[sid]
+        diffs = []
+        for field in tracked_fields:
+            if fa.get(field) != fb.get(field):
+                diffs.append(f"{field}: {fa.get(field)!r} → {fb.get(field)!r}")
+        if diffs:
+            changes.append(f"  {sid}: {'; '.join(diffs)}")
+
+    click.echo(f"--- {from_path.name}")
+    click.echo(f"+++ {to_path.name}")
+    click.echo("")
+
+    if added_ids or removed_ids or changes:
+        click.echo("Section-level changes:")
+        for sid in removed_ids:
+            click.echo(f"  - {sid} (removed)")
+        for sid in added_ids:
+            click.echo(f"  + {sid} (added)")
+        for line in changes:
+            click.echo(line)
+        click.echo("")
+    else:
+        click.echo("No section-level changes detected.")
+        click.echo("")
+
+    from_lines = json.dumps(from_data, indent=2, sort_keys=True).splitlines(keepends=True)
+    to_lines = json.dumps(to_data, indent=2, sort_keys=True).splitlines(keepends=True)
+    diff = difflib.unified_diff(
+        from_lines, to_lines,
+        fromfile=from_path.name, tofile=to_path.name,
+        n=2,
+    )
+    for line in diff:
+        click.echo(line, nl=False)
+
+
+# ──────────────────────────────────────────────────────────────────────────────
 # variant subcommand group (FR-028)
 # ──────────────────────────────────────────────────────────────────────────────
 
