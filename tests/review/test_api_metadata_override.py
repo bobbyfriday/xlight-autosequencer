@@ -13,7 +13,8 @@ import wave
 
 
 def _make_unique_wav(seed: int = 0) -> bytes:
-    n_samples = 44100
+    # 6 seconds so the import-time validator (5 s minimum) accepts it.
+    n_samples = 6 * 44100
     buf = io.BytesIO()
     with wave.open(buf, "wb") as w:
         w.setnchannels(1)

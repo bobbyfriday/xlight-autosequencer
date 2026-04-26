@@ -31,6 +31,35 @@ describe('Drop screen', () => {
     expect(mockFetch).not.toHaveBeenCalled();
   });
 
+  it('shows server error message when import returns 400 (e.g. malformed audio)', async () => {
+    // Backend rejects malformed/empty/short/silent audio at the
+    // /api/v1/import boundary with a structured 400.
+    mockFetch.mockResolvedValue({
+      ok: false,
+      json: async () => ({
+        error: {
+          code: 'audio_too_short',
+          message: 'Audio is too short (1.00s). Minimum supported length is 5s.',
+        },
+      }),
+    });
+
+    const onImported = vi.fn();
+    render(<Drop onSongImported={onImported} />);
+    const input = screen.getByTestId('file-input') as HTMLInputElement;
+
+    const file = new File(['fake'], 'short.mp3', { type: 'audio/mpeg' });
+    Object.defineProperty(input, 'files', { value: [file], configurable: true });
+    fireEvent.change(input);
+
+    await waitFor(() => {
+      const err = screen.getByTestId('error-message');
+      expect(err.textContent).toContain('too short');
+    });
+    // Caller is NOT notified — the import didn't succeed.
+    expect(onImported).not.toHaveBeenCalled();
+  });
+
   it('calls import API on valid file', async () => {
     const songData = {
       song_id: 'abc123',
