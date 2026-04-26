@@ -206,6 +206,15 @@ _PROP_EFFECT_POOL: list[str] = [
     "Curtain", "Shockwave", "Fire", "Strobe", "Galaxy",
 ]
 
+# Effects whose visual pattern doesn't exploit 2D matrix resolution.  When the
+# rotation pool is filtered for prop_type="matrix", these are excluded so the
+# remaining 2D-rich effects (Spirals, Shockwave, Fire, Galaxy, Ripple, Meteors)
+# win by default — large matrix walls render motion patterns instead of flat
+# columns or all-pixel-on-at-once strobes.
+_MATRIX_LOW_VALUE_EFFECTS: frozenset[str] = frozenset({
+    "Single Strand", "Bars", "Strobe", "Curtain",
+})
+
 # ---------------------------------------------------------------------------
 # Beat accent constants (spec 042)
 # ---------------------------------------------------------------------------
@@ -372,6 +381,11 @@ def _build_effect_pool(
         if prop_type is not None:
             rating = edef.prop_suitability.get(prop_type, "possible")
             if rating == "not_recommended":
+                continue
+            # Matrix props benefit visibly from 2D-pattern effects.  Drop the
+            # 1D-oriented effects from the rotation so the matrix walls render
+            # motion (Plasma/Fire/Pinwheel/Spirals) instead of flat columns.
+            if prop_type == "matrix" and name in _MATRIX_LOW_VALUE_EFFECTS:
                 continue
         pool.append(edef)
     # FR-004: if filtering emptied the pool, relax to unfiltered

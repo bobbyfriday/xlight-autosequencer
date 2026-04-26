@@ -290,3 +290,67 @@ class TestEffectPoolFiltering:
         assert "Ripple" not in pool_names, "Ripple excluded by not_recommended for arch"
         assert "Spirals" in pool_names, "Spirals should be in pool"
         assert len(pool) == 1
+
+
+class TestMatrixPoolFilter:
+    """Suggestion #6: matrix prop_type drops 1D-oriented effects from rotation.
+
+    Vert/Horiz Matrix props are wasted on Single Strand / Bars / Strobe / Curtain —
+    those don't exploit 2D resolution. The matrix-specific filter keeps the rich
+    2D-pattern effects (Spirals, Ripple, Shockwave, Fire, Galaxy, Meteors) so the
+    rotation lands on motion patterns by default.
+    """
+
+    def test_matrix_excludes_1d_oriented_effects(self):
+        """Single Strand, Bars, Strobe, Curtain are dropped from a matrix-prop pool."""
+        # Mirror _PROP_EFFECT_POOL with all rated "ideal" for matrix so only the
+        # 1D-oriented filter applies.
+        lib = _make_effect_lib({
+            name: {"matrix": "ideal"} for name in _PROP_EFFECT_POOL
+        })
+
+        pool = _build_effect_pool(lib, prop_type="matrix")
+        pool_names = {e.name for e in pool}
+
+        for excluded in ("Single Strand", "Bars", "Strobe", "Curtain"):
+            assert excluded not in pool_names, (
+                f"{excluded} should be excluded from matrix pool — "
+                f"it does not exploit 2D resolution"
+            )
+        for kept in ("Fire", "Spirals", "Shockwave", "Ripple", "Meteors", "Galaxy"):
+            assert kept in pool_names, (
+                f"{kept} should be kept in matrix pool — it produces 2D motion"
+            )
+
+    def test_non_matrix_prop_types_keep_1d_effects(self):
+        """The 1D-oriented filter is matrix-specific — other prop types keep them."""
+        lib = _make_effect_lib({
+            name: {"arch": "good", "matrix": "ideal"} for name in _PROP_EFFECT_POOL
+        })
+
+        arch_pool = {e.name for e in _build_effect_pool(lib, prop_type="arch")}
+        matrix_pool = {e.name for e in _build_effect_pool(lib, prop_type="matrix")}
+
+        # Arch keeps Single Strand / Bars (they look fine on 1D linear props).
+        assert "Single Strand" in arch_pool
+        assert "Bars" in arch_pool
+        # Matrix drops them.
+        assert "Single Strand" not in matrix_pool
+        assert "Bars" not in matrix_pool
+
+    def test_matrix_filter_does_not_empty_pool_when_relaxation_applies(self):
+        """If every effect is not_recommended for matrix, relaxation still kicks in.
+
+        Regression: the matrix-specific 1D drop must not interfere with the
+        existing not_recommended-relaxation path.
+        """
+        lib = _make_effect_lib({
+            name: {"matrix": "not_recommended"} for name in _PROP_EFFECT_POOL
+        })
+
+        pool = _build_effect_pool(lib, prop_type="matrix")
+
+        # Relaxation re-calls with prop_type=None, returning the unfiltered pool.
+        # The 1D-drop only fires when prop_type="matrix", so the relaxed pool
+        # contains everything (including Bars / Single Strand).
+        assert len(pool) == len(_PROP_EFFECT_POOL)

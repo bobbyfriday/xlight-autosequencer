@@ -157,6 +157,53 @@
         "scope": "single-prop",
         "genre_affinity": "any"
       }
+    },
+    {
+      "name": "Fire Matrix Reactive",
+      "base_effect": "Fire",
+      "description": "Music-reactive flames tuned for matrix walls. Tall flames with audio-driven height fill the full 2D buffer with flickering motion.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Fire_GrowWithMusic": 1,
+        "E_CHOICE_Fire_Location": "Bottom",
+        "E_SLIDER_Fire_Height": 90,
+        "E_SLIDER_Fire_HueShift": 0
+      },
+      "tags": {
+        "tier_affinity": "foreground",
+        "energy_level": "high",
+        "speed_feel": "fast",
+        "direction": null,
+        "section_roles": [
+          "chorus",
+          "drop",
+          "build"
+        ],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Fire Matrix Hero",
+      "base_effect": "Fire",
+      "description": "Hero-tier fire for matrix props. Music-reactive flames at full height with cool hue shift produce dramatic 2D flame patterns.",
+      "parameter_overrides": {
+        "E_CHECKBOX_Fire_GrowWithMusic": 1,
+        "E_CHOICE_Fire_Location": "Bottom",
+        "E_SLIDER_Fire_Height": 95,
+        "E_SLIDER_Fire_HueShift": 40
+      },
+      "tags": {
+        "tier_affinity": "hero",
+        "energy_level": "high",
+        "speed_feel": "fast",
+        "direction": null,
+        "section_roles": [
+          "chorus",
+          "drop"
+        ],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
     }
   ]
 }

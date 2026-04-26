@@ -175,6 +175,55 @@
         "scope": "single-prop",
         "genre_affinity": "any"
       }
+    },
+    {
+      "name": "Color Wash Matrix Motion",
+      "base_effect": "Color Wash",
+      "description": "Multi-cycle shimmering color wash with both fades enabled, tuned for matrix walls. Creates moving 2D color motion across the full grid instead of a flat fill.",
+      "parameter_overrides": {
+        "E_CHECKBOX_ColorWash_CircularPalette": 1,
+        "E_CHECKBOX_ColorWash_HFade": 1,
+        "E_CHECKBOX_ColorWash_Shimmer": 1,
+        "E_CHECKBOX_ColorWash_VFade": 1,
+        "E_SLIDER_ColorWash_Cycles": 4
+      },
+      "tags": {
+        "tier_affinity": "foreground",
+        "energy_level": "medium",
+        "speed_feel": "moderate",
+        "direction": null,
+        "section_roles": [
+          "verse",
+          "chorus",
+          "build"
+        ],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Color Wash Matrix Hero",
+      "base_effect": "Color Wash",
+      "description": "Hero-tier color wash for matrix props. Three cycles with shimmer and dual fades produce a vivid traveling 2D gradient suitable for chorus peaks.",
+      "parameter_overrides": {
+        "E_CHECKBOX_ColorWash_CircularPalette": 1,
+        "E_CHECKBOX_ColorWash_HFade": 1,
+        "E_CHECKBOX_ColorWash_Shimmer": 1,
+        "E_CHECKBOX_ColorWash_VFade": 1,
+        "E_SLIDER_ColorWash_Cycles": 3
+      },
+      "tags": {
+        "tier_affinity": "hero",
+        "energy_level": "high",
+        "speed_feel": "moderate",
+        "direction": null,
+        "section_roles": [
+          "chorus",
+          "drop"
+        ],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
     }
   ]
 }

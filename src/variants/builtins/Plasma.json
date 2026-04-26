@@ -269,6 +269,77 @@
         "scope": "single-prop",
         "genre_affinity": "any"
       }
+    },
+    {
+      "name": "Plasma Matrix Storm",
+      "base_effect": "Plasma",
+      "description": "Dense fast plasma tuned for matrix walls. High line density and pattern 6 produce churning 2D color motion across the full grid.",
+      "parameter_overrides": {
+        "E_CHOICE_Plasma_Color": "Normal",
+        "E_SLIDER_Plasma_Line_Density": 7,
+        "E_SLIDER_Plasma_Speed": 45,
+        "E_SLIDER_Plasma_Style": 6
+      },
+      "tags": {
+        "tier_affinity": "foreground",
+        "energy_level": "high",
+        "speed_feel": "fast",
+        "direction": null,
+        "section_roles": [
+          "chorus",
+          "drop",
+          "build"
+        ],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Plasma Matrix Hero",
+      "base_effect": "Plasma",
+      "description": "Hero-tier plasma for matrix props. Pattern 7 with high speed and density fills the full 2D buffer with vivid swirling gradients.",
+      "parameter_overrides": {
+        "E_CHOICE_Plasma_Color": "Normal",
+        "E_SLIDER_Plasma_Line_Density": 6,
+        "E_SLIDER_Plasma_Speed": 50,
+        "E_SLIDER_Plasma_Style": 7
+      },
+      "tags": {
+        "tier_affinity": "hero",
+        "energy_level": "high",
+        "speed_feel": "fast",
+        "direction": null,
+        "section_roles": [
+          "chorus",
+          "drop"
+        ],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
+    },
+    {
+      "name": "Plasma Matrix Flow",
+      "base_effect": "Plasma",
+      "description": "Foreground plasma flow for matrix props at moderate energy. Pattern 2 with medium density and speed gives a smooth 2D color drift.",
+      "parameter_overrides": {
+        "E_CHOICE_Plasma_Color": "Normal",
+        "E_SLIDER_Plasma_Line_Density": 5,
+        "E_SLIDER_Plasma_Speed": 25,
+        "E_SLIDER_Plasma_Style": 2
+      },
+      "tags": {
+        "tier_affinity": "foreground",
+        "energy_level": "medium",
+        "speed_feel": "moderate",
+        "direction": null,
+        "section_roles": [
+          "verse",
+          "chorus",
+          "bridge"
+        ],
+        "scope": "single-prop",
+        "genre_affinity": "any"
+      }
     }
   ]
 }
