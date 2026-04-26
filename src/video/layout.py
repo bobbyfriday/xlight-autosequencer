@@ -189,15 +189,38 @@ def model_local_pixels(model: Model) -> tuple[np.ndarray, tuple[float, float, fl
         return positions, (model.custom_w, model.custom_h, 1)
 
     if da in ("Horiz Matrix", "Vert Matrix"):
-        if da == "Horiz Matrix":
-            cols, rows = model.parm2, model.parm1
-        else:
-            cols, rows = model.parm1, model.parm2
+        # parm1 = strings, parm2 = pixels per string, parm3 = strands per string
+        # (zigzag count). Total width/height = strings * strands × pixels-per-strand.
+        strings = max(model.parm1, 1)
+        per_string = max(model.parm2, 1)
+        strands = max(model.parm3, 1)
+        per_strand = max(per_string // strands, 1)
         positions = np.zeros((n, 3), dtype=np.float32)
-        for i in range(n):
-            r = i // cols
-            c = i % cols
-            positions[i] = (c, rows - 1 - r, 0)
+        if da == "Vert Matrix":
+            cols = strings * strands
+            rows = per_strand
+            for i in range(n):
+                if i >= n:
+                    break
+                string = i // per_string
+                in_string = i % per_string
+                strand = in_string // per_strand
+                in_strand = in_string % per_strand
+                col = string * strands + strand
+                # Zigzag: even strands go top-to-bottom, odd strands bottom-to-top
+                row = in_strand if strand % 2 == 0 else (per_strand - 1 - in_strand)
+                positions[i] = (col, rows - 1 - row, 0)
+        else:  # Horiz Matrix
+            cols = per_strand
+            rows = strings * strands
+            for i in range(n):
+                string = i // per_string
+                in_string = i % per_string
+                strand = in_string // per_strand
+                in_strand = in_string % per_strand
+                row = string * strands + strand
+                col = in_strand if strand % 2 == 0 else (per_strand - 1 - in_strand)
+                positions[i] = (col, rows - 1 - row, 0)
         return positions, (cols, rows, 1)
 
     if da == "Cube":
