@@ -18,6 +18,18 @@ from dataclasses import dataclass, field
 
 from src.grouper.layout import Prop, dominant_prop_type
 
+# SubModel names that imply a radial structure where successive members
+# are concentric rings or rotational spokes.  When a Custom prop's subModels
+# match one of these patterns, we promote them to a tier-6 chase group so
+# the inner→outer (or spoke 1→2→3) sequence can play on successive beats.
+_RADIAL_SUBMODEL_PATTERNS: dict[str, "re.Pattern[str]"] = {
+    "Rings": re.compile(r"^Ring\s*(\d+)$", re.IGNORECASE),
+    "Spokes": re.compile(r"^Spoke\s*(\d+)$", re.IGNORECASE),
+    "Arms": re.compile(r"^Arms?\s*(\d+)$", re.IGNORECASE),
+    "Arrows": re.compile(r"^Arrow\s*(\d+)$", re.IGNORECASE),
+}
+_RADIAL_MIN_MEMBERS = 2
+
 # Show profile → set of active tier numbers
 PROFILE_TIERS: dict[str, set[int]] = {
     "energetic": {3, 4, 6, 8},
@@ -70,6 +82,7 @@ def generate_groups(
         groups.extend(_tier5_fidelity(props))
     if 6 in active_tiers:
         groups.extend(_tier6_prop_type(props))
+        groups.extend(_tier6_radial_subgroups(props))
     if 7 in active_tiers:
         groups.extend(_tier7_compound(props))
     if 8 in active_tiers:
@@ -204,6 +217,43 @@ def _tier6_prop_type(props: list[Prop]) -> list[PowerGroup]:
         for type_name, members in sorted(types.items())
         if len(members) >= 2
     ]
+
+
+def _tier6_radial_subgroups(props: list[Prop]) -> list[PowerGroup]:
+    """Promote radial subModels (Ring N / Spoke N / …) to chase targets.
+
+    For each Custom prop whose subModels match a known radial pattern
+    (see ``_RADIAL_SUBMODEL_PATTERNS``), emit one PowerGroup per pattern
+    with members as fully-qualified ``"Parent/SubModel"`` addresses sorted
+    by the integer suffix.  A pattern with fewer than ``_RADIAL_MIN_MEMBERS``
+    matching subModels is skipped — a single ring is just a flash.
+
+    The resulting groups carry ``prop_type="radial"`` so existing
+    ``prop_suitability`` filtering routes radial-friendly effects and the
+    chase-across-members placer treats them as a center-out sequence.
+    """
+    groups: list[PowerGroup] = []
+    for p in props:
+        if not p.sub_models:
+            continue
+        for label, pattern in _RADIAL_SUBMODEL_PATTERNS.items():
+            matches: list[tuple[int, str]] = []
+            for sm in p.sub_models:
+                m = pattern.match(sm.name)
+                if m:
+                    matches.append((int(m.group(1)), sm.name))
+            if len(matches) < _RADIAL_MIN_MEMBERS:
+                continue
+            matches.sort(key=lambda t: t[0])  # numeric sort, not lexicographic
+            members = [f"{p.name}/{sm_name}" for _, sm_name in matches]
+            group_name = f"06_PROP_{_sanitize_label(p.name)}_{label}"
+            groups.append(PowerGroup(
+                name=group_name,
+                tier=6,
+                members=members,
+                prop_type="radial",
+            ))
+    return groups
 
 
 def _tier7_compound(props: list[Prop]) -> list[PowerGroup]:

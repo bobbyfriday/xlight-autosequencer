@@ -40,6 +40,52 @@ DISPLAY_AS_TO_PROP_TYPE: dict[str, str] = {
 }
 
 
+@dataclass(frozen=True)
+class SubModel:
+    """A named pixel region inside a Custom xLights model.
+
+    `name` is the subModel name as authored in xlights_rgbeffects.xml
+    (e.g. "Ring 1").  `pixel_indices` holds the 1-indexed pixel positions
+    parsed from the lineN attributes, in declaration order — declaration
+    order matters because xLights uses it to drive intra-subModel effect
+    direction.
+    """
+    name: str
+    pixel_indices: tuple[int, ...] = ()
+
+
+def parse_pixel_ranges(spec: str) -> tuple[int, ...]:
+    """Parse an xLights subModel lineN attribute into 1-indexed pixel indices.
+
+    Tokens are comma-separated; each token is either ``"N"`` or ``"N-M"``.
+    Reverse ranges (``"16-15"``) are valid in xLights and yield indices in
+    reverse order.  Empty / whitespace input → empty tuple.  A non-numeric
+    token raises ``ValueError`` rather than being silently dropped — bad
+    layout XML should fail loudly.
+    """
+    if not spec or not spec.strip():
+        return ()
+    out: list[int] = []
+    for raw in spec.split(","):
+        token = raw.strip()
+        if not token:
+            continue
+        if "-" in token:
+            lo_s, hi_s = token.split("-", 1)
+            try:
+                lo, hi = int(lo_s), int(hi_s)
+            except ValueError as exc:
+                raise ValueError(f"bad pixel-range token: {token!r}") from exc
+            step = 1 if hi >= lo else -1
+            out.extend(range(lo, hi + step, step))
+        else:
+            try:
+                out.append(int(token))
+            except ValueError as exc:
+                raise ValueError(f"bad pixel-range token: {token!r}") from exc
+    return tuple(out)
+
+
 @dataclass
 class Prop:
     name: str
@@ -51,7 +97,7 @@ class Prop:
     scale_y: float
     parm1: int
     parm2: int
-    sub_models: list[str]
+    sub_models: list[SubModel]
     custom_model: str = ""  # raw CustomModel grid CSV (empty for non-Custom models)
     x2: float = 0.0  # endpoint offset X (Single Line / Poly Line models)
     y2: float = 0.0  # endpoint offset Y (Single Line / Poly Line models)
@@ -85,7 +131,28 @@ def parse_layout(path: str | Path) -> Layout:
     props: list[Prop] = []
     for model in model_elems:
         name = model.get("name", "")
-        sub_models = [sm.get("name", "") for sm in model.findall("subModel")]
+        sub_models: list[SubModel] = []
+        for sm in model.findall("subModel"):
+            sm_name = sm.get("name", "")
+            indices: list[int] = []
+            # Concatenate line0, line1, line2, ... in numeric order until the
+            # next attribute is missing.  xLights stacks lines for the visual
+            # layout but for effect targeting the union of all referenced
+            # pixels is what matters.
+            i = 0
+            while True:
+                line = sm.get(f"line{i}")
+                if line is None:
+                    break
+                try:
+                    indices.extend(parse_pixel_ranges(line))
+                except ValueError:
+                    # Bad data in user XML — skip this line, keep parsing
+                    # the rest of the model so a single typo doesn't break
+                    # the whole layout load.
+                    pass
+                i += 1
+            sub_models.append(SubModel(name=sm_name, pixel_indices=tuple(indices)))
         prop = Prop(
             name=name,
             display_as=model.get("DisplayAs", ""),
