@@ -36,11 +36,53 @@ interface LogLine {
   kind: 'info' | 'ok' | 'err' | 'warn' | 'meta' | 'progress';
 }
 
-interface Section {
+export interface Section {
   label: string;
   kind: string;
   start_ms: number;
   end_ms: number;
+  // PR #84 ships the integer; this change surfaces it to the UI. Default
+  // 0 for legacy stories written before PR #84 (per the spec contract).
+  agreement_score: number;
+  // Derived in the API as `agreement_score <= 0` (retuned 2026-04-25
+  // from <= 1 — corpus measurement showed <= 1 flagged 38% of sections,
+  // <= 0 flags only the 11% genuinely uncorroborated boundaries). The
+  // boolean is what the UI renders against; the integer is kept for
+  // tooltip display.
+  low_confidence: boolean;
+  // SSM Chorus validator (`src/story/builder.py`). Present only on
+  // Chorus sections; absent on non-Chorus and on legacy stories. Per
+  // the spec, missing → treated as supported (do not flag).
+  chorus_ssm_supported?: boolean;
+}
+
+/**
+ * Pure function: derive the review-status indicator + tooltip for a
+ * section. Exported for unit testing the rendering logic without spinning
+ * up the full Analyze component (which forks into a "summary" branch when
+ * status='analyzed' that doesn't render the section list at all).
+ *
+ * - low_confidence (boundary score=0) → flag, tooltip mentions boundary
+ * - chorus_ssm_supported===false (Chorus has no SSM peer) → flag,
+ *   tooltip mentions Chorus label. Absent (undefined) → treated as
+ *   supported (do not flag).
+ * - Both → flag, tooltip joins both reasons with a middot.
+ */
+export function deriveSectionReviewStatus(
+  s: Pick<Section, 'low_confidence' | 'agreement_score' | 'chorus_ssm_supported'>,
+): { needsReview: boolean; tooltip: string } {
+  const ssmUnsupported = s.chorus_ssm_supported === false;
+  const needsReview = s.low_confidence || ssmUnsupported;
+  const parts: string[] = [];
+  if (s.low_confidence) {
+    parts.push(
+      `Low multi-source agreement — verify boundary (score ${s.agreement_score})`,
+    );
+  }
+  if (ssmUnsupported) {
+    parts.push('No SSM repetition peer — verify Chorus label');
+  }
+  return { needsReview, tooltip: parts.join(' · ') };
 }
 
 interface Findings {
@@ -204,12 +246,40 @@ export function Analyze({ song, forceOnMount = false, onAnalysisComplete, onComp
       // src/review/api/v1/analysis.py:471). The `sections` / `song_story.sections`
       // fallbacks cover legacy response shapes and pending-commit drafts.
       const secs: Section[] = (data?.detected_sections ?? data?.sections ?? data?.song_story?.sections ?? []).map(
-        (s: { label?: string; kind?: string; start_ms?: number; end_ms?: number; start?: number; end?: number }) => ({
-          label: s.label ?? s.kind ?? 'section',
-          kind: s.kind ?? '',
-          start_ms: s.start_ms ?? (s.start ? s.start * 1000 : 0),
-          end_ms: s.end_ms ?? (s.end ? s.end * 1000 : 0),
-        })
+        (s: {
+          label?: string;
+          kind?: string;
+          start_ms?: number;
+          end_ms?: number;
+          start?: number;
+          end?: number;
+          agreement_score?: number;
+          low_confidence?: boolean;
+          chorus_ssm_supported?: boolean;
+        }) => {
+          // Defaults match the spec's "legacy story" contract: missing
+          // agreement_score → 0, low_confidence → derived from score.
+          const agreement_score =
+            typeof s.agreement_score === 'number' ? s.agreement_score : 0;
+          const low_confidence =
+            typeof s.low_confidence === 'boolean'
+              ? s.low_confidence
+              : agreement_score <= 0;
+          return {
+            label: s.label ?? s.kind ?? 'section',
+            kind: s.kind ?? '',
+            start_ms: s.start_ms ?? (s.start ? s.start * 1000 : 0),
+            end_ms: s.end_ms ?? (s.end ? s.end * 1000 : 0),
+            agreement_score,
+            low_confidence,
+            // Pass through only when the field is present — `undefined`
+            // means "no SSM evidence" which the UI must NOT flag (per
+            // spec D1: absent SSM → supported).
+            ...(typeof s.chorus_ssm_supported === 'boolean'
+              ? { chorus_ssm_supported: s.chorus_ssm_supported }
+              : {}),
+          } satisfies Section;
+        }
       );
       if (secs.length > 0) {
         setFindings((prev) => ({ ...prev, sections: secs, themesAssigned: true }));
@@ -730,19 +800,32 @@ export function Analyze({ song, forceOnMount = false, onAnalysisComplete, onComp
             {findings.sections.length === 0 && (
               <div className={styles.emptyNote}>waiting for structure…</div>
             )}
-            {findings.sections.map((s, i) => (
-              <div key={i} className={styles.sectionRow}>
-                <i
-                  className={styles.sectionDot}
-                  style={{ background: kindColor(s.kind) }}
-                />
-                <span className={styles.sectionIdx}>{String(i + 1).padStart(2, '0')}</span>
-                <span className={styles.sectionLabel}>{s.label}</span>
-                <span className={styles.sectionDur}>
-                  {Math.round((s.end_ms - s.start_ms) / 1000)}s
-                </span>
-              </div>
-            ))}
+            {findings.sections.map((s, i) => {
+              const { needsReview, tooltip } = deriveSectionReviewStatus(s);
+              return (
+                <div key={i} className={styles.sectionRow}>
+                  <i
+                    className={styles.sectionDot}
+                    style={{ background: kindColor(s.kind) }}
+                  />
+                  <span className={styles.sectionIdx}>{String(i + 1).padStart(2, '0')}</span>
+                  <span className={styles.sectionLabel}>{s.label}</span>
+                  {needsReview && (
+                    <span
+                      className={styles.sectionFlag}
+                      data-testid={`section-flag-${i}`}
+                      title={tooltip}
+                      aria-label={tooltip}
+                    >
+                      !
+                    </span>
+                  )}
+                  <span className={styles.sectionDur}>
+                    {Math.round((s.end_ms - s.start_ms) / 1000)}s
+                  </span>
+                </div>
+              );
+            })}
           </div>
 
           {/* Bottom button */}

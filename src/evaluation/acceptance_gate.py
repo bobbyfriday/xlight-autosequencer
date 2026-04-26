@@ -1,11 +1,12 @@
 """Acceptance-gate orchestrator.
 
-Runs three suites against a corpus and aggregates results into a single
+Runs four suites against a corpus and aggregates results into a single
 exit-code + JSON report:
 
-1. Analyzer suite  — AnalyzerBaseline check for every fixture.
-2. Generator suite — existing quality calibration check (delegated).
-3. UI suite        — pytest -m ui (spawns Flask + Vite via conftest fixtures).
+1. Analyzer suite          — AnalyzerBaseline check for every fixture.
+2. Generator suite         — existing quality calibration check (delegated).
+3. UI suite                — pytest -m ui (Flask + Vite via conftest fixtures).
+4. Section-fidelity suite  — library-mean agreement_score check.
 
 Exit codes (highest-priority wins):
     8 — infrastructure failure (missing Playwright without --skip-ui,
@@ -19,6 +20,7 @@ from __future__ import annotations
 import importlib.util
 import json
 import subprocess
+import sys
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -49,6 +51,10 @@ class GateOptions:
     fixture_slug: Optional[str] = None
     report_path: Optional[Path] = None
     analyzer_baseline_path: Path = analyzer_baseline.DEFAULT_BASELINE_PATH
+    # Path resolved at run-time to avoid an import-time dependency on
+    # section_fidelity (the gate module is imported by tests that don't
+    # need the section-fidelity suite). None → use the module's default.
+    section_fidelity_baseline_path: Optional[Path] = None
 
 
 @dataclass
@@ -97,8 +103,18 @@ def _snapshot_fixture_live(entry: CorpusEntry) -> FixtureSnapshot:
 
     Imported lazily so unit tests of the orchestrator don't pay the
     analyzer import cost unless they exercise this path.
+
+    Schema v2 also captures `repetition_groups` (the SSM Chorus
+    validator's output, which lives on HierarchyResult, not on
+    timing_tracks). The legacy AnalysisRunner doesn't run SSM, so we
+    invoke it here directly. Failures are non-fatal: a None
+    repetition_groups field signals "SSM didn't run or errored" — the
+    gate doesn't currently regression-check the field, just records it
+    for forensic value.
     """
+    from src.analyzer.audio import load
     from src.analyzer.runner import AnalysisRunner, default_algorithms
+    from src.analyzer.self_similarity import compute_repetition_groups
     from src.evaluation.analyzer_baseline import TrackSnapshot
 
     runner = AnalysisRunner(algorithms=default_algorithms())
@@ -106,7 +122,21 @@ def _snapshot_fixture_live(entry: CorpusEntry) -> FixtureSnapshot:
     algorithms = {
         t.algorithm_name: TrackSnapshot.from_track(t) for t in result.timing_tracks
     }
-    return FixtureSnapshot(fixture_slug=entry.slug, algorithms=algorithms)
+
+    repetition_groups: Optional[list[dict]] = None
+    try:
+        audio, sr, _meta = load(str(entry.path))
+        groups = compute_repetition_groups(audio, sr)
+        repetition_groups = [g.to_dict() for g in groups]
+    except Exception as exc:
+        print(f"  warning: SSM failed for {entry.slug}: {exc}", file=sys.stderr)
+        repetition_groups = None
+
+    return FixtureSnapshot(
+        fixture_slug=entry.slug,
+        algorithms=algorithms,
+        repetition_groups=repetition_groups,
+    )
 
 
 def run_analyzer_suite(
@@ -270,6 +300,112 @@ def run_ui_suite(skip: bool = False, quick: bool = False) -> SuiteResult:
     )
 
 
+# ---------- Section-fidelity suite ----------
+
+def run_section_fidelity_suite(
+    corpus: list[CorpusEntry],
+    baseline_path: Path,
+) -> SuiteResult:
+    """Compute library-mean agreement_score over the corpus and compare to baseline.
+
+    Per design D2 in
+    ``openspec/changes/agreement-score-operationalization/design.md`` the
+    suite lives parallel to analyzer/generator/UI rather than being folded
+    into ``run_analyzer_suite`` — a per-fixture check and a corpus-wide
+    aggregate have different failure modes and merit separate baselines.
+
+    Tolerance: library_mean must stay within ``DEFAULT_TOLERANCE`` of the
+    baseline (drop only — a higher mean is always a pass).
+    """
+    from src.evaluation import section_fidelity
+
+    start = time.monotonic()
+    if not baseline_path.exists():
+        return SuiteResult(
+            "section_fidelity",
+            status="no-baseline",
+            message=(
+                f"baseline not found: {baseline_path}. "
+                "Run `xlight-evaluate snapshot-section-fidelity` first."
+            ),
+            duration_seconds=time.monotonic() - start,
+        )
+
+    try:
+        baseline = section_fidelity.load_baseline(baseline_path)
+    except (json.JSONDecodeError, OSError) as exc:
+        return SuiteResult(
+            "section_fidelity",
+            status="infra-error",
+            message=f"failed to read baseline {baseline_path}: {exc}",
+            duration_seconds=time.monotonic() - start,
+        )
+
+    stories = section_fidelity.load_stories_for_corpus(corpus)
+    if not stories:
+        # Per spec: "Fixture without _story.json is skipped without failure".
+        # If *every* fixture is missing a story we can't compute a mean —
+        # report a skip rather than a regression.
+        return SuiteResult(
+            "section_fidelity",
+            status="skip",
+            message="no _story.json files found for any corpus fixture",
+            fixtures_checked=0,
+            duration_seconds=time.monotonic() - start,
+        )
+
+    library_mean = section_fidelity.compute_library_mean(stories)
+    breakdown = section_fidelity.compute_per_fixture_breakdown(stories)
+    delta = library_mean - baseline.library_mean
+    tolerance = section_fidelity.DEFAULT_TOLERANCE
+
+    violations: list[dict] = []
+    if delta < -tolerance:
+        violations.append({
+            "fixture_slug": "<library>",
+            "algorithm_name": "library_mean",
+            "kind": "regression",
+            "detail": (
+                f"library_mean {library_mean:.4f} below baseline "
+                f"{baseline.library_mean:.4f} by {-delta:.4f} "
+                f"(tolerance {tolerance})"
+            ),
+        })
+        # Per-fixture deltas to point at *which* song moved.
+        for slug, summary in breakdown.items():
+            base_summary = baseline.per_fixture.get(slug)
+            if base_summary is None:
+                continue
+            base_mean = float(base_summary.get("mean_score", 0.0))
+            cur_mean = float(summary["mean_score"])
+            f_delta = cur_mean - base_mean
+            if f_delta < -tolerance:
+                violations.append({
+                    "fixture_slug": slug,
+                    "algorithm_name": "mean_score",
+                    "kind": "regression",
+                    "detail": (
+                        f"mean_score {cur_mean:.4f} below baseline "
+                        f"{base_mean:.4f} by {-f_delta:.4f}"
+                    ),
+                })
+
+    status = "fail" if violations else "pass"
+    message = (
+        f"library_mean={library_mean:.4f} "
+        f"(baseline={baseline.library_mean:.4f}, delta={delta:+.4f}, "
+        f"tolerance={tolerance})"
+    )
+    return SuiteResult(
+        "section_fidelity",
+        status=status,
+        fixtures_checked=len(stories),
+        violations=violations,
+        message=message,
+        duration_seconds=time.monotonic() - start,
+    )
+
+
 # ---------- Top-level orchestrator ----------
 
 def _aggregate_exit_code(suites: dict[str, SuiteResult]) -> int:
@@ -321,6 +457,17 @@ def run_gate(options: GateOptions) -> GateReport:
     # UI suite — --quick runs only the content flow (smoke + assertions on
     # one fixture); full mode runs all flows.
     suites["ui"] = run_ui_suite(skip=options.skip_ui, quick=options.quick)
+
+    # Section-fidelity suite — defends the corpus-wide library-mean
+    # `agreement_score` against silent regression. Cheap (just JSON
+    # aggregation), so it always runs.
+    from src.evaluation import section_fidelity as _sf
+    sf_baseline = (
+        options.section_fidelity_baseline_path
+        if options.section_fidelity_baseline_path is not None
+        else _sf.DEFAULT_BASELINE_PATH
+    )
+    suites["section_fidelity"] = run_section_fidelity_suite(corpus, sf_baseline)
 
     exit_code = _aggregate_exit_code(suites)
     report = GateReport(

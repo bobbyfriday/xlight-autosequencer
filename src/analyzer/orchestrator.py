@@ -667,6 +667,28 @@ def run_orchestrator(
         except Exception as exc:
             warnings.append(f"Solo detection failed: {exc}")
 
+    # ── Stage 9b2: SSM repetition groups (Chorus validator input) ────────────
+    # Per design D1 in
+    # ``openspec/changes/agreement-score-operationalization/design.md``
+    # SSM is a *validator* — never a source of truth for section roles.
+    # The story builder reads this list to flag Genius-labeled Choruses
+    # without an SSM peer for human review.
+    repetition_groups = None
+    try:
+        from src.analyzer.self_similarity import compute_repetition_groups
+        ssm_t0 = _time.monotonic()
+        repetition_groups = compute_repetition_groups(audio, sr)
+        ssm_elapsed = _time.monotonic() - ssm_t0
+        print(
+            f"SSM: {len(repetition_groups)} repetition group(s) "
+            f"in {ssm_elapsed:.1f}s"
+        )
+    except Exception as exc:
+        # Per spec scenario "SSM unavailable or errored → None plus
+        # warning": leave field as None and record the cause.
+        warnings.append(f"SSM (self-similarity matrix) failed: {exc}")
+        repetition_groups = None
+
     # ── Stage 9c: Essentia high-level features ─────────────────────────────────
     essentia_features = None
     if caps.get("essentia"):
@@ -712,6 +734,7 @@ def run_orchestrator(
         capabilities=caps,
         algorithms_run=[a.name for a in algos],
         warnings=warnings,
+        repetition_groups=repetition_groups,
     )
 
     # ── Stage 11: Validate mark placement ────────────────────────────────────

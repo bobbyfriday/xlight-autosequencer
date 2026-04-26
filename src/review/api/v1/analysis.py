@@ -322,15 +322,48 @@ def _analyze_in_background(state: "_RunState", source_path: str, song_id: str,
                 # Story builder uses float seconds (start/end); fall back to _ms if present
                 start_ms = int(sec["start"] * 1000) if "start" in sec else sec.get("start_ms", 0)
                 end_ms = int(sec["end"] * 1000) if "end" in sec else sec.get("end_ms", 0)
-                sections.append({
+                # `agreement_score` was added in PR #84 and counts independent
+                # source corroborations of the section's start boundary
+                # (segmentino, QM, energy events, key changes, stem entries,
+                # …). Legacy stories written before PR #84 lack the field;
+                # default to 0 per the spec contract
+                # ("Legacy story without agreement_score defaults to 0").
+                # `low_confidence` is the boolean the UI renders against; the
+                # raw integer is kept for tooltips and inspector display.
+                # Threshold ≤ 0 — 0 means "no other source corroborates this
+                # boundary". Original design proposed ≤ 1 but corpus
+                # measurement on 16 songs / 145 sections showed that flagged
+                # 38% of all sections, drowning the signal. Distribution:
+                #   0: 11.0%   1: 26.9%   2: 28.3%   3: 24.1%   4: 9.0%   5: 0.7%
+                # Flagging only score=0 (the 11% of genuinely uncorroborated
+                # boundaries) keeps the indicator meaningful. See
+                # https://github.com/bobbyfriday/xlight-autosequencer/pull/108#issuecomment-4320505368
+                agreement_score = int(sec.get("agreement_score", 0))
+                low_confidence = agreement_score <= 0
+                section_payload = {
                     "index": i,
                     "start_ms": start_ms,
                     "end_ms": end_ms,
                     "kind": sec.get("role", "unknown"),
                     "label": sec.get("role", "unknown").replace("_", " ").title(),
-                })
+                    "agreement_score": agreement_score,
+                    "low_confidence": low_confidence,
+                }
+                # `chorus_ssm_supported` is set on Chorus sections by the SSM
+                # validator (when SSM produced groups). Per spec, an absent
+                # field defaults to True downstream — we copy through so the
+                # frontend can decide its own treatment.
+                if "chorus_ssm_supported" in sec:
+                    section_payload["chorus_ssm_supported"] = bool(
+                        sec["chorus_ssm_supported"]
+                    )
+                sections.append(section_payload)
         else:
-            # Fall back to raw hierarchy section marks
+            # Fall back to raw hierarchy section marks. No story builder ran,
+            # so there are no agreement scores; default the new fields the
+            # same way legacy stories do (score 0, low_confidence true). The
+            # frontend's section-list rendering reads `low_confidence` and
+            # this keeps the display consistent across both paths.
             for i, mark in enumerate(hierarchy.sections):
                 sections.append({
                     "index": i,
@@ -340,11 +373,14 @@ def _analyze_in_background(state: "_RunState", source_path: str, song_id: str,
                                else hierarchy.duration_ms),
                     "kind": mark.label or "unknown",
                     "label": (mark.label or "unknown").replace("_", " ").title(),
+                    "agreement_score": 0,
+                    "low_confidence": True,
                 })
 
         if not sections:
             sections = [{"index": 0, "start_ms": 0, "end_ms": hierarchy.duration_ms,
-                         "kind": "unknown", "label": "Full Song"}]
+                         "kind": "unknown", "label": "Full Song",
+                         "agreement_score": 0, "low_confidence": True}]
 
         # ── Build beats list ─────────────────────────────────────────────────
         beats_list: list[dict] = []
@@ -948,10 +984,24 @@ def _rebuild_analysis_from_cache(song_id: str, src: Path,
                            "status": "done", "confidence": None,
                            "marks": marks, "kind": kind, "error": None})
 
-    # Sections — load from session if available, else derive from hierarchy
+    # Sections — load from session if available, else derive from hierarchy.
+    # Both paths need to expose `agreement_score` + `low_confidence` so the
+    # Analyze screen renders the same low-confidence indicator regardless of
+    # whether sections came from a fresh story builder run, a persisted
+    # session, or a hierarchy fallback.
     session = load_session(song_id)
     if session and "sections" in session:
-        sections = session["sections"]
+        sections = []
+        for sec in session["sections"]:
+            # Persisted sessions written before this change lack
+            # agreement_score; default to 0 / low_confidence=True per spec.
+            agreement_score = int(sec.get("agreement_score", 0))
+            payload = dict(sec)
+            payload["agreement_score"] = agreement_score
+            payload["low_confidence"] = bool(
+                sec.get("low_confidence", agreement_score <= 1)
+            )
+            sections.append(payload)
     else:
         sections = []
         for i, mark in enumerate(hierarchy.sections):
@@ -963,10 +1013,15 @@ def _rebuild_analysis_from_cache(song_id: str, src: Path,
                            else hierarchy.duration_ms),
                 "kind": mark.label or "unknown",
                 "label": (mark.label or "unknown").replace("_", " ").title(),
+                # Hierarchy-only fallback: no story builder, no agreement
+                # score. Default mirrors the legacy-story default.
+                "agreement_score": 0,
+                "low_confidence": True,
             })
         if not sections:
             sections = [{"index": 0, "start_ms": 0, "end_ms": hierarchy.duration_ms,
-                         "kind": "unknown", "label": "Full Song"}]
+                         "kind": "unknown", "label": "Full Song",
+                         "agreement_score": 0, "low_confidence": True}]
 
     return {
         "song_id": song_id,

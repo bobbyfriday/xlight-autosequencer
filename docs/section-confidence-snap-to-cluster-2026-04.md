@@ -146,10 +146,45 @@ downloads. Not in scope for this change.
 ## Follow-ups (from PR #81's list, still open)
 
 - **SSM integration** — threshold tuning first, then use as a validator
-  for Genius chorus sections.
+  for Genius chorus sections.  *Shipped*: see "Agreement-score
+  operationalization (2026-04-25)" below.
 - **Heuristic classifier robustness** — dedicated intro/outro detectors
   using stem_entry:vocals and energy_drop.
 - **Instrumental short-circuit** — skip Genius subprocess when vocal
   stem RMS < 5% of total energy.
 - **HF cache lock** — serialize first-use model downloads in the
   subprocess to fix the Crazy-Train-style race.
+
+## Agreement-score operationalization (2026-04-25)
+
+Closed three of the four PR #81 follow-ups in
+`openspec/changes/agreement-score-operationalization/` (design-only)
+and the matching implementation PR:
+
+- **Frontend surfacing.** The analyze-step API now copies
+  `agreement_score` into the section payload and derives
+  `low_confidence = (score <= 1)`. The Analyze screen renders an
+  amber "!" badge next to any section with `low_confidence=true` or
+  `chorus_ssm_supported=false`; the tooltip lists which check fired.
+  Legacy stories without the field default to score 0
+  (low_confidence=true).
+- **Library fidelity → fourth gate suite.** Scoring math moved from
+  `scripts/library_fidelity.py` into `src/evaluation/section_fidelity.py`.
+  `xlight-evaluate gate` now runs a `section_fidelity` suite alongside
+  analyzer/generator/UI; baseline at
+  `tests/golden/section_fidelity/baseline.json` is captured by
+  `xlight-evaluate snapshot-section-fidelity`. Tolerance: library_mean
+  must stay within `0.10` of the baseline. The script is now a thin
+  CLI wrapper over the shared module — its stdout format is unchanged.
+- **SSM productionized as Chorus validator.**
+  `src/analyzer/self_similarity.py` ships the recurrence-matrix +
+  diagonal-stripe pipeline from the PR #81 prototype, with an
+  auto-threshold = 90th percentile of off-diagonal similarity values
+  (per-song, not global). The orchestrator computes
+  `repetition_groups` during the structural pass; the story builder
+  sets `chorus_ssm_supported` per Chorus section. Per design D1, SSM
+  *never* changes role labels — it only adds an advisory boolean for
+  the UI. When SSM produces no groups (`[]` or `None`), every Chorus
+  defaults to supported.
+
+Cross-reference: `openspec/changes/agreement-score-operationalization/design.md`.

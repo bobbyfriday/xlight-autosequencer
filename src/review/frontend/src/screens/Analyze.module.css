@@ -552,6 +552,27 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Low-confidence / unsupported-Chorus indicator. Amber rather than red so
+ * reviewers read it as "verify" not "broken". The marker is a single
+ * "!" character in a circular badge so it stays legible at the row's
+ * 11px size. Not interactive — only the title attribute carries the
+ * detail tooltip. */
+.sectionFlag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #d29922;
+  color: #1c1c1c;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  flex-shrink: 0;
+  cursor: help;
+}
+
 .inspectorFooter {
   padding: 10px 14px;
   border-top: 1px solid var(--line, #222);

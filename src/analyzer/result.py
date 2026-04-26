@@ -492,6 +492,42 @@ class ChromaCurve:
         )
 
 
+# ── Repetition group (SSM output) ──────────────────────────────────────────────
+
+@dataclass
+class RepetitionGroup:
+    """A set of mutually-similar segment occurrences detected by the SSM.
+
+    Each member is ``(start_ms, end_ms)`` for one occurrence of the
+    repeated section. A group with two occurrences is the minimal
+    detectable repeat (e.g., chorus appearing twice). The ``id`` is
+    stable across the analyzer run but not across runs — it's a
+    grouping label, not a section role.
+
+    Per design Q3 in
+    ``openspec/changes/agreement-score-operationalization/design.md``
+    the shape is intentionally minimal: the SSM Chorus validator only
+    needs membership, not per-pair similarity scores. Adding a
+    similarity field is fine if a downstream consumer emerges.
+    """
+
+    id: int
+    members: list[tuple[int, int]] = field(default_factory=list)
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "members": [list(m) for m in self.members],
+        }
+
+    @classmethod
+    def from_dict(cls, d: dict) -> "RepetitionGroup":
+        return cls(
+            id=int(d["id"]),
+            members=[(int(m[0]), int(m[1])) for m in d.get("members", [])],
+        )
+
+
 # ── HierarchyResult ────────────────────────────────────────────────────────────
 
 @dataclass
@@ -557,6 +593,16 @@ class HierarchyResult:
     warnings: list[str] = field(default_factory=list)
     validation: dict = field(default_factory=dict)
 
+    # SSM repetition groups. Tri-state per spec:
+    #   None → SSM step skipped or errored (a warning was appended);
+    #   []   → SSM ran successfully but found no groups (auto-threshold
+    #          produced zero diagonals — e.g. ambient music with no
+    #          repeats);
+    #   [g]+ → groups detected.
+    # The story builder reads this as a Chorus validator and treats
+    # both None and [] as "no evidence — every Chorus is supported".
+    repetition_groups: Optional[list["RepetitionGroup"]] = None
+
     def _mark_to_dict(self, m: TimingMark) -> dict:
         return {k: v for k, v in {
             "time_ms": m.time_ms,
@@ -605,6 +651,13 @@ class HierarchyResult:
         }
         if self.relative_source_file is not None:
             d["relative_source_file"] = self.relative_source_file
+        # `repetition_groups` is tri-state; preserve the distinction
+        # between None (SSM skipped/errored) and [] (SSM ran, no groups)
+        # round-trip. Older baselines lack the key entirely and load
+        # with the default (None) which is equivalent to a missing-step
+        # marker.
+        if self.repetition_groups is not None:
+            d["repetition_groups"] = [g.to_dict() for g in self.repetition_groups]
         return d
 
     @classmethod
@@ -669,6 +722,16 @@ class HierarchyResult:
         obj.algorithms_run = d.get("algorithms_run", [])
         obj.warnings = d.get("warnings", [])
         obj.validation = d.get("validation", {})
+        # Tri-state load: missing → None (legacy/SSM-skipped); explicit
+        # [] preserved; populated list parsed into RepetitionGroup.
+        if "repetition_groups" in d:
+            rg_data = d["repetition_groups"]
+            if rg_data is None:
+                obj.repetition_groups = None
+            else:
+                obj.repetition_groups = [
+                    RepetitionGroup.from_dict(g) for g in rg_data
+                ]
         return obj
 
 
