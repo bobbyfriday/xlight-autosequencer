@@ -9,6 +9,7 @@ import json
 import math
 import os
 import re
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -742,11 +743,156 @@ def build_song_story(
 
 # ── File I/O ───────────────────────────────────────────────────────────────────
 
+# Default number of historical _story.json snapshots to keep per song.
+# Override with the XLIGHT_STORY_HISTORY_MAX environment variable.
+DEFAULT_STORY_HISTORY_MAX = 5
+
+
+def _story_history_dir(story_path: Path) -> Path:
+    """Return the per-song history directory for a given story path.
+
+    Layout: ``<song_dir>/<stem>.history/`` where ``stem`` is the story file's
+    name without the ``.json`` suffix (so ``foo_story.json`` archives go to
+    ``foo_story.history/``). Multiple stories in the same dir don't collide.
+    """
+    return story_path.parent / f"{story_path.stem}.history"
+
+
+def _story_history_max() -> int:
+    """Read the retention cap from the environment, falling back to default."""
+    raw = os.environ.get("XLIGHT_STORY_HISTORY_MAX")
+    if raw is None or raw.strip() == "":
+        return DEFAULT_STORY_HISTORY_MAX
+    try:
+        n = int(raw)
+    except ValueError:
+        return DEFAULT_STORY_HISTORY_MAX
+    return max(0, n)
+
+
+def _archive_existing_story(story_path: Path, *, max_entries: int) -> Path | None:
+    """Move an existing story file into the per-song history directory.
+
+    Returns the archived snapshot path (inside the history dir), or ``None`` if
+    no existing file was found. After archiving, oldest snapshots beyond
+    ``max_entries`` are deleted.
+
+    The timestamp uses ISO-8601 with ``Z`` suffix and ``-`` separators
+    (filesystem-safe), e.g. ``2026-04-25T19-24-31Z.json``.
+    """
+    if not story_path.exists():
+        return None
+    if max_entries <= 0:
+        # Retention disabled — drop the previous file without archiving.
+        story_path.unlink(missing_ok=True)
+        return None
+
+    history_dir = _story_history_dir(story_path)
+    history_dir.mkdir(parents=True, exist_ok=True)
+
+    # ISO-8601 UTC timestamp, colons replaced with ``-`` for filesystem safety.
+    now = datetime.now(timezone.utc).replace(microsecond=0)
+    base_ts = now.strftime("%Y-%m-%dT%H-%M-%SZ")
+
+    # Avoid overwrite collisions when the same second produces two archives
+    # (rapid back-to-back overwrites in tests / scripts).
+    candidate = history_dir / f"{base_ts}.json"
+    if candidate.exists():
+        suffix = 1
+        while True:
+            candidate = history_dir / f"{base_ts}-{suffix:02d}.json"
+            if not candidate.exists():
+                break
+            suffix += 1
+
+    story_path.rename(candidate)
+    _prune_story_history(history_dir, max_entries=max_entries)
+    return candidate
+
+
+def _prune_story_history(history_dir: Path, *, max_entries: int) -> list[Path]:
+    """Delete oldest snapshots until at most ``max_entries`` remain.
+
+    Returns the list of deleted paths.
+    """
+    if not history_dir.exists():
+        return []
+    snapshots = sorted(
+        (p for p in history_dir.iterdir() if p.is_file() and p.suffix == ".json"),
+        key=lambda p: p.name,
+    )
+    excess = len(snapshots) - max_entries
+    if excess <= 0:
+        return []
+    deleted: list[Path] = []
+    for old in snapshots[:excess]:
+        try:
+            old.unlink()
+            deleted.append(old)
+        except OSError:
+            # Best-effort cleanup — leave residue if filesystem refuses.
+            pass
+    return deleted
+
+
+def list_story_history(story_path: str | Path) -> list[Path]:
+    """List archived story snapshots for ``story_path``, oldest first.
+
+    Returns an empty list if no history dir exists.
+    """
+    history_dir = _story_history_dir(Path(story_path))
+    if not history_dir.exists():
+        return []
+    return sorted(
+        (p for p in history_dir.iterdir() if p.is_file() and p.suffix == ".json"),
+        key=lambda p: p.name,
+    )
+
+
+def resolve_history_entry(story_path: str | Path, ref: str) -> Path:
+    """Resolve a history reference (timestamp prefix or ``current``) to a path.
+
+    - ``"current"`` → the live ``_story.json`` path
+    - any other value → the unique archived snapshot whose filename starts
+      with the given prefix (e.g. ``2026-04-25`` matches today's snapshots).
+      Raises ``FileNotFoundError`` if no match, or ``ValueError`` if ambiguous.
+    """
+    sp = Path(story_path)
+    if ref == "current":
+        if not sp.exists():
+            raise FileNotFoundError(f"No current story at {sp}")
+        return sp
+    history_dir = _story_history_dir(sp)
+    if not history_dir.exists():
+        raise FileNotFoundError(
+            f"No history directory for {sp} (looked at {history_dir})"
+        )
+    matches = [
+        p for p in history_dir.iterdir()
+        if p.is_file() and p.suffix == ".json" and p.name.startswith(ref)
+    ]
+    if not matches:
+        raise FileNotFoundError(
+            f"No history entry for {sp.name} matching {ref!r}"
+        )
+    if len(matches) > 1:
+        names = ", ".join(sorted(m.name for m in matches))
+        raise ValueError(
+            f"Ambiguous history reference {ref!r}: matches {names}"
+        )
+    return matches[0]
+
+
 def write_song_story(story: dict, output_path: str) -> None:
     """Write story dict as pretty-printed JSON to output_path.
 
     Raises FileExistsError if file exists and story already has
     review.status=="reviewed" (overwrite protection for reviewed stories).
+
+    Before overwriting an existing non-reviewed story, the previous version is
+    archived to ``<output_dir>/<stem>.history/<ISO-timestamp>.json`` and the
+    history is pruned to the most recent ``XLIGHT_STORY_HISTORY_MAX`` entries
+    (default ``DEFAULT_STORY_HISTORY_MAX``).
     """
     p = Path(output_path)
     if p.exists():
@@ -759,6 +905,8 @@ def write_song_story(story: dict, output_path: str) -> None:
                 f"Cannot overwrite reviewed story: {output_path}. "
                 "Use --force to overwrite."
             )
+        # Archive the prior version before overwriting.
+        _archive_existing_story(p, max_entries=_story_history_max())
 
     p.write_text(
         json.dumps(story, indent=2, ensure_ascii=False) + "\n",
