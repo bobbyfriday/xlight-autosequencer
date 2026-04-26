@@ -11,6 +11,19 @@ from src.variants.models import EffectVariant
 from src.variants.scorer import _score_variant, rank_variants_with_fallback
 
 
+# Base effects whose variants light >50% of a prop's pixels at any frame.
+# When the within-tier base-effect dedup runs out of unclaimed candidates with
+# score >= 0.3, the fallback prefers duplicating one of these dense fills over
+# recycling the originally-selected variant — typically a sparse Single Strand
+# chase. Visual repetition of a wash reads "subtle"; visual repetition of a
+# chase reads "the show is broken on every prop." See
+# openspec/changes/dim-section-real-cause/design.md for the empirical evidence.
+_DENSE_FILL_BASE_EFFECTS: frozenset[str] = frozenset({
+    "Color Wash", "Liquid", "Plasma", "Fire", "Galaxy", "Pinwheel",
+    "Butterfly", "Shockwave",
+})
+
+
 @dataclass
 class RotationEntry:
     """A single variant assignment for one group in one section."""
@@ -321,7 +334,10 @@ class RotationEngine:
                 # Independent of embrace_repetition — applies in both modes.
                 # If the selected variant's base effect is already used in this tier,
                 # find the highest-scoring alternative with an unclaimed base effect and
-                # score >= 0.3. Fall back to the current selection if none qualifies.
+                # score >= 0.3. When the unclaimed list is empty, prefer recycling a
+                # dense-fill base effect over keeping the originally-selected variant —
+                # typically a sparse Single Strand chase. Duplicating a wash across
+                # props reads "subtle"; duplicating a chase reads "the show is broken."
                 if group.tier >= 5 and variant.base_effect in used_effects_per_tier[group.tier]:
                     unclaimed = [
                         (v, s, b) for v, s, b in results
@@ -329,7 +345,14 @@ class RotationEngine:
                     ]
                     if unclaimed:
                         variant, score, breakdown = unclaimed[0]
-                    # else: no suitable alternative — keep current selection (allow duplication)
+                    else:
+                        dense_fallback = [
+                            (v, s, b) for v, s, b in results
+                            if v.base_effect in _DENSE_FILL_BASE_EFFECTS
+                        ]
+                        if dense_fallback:
+                            variant, score, breakdown = dense_fallback[0]
+                        # else: no dense fill in `results` — keep current selection.
 
                 # Global effect cap: if this base_effect already occupies ≥ 25%
                 # of all assignments so far, try a capped alternative.

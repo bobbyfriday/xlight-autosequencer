@@ -1,0 +1,48 @@
+{
+  "baseline": {
+    "duration_s": 96.25,
+    "sample_fps": 4,
+    "n_frames": 385,
+    "motion_mean": 0.10413574427366257,
+    "motion_p50": 0.08721726387739182,
+    "motion_p90": 0.2062172651290894,
+    "motion_max": 0.44441965222358704,
+    "lit_mean": 81.33506493506493,
+    "lit_min": 0,
+    "lit_max": 243,
+    "distinct_colors_mean": 51.70649350649351,
+    "distinct_colors_max": 141,
+    "upper_third_pct": 0.0,
+    "middle_third_pct": 91.94805194805194,
+    "lower_third_pct": 97.14285714285714
+  },
+  "candidate": {
+    "duration_s": 96.25,
+    "sample_fps": 4,
+    "n_frames": 385,
+    "motion_mean": 0.13151437044143677,
+    "motion_p50": 0.08135416358709335,
+    "motion_p90": 0.3187321424484253,
+    "motion_max": 0.7106249928474426,
+    "lit_mean": 137.53506493506492,
+    "lit_min": 0,
+    "lit_max": 344,
+    "distinct_colors_mean": 65.27792207792209,
+    "distinct_colors_max": 181,
+    "upper_third_pct": 0.0,
+    "middle_third_pct": 91.42857142857143,
+    "lower_third_pct": 97.14285714285714
+  },
+  "delta_pct": {
+    "motion_mean": 26.291285820001242,
+    "lit_mean": 69.0968895701603,
+    "distinct_colors_mean": 26.247048776812186,
+    "upper_third_pct": 0.0,
+    "middle_third_pct": -0.564971751412419,
+    "lower_third_pct": 0.0
+  },
+  "suggestion": 25,
+  "slug": "dim-section-real-cause",
+  "notes": "Rotation dedup prefers dense fills + relaxed density bracket",
+  "noop": false
+}
