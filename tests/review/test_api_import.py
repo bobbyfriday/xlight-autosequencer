@@ -8,15 +8,34 @@ import struct
 import pytest
 
 
-def _make_wav_bytes(duration_secs: float = 1.0, sample_rate: int = 44100) -> bytes:
-    """Generate minimal valid WAV bytes."""
+def _make_wav_bytes(
+    duration_secs: float = 6.0,
+    sample_rate: int = 44100,
+    amplitude: int = 8000,
+) -> bytes:
+    """Generate a minimal valid WAV with a low-amplitude sine wave.
+
+    Default duration is 6 s so the import-time validator (which
+    rejects audio shorter than 5 s) accepts it. Default amplitude is
+    non-zero so the silence check passes; pass ``amplitude=0`` to
+    exercise the silence rejection path.
+    """
+    import math
+
     n_samples = int(duration_secs * sample_rate)
+    if amplitude == 0:
+        samples = [0] * n_samples
+    else:
+        samples = [
+            int(amplitude * math.sin(2 * math.pi * 440 * i / sample_rate))
+            for i in range(n_samples)
+        ]
     buf = io.BytesIO()
     with wave.open(buf, "wb") as w:
         w.setnchannels(1)
         w.setsampwidth(2)
         w.setframerate(sample_rate)
-        w.writeframes(struct.pack(f"<{n_samples}h", *([0] * n_samples)))
+        w.writeframes(struct.pack(f"<{n_samples}h", *samples))
     return buf.getvalue()
 
 
@@ -74,7 +93,7 @@ class TestImportNewSong:
         assert all(c in "0123456789abcdef" for c in song_id)
 
     def test_duration_ms_positive(self, client):
-        wav = _make_wav_bytes(duration_secs=2.0)
+        wav = _make_wav_bytes(duration_secs=7.0)
         data = client.post(
             "/api/v1/import",
             data={"audio": (io.BytesIO(wav), "test.wav")},
@@ -182,3 +201,60 @@ class TestImportErrors:
         )
         assert resp.status_code == 400
         assert resp.get_json()["error"]["code"] == "unsupported_format"
+
+
+class TestImportAudioValidation:
+    """Reject malformed/empty/silent/out-of-range audio at upload time."""
+
+    def test_too_short_returns_400(self, client):
+        # 1 second is well below the 5-second minimum.
+        wav = _make_wav_bytes(duration_secs=1.0)
+        resp = client.post(
+            "/api/v1/import",
+            data={"audio": (io.BytesIO(wav), "short.wav")},
+            content_type="multipart/form-data",
+        )
+        assert resp.status_code == 400
+        body = resp.get_json()
+        assert body["error"]["code"] == "audio_too_short"
+        assert "5" in body["error"]["message"]
+
+    def test_silent_audio_returns_400(self, client):
+        wav = _make_wav_bytes(duration_secs=6.0, amplitude=0)
+        resp = client.post(
+            "/api/v1/import",
+            data={"audio": (io.BytesIO(wav), "silent.wav")},
+            content_type="multipart/form-data",
+        )
+        assert resp.status_code == 400
+        assert resp.get_json()["error"]["code"] == "audio_silent"
+
+    def test_malformed_audio_returns_400(self, client):
+        # An MP3-extension file containing junk bytes — the decoder
+        # cannot make sense of it. This is the "one-frame MP3" class
+        # of failure that motivated this validator.
+        resp = client.post(
+            "/api/v1/import",
+            data={"audio": (io.BytesIO(b"\xff\xfb" + b"\x00" * 64), "junk.mp3")},
+            content_type="multipart/form-data",
+        )
+        assert resp.status_code == 400
+        body = resp.get_json()
+        # Either decode fails outright, or it decodes to a tiny/silent
+        # buffer that trips one of the downstream checks. All three
+        # outcomes are acceptable rejections.
+        assert body["error"]["code"] in {
+            "invalid_audio_decode",
+            "audio_too_short",
+            "audio_silent",
+        }
+
+    def test_rejected_upload_does_not_create_library_entry(self, client):
+        wav = _make_wav_bytes(duration_secs=1.0)
+        client.post(
+            "/api/v1/import",
+            data={"audio": (io.BytesIO(wav), "short.wav")},
+            content_type="multipart/form-data",
+        )
+        lib = client.get("/api/v1/library").get_json()
+        assert all(s["title"] != "short" for s in lib.get("songs", []))

@@ -11,6 +11,10 @@ from pathlib import Path
 from flask import jsonify, request
 
 from . import api_v1
+from src.review.api.v1._audio_validation import (
+    AudioValidationError,
+    validate_audio,
+)
 from src.review.storage.library import load_library, save_library
 
 _ALLOWED_EXTENSIONS = {".mp3", ".wav", ".flac", ".aiff", ".aif"}
@@ -104,6 +108,25 @@ def import_song():
 
     # Check for existing song with same song_id
     existing = next((s for s in lib["songs"] if s["song_id"] == song_id), None)
+
+    # Validate audio on first import only. A previously-accepted song
+    # was already validated when it was first added; re-running the
+    # decode on every re-drop would waste CPU and could spuriously
+    # reject a song whose validation thresholds tightened later.
+    if existing is None:
+        try:
+            validate_audio(canonical_path)
+        except AudioValidationError as exc:
+            # Clean up the just-persisted file so a rejected upload
+            # does not leave orphan bytes in the state directory.
+            try:
+                stored_audio_path.unlink()
+                stored_audio_path.parent.rmdir()
+                stored_audio_path.parent.parent.rmdir()
+            except OSError:
+                pass
+            return jsonify({"error": {"code": exc.code,
+                                       "message": exc.message}}), 400
 
     if existing is not None:
         # Ensure the canonical path is recorded

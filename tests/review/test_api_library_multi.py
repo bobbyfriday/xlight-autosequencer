@@ -7,20 +7,31 @@ import wave
 import datetime
 
 
-def _make_wav_bytes(duration_secs: float = 1.0, sample_rate: int = 44100) -> bytes:
+def _make_wav_bytes(duration_secs: float = 6.0, sample_rate: int = 44100) -> bytes:
+    """6-second sine WAV that passes import-time validation (≥ 5 s, non-silent)."""
+    import math
+
     n_samples = int(duration_secs * sample_rate)
+    samples = [
+        int(8000 * math.sin(2 * math.pi * 440 * i / sample_rate))
+        for i in range(n_samples)
+    ]
     buf = io.BytesIO()
     with wave.open(buf, "wb") as w:
         w.setnchannels(1)
         w.setsampwidth(2)
         w.setframerate(sample_rate)
-        w.writeframes(struct.pack(f"<{n_samples}h", *([0] * n_samples)))
+        w.writeframes(struct.pack(f"<{n_samples}h", *samples))
     return buf.getvalue()
 
 
 def _make_unique_wav(seed: int = 0) -> bytes:
-    """Generate distinct WAV bytes so each file gets a unique hash."""
-    n_samples = 44100
+    """Generate distinct WAV bytes so each file gets a unique hash.
+
+    6 seconds of non-silent audio so the import-time validator
+    (5 s minimum, RMS floor) accepts the upload.
+    """
+    n_samples = 6 * 44100
     buf = io.BytesIO()
     with wave.open(buf, "wb") as w:
         w.setnchannels(1)

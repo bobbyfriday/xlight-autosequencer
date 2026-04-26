@@ -9,14 +9,25 @@ import wave
 import pytest
 
 
-def _make_wav_bytes(duration_secs: float = 0.5, sample_rate: int = 22050) -> bytes:
+def _make_wav_bytes(duration_secs: float = 6.0, sample_rate: int = 22050) -> bytes:
+    """Generate a low-amplitude sine WAV that passes import-time validation.
+
+    Default duration 6 s and a non-zero waveform so the validator
+    (5 s minimum, 1e-4 RMS minimum) accepts the upload.
+    """
+    import math
+
     n_samples = int(duration_secs * sample_rate)
+    samples = [
+        int(8000 * math.sin(2 * math.pi * 440 * i / sample_rate))
+        for i in range(n_samples)
+    ]
     buf = io.BytesIO()
     with wave.open(buf, "wb") as w:
         w.setnchannels(1)
         w.setsampwidth(2)
         w.setframerate(sample_rate)
-        w.writeframes(struct.pack(f"<{n_samples}h", *([0] * n_samples)))
+        w.writeframes(struct.pack(f"<{n_samples}h", *samples))
     return buf.getvalue()
 
 
