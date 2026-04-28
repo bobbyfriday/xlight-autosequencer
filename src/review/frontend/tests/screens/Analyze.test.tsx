@@ -1,6 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
-import { Analyze, deriveSectionReviewStatus } from '../../src/screens/Analyze';
+import {
+  Analyze,
+  deriveSectionRefinementStatus,
+  deriveSectionReviewStatus,
+} from '../../src/screens/Analyze';
 
 const mockFetch = vi.fn();
 vi.stubGlobal('fetch', mockFetch);
@@ -148,5 +152,67 @@ describe('deriveSectionReviewStatus', () => {
       agreement_score: 0,
     });
     expect(status.tooltip).toContain('score 0');
+  });
+});
+
+// ──────────────────────────────────────────────────────────────────────
+// deriveSectionRefinementStatus — pure function unit tests
+//
+// Per OpenSpec change `lyric-anchored-boundary-refinement` task 5.4 and
+// the spec's "refinement indicator" scenarios. Tests the pure-function
+// logic that drives the section row's "↻" boundary-refined indicator.
+// ──────────────────────────────────────────────────────────────────────
+describe('deriveSectionRefinementStatus', () => {
+  it('no indicator when boundary_refinements is empty', () => {
+    const status = deriveSectionRefinementStatus({ boundary_refinements: [] });
+    expect(status.refined).toBe(false);
+    expect(status.tooltip).toBe('');
+  });
+
+  it('no indicator when field is absent (legacy schema 1.0.0)', () => {
+    const status = deriveSectionRefinementStatus({});
+    expect(status.refined).toBe(false);
+    expect(status.tooltip).toBe('');
+  });
+
+  it('indicator on when boundary_refinements has one note', () => {
+    const status = deriveSectionRefinementStatus({
+      boundary_refinements: ['merged short post_chorus into prior chorus (gap=100ms, words=4)'],
+    });
+    expect(status.refined).toBe(true);
+    expect(status.tooltip).toMatch(/Boundary refined:/);
+    expect(status.tooltip).toMatch(/merged short post_chorus/);
+  });
+
+  it('joins multiple refinement notes with a middot', () => {
+    const status = deriveSectionRefinementStatus({
+      boundary_refinements: [
+        'chorus hook present in transcribed bridge — relabel whole',
+        'shifted start to first transcribed word at 163.75s',
+      ],
+    });
+    expect(status.refined).toBe(true);
+    expect(status.tooltip).toContain(' · ');
+    expect(status.tooltip).toMatch(/relabel whole/);
+    expect(status.tooltip).toMatch(/shifted start/);
+  });
+
+  it('respects explicit low_refined=true even with empty refinements', () => {
+    // Theoretical: API could set low_refined without the notes list.
+    // Indicator should still light up.
+    const status = deriveSectionRefinementStatus({
+      boundary_refinements: [],
+      low_refined: true,
+    });
+    expect(status.refined).toBe(true);
+  });
+
+  it('respects explicit low_refined=false even with non-empty refinements', () => {
+    // Theoretical: API could explicitly suppress the indicator.
+    const status = deriveSectionRefinementStatus({
+      boundary_refinements: ['note'],
+      low_refined: false,
+    });
+    expect(status.refined).toBe(false);
   });
 });

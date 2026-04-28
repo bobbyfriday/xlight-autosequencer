@@ -573,6 +573,26 @@
   cursor: help;
 }
 
+/* Lyric-anchored boundary-refinement indicator. The "↻" glyph distinguishes
+ * it from the amber "verify" flag — it means the boundary was *adjusted*
+ * (merged/split/relabeled) by ``src/story/boundary_refinement.py``, not
+ * that anything is wrong. Cool blue to read as "info" rather than "warn". */
+.sectionRefined {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #2f6feb;
+  color: #f6f6f6;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  flex-shrink: 0;
+  cursor: help;
+}
+
 .inspectorFooter {
   padding: 10px 14px;
   border-top: 1px solid var(--line, #222);

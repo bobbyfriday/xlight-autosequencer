@@ -54,6 +54,14 @@ export interface Section {
   // Chorus sections; absent on non-Chorus and on legacy stories. Per
   // the spec, missing → treated as supported (do not flag).
   chorus_ssm_supported?: boolean;
+  // Lyric-anchored boundary refinements applied to this section by
+  // ``src/story/boundary_refinement.py`` (one-line human-readable
+  // notes). Empty list when no refinement fired. Legacy stories
+  // (schema < 1.1.0) have no entries.
+  boundary_refinements?: string[];
+  // Convenience derived flag — mirrors `boundary_refinements.length > 0`
+  // computed in the API. Either field may drive the UI indicator.
+  low_refined?: boolean;
 }
 
 /**
@@ -83,6 +91,26 @@ export function deriveSectionReviewStatus(
     parts.push('No SSM repetition peer — verify Chorus label');
   }
   return { needsReview, tooltip: parts.join(' · ') };
+}
+
+/**
+ * Pure function: derive the boundary-refinement indicator state.
+ *
+ * Returns ``{ refined, tooltip }`` where ``refined`` is true when the
+ * section was touched by ``src/story/boundary_refinement.py`` (Fix 1, 2,
+ * or 3 fired). Tooltip lists the per-fix human-readable notes joined by
+ * a middot. Legacy stories (schema < 1.1.0) lack the field and result
+ * in ``refined: false``.
+ */
+export function deriveSectionRefinementStatus(
+  s: Pick<Section, 'boundary_refinements' | 'low_refined'>,
+): { refined: boolean; tooltip: string } {
+  const refinements = s.boundary_refinements ?? [];
+  const refined = s.low_refined ?? refinements.length > 0;
+  const tooltip = refined
+    ? `Boundary refined: ${refinements.join(' · ')}`
+    : '';
+  return { refined, tooltip };
 }
 
 interface Findings {
@@ -256,6 +284,8 @@ export function Analyze({ song, forceOnMount = false, onAnalysisComplete, onComp
           agreement_score?: number;
           low_confidence?: boolean;
           chorus_ssm_supported?: boolean;
+          boundary_refinements?: string[];
+          low_refined?: boolean;
         }) => {
           // Defaults match the spec's "legacy story" contract: missing
           // agreement_score → 0, low_confidence → derived from score.
@@ -265,6 +295,16 @@ export function Analyze({ song, forceOnMount = false, onAnalysisComplete, onComp
             typeof s.low_confidence === 'boolean'
               ? s.low_confidence
               : agreement_score <= 0;
+          // boundary_refinements may be missing on legacy schema-1.0.0
+          // stories — default to empty list. low_refined is derived if
+          // not supplied directly.
+          const boundary_refinements = Array.isArray(s.boundary_refinements)
+            ? s.boundary_refinements
+            : [];
+          const low_refined =
+            typeof s.low_refined === 'boolean'
+              ? s.low_refined
+              : boundary_refinements.length > 0;
           return {
             label: s.label ?? s.kind ?? 'section',
             kind: s.kind ?? '',
@@ -272,6 +312,8 @@ export function Analyze({ song, forceOnMount = false, onAnalysisComplete, onComp
             end_ms: s.end_ms ?? (s.end ? s.end * 1000 : 0),
             agreement_score,
             low_confidence,
+            boundary_refinements,
+            low_refined,
             // Pass through only when the field is present — `undefined`
             // means "no SSM evidence" which the UI must NOT flag (per
             // spec D1: absent SSM → supported).
@@ -802,6 +844,8 @@ export function Analyze({ song, forceOnMount = false, onAnalysisComplete, onComp
             )}
             {findings.sections.map((s, i) => {
               const { needsReview, tooltip } = deriveSectionReviewStatus(s);
+              const { refined, tooltip: refinementTooltip } =
+                deriveSectionRefinementStatus(s);
               return (
                 <div key={i} className={styles.sectionRow}>
                   <i
@@ -810,6 +854,16 @@ export function Analyze({ song, forceOnMount = false, onAnalysisComplete, onComp
                   />
                   <span className={styles.sectionIdx}>{String(i + 1).padStart(2, '0')}</span>
                   <span className={styles.sectionLabel}>{s.label}</span>
+                  {refined && (
+                    <span
+                      className={styles.sectionRefined}
+                      data-testid={`section-refined-${i}`}
+                      title={refinementTooltip}
+                      aria-label={refinementTooltip}
+                    >
+                      ↻
+                    </span>
+                  )}
                   {needsReview && (
                     <span
                       className={styles.sectionFlag}
