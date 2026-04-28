@@ -902,6 +902,13 @@ def build_song_story(
             "reviewed_at": None,
             "reviewer_notes": None,
         },
+        # Capability-skip warnings from Step 15c boundary refinement (one
+        # entry per skipped fix per song; per-section non-fires are silent).
+        # Empty list when refinement ran cleanly or the feature flag is off.
+        # The analyze-step API merges these into ``HierarchyResult.warnings``
+        # so they surface in the UI's warnings panel — see OpenSpec change
+        # ``lyric-anchored-boundary-refinement`` §7.
+        "refinement_warnings": refinement_warnings,
     }
 
     return story
