@@ -27,7 +27,7 @@ from src.story.energy_arc import detect_energy_arc
 from src.story.lighting_mapper import map_lighting
 from src.story.stem_curves import extract_stem_curves
 
-SCHEMA_VERSION = "1.0.0"
+SCHEMA_VERSION = "1.1.0"
 
 
 def _portable_audio_path(audio_path: str | Path) -> str:
@@ -359,7 +359,15 @@ def build_song_story(
 
     Returns
     -------
-    A complete song story dict matching schema_version 1.0.0.
+    A complete song story dict matching schema_version 1.1.0.
+
+    Changes since 1.0.0 (additive only — readers SHALL default missing
+    fields per the conventions in
+    ``openspec/changes/lyric-anchored-boundary-refinement/specs/``):
+
+    - Each ``sections[i]`` gains an optional ``boundary_refinements:
+      list[str]`` field describing any lyric-anchored refinements applied
+      to that section's boundaries (or ``[]`` when none fired).
     """
     # ── Step 1: Extract metadata from hierarchy ────────────────────────────────
     source_hash: str = hierarchy.get("source_hash", "")
