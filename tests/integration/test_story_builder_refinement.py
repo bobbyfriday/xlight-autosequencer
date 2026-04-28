@@ -49,7 +49,6 @@ def _stub_genius_sections_factory(
 
 def test_flag_off_emits_empty_boundary_refinements_field(hierarchy, monkeypatch):
     """Default-off: every section gets boundary_refinements: [], no fix runs."""
-    monkeypatch.delenv("XLIGHT_REFINE_BOUNDARIES", raising=False)
     monkeypatch.setattr(builder_mod, "_try_genius_sections", _stub_genius_sections_factory(
         sections=None,
         free_words=[],
@@ -66,7 +65,6 @@ def test_flag_off_emits_empty_boundary_refinements_field(hierarchy, monkeypatch)
 
 def test_flag_on_no_genius_data_still_emits_empty_field(hierarchy, monkeypatch):
     """Flag on but Genius returned nothing — every section still gets []."""
-    monkeypatch.setenv("XLIGHT_REFINE_BOUNDARIES", "1")
     monkeypatch.setattr(builder_mod, "_try_genius_sections", _stub_genius_sections_factory(
         sections=None,
         free_words=[],
@@ -86,7 +84,6 @@ def test_flag_on_fix3_fires_for_late_vocal_entry(hierarchy, monkeypatch):
     consistent with one of them having its first transcribed word > 5 s
     after the section start. Fix 3 should split it.
     """
-    monkeypatch.setenv("XLIGHT_REFINE_BOUNDARIES", "1")
 
     # First, build with flag off to discover what sections the fixture
     # produces. Then we know which one to target with synthetic free_words.
@@ -94,7 +91,6 @@ def test_flag_on_fix3_fires_for_late_vocal_entry(hierarchy, monkeypatch):
         sections=None,
     ))
 
-    monkeypatch.delenv("XLIGHT_REFINE_BOUNDARIES", raising=False)
     baseline = build_song_story(hierarchy, AUDIO_PATH)
 
     # Pick a vocal section ≥ 10 s long so we can simulate a late entry.
@@ -118,7 +114,6 @@ def test_flag_on_fix3_fires_for_late_vocal_entry(hierarchy, monkeypatch):
         {"label": "WORLD", "start_ms": word_start_ms + 600, "end_ms": word_start_ms + 1000},
     ]
 
-    monkeypatch.setenv("XLIGHT_REFINE_BOUNDARIES", "1")
     monkeypatch.setattr(builder_mod, "_try_genius_sections", _stub_genius_sections_factory(
         sections=None,
         free_words=free_words,
@@ -153,7 +148,6 @@ def test_legacy_story_dict_section_from_dict_handles_missing_field(hierarchy, mo
     from src.story.models import Section
 
     # Build a real story (flag off → no refinement notes added beyond []).
-    monkeypatch.delenv("XLIGHT_REFINE_BOUNDARIES", raising=False)
     monkeypatch.setattr(builder_mod, "_try_genius_sections", _stub_genius_sections_factory(
         sections=None,
     ))

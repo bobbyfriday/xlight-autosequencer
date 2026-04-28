@@ -52,21 +52,25 @@ def _stub_genius_sections_factory(
 
 # ── Field always present ────────────────────────────────────────────────────────
 
-def test_story_always_has_refinement_warnings_field_flag_off(hierarchy, monkeypatch):
-    """Flag off: refinement_warnings is present and empty."""
-    monkeypatch.delenv("XLIGHT_REFINE_BOUNDARIES", raising=False)
+def test_story_always_has_refinement_warnings_field(hierarchy, monkeypatch):
+    """``refinement_warnings`` is always present in the story dict.
+
+    With no Genius data and no free words, Fix 2 and Fix 2/3 emit their
+    capability-skip warnings (since 2026-04-28 the refinement step is
+    always-on; no flag).
+    """
     monkeypatch.setattr(
         builder_mod, "_try_genius_sections",
         _stub_genius_sections_factory(),
     )
     story = build_song_story(hierarchy, AUDIO_PATH)
     assert "refinement_warnings" in story
-    assert story["refinement_warnings"] == []
+    # No chorus body → Fix 2 skip; no free words → Fix 2/3 skip.
+    assert any("Fix 2" in w for w in story["refinement_warnings"])
 
 
-def test_story_always_has_refinement_warnings_field_flag_on_full_caps(hierarchy, monkeypatch):
-    """Flag on with full capabilities (chorus body + free words): no skip warnings."""
-    monkeypatch.setenv("XLIGHT_REFINE_BOUNDARIES", "1")
+def test_story_full_capabilities_emits_no_skip_warnings(hierarchy, monkeypatch):
+    """Full capabilities (chorus body + free words): no skip warnings."""
     free_words = [{"label": "HELLO", "start_ms": 1000, "end_ms": 1400}]
     monkeypatch.setattr(
         builder_mod, "_try_genius_sections",
@@ -83,7 +87,6 @@ def test_story_always_has_refinement_warnings_field_flag_on_full_caps(hierarchy,
 
 def test_no_chorus_body_emits_fix2_skip_warning(hierarchy, monkeypatch):
     """When Genius produced no chorus body but free words exist → Fix 2 skipped."""
-    monkeypatch.setenv("XLIGHT_REFINE_BOUNDARIES", "1")
     free_words = [{"label": "HELLO", "start_ms": 1000, "end_ms": 1400}]
     monkeypatch.setattr(
         builder_mod, "_try_genius_sections",
@@ -106,7 +109,6 @@ def test_no_chorus_body_emits_fix2_skip_warning(hierarchy, monkeypatch):
 
 def test_no_free_words_emits_fix23_skip_warning(hierarchy, monkeypatch):
     """When free word marks are empty → Fix 2/3 skipped."""
-    monkeypatch.setenv("XLIGHT_REFINE_BOUNDARIES", "1")
     monkeypatch.setattr(
         builder_mod, "_try_genius_sections",
         _stub_genius_sections_factory(
@@ -126,7 +128,6 @@ def test_no_free_words_emits_fix23_skip_warning(hierarchy, monkeypatch):
 
 def test_both_capabilities_missing_emits_two_warnings(hierarchy, monkeypatch):
     """Chorus body missing AND free words missing → two distinct skip warnings."""
-    monkeypatch.setenv("XLIGHT_REFINE_BOUNDARIES", "1")
     monkeypatch.setattr(
         builder_mod, "_try_genius_sections",
         _stub_genius_sections_factory(
@@ -148,7 +149,6 @@ def test_both_capabilities_missing_emits_two_warnings(hierarchy, monkeypatch):
 def test_warnings_are_per_song_not_per_section(hierarchy, monkeypatch):
     """The fixture has 4 sections; the warning list still has exactly one
     Fix-2 entry — proving emission is per song, not per section."""
-    monkeypatch.setenv("XLIGHT_REFINE_BOUNDARIES", "1")
     free_words = [{"label": "HELLO", "start_ms": 1000, "end_ms": 1400}]
     monkeypatch.setattr(
         builder_mod, "_try_genius_sections",
@@ -171,7 +171,6 @@ def test_per_section_non_fires_do_not_emit_warnings(hierarchy, monkeypatch):
     """A section whose preconditions for a fix simply don't apply (e.g., a
     bridge whose transcribed words don't match the chorus hook) is a normal
     no-op — no warning. This is distinct from a capability skip."""
-    monkeypatch.setenv("XLIGHT_REFINE_BOUNDARIES", "1")
     # Provide a chorus body and free words. The fixture's bridges (if any)
     # won't contain the hook "DJ play christmas song" — that's a per-section
     # non-fire, which must NOT produce a warning.
