@@ -30,9 +30,9 @@
     <Effect>E_CHECKBOX_Bars_3D=0,E_CHECKBOX_Bars_Gradient=0,E_CHECKBOX_Bars_Highlight=0,E_CHECKBOX_Bars_UseFirstColorForHighlight=0,E_CHOICE_Bars_Direction=compress,E_SLIDER_Bars_BarCount=2,E_SLIDER_Bars_Cycles=1,T_TEXTCTRL_Fadein=0.08,T_TEXTCTRL_Fadeout=0.08</Effect>
     <Effect>E_CHOICE_Butterfly_Colors=Palette,E_CHOICE_Butterfly_Direction=Reverse,E_SLIDER_Butterfly_Chunks=1,E_SLIDER_Butterfly_Skip=2,E_SLIDER_Butterfly_Speed=10,E_SLIDER_Butterfly_Style=1,T_TEXTCTRL_Fadein=0.16,T_TEXTCTRL_Fadeout=0.16</Effect>
     <Effect>E_CHOICE_Butterfly_Colors=Palette,E_CHOICE_Butterfly_Direction=Reverse,E_SLIDER_Butterfly_Chunks=1,E_SLIDER_Butterfly_Skip=2,E_SLIDER_Butterfly_Speed=10,E_SLIDER_Butterfly_Style=1,T_TEXTCTRL_Fadein=0.16,T_TEXTCTRL_Fadeout=4</Effect>
+    <Effect>E_CHOICE_Pinwheel_Style=New Render Method,E_SLIDER_Pinwheel_ArmSize=100,E_SLIDER_Pinwheel_Arms=6,E_SLIDER_Pinwheel_Speed=15,E_SLIDER_Pinwheel_Thickness=0,E_SLIDER_Pinwheel_Twist=30</Effect>
     <Effect>E_CHOICE_Bars_Direction=Left,E_CHOICE_Plasma_Color=Normal,E_SLIDER_Bars_BarCount=2,E_SLIDER_Plasma_Line_Density=1,E_SLIDER_Plasma_Speed=10,E_SLIDER_Plasma_Style=1</Effect>
     <Effect>E_SLIDER_Shockwave_Accel=0,E_SLIDER_Shockwave_CenterX=50,E_SLIDER_Shockwave_CenterY=50,E_SLIDER_Shockwave_End_Radius=80,E_SLIDER_Shockwave_End_Width=50,E_SLIDER_Shockwave_Start_Radius=1,E_SLIDER_Shockwave_Start_Width=5</Effect>
-    <Effect>E_CHOICE_Pinwheel_Style=New Render Method,E_SLIDER_Pinwheel_ArmSize=100,E_SLIDER_Pinwheel_Arms=6,E_SLIDER_Pinwheel_Speed=15,E_SLIDER_Pinwheel_Thickness=0,E_SLIDER_Pinwheel_Twist=30</Effect>
     <Effect>E_CHECKBOX_Bars_3D=0,E_CHECKBOX_Bars_Gradient=0,E_CHECKBOX_Bars_Highlight=0,E_CHECKBOX_Bars_UseFirstColorForHighlight=0,E_CHOICE_Bars_Direction=Left,E_SLIDER_Bars_BarCount=2,E_SLIDER_Bars_Cycles=1</Effect>
     <Effect>E_CHECKBOX_Bars_3D=0,E_CHECKBOX_Bars_Gradient=0,E_CHECKBOX_Bars_Highlight=0,E_CHECKBOX_Bars_UseFirstColorForHighlight=0,E_CHOICE_Bars_Direction=expand,E_SLIDER_Bars_BarCount=2,E_SLIDER_Bars_Cycles=1</Effect>
     <Effect>E_CHOICE_Butterfly_Colors=Palette,E_CHOICE_Butterfly_Direction=Reverse,E_SLIDER_Butterfly_Chunks=1,E_SLIDER_Butterfly_Skip=2,E_SLIDER_Butterfly_Speed=10,E_SLIDER_Butterfly_Style=1</Effect>
@@ -73,28 +73,29 @@
     </Element>
     <Element type="model" name="02_GEO_Left">
       <EffectLayer>
-        <Effect ref="8" name="Plasma" startTime="10000" endTime="16000" palette="1" selected="0" />
+        <Effect ref="8" name="Pinwheel" startTime="4000" endTime="10000" palette="1" selected="0" />
+        <Effect ref="9" name="Plasma" startTime="10000" endTime="16000" palette="1" selected="0" />
       </EffectLayer>
     </Element>
     <Element type="model" name="02_GEO_Right">
       <EffectLayer>
-        <Effect ref="8" name="Plasma" startTime="10000" endTime="16000" palette="1" selected="0" />
+        <Effect ref="9" name="Plasma" startTime="10000" endTime="16000" palette="1" selected="0" />
       </EffectLayer>
     </Element>
     <Element type="model" name="04_BEAT_1">
       <EffectLayer settings="B_CHOICE_BufferStyle=Per Model Default">
-        <Effect ref="9" name="Shockwave" startTime="0" endTime="1000" palette="3" selected="0" />
-        <Effect ref="9" name="Shockwave" startTime="1000" endTime="2000" palette="3" selected="0" />
-        <Effect ref="9" name="Shockwave" startTime="2000" endTime="3000" palette="3" selected="0" />
-        <Effect ref="9" name="Shockwave" startTime="3000" endTime="3500" palette="3" selected="0" />
-        <Effect ref="10" name="Pinwheel" startTime="4000" endTime="4500" palette="4" selected="0" />
-        <Effect ref="10" name="Pinwheel" startTime="4500" endTime="5500" palette="4" selected="0" />
-        <Effect ref="10" name="Pinwheel" startTime="5500" endTime="6000" palette="5" selected="0" />
-        <Effect ref="10" name="Pinwheel" startTime="6000" endTime="7000" palette="4" selected="0" />
-        <Effect ref="10" name="Pinwheel" startTime="7000" endTime="7500" palette="4" selected="0" />
-        <Effect ref="10" name="Pinwheel" startTime="7500" endTime="8500" palette="4" selected="0" />
-        <Effect ref="10" name="Pinwheel" startTime="8500" endTime="9000" palette="4" selected="0" />
-        <Effect ref="10" name="Pinwheel" startTime="9000" endTime="9500" palette="4" selected="0" />
+        <Effect ref="10" name="Shockwave" startTime="0" endTime="1000" palette="3" selected="0" />
+        <Effect ref="10" name="Shockwave" startTime="1000" endTime="2000" palette="3" selected="0" />
+        <Effect ref="10" name="Shockwave" startTime="2000" endTime="3000" palette="3" selected="0" />
+        <Effect ref="10" name="Shockwave" startTime="3000" endTime="3500" palette="3" selected="0" />
+        <Effect ref="8" name="Pinwheel" startTime="4000" endTime="4500" palette="4" selected="0" />
+        <Effect ref="8" name="Pinwheel" startTime="4500" endTime="5500" palette="5" selected="0" />
+        <Effect ref="8" name="Pinwheel" startTime="5500" endTime="6000" palette="4" selected="0" />
+        <Effect ref="8" name="Pinwheel" startTime="6000" endTime="7000" palette="4" selected="0" />
+        <Effect ref="8" name="Pinwheel" startTime="7000" endTime="7500" palette="4" selected="0" />
+        <Effect ref="8" name="Pinwheel" startTime="7500" endTime="8500" palette="4" selected="0" />
+        <Effect ref="8" name="Pinwheel" startTime="8500" endTime="9000" palette="4" selected="0" />
+        <Effect ref="8" name="Pinwheel" startTime="9000" endTime="9500" palette="4" selected="0" />
         <Effect ref="11" name="Bars" startTime="10000" endTime="10500" palette="6" selected="0" />
         <Effect ref="12" name="Bars" startTime="11000" endTime="11500" palette="7" selected="0" />
         <Effect ref="11" name="Bars" startTime="12000" endTime="13000" palette="6" selected="0" />
