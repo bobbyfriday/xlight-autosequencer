@@ -355,6 +355,16 @@ class GeniusSegmentAnalyzer:
     # builder subprocess so the match URL/artist/title can reach the UI for user
     # confirmation. Set to None before fetch; populated on success.
     last_match: Optional[GeniusMatch] = None
+    # Free WhisperX transcription word marks captured during run(); fed to the
+    # boundary-refinement step (OpenSpec change
+    # ``lyric-anchored-boundary-refinement``). Empty list means the free
+    # transcription pass did not run or yielded no words.
+    last_free_words: list = []
+    # Forced-aligned (Genius-lyrics) word marks captured during run().
+    last_forced_words: list = []
+    # First non-empty chorus body from parsed Genius sections, used as the
+    # source of the distinctive-hook for boundary-refinement Fix 2.
+    last_chorus_body: Optional[str] = None
 
     def run(
         self,
@@ -376,6 +386,11 @@ class GeniusSegmentAnalyzer:
         from src.analyzer.structure import SongStructure, StructureSegment
 
         warnings: list[str] = []
+
+        # Reset boundary-refinement signals from any prior run.
+        self.last_free_words = []
+        self.last_forced_words = []
+        self.last_chorus_body = None
 
         # ── Validate token ────────────────────────────────────────────────────
         if not token:
@@ -447,6 +462,12 @@ class GeniusSegmentAnalyzer:
                 "by '{artist}'. Skipping segment detection."
             )
             return None, None, warnings
+
+        # Capture first non-empty chorus body for boundary-refinement Fix 2.
+        for _seg in sections:
+            if _seg.label.lower().startswith("chorus") and _seg.text.strip():
+                self.last_chorus_body = _seg.text.strip()
+                break
 
         # ── Discover vocals stem ──────────────────────────────────────────────
         vocals_path: Optional[str] = None
@@ -533,6 +554,8 @@ class GeniusSegmentAnalyzer:
                 free_words = transcribe_free(
                     align_audio, language="en", device=device, duration_s=duration_s
                 )
+                # Stash for boundary refinement (parent process consumes via JSON).
+                self.last_free_words = list(free_words)
                 log.info("Transcription found %d word marks", len(free_words))
                 for wm in free_words[:50]:
                     log.debug("  transcribed: %.2fs–%.2fs %r",
@@ -587,6 +610,9 @@ class GeniusSegmentAnalyzer:
                              filtered, before, len(word_marks))
                 else:
                     log.info("Step 3: no words filtered (all in vocal regions)")
+
+                # Stash forced-aligned words for boundary refinement.
+                self.last_forced_words = list(word_marks)
 
                 if word_marks:
                     phoneme_marks: list[PhonemeMark] = []
