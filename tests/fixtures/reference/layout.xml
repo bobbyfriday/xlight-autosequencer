@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Reference layout for xlight-microscope panel runs.
+  8 props covering all 6 canonical prop suitability types:
+    matrix  → MatrixCenter
+    tree    → MegaTree, TreeLeft, TreeRight
+    arch    → ArchLeft, ArchRight
+    outline → RooflineLeft, RooflineRight
+    radial  → StarSpinner
+    (no vertical / no custom — not needed for suitability coverage)
+  Model names embed tokens that xsq_reader infers prop types from.
+-->
+<xlightsproject>
+  <modelGroups>
+    <modelGroup name="All Props"
+      models="MatrixCenter,MegaTree,TreeLeft,TreeRight,ArchLeft,ArchRight,RooflineLeft,RooflineRight,StarSpinner"
+      layout="minimalGrid" GridSize="800"/>
+  </modelGroups>
+  <models>
+    <!-- matrix: 2D grid, high pixel density -->
+    <model name="MatrixCenter" DisplayAs="Matrix"
+           StringType="RGB Nodes" StartChannel="1" PixelCount="300"
+           WorldPosX="400" WorldPosY="300" WorldPosZ="0"
+           ScaleX="3.0" ScaleY="2.0" ScaleZ="1.0"/>
+
+    <!-- tree: radially arranged vertical tree -->
+    <model name="MegaTree" DisplayAs="Tree 360"
+           StringType="RGB Nodes" StartChannel="901" PixelCount="200"
+           WorldPosX="400" WorldPosY="100" WorldPosZ="0"
+           ScaleX="1.5" ScaleY="3.0" ScaleZ="1.5"/>
+
+    <!-- tree: left side -->
+    <model name="TreeLeft" DisplayAs="Tree 360"
+           StringType="RGB Nodes" StartChannel="1501" PixelCount="100"
+           WorldPosX="150" WorldPosY="100" WorldPosZ="0"
+           ScaleX="1.0" ScaleY="2.0" ScaleZ="1.0"/>
+
+    <!-- tree: right side -->
+    <model name="TreeRight" DisplayAs="Tree 360"
+           StringType="RGB Nodes" StartChannel="1801" PixelCount="100"
+           WorldPosX="650" WorldPosY="100" WorldPosZ="0"
+           ScaleX="1.0" ScaleY="2.0" ScaleZ="1.0"/>
+
+    <!-- arch: left walkway arch -->
+    <model name="ArchLeft" DisplayAs="Arch"
+           StringType="RGB Nodes" StartChannel="2101" PixelCount="50"
+           WorldPosX="200" WorldPosY="50" WorldPosZ="0"
+           ScaleX="1.0" ScaleY="1.0" ScaleZ="1.0"/>
+
+    <!-- arch: right walkway arch -->
+    <model name="ArchRight" DisplayAs="Arch"
+           StringType="RGB Nodes" StartChannel="2251" PixelCount="50"
+           WorldPosX="600" WorldPosY="50" WorldPosZ="0"
+           ScaleX="1.0" ScaleY="1.0" ScaleZ="1.0"/>
+
+    <!-- outline: roofline left (single linear run) -->
+    <model name="RooflineLeft" DisplayAs="Single Line"
+           StringType="RGB Nodes" StartChannel="2401" PixelCount="75"
+           WorldPosX="100" WorldPosY="500" WorldPosZ="0"
+           ScaleX="3.0" ScaleY="1.0" ScaleZ="1.0"/>
+
+    <!-- outline: roofline right -->
+    <model name="RooflineRight" DisplayAs="Single Line"
+           StringType="RGB Nodes" StartChannel="2626" PixelCount="75"
+           WorldPosX="500" WorldPosY="500" WorldPosZ="0"
+           ScaleX="3.0" ScaleY="1.0" ScaleZ="1.0"/>
+
+    <!-- radial: star spinner -->
+    <model name="StarSpinner" DisplayAs="Star"
+           StringType="RGB Nodes" StartChannel="2851" PixelCount="40"
+           WorldPosX="400" WorldPosY="500" WorldPosZ="0"
+           ScaleX="1.0" ScaleY="1.0" ScaleZ="1.0"/>
+  </models>
+</xlightsproject>
