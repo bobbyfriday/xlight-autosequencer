@@ -820,46 +820,41 @@ def build_song_story(
             if sec.get("role") == "chorus":
                 sec["chorus_ssm_supported"] = True
 
-    # ── Step 15c: Lyric-anchored boundary refinement (feature-flagged) ───────
+    # ── Step 15c: Lyric-anchored boundary refinement ──────────────────────────
     # OpenSpec change ``lyric-anchored-boundary-refinement``. Three small,
     # targeted refinements applied after the existing boundary derivation:
     # (1) merge short post_chorus tails, (2) relabel/split bridges whose sung
     # content opens with the chorus first-line hook, (3) split pre-vocal
-    # instrumental ramps off vocal sections. Gated by env flag
-    # ``XLIGHT_REFINE_BOUNDARIES`` (off by default until corpus validation).
-    refinement_warnings: list[str] = []
-    if os.environ.get("XLIGHT_REFINE_BOUNDARIES", "").lower() in ("1", "true", "yes", "on"):
-        from src.analyzer.phonemes import WordMark
-        from src.story.boundary_refinement import refine_section_boundaries
+    # instrumental ramps off vocal sections. Validated against a 16-song
+    # corpus (6 fires, 0 false positives) — always-on as of 2026-04-28.
+    from src.analyzer.phonemes import WordMark
+    from src.story.boundary_refinement import refine_section_boundaries
 
-        forced_marks = [
-            WordMark(label=w["label"], start_ms=int(w["start_ms"]), end_ms=int(w["end_ms"]))
-            for w in (genius_forced_words or [])
-        ]
-        free_marks = [
-            WordMark(label=w["label"], start_ms=int(w["start_ms"]), end_ms=int(w["end_ms"]))
-            for w in (genius_free_words or [])
-        ]
-        sections_out, refinement_notes = refine_section_boundaries(
-            sections_out,
-            forced_words=forced_marks,
-            free_words=free_marks,
-            chorus_body=genius_chorus_body,
+    forced_marks = [
+        WordMark(label=w["label"], start_ms=int(w["start_ms"]), end_ms=int(w["end_ms"]))
+        for w in (genius_forced_words or [])
+    ]
+    free_marks = [
+        WordMark(label=w["label"], start_ms=int(w["start_ms"]), end_ms=int(w["end_ms"]))
+        for w in (genius_free_words or [])
+    ]
+    sections_out, refinement_notes = refine_section_boundaries(
+        sections_out,
+        forced_words=forced_marks,
+        free_words=free_marks,
+        chorus_body=genius_chorus_body,
+    )
+    refinement_warnings: list[str] = []
+    if not genius_chorus_body:
+        refinement_warnings.append(
+            "boundary refinement skipped: Fix 2 (relabel/split bridge) "
+            "— no chorus body from Genius"
         )
-        if not genius_chorus_body:
-            refinement_warnings.append(
-                "boundary refinement skipped: Fix 2 (relabel/split bridge) "
-                "— no chorus body from Genius"
-            )
-        if not free_marks:
-            refinement_warnings.append(
-                "boundary refinement skipped: Fix 2/3 — no free-transcription "
-                "word marks (whisperx unavailable or no vocals)"
-            )
-    else:
-        # Always emit the field for schema consistency, even when flag is off.
-        for sec in sections_out:
-            sec.setdefault("boundary_refinements", [])
+    if not free_marks:
+        refinement_warnings.append(
+            "boundary refinement skipped: Fix 2/3 — no free-transcription "
+            "word marks (whisperx unavailable or no vocals)"
+        )
 
     # ── Assemble the complete story dict ──────────────────────────────────────
     story: dict = {
@@ -902,6 +897,13 @@ def build_song_story(
             "reviewed_at": None,
             "reviewer_notes": None,
         },
+        # Capability-skip warnings from Step 15c boundary refinement (one
+        # entry per skipped fix per song; per-section non-fires are silent).
+        # Empty list when refinement ran cleanly or the feature flag is off.
+        # The analyze-step API merges these into ``HierarchyResult.warnings``
+        # so they surface in the UI's warnings panel — see OpenSpec change
+        # ``lyric-anchored-boundary-refinement`` §7.
+        "refinement_warnings": refinement_warnings,
     }
 
     return story
