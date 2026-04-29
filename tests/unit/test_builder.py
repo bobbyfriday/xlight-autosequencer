@@ -76,7 +76,7 @@ def test_schema_version_is_string(story):
 
 
 def test_schema_version_value(story):
-    assert story["schema_version"] == "1.0.0"
+    assert story["schema_version"] == "1.1.0"
 
 
 # ── sections ───────────────────────────────────────────────────────────────────
