@@ -1,0 +1,223 @@
+name: PR Screenshots
+
+# Captures UI screenshots on PRs that touch the review web UI, pushes them
+# to an orphan branch (``pr-screenshots/<N>``) so they can be linked from
+# raw.githubusercontent.com URLs, and posts a sticky comment with inline
+# images. Visible from the GitHub iOS app and Claude.ai's GitHub
+# integration.
+#
+# Opt-in by path: only frontend / API / server.py / UI-test changes
+# trigger the workflow. The full UI suite costs ~5 min on a fresh runner;
+# we don't want it on every commit.
+
+on:
+  pull_request:
+    paths:
+      - 'src/review/frontend/**'
+      - 'src/review/api/**'
+      - 'src/review/server.py'
+      - 'src/review/templates/**'
+      - 'tests/ui/**'
+
+permissions:
+  contents: write       # push to pr-screenshots/* orphan branches
+  pull-requests: write  # post / update sticky comment
+
+# One run per PR — cancel any in-flight runs on a new push.
+concurrency:
+  group: pr-screenshots-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  capture:
+    name: Capture UI screenshots
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: src/review/frontend/package-lock.json
+
+      - name: Install Python package + UI test extras
+        run: |
+          pip install --upgrade pip
+          pip install -e ".[dev,ui-tests]"
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('pyproject.toml') }}
+
+      - name: Install Playwright browsers
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: playwright install chromium --with-deps
+
+      - name: Install Playwright system deps
+        run: playwright install-deps chromium
+
+      - name: Cache CC0 corpus MP3s
+        uses: actions/cache@v4
+        with:
+          path: tests/fixtures/cc0_music/*.mp3
+          key: cc0-corpus-${{ hashFiles('tests/validation/download_fixtures.py', 'tests/fixtures/cc0_music/manifest.json') }}
+
+      - name: Download CC0 corpus
+        run: python -m tests.validation.download_fixtures
+
+      - name: Build frontend bundle
+        working-directory: src/review/frontend
+        run: |
+          npm ci
+          npm run build
+
+      - name: Run UI flows (capture screenshots)
+        # ``ui and not content`` runs the smoke flows + the new ID3 modal
+        # flow. ``content`` is excluded because it needs the .venv-vamp
+        # sidecar (madmom, vamp). ``continue-on-error`` ensures a single
+        # flaky flow doesn't block the screenshot upload — the failed
+        # tests still leave their snapshots up to the failure point.
+        run: |
+          pytest tests/ui/ -m "ui and not content" \
+            --browser chromium \
+            --tb=short -v \
+            --full-page-screenshot
+        continue-on-error: true
+
+      - name: List captured screenshots
+        # Surface what got captured in the run log so failures are
+        # diagnosable without downloading the artifact.
+        run: |
+          if [ -d tests/golden/ui/screenshots ]; then
+            find tests/golden/ui/screenshots -type f | sort
+          else
+            echo "No screenshots produced."
+          fi
+
+      - name: Upload screenshot artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr-screenshots-${{ github.event.pull_request.number }}
+          path: tests/golden/ui/screenshots/
+          retention-days: 30
+          if-no-files-found: warn
+
+      - name: Build sticky-comment body
+        # Compose the comment BEFORE switching branches — once we check
+        # out the orphan branch, the screenshots dir layout changes.
+        id: build_body
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.event.pull_request.head.sha }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          BRANCH="pr-screenshots/${PR_NUMBER}"
+          BASE_RAW="https://raw.githubusercontent.com/${REPO}/${BRANCH}"
+          BODY=/tmp/pr-screenshots-comment.md
+          if [ ! -d tests/golden/ui/screenshots ] || [ -z "$(ls -A tests/golden/ui/screenshots 2>/dev/null)" ]; then
+            {
+              echo "<!-- pr-screenshots-bot -->"
+              echo "## 🖼️ UI screenshots"
+              echo
+              echo "_No screenshots were captured for commit \`${SHA::8}\`._"
+              echo
+              echo "[Run log](https://github.com/${REPO}/actions/runs/${RUN_ID})"
+            } > "$BODY"
+          else
+            {
+              echo "<!-- pr-screenshots-bot -->"
+              echo "## 🖼️ UI screenshots"
+              echo
+              echo "Captured for commit \`${SHA::8}\` · [Run log](https://github.com/${REPO}/actions/runs/${RUN_ID}) · [Download artifact](https://github.com/${REPO}/actions/runs/${RUN_ID}#artifacts)"
+              echo
+              for d in tests/golden/ui/screenshots/*/ ; do
+                [ -d "$d" ] || continue
+                name=$(basename "$d")
+                echo "<details><summary><strong>${name}</strong></summary>"
+                echo
+                # Sort lexically — the snapshot fixture's NN- prefix keeps
+                # them in waypoint order.
+                for f in $(ls -1 "$d" 2>/dev/null | sort); do
+                  case "$f" in
+                    *.jpg|*.jpeg|*.png) ;;
+                    *) continue ;;
+                  esac
+                  echo "**${f}**"
+                  echo
+                  echo "![${name}/${f}](${BASE_RAW}/${name}/${f})"
+                  echo
+                done
+                echo "</details>"
+                echo
+              done
+            } > "$BODY"
+          fi
+          echo "body_path=${BODY}" >> "$GITHUB_OUTPUT"
+
+      - name: Push screenshots to pr-screenshots/<N>
+        if: success()
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          BRANCH="pr-screenshots/${PR_NUMBER}"
+          if [ ! -d tests/golden/ui/screenshots ] || [ -z "$(ls -A tests/golden/ui/screenshots 2>/dev/null)" ]; then
+            echo "No screenshots to push — skipping."
+            exit 0
+          fi
+          STAGE=$(mktemp -d)
+          cp -R tests/golden/ui/screenshots/. "$STAGE/"
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # Orphan checkout — clean slate every time.
+          git checkout --orphan "$BRANCH"
+          git rm -rf . >/dev/null 2>&1 || true
+          rm -rf .[!.]* * 2>/dev/null || true
+          cp -R "$STAGE/." .
+          {
+            echo "# PR #${PR_NUMBER} — UI screenshots"
+            echo
+            echo "Auto-generated for commit \`${SHA}\` by \`.github/workflows/screenshots-on-pr.yml\`."
+            echo
+            echo "Force-pushed on every run; do not link to specific commits on this branch."
+          } > README.md
+          git add -A
+          git commit -m "Screenshots for PR #${PR_NUMBER} (${SHA})" || { echo "no changes"; exit 0; }
+          git push origin "${BRANCH}" --force
+
+      - name: Post / update sticky PR comment
+        if: success()
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BODY_PATH: ${{ steps.build_body.outputs.body_path }}
+        run: |
+          set -euo pipefail
+          # Find an existing sticky comment by the marker tag.
+          EXISTING=$(gh api "repos/${REPO}/issues/${PR_NUMBER}/comments" \
+            --jq '.[] | select(.body | startswith("<!-- pr-screenshots-bot -->")) | .id' \
+            | head -n1)
+          # GitHub's REST comment API takes the body as JSON.
+          BODY_JSON=$(jq -Rs '{body: .}' < "${BODY_PATH}")
+          if [ -n "${EXISTING:-}" ]; then
+            echo "Updating sticky comment ${EXISTING}"
+            echo "${BODY_JSON}" | gh api -X PATCH "repos/${REPO}/issues/comments/${EXISTING}" --input -
+          else
+            echo "Posting new sticky comment"
+            echo "${BODY_JSON}" | gh api -X POST "repos/${REPO}/issues/${PR_NUMBER}/comments" --input -
+          fi
