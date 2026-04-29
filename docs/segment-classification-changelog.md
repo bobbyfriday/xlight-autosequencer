@@ -213,3 +213,65 @@ only collapses *adjacent* same-role sections with no different role between them
 - Segmentino labels ignored.
 - Uniform-energy songs produce too many verses.
 - No consecutive same-role merging.
+
+---
+
+## 2026-04-28 — Lyric-anchored boundary refinement (three fixes)
+
+**OpenSpec change:** `openspec/changes/lyric-anchored-boundary-refinement/`
+(spec PR #126).
+
+**Files:** `src/analyzer/free_transcription.py` (new), `src/story/boundary_refinement.py`
+(new), `src/story/builder.py` (call site), `src/review/api/v1/analysis.py`
+(payload surfacing).
+
+A new post-classification refinement pass runs after section roles are assigned
+and before `_story.json` is written. Consumes WhisperX forced-alignment word
+marks (already used by Genius alignment) and a free-transcription word stream
+(no Genius required) as ground-truth "is anyone audibly singing here" evidence.
+Each section gains a `boundary_refinements: list[str]` field accumulating
+human-readable notes from each pass. Schema bumped to `1.1.0` (additive).
+Empirical record on 16-song corpus: 8 fires across 5 songs, 0 false positives.
+
+### Fix 1 — `merge_short_post_chorus_tail`
+
+Merges a short trailing `post_chorus` back into the prior chorus thought when
+the audio shows continuous vocals across the boundary. Preconditions: prior
+section role in `{verse, chorus, pre_chorus, bridge}`, next section role is
+`post_chorus`, next duration `< 6000 ms`, next `agreement_score <= 1`, and
+the gap from the prior section's last forced-aligned word to the next
+section's first forced-aligned word is `<= 1500 ms`. When all hold, the prior
+section's `end_ms` extends to the next section's last word + 250 ms tail and
+the next section is dropped. Reasoning: a continuous low-agreement post_chorus
+of `<` six seconds with no audible silence gap is the same chorus thought,
+not a separate post-chorus role. (~85 words)
+
+### Fix 2 — `relabel_or_split_bridge`
+
+Verifies "bridge" sections actually contain non-chorus material by checking
+for the chorus's first-line distinctive hook (≥ 3-character, non-stopword
+words, in order, within a 12-word sliding window, requiring N-1 of N matches
+so a single ASR drop doesn't abort). Stopword set covers high-frequency
+function words plus common contractions (`i'm`, `you're`, `we're`, `it's`,
+`we'll`, `i'll`, `going`, `off`). Four branches: (a) hook present, no large
+internal vocal gap → relabel the whole section to `chorus`; (b) hook present
+in both halves around a `>= 3000 ms` gap → relabel; (c) hook present in
+prefix only with a gap → split (keep prefix as chorus, leave remainder as
+bridge); (d) no hook match → leave unchanged. Skipped silently when chorus
+body has fewer than two distinctive targets. (~95 words)
+
+### Fix 3 — `split_pre_vocal_instrumental`
+
+Splits an instrumental lead-in off the front of a vocal section when the
+audio shows a long silence before any singing. Preconditions: section role
+in the vocal kinds set; section label does not contain `"instrumental"` or
+`"break"` (case-insensitive guard against double-splitting an
+already-instrumental section); section has at least one free-transcribed
+word; gap from `section.start_ms` to first transcribed word's `start_ms`
+is `>= 5000 ms` AND the remainder `(section.end_ms - first_word.start_ms)`
+is `>= 3000 ms` (mislabeled-section guard — too little vocal content
+remaining means the entire section is probably instrumental). When all hold,
+insert a synthetic `instrumental` section from `section.start_ms` to
+`first_word.start_ms - 250 ms` and shift the section's start to that
+boundary. Reasoning: a five-second-plus pre-vocal gap inside a "verse" is
+audibly an intro/break, not part of the verse. (~95 words)

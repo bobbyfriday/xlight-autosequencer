@@ -967,6 +967,10 @@
 
 - `evaluate.yml` — CI: Acceptance Gate (Tier A) (~1647 tok)
 
+## docs/
+
+- `segment-classification-changelog.md` — Segment Classification Changelog (~3492 tok)
+
 ## openspec/changes/acceptance-gate/
 
 - `tasks.md` — 1. Corpus wiring (reuse existing CC0 pattern) (~2580 tok)
@@ -991,6 +995,7 @@
 
 ## src/analyzer/
 
+- `free_transcription.py` — Reusable WhisperX transcribe+align wrapper returning per-word `WordMark` instances; consumed by Genius alignment and the boundary-refinement step. (~1100 tok)
 - `genius_segments.py` — Genius lyric segment timing: fetch, parse, and align section headers to audio. (~8841 tok)
 
 ## src/cli/
@@ -1028,6 +1033,7 @@
 
 ## src/story/
 
+- `boundary_refinement.py` — Lyric-anchored boundary refinement — three post-classification fixes (merge short post_chorus tail, relabel/split bridge by chorus hook, split pre-vocal instrumental). (~4750 tok)
 - `builder.py` — Song story builder — top-level orchestration for the song story tool. (~10110 tok)
 
 ## tests/evaluation/
@@ -1039,6 +1045,10 @@
 
 - `manifest.json` (~568 tok)
 - `README.md` — Project documentation (~616 tok)
+
+## tests/integration/
+
+- `test_story_builder_refinement.py` — Integration test for the boundary-refinement step inside the full story builder, asserting expected refinement notes on a fixture song. (~1560 tok)
 
 ## tests/review/
 
@@ -1061,6 +1071,11 @@
 - `test_timeline_flow.py` — Timeline screen navigation: tab access + analysis-gated placeholder. (~1108 tok)
 - `test_upload_flow.py` — Upload flow: pick a fixture MP3, POST /api/v1/import, verify analyze screen. (~398 tok)
 - `test_view_flow.py` — View flow: analyzed content renders in the UI coherently. (~602 tok)
+
+## tests/unit/
+
+- `test_boundary_refinement.py` — Unit tests for `src/story/boundary_refinement.py` covering the three fixes, ordering, and edge cases (label guard, mislabeled-section guard, no-hook-match). (~3700 tok)
+- `test_free_transcription.py` — Unit tests for `src/analyzer/free_transcription.py` covering return shape, audio path validation, and language pass-through with WhisperX mocked. (~1460 tok)
 
 ## tests/validation/
 
