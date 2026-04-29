@@ -291,6 +291,13 @@ def _analyze_in_background(state: "_RunState", source_path: str, song_id: str,
                 override_artist=override_artist, override_title=override_title,
             )
             story_sections = story.get("sections", [])
+            # Surface Step-15c capability skips (one entry per skipped fix
+            # per song) on HierarchyResult.warnings so the analyze-step API
+            # payload's existing ``warnings`` field carries them to the UI's
+            # warnings panel. Per OpenSpec change
+            # ``lyric-anchored-boundary-refinement`` §7. Per-section non-fires
+            # do NOT produce warnings — those are silent.
+            hierarchy.warnings.extend(story.get("refinement_warnings") or [])
             # Emit the Genius match / reject info so the UI can display it
             # the moment the story step completes — the user can then
             # confirm or edit the artist/title without waiting for the full
