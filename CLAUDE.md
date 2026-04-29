@@ -144,6 +144,24 @@ is considered complete. This includes changes to:
 on classification logic. Read it before making any changes to understand what has
 already been tried and why.
 
+### Boundary refinement (post-classification step)
+
+After roles are assigned and merged, the story builder runs a lyric-anchored
+boundary-refinement pass (`src/story/boundary_refinement.py`) that adjusts
+section edges using audio-level vocal evidence. It consumes WhisperX forced
+alignment word marks (already produced for Genius alignment) plus a
+free-transcription word stream from `src/analyzer/free_transcription.py`
+(WhisperX without Genius), and applies three targeted fixes in fixed order:
+(1) merging short low-agreement `post_chorus` tails back into the preceding
+chorus thought when the audio is continuous, (2) relabel-or-split of
+"bridge" sections that actually contain the chorus's first-line distinctive
+hook, and (3) splitting an instrumental lead-in off the front of a vocal
+section when there is a long silence before the first audible word. Every
+section gains a `boundary_refinements: list[str]` field (empty when nothing
+fires); `_story.json` schema is `1.1.0`. See
+`openspec/changes/lyric-anchored-boundary-refinement/` for the full design,
+preconditions, and 16-song corpus results.
+
 ## Code Style
 
 - Follow PEP 8

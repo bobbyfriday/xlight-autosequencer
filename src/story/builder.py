@@ -27,7 +27,7 @@ from src.story.energy_arc import detect_energy_arc
 from src.story.lighting_mapper import map_lighting
 from src.story.stem_curves import extract_stem_curves
 
-SCHEMA_VERSION = "1.0.0"
+SCHEMA_VERSION = "1.1.0"
 
 
 def _portable_audio_path(audio_path: str | Path) -> str:
@@ -89,23 +89,38 @@ def _try_genius_sections(
     duration_ms: int,
     override_artist: str | None = None,
     override_title: str | None = None,
-) -> tuple[list[tuple[int, int, str]] | None, dict | None]:
+) -> tuple[
+    list[tuple[int, int, str]] | None,
+    dict | None,
+    list[dict],
+    list[dict],
+    str | None,
+]:
     """Try to get section boundaries from Genius lyrics.
 
-    Returns ``(sections, match_info)`` where:
+    Returns ``(sections, match_info, free_words, forced_words, chorus_body)`` where:
       - ``sections`` is a list of (start_ms, end_ms, role) on success, or None.
       - ``match_info`` is a dict with {url, artist, title, genius_id} describing
         the Genius page Lyricsgenius returned for this search, or None if no
         lookup happened (no token, subprocess failure, etc.). Populated even
         when sections is None, so callers can show the user *what* Genius
         returned when structure extraction failed.
+      - ``free_words`` is a list of {label, start_ms, end_ms} dicts from a
+        WhisperX free transcription pass (no lyrics input). Empty list when
+        the subprocess didn't run far enough to produce them. Used by
+        boundary refinement (OpenSpec change ``lyric-anchored-boundary-refinement``).
+      - ``forced_words`` is a list of {label, start_ms, end_ms} dicts from
+        WhisperX forced alignment of the Genius lyrics. Empty list when
+        alignment didn't run.
+      - ``chorus_body`` is the first non-empty chorus body from the parsed
+        Genius lyrics, or None when no Chorus section was found.
 
     whisperx and lyricsgenius live in .venv-vamp — run the pipeline there
     via subprocess to avoid import issues in the main venv.
     """
     token = os.environ.get("GENIUS_API_TOKEN", "")
     if not token:
-        return None, None
+        return None, None, [], [], None
 
     import subprocess as _sp
 
@@ -116,7 +131,7 @@ def _try_genius_sections(
         else repo_root / ".venv-vamp" / "bin" / "python"
     )
     if not vamp_python.exists():
-        return None, None
+        return None, None, [], [], None
 
     # Small script to run inside .venv-vamp
     script = f'''
@@ -180,13 +195,24 @@ if match is not None:
         "genius_id": match.genius_id,
         "fallback_used": getattr(match, "fallback_used", False),
     }}
+def _wm_dict(w):
+    return {{"label": w.label, "start_ms": int(w.start_ms), "end_ms": int(w.end_ms)}}
+free_words_out = [_wm_dict(w) for w in (analyzer.last_free_words or [])]
+forced_words_out = [_wm_dict(w) for w in (analyzer.last_forced_words or [])]
+chorus_body_out = analyzer.last_chorus_body or None
 if structure is None or not structure.segments:
-    print(json.dumps({{"ok": False, "warnings": warnings, "match": match_info}}))
+    print(json.dumps({{
+        "ok": False, "warnings": warnings, "match": match_info,
+        "free_words": free_words_out, "forced_words": forced_words_out,
+        "chorus_body": chorus_body_out,
+    }}))
 else:
     segs = [{{"label": s.label, "start_ms": s.start_ms, "end_ms": s.end_ms}}
             for s in structure.segments]
     print(json.dumps({{
         "ok": True, "segments": segs, "warnings": warnings, "match": match_info,
+        "free_words": free_words_out, "forced_words": forced_words_out,
+        "chorus_body": chorus_body_out,
     }}))
 '''
     env = {**os.environ, "GENIUS_API_TOKEN": token}
@@ -214,14 +240,14 @@ else:
             "first whisperx run can take several minutes for model download]",
             file=sys.stderr,
         )
-        return None, None
+        return None, None, [], [], None
     except Exception as exc:
         print(f"[genius subprocess exception: {exc}]", file=sys.stderr)
-        return None, None
+        return None, None, [], [], None
 
     if proc.returncode != 0:
         print(f"[genius subprocess stderr]\n{proc.stderr[:800]}", file=sys.stderr)
-        return None, None
+        return None, None, [], [], None
     try:
         data = json.loads(proc.stdout.strip().split("\n")[-1])
     except (json.JSONDecodeError, IndexError) as exc:
@@ -231,20 +257,23 @@ else:
             f"stderr tail: {proc.stderr[-400:]}",
             file=sys.stderr,
         )
-        return None, None
+        return None, None, [], [], None
     match_info = data.get("match")
+    free_words = data.get("free_words") or []
+    forced_words = data.get("forced_words") or []
+    chorus_body = data.get("chorus_body")
     if not data.get("ok"):
         warnings = data.get("warnings") or []
         if warnings:
             print("[genius subprocess returned no sections]", file=sys.stderr)
             for w in warnings[:5]:
                 print(f"  warning: {w}", file=sys.stderr)
-        return None, match_info
+        return None, match_info, free_words, forced_words, chorus_body
     result: list[tuple[int, int, str]] = []
     for seg in data["segments"]:
         role = _normalize_genius_label(seg["label"])
         result.append((seg["start_ms"], seg["end_ms"], role))
-    return result, match_info
+    return result, match_info, free_words, forced_words, chorus_body
 
 
 def _genius_quality_check(
@@ -331,7 +360,15 @@ def build_song_story(
 
     Returns
     -------
-    A complete song story dict matching schema_version 1.0.0.
+    A complete song story dict matching schema_version 1.1.0.
+
+    Changes since 1.0.0 (additive only — readers SHALL default missing
+    fields per the conventions in
+    ``openspec/changes/lyric-anchored-boundary-refinement/specs/``):
+
+    - Each ``sections[i]`` gains an optional ``boundary_refinements:
+      list[str]`` field describing any lyric-anchored refinements applied
+      to that section's boundaries (or ``[]`` when none fired).
     """
     # ── Step 1: Extract metadata from hierarchy ────────────────────────────────
     source_hash: str = hierarchy.get("source_hash", "")
@@ -354,7 +391,13 @@ def build_song_story(
     # When Genius API is available, it provides ground-truth section labels
     # (chorus, verse, bridge, etc.) with WhisperX-aligned timestamps.
     # Fall back to segmentino + energy heuristics when Genius isn't available.
-    genius_sections, genius_match = _try_genius_sections(
+    (
+        genius_sections,
+        genius_match,
+        genius_free_words,
+        genius_forced_words,
+        genius_chorus_body,
+    ) = _try_genius_sections(
         audio_path, duration_ms,
         override_artist=override_artist, override_title=override_title,
     )
@@ -778,6 +821,42 @@ def build_song_story(
             if sec.get("role") == "chorus":
                 sec["chorus_ssm_supported"] = True
 
+    # ── Step 15c: Lyric-anchored boundary refinement ──────────────────────────
+    # OpenSpec change ``lyric-anchored-boundary-refinement``. Three small,
+    # targeted refinements applied after the existing boundary derivation:
+    # (1) merge short post_chorus tails, (2) relabel/split bridges whose sung
+    # content opens with the chorus first-line hook, (3) split pre-vocal
+    # instrumental ramps off vocal sections. Validated against a 16-song
+    # corpus (6 fires, 0 false positives) — always-on as of 2026-04-28.
+    from src.analyzer.phonemes import WordMark
+    from src.story.boundary_refinement import refine_section_boundaries
+
+    forced_marks = [
+        WordMark(label=w["label"], start_ms=int(w["start_ms"]), end_ms=int(w["end_ms"]))
+        for w in (genius_forced_words or [])
+    ]
+    free_marks = [
+        WordMark(label=w["label"], start_ms=int(w["start_ms"]), end_ms=int(w["end_ms"]))
+        for w in (genius_free_words or [])
+    ]
+    sections_out, refinement_notes = refine_section_boundaries(
+        sections_out,
+        forced_words=forced_marks,
+        free_words=free_marks,
+        chorus_body=genius_chorus_body,
+    )
+    refinement_warnings: list[str] = []
+    if not genius_chorus_body:
+        refinement_warnings.append(
+            "boundary refinement skipped: Fix 2 (relabel/split bridge) "
+            "— no chorus body from Genius"
+        )
+    if not free_marks:
+        refinement_warnings.append(
+            "boundary refinement skipped: Fix 2/3 — no free-transcription "
+            "word marks (whisperx unavailable or no vocals)"
+        )
+
     # ── Assemble the complete story dict ──────────────────────────────────────
     story: dict = {
         "schema_version": SCHEMA_VERSION,
@@ -819,6 +898,13 @@ def build_song_story(
             "reviewed_at": None,
             "reviewer_notes": None,
         },
+        # Capability-skip warnings from Step 15c boundary refinement (one
+        # entry per skipped fix per song; per-section non-fires are silent).
+        # Empty list when refinement ran cleanly or the feature flag is off.
+        # The analyze-step API merges these into ``HierarchyResult.warnings``
+        # so they surface in the UI's warnings panel — see OpenSpec change
+        # ``lyric-anchored-boundary-refinement`` §7.
+        "refinement_warnings": refinement_warnings,
     }
 
     return story

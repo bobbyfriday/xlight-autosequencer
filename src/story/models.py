@@ -444,6 +444,7 @@ class Section:
     stems: SectionStems
     lighting: SectionLighting
     overrides: SectionOverrides = field(default_factory=SectionOverrides)
+    boundary_refinements: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict:
         return {
@@ -459,6 +460,7 @@ class Section:
             "stems": self.stems.to_dict(),
             "lighting": self.lighting.to_dict(),
             "overrides": self.overrides.to_dict(),
+            "boundary_refinements": list(self.boundary_refinements),
         }
 
     @classmethod
@@ -476,6 +478,7 @@ class Section:
             stems=SectionStems.from_dict(d["stems"]),
             lighting=SectionLighting.from_dict(d["lighting"]),
             overrides=SectionOverrides.from_dict(d.get("overrides", {})),
+            boundary_refinements=list(d.get("boundary_refinements", [])),
         )
 
 

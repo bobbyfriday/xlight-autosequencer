@@ -291,6 +291,13 @@ def _analyze_in_background(state: "_RunState", source_path: str, song_id: str,
                 override_artist=override_artist, override_title=override_title,
             )
             story_sections = story.get("sections", [])
+            # Surface Step-15c capability skips (one entry per skipped fix
+            # per song) on HierarchyResult.warnings so the analyze-step API
+            # payload's existing ``warnings`` field carries them to the UI's
+            # warnings panel. Per OpenSpec change
+            # ``lyric-anchored-boundary-refinement`` §7. Per-section non-fires
+            # do NOT produce warnings — those are silent.
+            hierarchy.warnings.extend(story.get("refinement_warnings") or [])
             # Emit the Genius match / reject info so the UI can display it
             # the moment the story step completes — the user can then
             # confirm or edit the artist/title without waiting for the full
@@ -340,6 +347,13 @@ def _analyze_in_background(state: "_RunState", source_path: str, song_id: str,
                 # https://github.com/bobbyfriday/xlight-autosequencer/pull/108#issuecomment-4320505368
                 agreement_score = int(sec.get("agreement_score", 0))
                 low_confidence = agreement_score <= 0
+                # `boundary_refinements` is the per-section list of
+                # human-readable notes describing any lyric-anchored
+                # refinements applied during the story builder's Step 15c.
+                # Legacy stories written before schema 1.1.0 lack the field;
+                # default to [] per OpenSpec change
+                # ``lyric-anchored-boundary-refinement``.
+                refinements = list(sec.get("boundary_refinements") or [])
                 section_payload = {
                     "index": i,
                     "start_ms": start_ms,
@@ -348,6 +362,8 @@ def _analyze_in_background(state: "_RunState", source_path: str, song_id: str,
                     "label": sec.get("role", "unknown").replace("_", " ").title(),
                     "agreement_score": agreement_score,
                     "low_confidence": low_confidence,
+                    "boundary_refinements": refinements,
+                    "low_refined": len(refinements) > 0,
                 }
                 # `chorus_ssm_supported` is set on Chorus sections by the SSM
                 # validator (when SSM produced groups). Per spec, an absent
@@ -375,6 +391,8 @@ def _analyze_in_background(state: "_RunState", source_path: str, song_id: str,
                     "label": (mark.label or "unknown").replace("_", " ").title(),
                     "agreement_score": 0,
                     "low_confidence": True,
+                    "boundary_refinements": [],
+                    "low_refined": False,
                 })
 
         if not sections:
@@ -1001,6 +1019,11 @@ def _rebuild_analysis_from_cache(song_id: str, src: Path,
             payload["low_confidence"] = bool(
                 sec.get("low_confidence", agreement_score <= 1)
             )
+            # Default boundary_refinements to [] for legacy sessions that
+            # predate schema 1.1.0.
+            refinements = list(sec.get("boundary_refinements") or [])
+            payload["boundary_refinements"] = refinements
+            payload["low_refined"] = len(refinements) > 0
             sections.append(payload)
     else:
         sections = []
@@ -1017,11 +1040,14 @@ def _rebuild_analysis_from_cache(song_id: str, src: Path,
                 # score. Default mirrors the legacy-story default.
                 "agreement_score": 0,
                 "low_confidence": True,
+                "boundary_refinements": [],
+                "low_refined": False,
             })
         if not sections:
             sections = [{"index": 0, "start_ms": 0, "end_ms": hierarchy.duration_ms,
                          "kind": "unknown", "label": "Full Song",
-                         "agreement_score": 0, "low_confidence": True}]
+                         "agreement_score": 0, "low_confidence": True,
+                         "boundary_refinements": [], "low_refined": False}]
 
     return {
         "song_id": song_id,
