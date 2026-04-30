@@ -1,10 +1,9 @@
 """Tests for ``src.microscope.diff``.
 
-The tests register a small set of test-only ``MetricDefinition`` instances
-in the global metric registry so direction-arrow lookups have something to
-resolve against. The registry is a process-wide singleton; pytest does not
-run tests in parallel within a process, so leaving these registrations in
-place across tests is fine.
+Test-only ``MetricDefinition`` instances are registered in a module-scoped
+fixture so direction-arrow lookups resolve, and unregistered after the
+module finishes — otherwise they leak into the global registry and break
+other tests that iterate it (e.g. ``test_integration_smoke``).
 """
 from __future__ import annotations
 
@@ -12,9 +11,12 @@ import json
 from dataclasses import dataclass
 from pathlib import Path
 
+import pytest
+
 from src.evaluation.metrics import (
     MetricDefinition,
     MetricKind,
+    _REGISTRY,
     register,
 )
 from src.evaluation.models import MetricValue
@@ -25,41 +27,44 @@ def _noop_compute(*_args, **_kwargs):  # pragma: no cover - registry stub only
     return None
 
 
-# Test-only metric definitions. The diff tool only reads ``higher_is_better``
-# from the registry; ``compute`` is never invoked here.
-register(
-    MetricDefinition(
-        name="metric_unknown_dir",
-        kind=MetricKind.SCALAR,
-        gated=False,
-        tolerance=None,
-        compute=_noop_compute,
-        pro_comparable=False,
-        higher_is_better=None,
-    )
+_TEST_METRIC_NAMES = (
+    "metric_unknown_dir",
+    "metric_higher_better",
+    "metric_lower_better",
 )
-register(
-    MetricDefinition(
-        name="metric_higher_better",
-        kind=MetricKind.SCALAR,
-        gated=False,
-        tolerance=None,
-        compute=_noop_compute,
-        pro_comparable=False,
-        higher_is_better=True,
+
+
+@pytest.fixture(scope="module", autouse=True)
+def _register_test_metrics():
+    """Register test-only metrics for the duration of this module, then
+    remove them so other tests that iterate the registry aren't polluted."""
+    register(
+        MetricDefinition(
+            name="metric_unknown_dir",
+            kind=MetricKind.SCALAR, gated=False, tolerance=None,
+            compute=_noop_compute, pro_comparable=False,
+            higher_is_better=None,
+        )
     )
-)
-register(
-    MetricDefinition(
-        name="metric_lower_better",
-        kind=MetricKind.SCALAR,
-        gated=False,
-        tolerance=None,
-        compute=_noop_compute,
-        pro_comparable=False,
-        higher_is_better=False,
+    register(
+        MetricDefinition(
+            name="metric_higher_better",
+            kind=MetricKind.SCALAR, gated=False, tolerance=None,
+            compute=_noop_compute, pro_comparable=False,
+            higher_is_better=True,
+        )
     )
-)
+    register(
+        MetricDefinition(
+            name="metric_lower_better",
+            kind=MetricKind.SCALAR, gated=False, tolerance=None,
+            compute=_noop_compute, pro_comparable=False,
+            higher_is_better=False,
+        )
+    )
+    yield
+    for name in _TEST_METRIC_NAMES:
+        _REGISTRY.pop(name, None)
 
 
 @dataclass
