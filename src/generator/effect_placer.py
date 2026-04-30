@@ -1913,11 +1913,17 @@ def _compute_active_tiers(
     and BASE would be immediately overridden.
     """
     if section.mood_tier == "ethereal":
-        # HERO-only for quiet sections: leave most of the display dark so only
-        # the focal props (matrices, mega trees) are lit during low-energy passages.
-        # Previously included Tier 1 (BASE_All) which covered every model and
-        # drove tier_utilization to ~100% even in silent moments.
-        return frozenset({8})
+        # BASE wash + HERO highlights for quiet sections.  Tier 1 has a 0.40
+        # brightness multiplier (see _TIER_BRIGHTNESS) so ethereal sections
+        # render at ~40% the visual intensity of structural ones — the
+        # dynamic-range hierarchy survives without going effectively-dark.
+        #
+        # PR #77 reduced this to {8} alone to keep tier_utilization low during
+        # silent passages.  Empirical FSEQ analysis showed the result was 63%
+        # of Baby Shark rendering at ≤15/255 brightness with only ~5% of
+        # channels active.  Restoring Tier 1 trades a higher tier_utilization
+        # metric for a visibly-alive show during the song's quiet passages.
+        return frozenset({1, 8})
     if section.mood_tier == "structural":
         if _has_strong_phrase_structure(section, hierarchy):
             return frozenset({2, 8})                # GEO call-response

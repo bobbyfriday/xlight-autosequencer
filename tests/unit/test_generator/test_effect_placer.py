@@ -223,12 +223,18 @@ class TestTierSelectionByMood:
                                variant_library=variant_library)
         return _used_tiers(result, groups)
 
-    def test_ethereal_activates_tier_8_only(self) -> None:
-        """Ethereal mood → HERO only (tier 8); no exhaustive partition tier so most props stay dark."""
+    def test_ethereal_activates_tier_1_and_8(self) -> None:
+        """Ethereal mood → Tier 1 (BASE wash, dim) + Tier 8 (HERO).
+
+        See `_compute_active_tiers` for the rationale — quiet sections still
+        get a low-brightness wash across all props rather than going dark.
+        Partition tiers 2/4/6/7 must NOT be active or they'd silently
+        overwrite Tier 1.
+        """
         section = _make_ethereal_section()
         used = self._place(section, _make_hierarchy(beat_times=[0, 500, 1000, 1500]))
-        assert 8 in used
-        assert 1 not in used and 2 not in used and 4 not in used and 6 not in used and 7 not in used
+        assert 1 in used and 8 in used
+        assert 2 not in used and 4 not in used and 6 not in used and 7 not in used
 
     def test_structural_without_phrase_structure_uses_tier_6(self) -> None:
         """Structural + weak phrase structure → prop-type variety (tier 6)."""
@@ -538,7 +544,7 @@ class TestComputeActiveTiers:
         section = SectionEnergy(label="intro", start_ms=0, end_ms=10000,
                                 energy_score=20, mood_tier="ethereal", impact_count=0)
         hierarchy = _make_hierarchy()
-        assert _compute_active_tiers(section, 0, hierarchy) == frozenset({8})
+        assert _compute_active_tiers(section, 0, hierarchy) == frozenset({1, 8})
 
     def test_aggressive_returns_tiers_4_and_8(self) -> None:
         from src.generator.effect_placer import _compute_active_tiers
