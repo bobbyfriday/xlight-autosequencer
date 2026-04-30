@@ -444,9 +444,37 @@ def sensitivity_command(
     """Run sensitivity probes and write the proof file on success."""
     from src.microscope.sensitivity import run_sensitivity
 
-    run_sensitivity(
-        Path(manifest_path),
+    manifest = json.loads(Path(manifest_path).read_text(encoding="utf-8"))
+    slugs = manifest.get("slugs") or []
+    if not slugs:
+        click.echo(f"Manifest has no slugs: {manifest_path}", err=True)
+        sys.exit(2)
+    audio_fixture = Path("tests/fixtures/cc0_music") / f"{slugs[0]}.mp3"
+    if not audio_fixture.is_file():
+        click.echo(
+            f"Audio fixture missing: {audio_fixture}. "
+            f"Run `python tests/validation/download_fixtures.py` first.",
+            err=True,
+        )
+        sys.exit(2)
+
+    report = run_sensitivity(
+        audio_fixture,
         Path(layout_path),
         Path(output_dir),
     )
+
+    for r in report.results:
+        marker = "PASS" if r.passed else "FAIL"
+        click.echo(f"  [{marker}] {r.probe_name}")
+
+    if not report.all_passed:
+        click.echo("Sensitivity probes FAILED — proof file not written.", err=True)
+        sys.exit(6)
+
+    _SENSITIVITY_PROOF_PATH.parent.mkdir(parents=True, exist_ok=True)
+    _SENSITIVITY_PROOF_PATH.write_text(
+        json.dumps(report.to_dict(), indent=2, default=str), encoding="utf-8"
+    )
+    click.echo(f"Sensitivity proof written: {_SENSITIVITY_PROOF_PATH}")
     sys.exit(0)
