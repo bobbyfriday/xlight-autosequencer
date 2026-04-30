@@ -154,11 +154,17 @@ jobs:
           npm ci
           npm run build
       - name: Run UI smoke flows
-        # `-m "ui and not content"` runs the 4 smoke flows + multi-song +
-        # metadata-edit + folder/filter + timeline-placeholder flows.
-        # Excludes the content flow which needs the .venv-vamp sidecar.
+        # Selector matches the `ui` mark, then explicitly excludes:
+        #   * `content`        — needs the .venv-vamp analyzer sidecar
+        #   * `screenshot_all` — opt-in mass-screenshot diagnostic (per
+        #                        pyproject.toml marker docs); each instance
+        #                        runs full analysis on a CC0 fixture (~5 min)
+        #   * `readme_capture` — opt-in README docs screenshot capture
+        # Without those exclusions the smoke job tries to run analysis-
+        # dependent diagnostics that have no analyzer in this job.
         run: |
-          pytest tests/ui/ -m "ui and not content" \
+          pytest tests/ui/ \
+            -m "ui and not content and not screenshot_all and not readme_capture" \
             --browser chromium \
             --tb=short -v \
             --screenshot=only-on-failure \

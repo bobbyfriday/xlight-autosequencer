@@ -39,6 +39,33 @@ def _upload_via_api(base_url: str, mp3_path: Path) -> str:
     return data.get("song_id") or data["song"]["song_id"]
 
 
+def _dismiss_id3_preflight_if_present(page: Page) -> None:
+    """Skip the ID3 confirmation modal if it appears on the Analyze screen.
+
+    Added by ``lyric-anchored-boundary-refinement`` §6a: the Analyze screen
+    fires an ID3 preflight modal as a fixed-position overlay (z-index 500)
+    before kicking off analysis. Its overlay intercepts pointer events on
+    the rest of the page, so any test that needs to click the Chrome's nav
+    tabs after landing on Analyze must dismiss the modal first.
+
+    The modal is only shown when ``analysisComplete`` is false at mount
+    time. When the test navigates between songs, prior-song state can
+    carry over and short-circuit the preflight effect, so the modal may
+    not appear at all on the second navigation. Wait briefly and dismiss
+    only if present — the goal is "no overlay blocking the next click,"
+    not "modal must have appeared."
+    """
+    skip_btn = page.get_by_test_id("id3-modal-skip")
+    try:
+        skip_btn.wait_for(state="visible", timeout=5000)
+    except Exception:
+        return  # No modal — nothing to dismiss.
+    skip_btn.click()
+    expect(page.get_by_test_id("id3-confirm-modal")).not_to_be_visible(
+        timeout=5000
+    )
+
+
 @pytest.mark.flaky(reruns=2, reruns_delay=1)
 def test_multi_song_library_click_navigation(
     page: Page, base_url: str, snapshot
@@ -61,6 +88,7 @@ def test_multi_song_library_click_navigation(
     # Click song A → navigate away from library.
     row_a.click()
     expect(page.get_by_test_id("library-screen")).not_to_be_visible(timeout=10000)
+    _dismiss_id3_preflight_if_present(page)
     snapshot("after-click-song-a")
 
     # Return to library via the Chrome's "Library" nav tab (aria-label).
@@ -76,6 +104,7 @@ def test_multi_song_library_click_navigation(
     # Click song B → navigate to a distinct song's context.
     page.get_by_test_id(f"song-row-{song_b}").click()
     expect(page.get_by_test_id("library-screen")).not_to_be_visible(timeout=10000)
+    _dismiss_id3_preflight_if_present(page)
     snapshot("after-click-song-b")
 
     # Final round-trip via nav tab: library state survives.
