@@ -199,8 +199,18 @@ The group SHALL expose four subcommands:
 The `baseline` subcommand SHALL refuse to copy metric files into the
 golden directory unless
 `tests/golden/microscope/sensitivity_passed.json` exists and is at
-least as recent as the most recent commit that touches
-`src/evaluation/metrics/`.
+least as recent as the most recent commit touching any of the
+staleness-cone paths:
+
+- `src/evaluation/metrics/` (the metric implementations)
+- `src/evaluation/xsq_reader.py` (prop-type inference affects
+  pairing metrics)
+- `src/effects/builtin_effects.json` (catalog feeds
+  `bad_pairing_pct_catalog`)
+
+The check SHALL use `git log -1 --format=%ct -- <staleness-cone>`
+and compare the committer timestamp against the proof's `run_at`
+ISO timestamp.
 
 The sensitivity proof file SHALL be written only by the
 `sensitivity` subcommand, after all of the following probes pass:
@@ -211,12 +221,15 @@ The sensitivity proof file SHALL be written only by the
 2. **All-black palette override** — when every placement is forced
    to a palette of `(#000000,)`, `palette_luminance_mean` equals
    `0.0` and `palette_luminance_cv` equals `0.0`.
-3. **Forced-bad-pairing override** — when every placement is forced
-   to `Plasma` on an `outline` model, `bad_pairing_pct_handlist`
-   exceeds `0.95` AND `bad_pairing_pct_catalog` equals `0.0`. The
-   point of this probe is to demonstrate the disagreement under a
-   forced condition; if both values agree here, one of the two
-   metrics is mis-implemented.
+3. **Forced-bad-pairing via synthetic SequenceSummary** — a
+   `SequenceSummary` constructed directly (not via the generator
+   pipeline) whose every `Placement` has `effect_type="Plasma"` and
+   a `model_name` resolving to `outline` SHALL produce
+   `bad_pairing_pct_handlist > 0.95` AND
+   `bad_pairing_pct_catalog == 0.0` AND
+   `pairing_disagreement_pct > 0.95`. The probe demonstrates the
+   handlist/catalog gap under a forced condition; if both pairing
+   signals agree here, one is mis-implemented.
 4. **Deterministic seed** — two runs with `variation_seed=42`
    produce zero deltas; one run with `variation_seed=43` produces a
    non-zero delta on at least one scalar metric.
@@ -233,8 +246,9 @@ The sensitivity proof file SHALL be written only by the
 #### Scenario: Sensitivity proof is older than recent metric changes
 
 - **WHEN** `tests/golden/microscope/sensitivity_passed.json` exists
-- **AND** a commit newer than the proof's `run_at` field touches
-  `src/evaluation/metrics/`
+- **AND** a commit newer than the proof's `run_at` field touches any
+  of `src/evaluation/metrics/`, `src/evaluation/xsq_reader.py`, or
+  `src/effects/builtin_effects.json`
 - **THEN** the `baseline` subcommand SHALL exit with a non-zero
   status
 - **AND** SHALL print a message instructing the user to re-run

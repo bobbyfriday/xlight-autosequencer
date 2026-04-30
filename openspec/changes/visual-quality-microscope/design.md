@@ -90,17 +90,23 @@ mega}` against the lowercased model name. The catalog uses
 `{matrix, outline, arch, vertical, tree, radial}`. Intersection: 4
 (`matrix`, `outline`, `arch`, `tree`).
 
-Add two tokens before this change so inference covers the full catalog
-vocabulary:
+**Token-ordering rule (forward-looking, not retroactive).** Tokens
+are matched in list order; the first match wins. *New tokens added
+by this change* SHALL be inserted at positions that follow the rule
+"longest token first; ties broken alphabetically." Existing token
+order is preserved as-is to avoid changing any current inference
+result. Reordering pre-existing tokens is out of scope.
+
+Append two tokens at the positions the rule indicates:
 ```python
 _PROP_TYPE_TOKENS: list[tuple[str, str]] = [
     ("snowflake", "snowflake"),
+    ("vertical", "vertical"),  # NEW (length 8 — placed before length-7 `outline`)
     ("outline", "outline"),
-    ("vertical", "vertical"),  # NEW — matches a "VerticalLeftLine" naming convention
     ("candy", "candy"),
     ("matrix", "matrix"),
+    ("radial", "radial"),      # NEW (length 6 — placed after length-6 `matrix` for alphabetical tiebreak)
     ("arch", "arch"),
-    ("radial", "radial"),      # NEW — matches "RadialSpinner" / "RadialBurst"
     ("tree", "tree"),
     ("star", "star"),
     ("deer", "deer"),
@@ -109,8 +115,13 @@ _PROP_TYPE_TOKENS: list[tuple[str, str]] = [
 ]
 ```
 
-This is additive — no existing model name's inference result changes
-because the new tokens didn't match before.
+This is **purely additive** for every existing model name: neither
+`vertical` nor `radial` was previously in the list, so no current
+inference result changes. Specifically: `MegaTree.lower() = "megatree"`
+matches `tree` first (existing behaviour, kept) — `mega` is at the
+tail of the list. The reference layout's renamed `RadialSpinner`
+relies on `radial` being in the list, but does not depend on its
+position relative to `tree`/`star` (no collision exists).
 
 ### New metric modules
 
@@ -172,12 +183,19 @@ disagreement).
 **`bad_pairing_pct_handlist`** (scalar 0.0–1.0)
 - Define `HANDLIST_BAD_PAIRINGS: dict[str, set[str]]` in
   `suitability.py` — short list of widely-claimed-bad combinations.
-  *Documented as opinion*, not fact:
+  *Documented as opinion*, not fact. The initial list is a
+  first-principles draft; **the user has explicitly NOT validated it
+  against rendered output**. The first measured value of
+  `pairing_disagreement_pct` on the corpus is the cue to revise this
+  dict (or to revise the catalog), not to treat either as truth.
   ```python
-  # User-stated heuristic prior to rendered-output validation.
+  # INITIAL DRAFT — not validated against rendered output. First-principles
+  # guesses about pairings that "obviously look wrong" on each prop type.
   # Disagrees with src/effects/builtin_effects.json:prop_suitability on
-  # most entries; both signals computed in parallel until one is
-  # validated against rendered output.
+  # most entries; both signals are computed in parallel and
+  # `pairing_disagreement_pct` surfaces the gap. Revise this dict (or the
+  # catalog) only after the first corpus measurement says the
+  # disagreement is concentrated somewhere actionable.
   HANDLIST_BAD_PAIRINGS = {
       "Plasma":        {"outline", "arch"},
       "Pinwheel":      {"outline", "arch"},
@@ -265,7 +283,15 @@ def run_song(audio_path, layout_path, output_dir, config_overrides) -> Microscop
 1. Build `GenerationConfig` with production defaults
    (`curves_mode="none"`, `transition_mode="subtle"`, `genre="pop"`,
    `occasion="general"`) **plus an explicit `variation_seed=42`** so
-   determinism doesn't drift on rerun.
+   determinism doesn't drift on rerun. **Note**: `GenerationConfig`
+   does not have a `variation_seed` field today — the seed lives on
+   per-section `ThemeAssignment` objects in
+   `src/generator/models.py`. This change adds
+   `variation_seed: int = 42` to `GenerationConfig` and threads it
+   through `theme_selector.py` so each `ThemeAssignment` is
+   constructed with `variation_seed=config.variation_seed +
+   section_index`. This is ~10 lines of plumbing, scoped to this
+   change.
 2. Apply `config_overrides`.
 3. Call `generate_sequence(config)` → output XSQ path.
 4. Parse XSQ with `xsq_reader.parse_xsq(xsq_path)` → `SequenceSummary`.
@@ -349,7 +375,16 @@ Subcommand group `microscope` registered on `xlight-evaluate`:
   Options: `--input-dir`, `--golden-dir`. Copies `metrics.json` files
   to the golden dir. Prints `git add + commit` instructions. **Refuses
   to run if sensitivity tests have not been recorded for the current
-  metric set** (see "Sensitivity gate" below).
+  metric set** (see "Sensitivity gate" below). The staleness check
+  runs `git log -1 --format=%ct -- <staleness-cone>` and compares
+  against the `run_at` timestamp recorded in
+  `tests/golden/microscope/sensitivity_passed.json`. The cone is the
+  three paths that feed into metric output:
+  - `src/evaluation/metrics/`
+  - `src/evaluation/xsq_reader.py` (prop-type inference affects
+    pairing metrics)
+  - `src/effects/builtin_effects.json` (catalog feeds
+    `bad_pairing_pct_catalog`)
 
 ### Reference panel + layout
 

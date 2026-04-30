@@ -6,8 +6,12 @@
   intentionally absent — see openspec/changes/visual-quality-microscope/
   design.md, "Reference panel + layout"):
     matrix  → MatrixCenter
-    tree    → TreeLeft, TreeRight  (MegaTree falls under `mega` first;
-                                    inference quirk documented, not changed)
+    tree    → MegaTree, TreeLeft, TreeRight  (MegaTree matches `tree`
+                                              before `mega` because
+                                              `tree` appears first in
+                                              _PROP_TYPE_TOKENS; this
+                                              is the existing
+                                              behaviour, preserved.)
     arch    → ArchLeft, ArchRight
     outline → OutlineRoofLeft, OutlineRoofRight
     radial  → RadialSpinner
@@ -32,7 +36,7 @@
            WorldPosX="400" WorldPosY="300" WorldPosZ="0"
            ScaleX="3.0" ScaleY="2.0" ScaleZ="1.0"/>
 
-    <!-- mega (token order matches "mega" before "tree"): radially arranged -->
+    <!-- tree (matches "tree" before "mega" in token order): radially arranged 360 tree -->
     <model name="MegaTree" DisplayAs="Tree 360"
            StringType="RGB Nodes" StartChannel="901" PixelCount="200"
            WorldPosX="400" WorldPosY="100" WorldPosZ="0"
