@@ -355,7 +355,10 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git checkout --orphan "$BRANCH"
           git rm -rf . >/dev/null 2>&1 || true
-          rm -rf .[!.]* * 2>/dev/null || true
+          # Wipe everything left in the worktree (gitignored build outputs,
+          # node_modules, etc.) but preserve .git — the previous glob
+          # `.[!.]* *` matched `.git` and broke the next `git add`.
+          find . -mindepth 1 -maxdepth 1 -not -name '.git' -exec rm -rf {} +
           cp -R "$STAGE/." .
           {
             echo "# PR #${PR_NUMBER} — UI screenshots"
