@@ -91,13 +91,26 @@
 ## 4. Microscope runner
 
 - [ ] 4.1 Create `src/microscope/__init__.py` (empty).
+- [ ] 4.1a **Plumb `variation_seed` through `GenerationConfig`.** Add
+      `variation_seed: int = 42` to `GenerationConfig` in
+      `src/generator/models.py`. Update `theme_selector.py` so
+      `ThemeAssignment(variation_seed=...)` is constructed with
+      `config.variation_seed + section_index`. Existing call sites
+      that don't pass `variation_seed` continue to use the default
+      (deterministic). Audit:
+      - `src/generator/theme_selector.py` (sets
+        `ThemeAssignment.variation_seed` per section).
+      - `src/generator/effect_placer.py:521-522` (reads
+        `assignment.variation_seed`; no signature change needed).
+      - Any test that constructs `GenerationConfig` directly — none
+        need updating because the new field has a default.
 - [ ] 4.2 Create `src/microscope/runner.py`. `MicroscopeResult`
       dataclass + `run_song(audio_path, layout_path, output_dir,
       config_overrides) -> MicroscopeResult`:
       - Build `GenerationConfig` with production defaults
         (`curves_mode="none"`, `transition_mode="subtle"`,
-        `genre="pop"`, `occasion="general"`) plus an explicit
-        **`variation_seed=42`** (so determinism is provable).
+        `genre="pop"`, `occasion="general"`,
+        `variation_seed=42` — now a real field after §4.1a).
       - Apply `config_overrides` (whitelist of known
         `GenerationConfig` keys).
       - Call `generate_sequence(config)` → output XSQ path.
@@ -176,8 +189,13 @@
       - `baseline` — copies `metrics.json` files from `--input-dir`
         to `--golden-dir`. **Refuses to run if
         `tests/golden/microscope/sensitivity_passed.json` is missing
-        or older than the latest commit touching
-        `src/evaluation/metrics/`.**
+        or older than the latest commit touching the staleness
+        cone**: `src/evaluation/metrics/`,
+        `src/evaluation/xsq_reader.py`, and
+        `src/effects/builtin_effects.json`. Use
+        `git log -1 --format=%ct -- <path1> <path2> <path3>` to
+        compare timestamps; reject if the commit timestamp exceeds
+        the proof's `run_at`.
       - `sensitivity` — runs the sensitivity probes (see §9) and writes
         `tests/golden/microscope/sensitivity_passed.json` on success.
 - [ ] 8.2 Register on the existing `xlight-evaluate` CLI group
@@ -198,14 +216,23 @@
 - [ ] 9.3 Probe: **all-black palette override** — config_override
       forcing palette to `(#000000,)`. Assert
       `palette_luminance_mean == 0.0` and `palette_luminance_cv == 0.0`.
-- [ ] 9.4 Probe: **forced-bad-pairing override** — every placement
-      becomes `Plasma` on a model whose inferred prop type is
-      `outline`. Assert `bad_pairing_pct_handlist > 0.95` (handlist
-      flags Plasma+outline) AND `bad_pairing_pct_catalog == 0.0`
-      (catalog says Plasma+outline is `possible`, not
-      `not_recommended`). The point of this probe is to *demonstrate
-      the disagreement under a forced condition* — if the two metrics
-      ever agree here, one of them is wrong.
+- [ ] 9.4 Probe: **forced-bad-pairing via synthetic SequenceSummary**
+      — construct a `SequenceSummary` directly (skip the generator
+      pipeline entirely) whose every `Placement` has
+      `effect_type="Plasma"` and `model_name="OutlineRoof"` (which
+      `_infer_prop_type` resolves to `outline`). Run the suitability
+      metrics on it. Assert `bad_pairing_pct_handlist > 0.95`
+      (handlist flags Plasma+outline) AND
+      `bad_pairing_pct_catalog == 0.0` (catalog records
+      Plasma+outline as `possible`, not `not_recommended`) AND
+      `pairing_disagreement_pct > 0.95` (the two sources disagree
+      here by construction).
+      Rationale: this probe tests whether the metrics correctly flag
+      a known-disputed pairing — it does NOT test whether the
+      generator can produce one. The synthetic-summary approach
+      avoids needing a "force one effect everywhere" override on
+      `GenerationConfig`, which would be real generator-pipeline
+      work outside this change's scope.
 - [ ] 9.5 Probe: **deterministic seed** — run twice with
       `variation_seed=42`. Assert all scalar metrics have absolute
       delta `< 1e-9`. Run with `variation_seed=43`. Assert at least
