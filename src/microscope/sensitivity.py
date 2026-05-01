@@ -112,6 +112,7 @@ def _import_all_metrics() -> None:
     import src.evaluation.metrics.internal  # noqa: F401
     import src.evaluation.metrics.vitality  # noqa: F401
     import src.evaluation.metrics.suitability  # noqa: F401
+    import src.evaluation.metrics.coverage  # noqa: F401
 
 
 def compute_metric_set_hash() -> str:

@@ -79,7 +79,38 @@ def _infer_prop_type(model_name: str) -> str:
     return "Unknown"
 
 
-def _parse_xml(xml_bytes: bytes, song_id: str, source_label: str) -> SequenceSummary:
+def _read_layout_model_names(layout_path: Path) -> tuple[str, ...]:
+    """Read an xLights layout XML and return every ``<model>`` name in
+    document order.
+
+    Evaluation-side layout reader — extracts only model names so the
+    placement-coverage metric can compare the placer's output against the
+    layout's universe. For the rich generator-side representation
+    (positions, classification, pixel counts) see
+    ``src/grouper/layout.py:parse_layout``.
+    """
+    tree = ET.parse(layout_path)
+    root = tree.getroot()
+    models_el = root.find("models")
+    if models_el is None:
+        raise ValueError(
+            f"Layout file has no <models> root: {layout_path}"
+        )
+    names: list[str] = []
+    for model_el in models_el.findall("model"):
+        name = model_el.get("name")
+        if name:
+            names.append(name)
+    return tuple(names)
+
+
+def _parse_xml(
+    xml_bytes: bytes,
+    song_id: str,
+    source_label: str,
+    layout_model_names: tuple[str, ...] = (),
+    layout_group_members: dict[str, tuple[str, ...]] | None = None,
+) -> SequenceSummary:
     try:
         root = ET.fromstring(xml_bytes)
     except ET.ParseError as exc:
@@ -157,6 +188,8 @@ def _parse_xml(xml_bytes: bytes, song_id: str, source_label: str) -> SequenceSum
         placements=tuple(placements),
         model_names=model_names,
         inferred_prop_types=inferred_prop_types,
+        layout_model_names=layout_model_names,
+        layout_group_members=dict(layout_group_members or {}),
     )
 
 
@@ -165,6 +198,8 @@ def parse_bytes(
     filename: str = "sequence.xsq",
     song_id: str = "",
     source_label: str = "ours",
+    layout_path: Path | str | None = None,
+    layout_group_members: dict[str, tuple[str, ...]] | None = None,
 ) -> SequenceSummary:
     """Parse .xsq bytes or .xsqz (zip) bytes into a SequenceSummary."""
     if data[:2] == _ZIP_MAGIC:
@@ -180,15 +215,42 @@ def parse_bytes(
     else:
         xml_bytes = data
 
-    return _parse_xml(xml_bytes, song_id=song_id, source_label=source_label)
+    layout_model_names: tuple[str, ...] = ()
+    if layout_path is not None:
+        layout_model_names = _read_layout_model_names(Path(layout_path))
+
+    return _parse_xml(
+        xml_bytes,
+        song_id=song_id,
+        source_label=source_label,
+        layout_model_names=layout_model_names,
+        layout_group_members=layout_group_members,
+    )
 
 
 def parse(
     path: Path | str,
     song_id: str = "",
     source_label: str = "ours",
+    layout_path: Path | str | None = None,
+    layout_group_members: dict[str, tuple[str, ...]] | None = None,
 ) -> SequenceSummary:
-    """Parse a .xsq or .xsqz file from disk into a SequenceSummary."""
+    """Parse a .xsq or .xsqz file from disk into a SequenceSummary.
+
+    When ``layout_path`` is supplied, the parser also reads the layout XML
+    and populates ``SequenceSummary.layout_model_names`` with every
+    ``<model>`` name in document order. ``layout_group_members``, when
+    supplied, populates the matching field so the coverage metric can
+    expand placements that target synthetic groups (e.g.
+    ``08_HERO_MegaTree``) into their underlying layout models.
+    """
     path = Path(path)
     data = path.read_bytes()
-    return parse_bytes(data, filename=path.name, song_id=song_id, source_label=source_label)
+    return parse_bytes(
+        data,
+        filename=path.name,
+        song_id=song_id,
+        source_label=source_label,
+        layout_path=layout_path,
+        layout_group_members=layout_group_members,
+    )

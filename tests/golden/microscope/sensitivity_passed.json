@@ -1,6 +1,6 @@
 {
-  "run_at": "2026-05-01T16:28:37Z",
-  "metric_set_hash": "d8ed8acdfc823807e4432535ff98ef21b1d516d7ebcd1bfd955a81ca46a5ea8d",
+  "run_at": "2026-05-01T17:54:11Z",
+  "metric_set_hash": "720d62f4b6c20e6297927e14dbbb8ed5ddc2c876e1a8d3c5292c682873593a53",
   "all_passed": true,
   "results": [
     {
@@ -24,7 +24,7 @@
     {
       "probe_name": "deterministic_seed",
       "passed": true,
-      "detail": "determinism OK (17 scalar metrics matched within 1e-09); seed-flip placement diffs=2, length_delta=0 (seed=42: 68 placements, seed=9999: 68 placements)",
+      "detail": "determinism OK (18 scalar metrics matched within 1e-09); seed-flip placement diffs=2, length_delta=0 (seed=42: 68 placements, seed=9999: 68 placements)",
       "failure_reason": null
     }
   ]

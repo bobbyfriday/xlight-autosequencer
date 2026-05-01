@@ -22,6 +22,9 @@ from src.evaluation.models import MetricValue, SequenceSummary
 from src.evaluation.xsq_reader import parse
 from src.generator.models import GenerationConfig
 from src.generator.plan import generate_sequence
+from src.grouper.classifier import classify_props, normalize_coords
+from src.grouper.grouper import generate_groups
+from src.grouper.layout import parse_layout
 
 logger = logging.getLogger(__name__)
 
@@ -70,6 +73,29 @@ class MicroscopeResult:
         }
 
 
+def _derive_layout_group_members(
+    layout_path: Path,
+) -> dict[str, tuple[str, ...]]:
+    """Re-invoke the grouper modules to build a ``{group_name: members}``
+    map equivalent to what the generator produces during sequence
+    creation.
+
+    Lives here (in ``src/microscope/``) rather than in
+    ``src/evaluation/`` to keep the bright line: evaluation must not
+    depend on grouper internals. The microscope module is the bridge
+    layer that already imports both, so deriving here is appropriate.
+    """
+    layout = parse_layout(str(layout_path))
+    classify_props(layout.props)
+    normalize_coords(layout.props)
+    groups = generate_groups(layout.props)
+    return {
+        g.name: tuple(g.members)
+        for g in groups
+        if g.members
+    }
+
+
 def _import_all_metrics() -> None:
     """Import every metric module so the registry is fully populated."""
     import src.evaluation.metrics.pacing  # noqa: F401
@@ -80,6 +106,7 @@ def _import_all_metrics() -> None:
     import src.evaluation.metrics.internal  # noqa: F401
     import src.evaluation.metrics.vitality  # noqa: F401
     import src.evaluation.metrics.suitability  # noqa: F401
+    import src.evaluation.metrics.coverage  # noqa: F401
 
 
 def _compute_metrics(
@@ -228,7 +255,12 @@ def run_song(
     _import_all_metrics()
 
     xsq_path = generate_sequence(config)
-    summary = parse(xsq_path)
+    layout_group_members = _derive_layout_group_members(layout_path_obj)
+    summary = parse(
+        xsq_path,
+        layout_path=layout_path_obj,
+        layout_group_members=layout_group_members,
+    )
 
     # Microscope measures the XSQ artifact, not the input audio. The
     # audio-context-dependent metrics receive empty defaults; they will
