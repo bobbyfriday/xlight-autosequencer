@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 
@@ -45,6 +45,19 @@ class SequenceSummary:
     placements: tuple[Placement, ...]
     model_names: tuple[str, ...]
     inferred_prop_types: dict[str, str]  # model_name -> prop-type hint
+    # Every model defined in the source layout XML, regardless of whether the
+    # placer reached it. Empty tuple when the parser was called without a
+    # layout — placement_coverage_pct treats that as "no_layout" and reports
+    # value=None rather than synthesizing a fake 1.0.
+    layout_model_names: tuple[str, ...] = ()
+    # Map from placement-target group name (e.g. "08_HERO_MegaTree",
+    # "02_GEO_Left") to the layout model names that group expands to.
+    # Populated by the microscope runner via the grouper modules; empty for
+    # callers that don't supply it. Required by placement_coverage_pct
+    # because the placer emits placements at group targets, not at layout
+    # model names — without this map the coverage intersection is mostly
+    # empty even when every prop is being reached.
+    layout_group_members: dict[str, tuple[str, ...]] = field(default_factory=dict)
 
     def to_dict(self) -> dict:
         return {
@@ -54,6 +67,11 @@ class SequenceSummary:
             "placements": [p.to_dict() for p in self.placements],
             "model_names": list(self.model_names),
             "inferred_prop_types": dict(self.inferred_prop_types),
+            "layout_model_names": list(self.layout_model_names),
+            "layout_group_members": {
+                name: list(members)
+                for name, members in self.layout_group_members.items()
+            },
         }
 
     @classmethod
@@ -65,6 +83,11 @@ class SequenceSummary:
             placements=tuple(Placement.from_dict(p) for p in d.get("placements", [])),
             model_names=tuple(d.get("model_names", [])),
             inferred_prop_types=dict(d.get("inferred_prop_types", {})),
+            layout_model_names=tuple(d.get("layout_model_names", [])),
+            layout_group_members={
+                name: tuple(members)
+                for name, members in d.get("layout_group_members", {}).items()
+            },
         )
 
 

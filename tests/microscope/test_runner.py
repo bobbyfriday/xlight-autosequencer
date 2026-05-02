@@ -80,12 +80,31 @@ def mocked_runner(monkeypatch, tmp_path):
         xsq.write_bytes(b"<xsq/>")
         return xsq
 
-    def fake_parse(path, song_id="", source_label="ours"):
+    def fake_parse(
+        path,
+        song_id="",
+        source_label="ours",
+        layout_path=None,
+        layout_group_members=None,
+    ):
         captured["parsed_path"] = Path(path)
+        captured["parsed_layout_path"] = (
+            Path(layout_path) if layout_path is not None else None
+        )
+        captured["parsed_layout_group_members"] = layout_group_members
         return _make_summary()
+
+    def fake_derive_layout_group_members(layout_path):
+        captured["derived_layout_path"] = Path(layout_path)
+        return {"08_HERO_FAKE": ("FakeProp",)}
 
     monkeypatch.setattr(runner_module, "generate_sequence", fake_generate_sequence)
     monkeypatch.setattr(runner_module, "parse", fake_parse)
+    monkeypatch.setattr(
+        runner_module,
+        "_derive_layout_group_members",
+        fake_derive_layout_group_members,
+    )
     return captured
 
 
@@ -294,3 +313,34 @@ def test_integration_funshine_seed_has_effect(tmp_path):
         "differences in the generated XSQ — the seed is not threading to "
         "the placer (Phase 1 plumbing regression)"
     )
+
+
+def test_run_song_passes_layout_path_to_parser(mocked_runner, tmp_path):
+    """OpenSpec ``microscope-placement-coverage`` §4.1: the runner must
+    forward its ``layout_path`` argument into ``parse()`` so the parsed
+    summary carries ``layout_model_names``."""
+    audio = tmp_path / "song.mp3"
+    audio.write_bytes(b"")
+    layout = tmp_path / "layout.xml"
+    layout.write_text("<layout/>", encoding="utf-8")
+
+    run_song(audio, layout, tmp_path)
+
+    assert mocked_runner["parsed_layout_path"] == Path(layout), (
+        "run_song must forward its layout_path into parse() so the parsed "
+        "summary carries layout_model_names"
+    )
+
+
+@pytest.mark.slow
+@pytest.mark.skipif(
+    not _HAS_INTEGRATION_FIXTURES,
+    reason="CC0 fixture tests/fixtures/cc0_music/funshine.mp3 not downloaded",
+)
+def test_integration_layout_universe_populated(tmp_path):
+    """End-to-end check: the parsed summary's layout universe contains every
+    model defined in the reference layout XML, regardless of placement."""
+    result = run_song(_FUNSHINE_MP3, _REFERENCE_LAYOUT, tmp_path)
+    assert "MatrixCenter" in result.summary.layout_model_names
+    assert "MegaTree" in result.summary.layout_model_names
+    assert len(result.summary.layout_model_names) == 9
