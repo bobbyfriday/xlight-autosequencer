@@ -1966,28 +1966,36 @@ def _compute_active_tiers(
 ) -> frozenset[int]:
     """Return the tier set that should be active for this section.
 
-    Tiers 2, 4, 6, 7 are alternative partition schemes of the same physical
-    props — activating multiple simultaneously causes the higher-numbered
-    tier to silently overwrite the lower one on every shared prop.  To keep
-    each section visually intentional, we activate exactly ONE partition
-    tier at a time, chosen by mood and (for structural) phrase structure.
+    Layered tier model (2026-05-06, tier-layering-policy):
+    Layers compose correctly in xLights — earlier "silent overwrite"
+    concerns were a misdiagnosis of bold-effect-on-BASE producing
+    visual overwhelming, not structural overwrite.  Activating multiple
+    tiers simultaneously is the right approach so long as each tier
+    selects effects appropriate to its role; the variant tier_affinity
+    map in `rotation.py` biases tier 1 BASE / 2 GEO toward
+    background-tagged variants (Twinkle, Liquid, low-contrast Plasma)
+    so they sit underneath the partition tier rather than competing
+    with it.
 
-    Tier 8 (HERO) always runs independently — hero props don't appear in
-    partition tiers by design.  Tier 1 (BASE_All) is only meaningful for
-    ethereal sections; in other moods a partition tier covers every prop
-    and BASE would be immediately overridden.
+    Tier 1 BASE is now always active — it's the quiet wash that
+    provides a constant undertone.  The mood branch then selects which
+    partition tier (2 GEO / 4 BEAT / 6 PROP) layers on top of BASE,
+    and HERO always runs.  Tiers 3 TYPE, 5 TEX, 7 COMP are not
+    activated here; they remain dormant pending separate work.
     """
     if section.mood_tier == "ethereal":
-        # HERO-only for quiet sections: leave most of the display dark so only
-        # the focal props (matrices, mega trees) are lit during low-energy passages.
-        # Previously included Tier 1 (BASE_All) which covered every model and
-        # drove tier_utilization to ~100% even in silent moments.
-        return frozenset({8})
+        # Quiet sections: BASE wash + HERO focal props only.  No
+        # partition tier — for low-energy passages we want the rest
+        # of the display to stay dark so the matrices/mega trees read.
+        return frozenset({1, 8})
     if section.mood_tier == "structural":
         if _has_strong_phrase_structure(section, hierarchy):
-            return frozenset({2, 8})                # GEO call-response
-        return frozenset({6, 8})                    # Prop-type variety
-    return frozenset({4, 8})                        # aggressive: beat chase
+            return frozenset({1, 2, 8})             # BASE + GEO call-response + HERO
+        return frozenset({1, 6, 8})                 # BASE + prop-type variety + HERO
+    # Aggressive: BASE + beat chase + prop variety + HERO.  Tier 6
+    # is added here because BEAT_1..BEAT_4 partition props four ways,
+    # leaving many props dark per section without PROP backing.
+    return frozenset({1, 4, 6, 8})
 
 
 def _place_drum_accents(

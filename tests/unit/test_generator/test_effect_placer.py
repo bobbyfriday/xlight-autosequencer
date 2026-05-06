@@ -193,13 +193,16 @@ def _make_aggressive_section(start_ms: int = 0, end_ms: int = 10000) -> SectionE
 
 
 class TestTierSelectionByMood:
-    """Integration: exactly one partition tier active per section, driven by mood.
+    """Integration: tier set active per section, driven by mood.
 
-    These tests assert which partition tier from {2, 4, 6, 7} receives placements.
-    Tier 8 (hero) is always in the active set per _compute_active_tiers, but whether
-    it receives placements depends on layer-to-tier mapping (single-layer themes
-    don't map any layer to tier 8).  TestComputeActiveTiers covers the full
-    active-set semantics directly.
+    Updated 2026-05-06 for tier-layering-policy: tier 1 BASE is now
+    always active; the partition tier from {2, 4, 6} layers on top.
+    These tests assert which partition tiers receive placements.
+    Tier 8 (hero) is always in the active set per _compute_active_tiers,
+    but whether it receives placements depends on layer-to-tier mapping
+    (single-layer themes don't map any layer to tier 8).
+    TestComputeActiveTiers covers the full active-set semantics
+    directly.
     """
 
     def _place(self, section: SectionEnergy, hierarchy: HierarchyResult) -> set[int]:
@@ -223,27 +226,27 @@ class TestTierSelectionByMood:
                                variant_library=variant_library)
         return _used_tiers(result, groups)
 
-    def test_ethereal_activates_tier_8_only(self) -> None:
-        """Ethereal mood → HERO only (tier 8); no exhaustive partition tier so most props stay dark."""
+    def test_ethereal_activates_base_and_hero(self) -> None:
+        """Ethereal mood → BASE + HERO; no partition tier so most other props stay dark."""
         section = _make_ethereal_section()
         used = self._place(section, _make_hierarchy(beat_times=[0, 500, 1000, 1500]))
         assert 8 in used
-        assert 1 not in used and 2 not in used and 4 not in used and 6 not in used and 7 not in used
+        assert 2 not in used and 4 not in used and 6 not in used and 7 not in used
 
-    def test_structural_without_phrase_structure_uses_tier_6(self) -> None:
-        """Structural + weak phrase structure → prop-type variety (tier 6)."""
+    def test_structural_without_phrase_structure_uses_base_and_prop(self) -> None:
+        """Structural + weak phrase structure → BASE + tier 6 PROP + HERO."""
         section = _make_section()  # default mood_tier="structural", no bars/curves
         used = self._place(section, _make_hierarchy(beat_times=[0, 500, 1000, 1500]))
         assert 6 in used
-        assert 1 not in used and 2 not in used and 4 not in used and 7 not in used
+        assert 2 not in used and 4 not in used and 7 not in used
 
-    def test_aggressive_uses_tier_4_chase(self) -> None:
-        """Aggressive mood → beat chase (tier 4)."""
+    def test_aggressive_uses_base_beat_and_prop(self) -> None:
+        """Aggressive mood → BASE + tier 4 BEAT + tier 6 PROP + HERO."""
         section = _make_aggressive_section()
         beat_times = list(range(0, 10000, 500))
         used = self._place(section, _make_hierarchy(beat_times=beat_times))
         assert 4 in used
-        assert 1 not in used and 2 not in used and 6 not in used and 7 not in used
+        assert 2 not in used and 7 not in used
 
     def test_explicit_tiers_override_bypasses_selection(self) -> None:
         """Explicit `tiers=` argument bypasses the mood-based selection."""
@@ -531,32 +534,38 @@ def _hierarchy_with_bars_and_curve(
 
 
 class TestComputeActiveTiers:
-    """_compute_active_tiers returns the single-partition tier set per section."""
+    """_compute_active_tiers returns the layered tier set per section.
 
-    def test_ethereal_returns_tiers_1_and_8(self) -> None:
+    Updated 2026-05-06 for tier-layering-policy: tier 1 BASE is now
+    always active alongside the partition tier, providing a constant
+    quiet undertone biased toward background-tagged variants via the
+    tier_affinity map in rotation.py.
+    """
+
+    def test_ethereal_returns_base_and_hero(self) -> None:
         from src.generator.effect_placer import _compute_active_tiers
         section = SectionEnergy(label="intro", start_ms=0, end_ms=10000,
                                 energy_score=20, mood_tier="ethereal", impact_count=0)
         hierarchy = _make_hierarchy()
-        assert _compute_active_tiers(section, 0, hierarchy) == frozenset({8})
+        assert _compute_active_tiers(section, 0, hierarchy) == frozenset({1, 8})
 
-    def test_aggressive_returns_tiers_4_and_8(self) -> None:
+    def test_aggressive_returns_base_beat_prop_hero(self) -> None:
         from src.generator.effect_placer import _compute_active_tiers
         section = SectionEnergy(label="chorus", start_ms=0, end_ms=10000,
                                 energy_score=85, mood_tier="aggressive", impact_count=0)
         hierarchy = _make_hierarchy()
-        assert _compute_active_tiers(section, 0, hierarchy) == frozenset({4, 8})
+        assert _compute_active_tiers(section, 0, hierarchy) == frozenset({1, 4, 6, 8})
 
-    def test_structural_without_phrase_uses_prop_tier(self) -> None:
-        """Structural section with no bar data → tier 6 (PROP variety)."""
+    def test_structural_without_phrase_returns_base_prop_hero(self) -> None:
+        """Structural section with no bar data → BASE + tier 6 PROP + HERO."""
         from src.generator.effect_placer import _compute_active_tiers
         section = SectionEnergy(label="verse", start_ms=0, end_ms=10000,
                                 energy_score=50, mood_tier="structural", impact_count=0)
         hierarchy = _make_hierarchy()  # no bars, no energy curves
-        assert _compute_active_tiers(section, 0, hierarchy) == frozenset({6, 8})
+        assert _compute_active_tiers(section, 0, hierarchy) == frozenset({1, 6, 8})
 
-    def test_structural_with_strong_phrase_uses_geo(self) -> None:
-        """Structural section with periodic bar-energy pattern → tier 2 (GEO call-response)."""
+    def test_structural_with_strong_phrase_returns_base_geo_hero(self) -> None:
+        """Structural section with periodic bar-energy pattern → BASE + tier 2 GEO + HERO."""
         from src.generator.effect_placer import _compute_active_tiers
         # 16 bars, every 4th bar is loud — classic phrase structure
         bar_times = list(range(0, 16 * 500, 500))
@@ -573,7 +582,7 @@ class TestComputeActiveTiers:
         section = SectionEnergy(label="verse", start_ms=0, end_ms=16 * 500,
                                 energy_score=50, mood_tier="structural", impact_count=0)
         hierarchy = _hierarchy_with_bars_and_curve(bar_times, energy_values=energy)
-        assert _compute_active_tiers(section, 0, hierarchy) == frozenset({2, 8})
+        assert _compute_active_tiers(section, 0, hierarchy) == frozenset({1, 2, 8})
 
 
 class TestHasStrongPhraseStructure:

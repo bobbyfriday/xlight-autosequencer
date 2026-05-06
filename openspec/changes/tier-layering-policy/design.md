@@ -61,38 +61,31 @@ Notes:
   dark sections). Adding 6 keeps the prop-family detail.
 - Tier 7 COMP and tier 5 TEX remain unaddressed in this change.
 
-### 3. New: inter-tier layer + blend policy
+### 3. New: inter-tier layer + blend policy — DEFERRED
 
-Today, layer index and blend mode are decided per-theme-layer
-(themes specify a list of layers, each with its own `blend_mode`,
-applied to whichever single partition tier is active). When multiple
-tiers are active simultaneously, the existing per-layer policy is
-applied independently per tier — but there is no rule about which
-xLights layer index each tier writes to, nor about whether the blend
-mode is appropriate when two tiers' outputs land on the same prop.
+The original design proposed a `_layer_and_blend_for_tier` helper that
+would force tier 1 BASE onto its own xLights layer band with a
+`Normal` blend mode (so its wash sits underneath rather than being
+additively brightened by itself).
 
-Proposal: a small helper in `effect_placer.py`:
+**Scoped out of V1** (decision 2026-05-06, before any code landed).
+Reasoning:
 
-```python
-def _layer_and_blend_for_tier(tier: int, theme_layer_index: int) -> tuple[int, str]:
-    """Return the (xLights layer index, blend mode) for a tier-N effect on
-    theme layer ``theme_layer_index``.
+- Forcing the helper requires touching ~20 placement-construction
+  call sites in `effect_placer.py` to override `layer.blend_mode`
+  per tier — non-trivial wire-up.
+- The helper's necessity is speculative: we haven't yet seen the
+  default policy (with tier_affinity routing toward background
+  variants) produce the "BASE additively over-brightened" symptom
+  on real renders. Adding it pre-emptively violates "don't
+  over-engineer" — solve the problem at hand.
+- The iteration loop is the right gate. If a Cher render with the
+  V1 policy shows BASE clobbering or over-brightening, we add the
+  helper as a small follow-up change with concrete evidence.
 
-    Tier ordering is bottom-up: BASE underneath, HERO on top. Each tier
-    gets its own xLights layer band so blends compose predictably.
-    """
-    layer_band = {1: 0, 2: 1, 4: 2, 6: 3, 7: 4, 8: 5}[tier]
-    base_blend = "Normal" if theme_layer_index == 0 else "Additive"
-    if tier == 1:
-        return layer_band, "Normal"      # BASE always renders solid underneath
-    return layer_band, base_blend
-```
-
-This is one helper, called from the existing placement loop. It
-preserves the theme-layer's blend-mode decision for non-BASE tiers
-(layer 0 → Normal, layer 1+ → Additive), and forces BASE to
-`Normal` so its quiet wash provides a solid undertone rather than
-itself being additively brightened.
+V1 ships pieces 1 + 2 only (`tier_map` + `_compute_active_tiers`).
+The blend helper is a follow-up change if and only if the iteration
+loop produces the symptom that originally motivated it.
 
 ### Alternative considered
 
