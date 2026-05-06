@@ -1,13 +1,13 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-05-04T21:04:31.635Z
+> Auto-maintained by OpenWolf. Last scanned: 2026-05-06T16:36:31.774Z
 > Files: 610 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
 
 - `.DS_Store` (~1640 tok)
 - `.gitignore` — Git ignore rules (~593 tok)
-- `CLAUDE.md` — OpenWolf (~8100 tok)
+- `CLAUDE.md` — OpenWolf (~8227 tok)
 - `LICENSE` — Project license (~285 tok)
 - `pyproject.toml` — Automatically generate xLights sequences from audio files (~752 tok)
 - `README.md` — Project documentation (~3264 tok)
