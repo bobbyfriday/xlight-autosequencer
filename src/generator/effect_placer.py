@@ -1056,7 +1056,15 @@ def _select_groups_for_layer(
 
 
 def _assign_layers_to_tiers(layers: list[EffectLayer]) -> dict[int, set[int]]:
-    """Map each layer index to a set of target tiers."""
+    """Map each layer index to a set of target tiers.
+
+    Iteration backlog A1 (multi-layer BASE composition): theme layer 1 (and
+    middle layers in 3+-layer themes) also lands on tier 1 BASE. Previously
+    only layer 0 covered BASE, so BASE rendered as a single effect with no
+    accent layered on top. Stacking layer 1 onto BASE gives the wash visual
+    depth (e.g. Color Wash + Twinkle accent) without changing how upper
+    tiers are assigned.
+    """
     n = len(layers)
     mapping: dict[int, set[int]] = {}
 
@@ -1067,12 +1075,14 @@ def _assign_layers_to_tiers(layers: list[EffectLayer]) -> dict[int, set[int]]:
         mapping[0] = _LOW_TIERS | {4, 6, 8}
     elif n == 2:
         mapping[0] = _LOW_TIERS | {4, 6}
-        mapping[1] = _HIGH_TIERS
+        # A1: layer 1 also accents BASE (tier 1) on top of HERO tiers.
+        mapping[1] = _HIGH_TIERS | {1}
     else:
         mapping[0] = _LOW_TIERS | {4, 6}
         mapping[n - 1] = _HIGH_TIERS
         for i in range(1, n - 1):
-            mapping[i] = _MID_TIERS
+            # A1: middle layers also accent BASE (tier 1) on top of MID tiers.
+            mapping[i] = _MID_TIERS | {1}
 
     return mapping
 

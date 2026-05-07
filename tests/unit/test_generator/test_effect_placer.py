@@ -166,7 +166,7 @@ def _make_groups() -> list[PowerGroup]:
 
 # ── Import under test ────────────────────────────────────────────────────────
 
-from src.generator.effect_placer import place_effects
+from src.generator.effect_placer import _assign_layers_to_tiers, place_effects
 
 
 # ── Tests ─────────────────────────────────────────────────────────────────────
@@ -829,3 +829,36 @@ class TestPlaceCallResponse:
         )
         assert "02_GEO_Center" not in result
         assert "02_GEO_Mid" not in result
+
+
+class TestAssignLayersToTiers:
+    """Iteration backlog A1: multi-layer BASE composition."""
+
+    def test_single_layer_covers_all_tier_families(self) -> None:
+        layers = [EffectLayer(variant="Color Wash")]
+        mapping = _assign_layers_to_tiers(layers)
+        assert mapping == {0: {1, 2, 4, 6, 8}}
+
+    def test_2_layer_theme_layer_1_includes_tier_1(self) -> None:
+        layers = [
+            EffectLayer(variant="Color Wash"),
+            EffectLayer(variant="Twinkle"),
+        ]
+        mapping = _assign_layers_to_tiers(layers)
+        # Layer 0 still covers BASE/GEO + BEAT/PROP.
+        assert mapping[0] == {1, 2, 4, 6}
+        # Layer 1 covers HERO (7,8) AND now also BASE (1) for accent stacking.
+        assert mapping[1] == {1, 7, 8}
+
+    def test_3_layer_theme_middle_layer_includes_tier_1(self) -> None:
+        layers = [
+            EffectLayer(variant="Color Wash"),
+            EffectLayer(variant="Twinkle"),
+            EffectLayer(variant="Pinwheel"),
+        ]
+        mapping = _assign_layers_to_tiers(layers)
+        assert mapping[0] == {1, 2, 4, 6}
+        # Middle layer covers MID tiers AND now also BASE (1).
+        assert mapping[1] == {1, 3, 4, 5, 6}
+        # Last layer still covers HERO only.
+        assert mapping[2] == {7, 8}
