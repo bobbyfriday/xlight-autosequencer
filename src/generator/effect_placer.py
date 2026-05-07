@@ -1007,7 +1007,11 @@ def _select_groups_for_layer(
     """Select which groups to use per tier, avoiding overlap.
 
     Strategy per tier:
-    - Tier 1 (BASE): Use the single whole-house group only for the bottom layer
+    - Tier 1 (BASE): Whole-house group on every layer that targets it.
+      Multi-layer BASE composition (A1) — was previously gated to
+      layer 0; now any theme layer mapped to tier 1 by
+      ``_assign_layers_to_tiers`` places its variant on BASE so the
+      wash gets layered depth.
     - Tier 2 (GEO): Pick one spatial zone for accent variety
     - Tier 3 (TYPE): Skip — overlaps too heavily with BASE
     - Tier 4 (BEAT): All groups (chase pattern handled separately)
@@ -1024,9 +1028,8 @@ def _select_groups_for_layer(
             continue
 
         if tier == 1:
-            # BASE: just the whole-house group, only for bottom layer
-            if layer_idx == 0:
-                selected[tier] = [available[0]]
+            # BASE: whole-house group on every layer that targets it.
+            selected[tier] = [available[0]]
 
         elif tier == 2:
             # GEO: use all spatial zones
