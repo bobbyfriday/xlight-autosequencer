@@ -608,12 +608,19 @@ def place_effects(
 
     # Group density: limit the number of active groups per tier for lower-energy
     # sections so most props stay dark, matching the pro pattern where quiet
-    # passages only light the key focal elements.  Tier 8 (HERO) is always kept
-    # in full — heroes are already a small subset of the display.
+    # passages only light the key focal elements.
+    #
+    # Only categorisation tiers (6 PROP, 7 COMP) get truncated.  Partition
+    # tiers (2 GEO, 3 TYPE, 4 BEAT, 5 TEX) place every prop in exactly one
+    # group — truncating drops a partition slice and means a fraction of
+    # props never fire on that tier (e.g. BEAT_4 would silently disappear
+    # at group_density=0.75, leaving 1/4 of props never beat-synced).  Tier
+    # 1 BASE has a single whole-house group (no truncation possible).
+    # Tier 8 HERO is already a curated focal subset.
     group_density = assignment.group_density
     if group_density < 1.0:
         for tier in list(tier_groups.keys()):
-            if tier == 8:
+            if tier not in (6, 7):
                 continue
             grps = tier_groups[tier]
             keep = max(1, round(len(grps) * group_density))
@@ -972,6 +979,22 @@ def place_effects(
                     section.energy_score, p.effect_name, sparkle_rng
                 )
 
+    # Tier 1 BASE always gets MusicSparkles regardless of palette restraint —
+    # the single section-spanning placement on BASE_All would otherwise read
+    # as a static sine wave; sparkles are the music-reactive overlay that
+    # gives the wash visual life. Tier 1 sparkles are unconditional (not the
+    # probabilistic compute_music_sparkles gate) but still skip
+    # already-audio-reactive effects to avoid double-coverage.
+    for group_name, placements in result.items():
+        if not group_name.startswith("01_BASE"):
+            continue
+        for p in placements:
+            if p.music_sparkles > 0:
+                continue  # already set (e.g. by palette-restraint pass above)
+            if p.effect_name in _AUDIO_REACTIVE_EFFECTS:
+                continue
+            p.music_sparkles = 15 + round(section.energy_score * 0.5)
+
     return result
 
 
@@ -1100,6 +1123,13 @@ def _place_effect_on_group(
     # Sustained effects (On, Color Wash, etc.) always span full sections.
     # Accent effects (Shockwave, Strobe, etc.) always use beat placement.
     duration_behavior = getattr(effect_def, "duration_behavior", "standard")
+    # Tier 1 BASE is always a section-spanning undertone wash, regardless
+    # of the effect's nominal duration_behavior. Without this override
+    # tier-1 background variants like Wave / Spirals / Plasma get
+    # subdivided into ~10 bar-aligned placements per section, which
+    # reads as pulses instead of a constant backdrop.
+    if group.tier == 1:
+        duration_behavior = "sustained"
     if duration_scaling and bar_parity is None:
         if duration_behavior == "sustained":
             placements = [_make_placement(

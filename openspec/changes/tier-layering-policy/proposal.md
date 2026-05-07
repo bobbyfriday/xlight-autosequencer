@@ -43,27 +43,52 @@ right affinity context to the scorer when they are.
 
 ## What Changes
 
+### V1 core (already implemented in commit 08b74f7b)
+
 - Extend the `tier_map` in `rotation.py` to cover tiers 1–4.
 - Extend `_compute_active_tiers` in `effect_placer.py` so each mood
   branch returns a richer set that layers BASE (tier 1) under the
   partition tier, with optional GEO and BEAT layering above.
-- Add an inter-tier *layer-and-blend policy* helper that decides which
-  xLights layer index and blend mode each tier's effects use when
-  multiple tiers fire on the same prop. Today this is implicit per-theme
-  and per-layer-index; making it tier-aware is the missing piece.
-- Update the four `_compute_active_tiers` unit tests that assert exact
-  frozenset values (`tests/unit/test_generator/test_effect_placer.py:541,
-  548, 556, 576`) to match the new policy.
+- Update the `_compute_active_tiers` and `TestTierSelectionByMood`
+  unit tests to match the new policy.
+
+### V1 expanded scope (2026-05-06, from iteration-1 observations)
+
+After validating V1 on the Cher fixture, hand-edits in xLights revealed
+five additional issues that the iteration session identified as part of
+the same "tiers actually working" goal. Bundling here for momentum.
+
+- **Tier-1 duration override.** Tier 1 BASE today produces ~10 short
+  per-bar placements per section. Should produce one section-spanning
+  placement so BASE reads as a continuous wash, not bar-aligned
+  pulses.
+- **Sub-prop placement discipline.** Generator places effects on every
+  individual flake arm / flake spoke / spinner spoke etc., producing
+  ~2900 sub-prop placements on the user's layout. Visually
+  overwhelming. Sub-prop work should be opt-in / deliberate, not
+  default.
+- **`04_BEAT_4` group missing.** Cher is in 4/4 time; layout has only
+  3 BEAT groups (BEAT_1..BEAT_3). Beat-group derivation produces N-1
+  groups instead of N. Off-by-one bug.
+- **Multi-layer BASE composition.** Single Wave on tier 1 reads as a
+  sine wave, not depth. Themes need a way to specify a layer stack
+  for the BASE tier (e.g. ambient + section-spanning + sparkle).
+- **Tier-4 BEAT chase underused.** Generator produces 6 Plasma effects
+  on tier 4 instead of a beat-rotated chase. Chase mechanism exists
+  in `_place_chase_across_groups` but variant-scoring isn't picking
+  rotation-friendly variants like Shockwave.
 
 ## What Does NOT Change
 
-- The variant library's `tier_affinity` tags. Already correct.
+- The variant library's `tier_affinity` tags. Already correct;
+  iteration-1 surfaced a Wave-tagged-background concern but
+  re-tagging is library-data work, separate change.
 - The scorer's `_score_tier` function. Already correct.
-- The theme JSON files. Already correct.
 - Tiers 3 (TYPE) and 5 (TEX). Currently unused; staying unused for
-  this change, scoped out as future work.
-- The layout-XML group synthesis (`017-xlights-layout-grouping`).
-  Untouched.
+  this change.
+- Section detection / boundary alignment. Iteration-1 noted some
+  sections didn't align with the music — that's section-classifier
+  work, orthogonal to this change.
 
 ## Validation
 

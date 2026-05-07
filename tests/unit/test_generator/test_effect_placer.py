@@ -263,6 +263,47 @@ class TestTierSelectionByMood:
         assert used == {1}
 
 
+class TestGroupDensityPreservesPartitionTiers:
+    """group_density truncation must not drop tier 4 BEAT_N partition slices.
+
+    Regression test for the BEAT_4 bug: at group_density=0.75, the old
+    code truncated tier-4 from 4 → 3 beat groups, so 1/4 of props never
+    fired on the beat. Partition tiers (2, 3, 4, 5) must keep all groups.
+    """
+
+    def _make_4_beat_groups(self) -> list[PowerGroup]:
+        return [
+            PowerGroup(name=f"04_BEAT_{i}", tier=4, members=[f"Model_{i}"])
+            for i in (1, 2, 3, 4)
+        ]
+
+    def test_aggressive_section_with_low_group_density_keeps_all_4_beats(self) -> None:
+        """At group_density=0.5, BEAT_1..BEAT_4 must all remain available
+        for the chase placer; truncation would silence 1-2 beat buckets."""
+        section = _make_aggressive_section()
+        layers = [EffectLayer(variant="Color Wash")]
+        assignment = SectionAssignment(
+            section=section,
+            theme=_make_theme(layers=layers),
+            active_tiers=frozenset({1, 4, 6, 8}),
+            group_density=0.5,  # aggressive truncation
+        )
+        groups = self._make_4_beat_groups() + [
+            PowerGroup(name="01_BASE_All", tier=1, members=["Model_1", "Model_2", "Model_3", "Model_4"]),
+        ]
+        library = _make_library(_make_effect("Color Wash"))
+        variant_library = _make_variant_library("Color Wash")
+        hierarchy = _make_hierarchy(beat_times=list(range(0, 10000, 500)))
+
+        result = place_effects(assignment, groups, library, hierarchy,
+                               variant_library=variant_library)
+        beat_groups_with_placements = {n for n in result if n.startswith("04_BEAT")}
+        assert beat_groups_with_placements == {"04_BEAT_1", "04_BEAT_2", "04_BEAT_3", "04_BEAT_4"}, (
+            f"all 4 beat groups must receive chase placements; got "
+            f"{beat_groups_with_placements}"
+        )
+
+
 class TestDurationTypeSection:
     """Effect with duration_type='section' creates one instance spanning the section."""
 
@@ -284,6 +325,79 @@ class TestDurationTypeSection:
         p = section_placements[0]
         assert p.start_ms <= 1000  # frame-aligned at or before section start
         assert p.end_ms >= 5000    # frame-aligned at or after section end
+
+
+class TestTier1AlwaysSectionSpanning:
+    """Tier 1 BASE always produces ONE section-spanning placement, regardless
+    of the effect's nominal duration_behavior or duration_scaling state.
+
+    Without this override, an effect like Color Wash with the default
+    "standard" duration_behavior under duration_scaling=True would get
+    subdivided into ~10 bar-aligned placements per section, producing
+    pulses instead of a continuous undertone wash.
+    """
+
+    def test_tier1_with_duration_scaling_still_section_spanning(self) -> None:
+        # Default _make_effect produces an effect with duration_behavior="standard"
+        # (no override). A non-None duration_target on the assignment puts the
+        # placer into "duration_scaling" mode — the path that would normally
+        # subdivide a structural effect into bar-aligned chunks.
+        from src.generator.models import DurationTarget
+        assignment = SectionAssignment(
+            section=_make_section(start_ms=0, end_ms=20000),
+            theme=_make_theme(layers=[EffectLayer(variant="Color Wash")]),
+            active_tiers=frozenset({1}),
+            duration_target=DurationTarget(min_ms=300, target_ms=1000, max_ms=3000),
+        )
+        groups = [PowerGroup(name="01_BASE_All", tier=1, members=["Model_A"])]
+        library = _make_library(_make_effect("Color Wash"))  # no duration_behavior
+        variant_library = _make_variant_library("Color Wash")
+        # Beat marks every 500ms — would normally drive bar-aligned subdivision
+        hierarchy = _make_hierarchy(beat_times=list(range(0, 20000, 500)),
+                                    duration_ms=20000)
+
+        result = place_effects(assignment, groups, library, hierarchy,
+                               variant_library=variant_library)
+        base_placements = result.get("01_BASE_All", [])
+        assert len(base_placements) == 1, (
+            f"tier-1 BASE must collapse to one section-spanning placement; "
+            f"got {len(base_placements)} placements"
+        )
+        p = base_placements[0]
+        assert p.start_ms <= 0 and p.end_ms >= 20000, (
+            f"tier-1 placement must span full section; got "
+            f"[{p.start_ms}, {p.end_ms}]"
+        )
+
+
+class TestTier1AlwaysGetsMusicSparkles:
+    """Tier 1 BASE placements get music_sparkles > 0 even without palette
+    restraint, providing the music-reactive overlay that gives the BASE
+    wash visual depth instead of reading as a static sine wave."""
+
+    def test_tier1_placement_has_sparkles_without_palette_restraint(self) -> None:
+        # palette_target=None on the assignment ⇒ palette restraint OFF.
+        # The tier-1 sparkle path runs unconditionally (not gated by it).
+        assignment = SectionAssignment(
+            section=_make_section(energy_score=50),
+            theme=_make_theme(layers=[EffectLayer(variant="Color Wash")]),
+            active_tiers=frozenset({1}),
+        )
+        assert assignment.palette_target is None  # restraint OFF
+        groups = [PowerGroup(name="01_BASE_All", tier=1, members=["Model_A"])]
+        library = _make_library(_make_effect("Color Wash"))
+        variant_library = _make_variant_library("Color Wash")
+        hierarchy = _make_hierarchy(beat_times=[0, 500, 1000])
+
+        result = place_effects(assignment, groups, library, hierarchy,
+                               variant_library=variant_library)
+        base_placements = result.get("01_BASE_All", [])
+        assert base_placements, "tier-1 placement expected"
+        for p in base_placements:
+            assert p.music_sparkles > 0, (
+                f"tier-1 placement must have music_sparkles > 0; got "
+                f"music_sparkles={p.music_sparkles} on '{p.effect_name}'"
+            )
 
 
 class TestDurationTypeBeat:
