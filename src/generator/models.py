@@ -127,6 +127,10 @@ class SectionAssignment:
     # sequences where only key focal elements are lit in quiet passages.
     # Tier 8 (HERO) is always fully active regardless of this value.
     group_density: float = 1.0
+    # True only for the last section of the song. Set by `_populate_assignment_decisions`.
+    # Used by `place_effects` to apply an end-of-song fade-out when the final
+    # section also has fade-worthy character (low/falling energy or outro role).
+    is_final_section: bool = False
 
 
 @dataclass

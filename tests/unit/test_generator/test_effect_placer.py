@@ -829,3 +829,118 @@ class TestPlaceCallResponse:
         )
         assert "02_GEO_Center" not in result
         assert "02_GEO_Mid" not in result
+
+
+class TestEndOfSongFadeOut:
+    """Final-section fade-out (D1, CLAUDE.md "End-of-Song Fade Out").
+
+    When the last section of the song has fade-worthy character (low/ethereal
+    energy or an outro label), placements on tiers 1/2/4/6/7 should receive
+    `fade_out_ms > 0` so xLights renders a brightness ramp instead of a hard
+    cut. Mid-song sections and high-energy endings should be untouched.
+    """
+
+    def _final_outro_assignment(self) -> SectionAssignment:
+        section = SectionEnergy(
+            label="outro",
+            start_ms=0,
+            end_ms=10000,
+            energy_score=15,
+            mood_tier="ethereal",
+            impact_count=0,
+        )
+        return SectionAssignment(
+            section=section,
+            theme=_make_theme(),
+            active_tiers=frozenset({1}),
+            section_index=3,
+            is_final_section=True,
+        )
+
+    def test_final_section_with_falling_energy_gets_fade_out(self) -> None:
+        assignment = self._final_outro_assignment()
+        groups = [PowerGroup(name="01_BASE_All", tier=1, members=["Model_A"])]
+        library = _make_library(_make_effect("Color Wash", duration_type="section"))
+        variant_library = _make_variant_library("Color Wash")
+        hierarchy = _make_hierarchy()
+
+        result = place_effects(
+            assignment, groups, library, hierarchy, variant_library=variant_library,
+        )
+
+        all_placements = [p for ps in result.values() for p in ps]
+        assert all_placements, "expected at least one placement"
+        assert any(p.fade_out_ms > 0 for p in all_placements), (
+            "Final ethereal/outro section should get a non-zero fade_out_ms on at least one placement"
+        )
+        # Cap is 4000ms, section is 10000ms → fade_out should be min(5000, 4000) = 4000.
+        max_fade = max(p.fade_out_ms for p in all_placements)
+        assert max_fade <= 4000, f"fade_out_ms should be capped at 4000ms, got {max_fade}"
+
+    def test_final_section_with_rising_energy_no_fade_out(self) -> None:
+        # Final section but high energy aggressive chorus — song ends on a punch,
+        # not a fade. Should NOT receive fade_out_ms.
+        section = SectionEnergy(
+            label="chorus",
+            start_ms=0,
+            end_ms=10000,
+            energy_score=85,
+            mood_tier="aggressive",
+            impact_count=0,
+        )
+        assignment = SectionAssignment(
+            section=section,
+            theme=_make_theme(),
+            active_tiers=frozenset({1}),
+            section_index=3,
+            is_final_section=True,
+        )
+        groups = [PowerGroup(name="01_BASE_All", tier=1, members=["Model_A"])]
+        library = _make_library(_make_effect("Color Wash", duration_type="section"))
+        variant_library = _make_variant_library("Color Wash")
+        hierarchy = _make_hierarchy()
+
+        result = place_effects(
+            assignment, groups, library, hierarchy, variant_library=variant_library,
+        )
+
+        all_placements = [p for ps in result.values() for p in ps]
+        assert all_placements, "expected at least one placement"
+        for p in all_placements:
+            assert p.fade_out_ms == 0, (
+                f"High-energy final chorus should not get end-of-song fade, got {p.fade_out_ms}"
+            )
+
+    def test_non_final_section_no_fade_out(self) -> None:
+        # Same low-energy ethereal label but it's NOT the final section.
+        # Must not receive end-of-song fade — that's reserved for the song tail.
+        section = SectionEnergy(
+            label="outro",
+            start_ms=0,
+            end_ms=10000,
+            energy_score=15,
+            mood_tier="ethereal",
+            impact_count=0,
+        )
+        assignment = SectionAssignment(
+            section=section,
+            theme=_make_theme(),
+            active_tiers=frozenset({1}),
+            section_index=1,
+            is_final_section=False,
+        )
+        groups = [PowerGroup(name="01_BASE_All", tier=1, members=["Model_A"])]
+        library = _make_library(_make_effect("Color Wash", duration_type="section"))
+        variant_library = _make_variant_library("Color Wash")
+        hierarchy = _make_hierarchy()
+
+        result = place_effects(
+            assignment, groups, library, hierarchy, variant_library=variant_library,
+        )
+
+        all_placements = [p for ps in result.values() for p in ps]
+        assert all_placements, "expected at least one placement"
+        for p in all_placements:
+            assert p.fade_out_ms == 0, (
+                f"Non-final section should not get end-of-song fade, got {p.fade_out_ms}"
+            )
