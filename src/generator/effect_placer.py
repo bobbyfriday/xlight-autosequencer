@@ -979,6 +979,13 @@ def place_effects(
                     bpm=bpm,
                 )
                 if placements:
+                    # A1: stamp the theme-layer index onto each placement so
+                    # multi-layer compositions (especially tier 1 BASE) land
+                    # on distinct xLights EffectLayers and blend properly,
+                    # rather than collapsing onto layer 0 and rendering with
+                    # last-write-wins semantics.
+                    for p in placements:
+                        p.layer = layer_idx
                     result.setdefault(group.name, []).extend(placements)
 
             # Tier 1 background accent overlay: when the theme declares a
