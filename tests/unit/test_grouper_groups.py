@@ -322,3 +322,73 @@ class TestPropTypePopulation:
         groups = generate_groups(props)
         base = next(g for g in groups if g.name == "01_BASE_All")
         assert base.prop_type == "matrix"
+
+
+# ─── D4: Tier-6 leading-direction prefix stripping ───────────────────────────
+
+class TestPropTypeLeadingDirectionStrip:
+    """_tier6_prop_type strips leading Left/Right/Top/Bottom/Front/Back so
+    mirrored prop pairs aggregate into a single 06_PROP_ group."""
+
+    def test_left_right_pair_aggregates(self):
+        props = [
+            make_prop("Left Small Star", world_x=0.0, world_y=50.0),
+            make_prop("Right Small Star", world_x=100.0, world_y=50.0),
+        ]
+        normalize_coords(props)
+        classify_props(props)
+        groups = generate_groups(props)
+        prop_groups = [g for g in groups if g.name.startswith("06_PROP_")]
+        assert len(prop_groups) == 1
+        assert prop_groups[0].name == "06_PROP_Small_Star"
+        assert set(prop_groups[0].members) == {"Left Small Star", "Right Small Star"}
+
+    def test_top_bottom_pair_aggregates(self):
+        props = [
+            make_prop("Top Beam", world_x=50.0, world_y=100.0),
+            make_prop("Bottom Beam", world_x=50.0, world_y=0.0),
+        ]
+        normalize_coords(props)
+        classify_props(props)
+        groups = generate_groups(props)
+        prop_groups = [g for g in groups if g.name.startswith("06_PROP_")]
+        assert len(prop_groups) == 1
+        assert prop_groups[0].name == "06_PROP_Beam"
+        assert set(prop_groups[0].members) == {"Top Beam", "Bottom Beam"}
+
+    def test_existing_door_aggregation_unchanged(self):
+        # The first ' - ' split runs after the leading-direction strip; "Door"
+        # has no leading direction so the split still yields "Door".
+        props = [
+            make_prop("Door - Front Door - Left", world_x=0.0, world_y=50.0),
+            make_prop("Door - Back Door - Right", world_x=100.0, world_y=50.0),
+        ]
+        normalize_coords(props)
+        classify_props(props)
+        groups = generate_groups(props)
+        prop_groups = [g for g in groups if g.name.startswith("06_PROP_")]
+        assert len(prop_groups) == 1
+        assert prop_groups[0].name == "06_PROP_Door"
+        assert set(prop_groups[0].members) == {
+            "Door - Front Door - Left",
+            "Door - Back Door - Right",
+        }
+
+    def test_trailing_direction_word_not_stripped(self):
+        # "Right" is at the end, not the start, so the leading-direction
+        # pattern does not match and the type name retains it.  The "-2"
+        # suffix is stripped by the existing trailing-number rule.
+        props = [
+            make_prop("Spinner 23 inch Right", world_x=0.0, world_y=50.0),
+            make_prop("Spinner 23 inch Right-2", world_x=100.0, world_y=50.0),
+        ]
+        normalize_coords(props)
+        classify_props(props)
+        groups = generate_groups(props)
+        prop_groups = [g for g in groups if g.name.startswith("06_PROP_")]
+        assert len(prop_groups) == 1
+        assert prop_groups[0].name == "06_PROP_Spinner_23_inch_Right"
+        assert set(prop_groups[0].members) == {
+            "Spinner 23 inch Right",
+            "Spinner 23 inch Right-2",
+        }
