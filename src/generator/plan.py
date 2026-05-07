@@ -300,9 +300,11 @@ def _populate_assignment_decisions(
     """
     dummy_palette = ["#000000"] * 6
     drum_track_present = hierarchy.events.get("drums") is not None
+    last_idx = len(assignments) - 1
     for idx, assignment in enumerate(assignments):
         section = assignment.section
         assignment.section_index = idx
+        assignment.is_final_section = (idx == last_idx)
 
         # Active tiers — user override (`config.tiers`) wins; else energy/mood-driven
         # selection when enabled; else all tiers.
