@@ -57,6 +57,11 @@ _LEFT_X = 0.33
 # Pixel density threshold
 _HI_DENS_THRESHOLD = 500
 
+# Leading direction prefix used to pair mirrored props (e.g. "Left Small Star"
+# + "Right Small Star").  Stripped during tier-6 prop-type aggregation so the
+# pair maps to a shared category and clears the >=2 members gate.
+_LEADING_DIRECTION = re.compile(r"^(Left|Right|Top|Bottom|Front|Back)\s+", re.IGNORECASE)
+
 
 @dataclass
 class PowerGroup:
@@ -208,11 +213,13 @@ def _tier5_fidelity(props: list[Prop]) -> list[PowerGroup]:
 def _tier6_prop_type(props: list[Prop]) -> list[PowerGroup]:
     """Group all props of the same kind — e.g. all candy canes, all windows, all flakes.
 
-    Extracts the broadest category name by stripping trailing numbers,
-    single-letter variants, and the first ' - ' suffix.
+    Extracts the broadest category name by stripping a leading direction prefix
+    (Left/Right/Top/Bottom/Front/Back), the first ' - ' suffix, trailing
+    numbers, and single-letter variants.
     """
     def _type_name(name: str) -> str:
-        s = name.split(" - ")[0]               # strip after first ' - '
+        s = _LEADING_DIRECTION.sub("", name)   # leading direction prefix
+        s = s.split(" - ")[0]                  # strip after first ' - '
         s = re.sub(r"[\s-]*\d+\s*$", "", s)    # trailing numbers
         s = re.sub(r"\s+[A-Z]\s*$", "", s)     # trailing single letter variant
         return s.strip(" -")
