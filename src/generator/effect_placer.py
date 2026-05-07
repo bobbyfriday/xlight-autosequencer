@@ -577,10 +577,17 @@ def place_effects(
     duration_scaling = duration_target is not None
     bpm = hierarchy.estimated_bpm
 
-    # Use alternate layers for repeated sections (variation_seed > 0)
+    # Use alternate layers for repeated sections (variation_seed > 0).
+    # Alternates intentionally simplify to a single layer for variation
+    # purposes; if the main theme has additional layers, top them up so
+    # multi-layer compositions (esp. tier-1 BASE depth from A1) still
+    # apply. The alternate's layer 0 still wins — only the missing
+    # higher layers come from the main theme.
     if assignment.variation_seed > 0 and theme.alternates:
         variant_idx = (assignment.variation_seed - 1) % len(theme.alternates)
-        layers = theme.alternates[variant_idx].layers
+        layers = list(theme.alternates[variant_idx].layers)
+        if len(layers) < len(theme.layers):
+            layers.extend(theme.layers[len(layers):])
     else:
         layers = theme.layers
 
