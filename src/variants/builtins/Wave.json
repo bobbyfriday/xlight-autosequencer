@@ -134,7 +134,7 @@
         "E_SLIDER_Wave_Speed": 8
       },
       "tags": {
-        "tier_affinity": "background",
+        "tier_affinity": "mid",
         "energy_level": "medium",
         "speed_feel": "moderate",
         "direction": null,
@@ -201,7 +201,7 @@
         "E_SLIDER_Wave_Speed": 15
       },
       "tags": {
-        "tier_affinity": "background",
+        "tier_affinity": "mid",
         "energy_level": "medium",
         "speed_feel": "fast",
         "direction": null,
