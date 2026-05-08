@@ -141,3 +141,62 @@ def write_timing_tracks(
     for track in tracks:
         _build_timing_element(root, track, track.name)
     _write_xml(root, output_path)
+
+
+def append_roles_layer(
+    xtiming_path: str,
+    story_sections: "list[dict]",
+    *,
+    layer_name: str = "roles",
+) -> None:
+    """Add (or replace) a role-labelled section layer to an existing xtiming.
+
+    The default ``sections`` track in the xtiming carries raw segmenter
+    cluster labels (A, B, N1, qm_boundary, …) — useful for diagnostics
+    but not for sequencing.  This adds a sibling layer using the
+    ``role`` field from ``_story.json`` (intro, verse, chorus, bridge, …)
+    so the user sees musical structure in xLights.
+
+    Repeated roles get a numeric suffix (``verse_1``, ``verse_2``) so
+    each section's label is unique.  Sole occurrences keep the bare
+    role name (``intro``, ``bridge``).
+
+    Idempotent — re-running replaces the existing roles layer rather
+    than duplicating it.
+    """
+    tree = ET.parse(xtiming_path)
+    root = tree.getroot()
+
+    # Remove any existing roles layer so re-runs are idempotent.
+    for existing in list(root.findall("timing")):
+        if existing.attrib.get("name") == layer_name:
+            root.remove(existing)
+
+    # Count role occurrences to decide which need numeric suffixes.
+    role_total: dict[str, int] = {}
+    for s in story_sections:
+        role = s.get("role", "unknown")
+        role_total[role] = role_total.get(role, 0) + 1
+
+    timing_el = ET.SubElement(root, "timing")
+    timing_el.set("name", layer_name)
+    timing_el.set("SourceVersion", XTimingWriter.SOURCE_VERSION)
+    layer = ET.SubElement(timing_el, "EffectLayer")
+
+    role_seen: dict[str, int] = {}
+    for s in story_sections:
+        role = s.get("role", "unknown")
+        role_seen[role] = role_seen.get(role, 0) + 1
+        label = f"{role}_{role_seen[role]}" if role_total[role] > 1 else role
+        start_ms = int(round(float(s.get("start", 0)) * 1000))
+        end_ms = int(round(float(s.get("end", 0)) * 1000))
+        ET.SubElement(layer, "Effect").attrib.update({
+            "label": label,
+            "starttime": str(start_ms),
+            "endtime": str(end_ms),
+        })
+
+    ET.indent(tree, space="    ")
+    with open(xtiming_path, "w", encoding="utf-8") as fh:
+        fh.write('<?xml version="1.0" encoding="UTF-8"?>\n')
+        tree.write(fh, encoding="unicode", xml_declaration=False)

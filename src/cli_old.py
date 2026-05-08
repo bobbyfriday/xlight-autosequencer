@@ -2408,6 +2408,23 @@ def story_cmd(
     n_moments = len(story.get("moments", []))
     click.echo(f"  {n_sections} sections, {n_moments} moments detected")
 
+    # Add role-labelled layer to the xtiming so xLights shows
+    # intro/verse/chorus instead of the raw segmenter clusters
+    # (A, B, N#, qm_boundary). The xtiming was written by the analyze
+    # command before story-builder ran; this is the post-story update.
+    xtiming_candidates = [
+        audio_p.parent / (audio_p.stem + ".xtiming"),
+        audio_p.parent / audio_p.stem / (audio_p.stem + ".xtiming"),
+    ]
+    xtiming_path = next((p for p in xtiming_candidates if p.exists()), None)
+    if xtiming_path is not None:
+        try:
+            from src.analyzer.xtiming import append_roles_layer
+            append_roles_layer(str(xtiming_path), story.get("sections", []))
+            click.echo(f"  added roles layer to: {xtiming_path}")
+        except Exception as exc:
+            click.echo(f"  warning: could not update xtiming with roles layer: {exc}", err=True)
+
     if launch_review:
         # Delegate to story-review command logic
         ctx = click.get_current_context()

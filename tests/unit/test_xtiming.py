@@ -293,3 +293,81 @@ class TestSanitizeName:
         name = _sanitize_name("hello (feat. artist).mp3")
         assert "(" not in name
         assert "." not in name
+
+
+# ── append_roles_layer ───────────────────────────────────────────────────────
+
+class TestAppendRolesLayer:
+    """append_roles_layer adds a 'roles' timing layer to an existing xtiming.
+
+    Built for the post-story-builder hook in the story CLI command —
+    surfaces story.sections[].role labels (intro/verse/chorus/...) as
+    a sibling of the raw segmenter sections layer that the analyzer
+    pipeline writes upstream.
+    """
+
+    def _existing_xtiming(self, tmp_path: Path) -> Path:
+        # Minimal seed xtiming with one unrelated layer; replicates what
+        # the analyzer pipeline writes before story-builder runs.
+        path = tmp_path / "seed.xtiming"
+        path.write_text(
+            '<?xml version="1.0" encoding="UTF-8"?>\n'
+            '<timings>\n'
+            '    <timing name="beats" SourceVersion="2024.01">\n'
+            '        <EffectLayer><Effect label="1" starttime="0" endtime="500" /></EffectLayer>\n'
+            '    </timing>\n'
+            '</timings>\n'
+        )
+        return path
+
+    def test_adds_roles_layer_with_role_labels(self, tmp_path: Path) -> None:
+        from src.analyzer.xtiming import append_roles_layer
+        path = self._existing_xtiming(tmp_path)
+        append_roles_layer(str(path), [
+            {"role": "intro", "start": 0.0, "end": 10.5},
+            {"role": "verse", "start": 10.5, "end": 30.0},
+            {"role": "chorus", "start": 30.0, "end": 50.0},
+        ])
+        root = ET.parse(path).getroot()
+        roles = root.find('timing[@name="roles"]')
+        assert roles is not None, "roles layer must be added"
+        effects = roles.find("EffectLayer").findall("Effect")
+        labels = [e.attrib["label"] for e in effects]
+        # Single occurrences keep bare role name (no _1 suffix)
+        assert labels == ["intro", "verse", "chorus"]
+        # Times are converted seconds → ms
+        assert effects[0].attrib["starttime"] == "0"
+        assert effects[0].attrib["endtime"] == "10500"
+
+    def test_repeated_roles_get_numeric_suffixes(self, tmp_path: Path) -> None:
+        from src.analyzer.xtiming import append_roles_layer
+        path = self._existing_xtiming(tmp_path)
+        append_roles_layer(str(path), [
+            {"role": "intro", "start": 0.0, "end": 10.0},
+            {"role": "verse", "start": 10.0, "end": 30.0},
+            {"role": "chorus", "start": 30.0, "end": 50.0},
+            {"role": "verse", "start": 50.0, "end": 70.0},
+            {"role": "chorus", "start": 70.0, "end": 90.0},
+        ])
+        roles = ET.parse(path).getroot().find('timing[@name="roles"]')
+        labels = [e.attrib["label"] for e in roles.find("EffectLayer").findall("Effect")]
+        # Repeated roles get _1, _2; intro stays bare since unique
+        assert labels == ["intro", "verse_1", "chorus_1", "verse_2", "chorus_2"]
+
+    def test_idempotent_on_rerun(self, tmp_path: Path) -> None:
+        from src.analyzer.xtiming import append_roles_layer
+        path = self._existing_xtiming(tmp_path)
+        sections = [{"role": "intro", "start": 0.0, "end": 10.0}]
+        append_roles_layer(str(path), sections)
+        append_roles_layer(str(path), sections)
+        root = ET.parse(path).getroot()
+        roles_layers = root.findall('timing[@name="roles"]')
+        assert len(roles_layers) == 1, "roles layer must replace, not duplicate"
+
+    def test_preserves_other_layers(self, tmp_path: Path) -> None:
+        from src.analyzer.xtiming import append_roles_layer
+        path = self._existing_xtiming(tmp_path)
+        append_roles_layer(str(path), [{"role": "intro", "start": 0.0, "end": 10.0}])
+        root = ET.parse(path).getroot()
+        # The pre-existing 'beats' layer must still be there
+        assert root.find('timing[@name="beats"]') is not None
