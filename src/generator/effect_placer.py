@@ -500,6 +500,49 @@ def select_from_working_set(working_set: WorkingSet, rng) -> WorkingSetEntry:
     return working_set.effects[-1]
 
 
+# Tiers eligible for end-of-song fade-out. Tier 8 HERO is intentionally
+# excluded — heroes can stay punchy at the very end so the song's focal
+# props remain crisp even as the wash/beat/prop layers fade. Tier 3 TYPE
+# and tier 5 TEX are also excluded because they're partition tiers whose
+# placements are typically short (per-bar/per-beat) and adding fade_out_ms
+# to many short placements creates flicker rather than a smooth fade.
+_FADE_OUT_ELIGIBLE_TIERS = frozenset({1, 2, 4, 6, 7})
+
+# Section labels (lowercased substrings) that indicate a fade-worthy ending.
+_FADE_OUT_LABEL_KEYWORDS = ("outro", "fadeout", "fade_out")
+
+# Cap for how long the end-of-song fade lasts. xLights renders fade_out_ms
+# as a brightness ramp at the end of the effect; we want a noticeable fade
+# without consuming most of the section.
+_FADE_OUT_MAX_MS = 4000
+
+
+def _compute_fadeout_ms_for_final_section(assignment: SectionAssignment) -> int:
+    """Return a fade_out_ms value for the final section, or 0 if not fade-worthy.
+
+    Triggers when the final section has low-energy character indicating the
+    song dies out rather than cuts: ethereal mood tier, an outro/fadeout
+    label, or a low energy score (<= 35). For songs that end on a high-energy
+    chorus/drop this returns 0 — those endings are meant to be abrupt.
+
+    Returns half the section duration, capped at 4000ms, so the fade lives
+    in the tail of the section without dominating it.
+    """
+    if not assignment.is_final_section:
+        return 0
+    section = assignment.section
+    label = (section.label or "").lower()
+    fade_worthy = (
+        section.mood_tier == "ethereal"
+        or section.energy_score <= 35
+        or any(kw in label for kw in _FADE_OUT_LABEL_KEYWORDS)
+    )
+    if not fade_worthy:
+        return 0
+    duration_ms = section.end_ms - section.start_ms
+    return min(duration_ms // 2, _FADE_OUT_MAX_MS)
+
+
 def place_effects(
     assignment: SectionAssignment,
     groups: list[PowerGroup],
@@ -534,10 +577,17 @@ def place_effects(
     duration_scaling = duration_target is not None
     bpm = hierarchy.estimated_bpm
 
-    # Use alternate layers for repeated sections (variation_seed > 0)
+    # Use alternate layers for repeated sections (variation_seed > 0).
+    # Alternates intentionally simplify to a single layer for variation
+    # purposes; if the main theme has additional layers, top them up so
+    # multi-layer compositions (esp. tier-1 BASE depth from A1) still
+    # apply. The alternate's layer 0 still wins — only the missing
+    # higher layers come from the main theme.
     if assignment.variation_seed > 0 and theme.alternates:
         variant_idx = (assignment.variation_seed - 1) % len(theme.alternates)
-        layers = theme.alternates[variant_idx].layers
+        layers = list(theme.alternates[variant_idx].layers)
+        if len(layers) < len(theme.layers):
+            layers.extend(theme.layers[len(layers):])
     else:
         layers = theme.layers
 
@@ -936,6 +986,13 @@ def place_effects(
                     bpm=bpm,
                 )
                 if placements:
+                    # A1: stamp the theme-layer index onto each placement so
+                    # multi-layer compositions (especially tier 1 BASE) land
+                    # on distinct xLights EffectLayers and blend properly,
+                    # rather than collapsing onto layer 0 and rendering with
+                    # last-write-wins semantics.
+                    for p in placements:
+                        p.layer = layer_idx
                     result.setdefault(group.name, []).extend(placements)
 
             # Tier 1 background accent overlay: when the theme declares a
@@ -995,6 +1052,28 @@ def place_effects(
                 continue
             p.music_sparkles = 15 + round(section.energy_score * 0.5)
 
+    # End-of-song fade-out (D1, CLAUDE.md "End-of-Song Fade Out").
+    # When this is the final section and the section's character indicates a
+    # natural fade ending (low/ethereal energy, outro role), apply fade_out_ms
+    # to the placement that ends latest in each eligible group so xLights
+    # renders a brightness ramp into silence instead of cutting hard.
+    fadeout_ms = _compute_fadeout_ms_for_final_section(assignment)
+    if fadeout_ms > 0:
+        tier_of_group = {g.name: g.tier for g in groups}
+        for group_name, placements in result.items():
+            tier = tier_of_group.get(group_name)
+            if tier not in _FADE_OUT_ELIGIBLE_TIERS:
+                continue
+            if not placements:
+                continue
+            # Apply to the placement(s) ending closest to the section end so
+            # short per-beat placements early in the section aren't truncated.
+            latest_end = max(p.end_ms for p in placements)
+            for p in placements:
+                if p.end_ms == latest_end:
+                    # Don't exceed the placement's own duration.
+                    p.fade_out_ms = min(fadeout_ms, p.end_ms - p.start_ms)
+
     return result
 
 
@@ -1007,7 +1086,11 @@ def _select_groups_for_layer(
     """Select which groups to use per tier, avoiding overlap.
 
     Strategy per tier:
-    - Tier 1 (BASE): Use the single whole-house group only for the bottom layer
+    - Tier 1 (BASE): Whole-house group on every layer that targets it.
+      Multi-layer BASE composition (A1) — was previously gated to
+      layer 0; now any theme layer mapped to tier 1 by
+      ``_assign_layers_to_tiers`` places its variant on BASE so the
+      wash gets layered depth.
     - Tier 2 (GEO): Pick one spatial zone for accent variety
     - Tier 3 (TYPE): Skip — overlaps too heavily with BASE
     - Tier 4 (BEAT): All groups (chase pattern handled separately)
@@ -1024,9 +1107,8 @@ def _select_groups_for_layer(
             continue
 
         if tier == 1:
-            # BASE: just the whole-house group, only for bottom layer
-            if layer_idx == 0:
-                selected[tier] = [available[0]]
+            # BASE: whole-house group on every layer that targets it.
+            selected[tier] = [available[0]]
 
         elif tier == 2:
             # GEO: use all spatial zones
@@ -1056,7 +1138,15 @@ def _select_groups_for_layer(
 
 
 def _assign_layers_to_tiers(layers: list[EffectLayer]) -> dict[int, set[int]]:
-    """Map each layer index to a set of target tiers."""
+    """Map each layer index to a set of target tiers.
+
+    Iteration backlog A1 (multi-layer BASE composition): theme layer 1 (and
+    middle layers in 3+-layer themes) also lands on tier 1 BASE. Previously
+    only layer 0 covered BASE, so BASE rendered as a single effect with no
+    accent layered on top. Stacking layer 1 onto BASE gives the wash visual
+    depth (e.g. Color Wash + Twinkle accent) without changing how upper
+    tiers are assigned.
+    """
     n = len(layers)
     mapping: dict[int, set[int]] = {}
 
@@ -1067,12 +1157,14 @@ def _assign_layers_to_tiers(layers: list[EffectLayer]) -> dict[int, set[int]]:
         mapping[0] = _LOW_TIERS | {4, 6, 8}
     elif n == 2:
         mapping[0] = _LOW_TIERS | {4, 6}
-        mapping[1] = _HIGH_TIERS
+        # A1: layer 1 also accents BASE (tier 1) on top of HERO tiers.
+        mapping[1] = _HIGH_TIERS | {1}
     else:
         mapping[0] = _LOW_TIERS | {4, 6}
         mapping[n - 1] = _HIGH_TIERS
         for i in range(1, n - 1):
-            mapping[i] = _MID_TIERS
+            # A1: middle layers also accent BASE (tier 1) on top of MID tiers.
+            mapping[i] = _MID_TIERS | {1}
 
     return mapping
 
