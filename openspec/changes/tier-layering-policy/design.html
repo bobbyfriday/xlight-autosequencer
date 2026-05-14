@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Design: tier-layering policy</title>
+<link rel="stylesheet" href="../_design.css">
+</head>
+<body>
+<div class="layout">
+
+<nav class="toc">
+  <h2>Sections</h2>
+  <ol>
+    <li><a href="#goal">Goal</a></li>
+    <li><a href="#approach">Approach</a></li>
+    <li><a href="#alternative">Alternative considered</a></li>
+    <li><a href="#files">Files touched</a></li>
+    <li><a href="#regression">Regression surface</a></li>
+    <li><a href="#echoes">Historical echoes</a></li>
+    <li><a href="#iteration">Iteration plan</a></li>
+    <li><a href="#scope">Out of scope</a></li>
+  </ol>
+</nav>
+
+<main>
+
+<header class="doc-header">
+  <p class="kicker">OpenSpec design · tier-layering-policy</p>
+  <h1>Design: tier-layering policy</h1>
+  <div class="goal" id="goal">
+    Allow tiers <strong>1 BASE</strong>, <strong>2 GEO</strong>, and <strong>4 BEAT</strong>
+    to <em>layer</em> under tier <strong>6 PROP</strong> and <strong>8 HERO</strong> instead of
+    being mutually exclusive &mdash; by routing the right affinity context to variant scoring
+    and choosing layer index + blend mode per tier so the lower tiers genuinely sit underneath
+    instead of visually overwhelming the higher ones.
+  </div>
+</header>
+
+<section class="block" id="approach">
+  <h2>Approach</h2>
+
+  <article class="card">
+    <div class="card-head">
+      <span class="pill pill-info">Piece 1 · V1</span>
+      <h4>Extend the tier&rarr;affinity map</h4>
+    </div>
+    <p><a href="../../../src/generator/rotation.py#L107"><code>src/generator/rotation.py:107</code></a>:</p>
+<pre><code>tier_map = {
+    1: "background",
+    2: "background",
+    3: "mid",          # provisional; tier 3 still inactive in this change
+    4: "mid",
+    5: "mid",          # unchanged
+    6: "mid",          # unchanged
+    7: "foreground",   # unchanged
+    8: "hero",         # unchanged
+}</code></pre>
+    <p>The starting values for tiers 1, 2, 4 are <em>seed</em> values to be tuned against rendered output (see <a href="#iteration">iteration plan</a>). Decision rationale:</p>
+    <ul class="tight">
+      <li><strong>1 BASE = "background"</strong> &mdash; the canonical "wash under everything" tier; should match the 75 background-tagged variants.</li>
+      <li><strong>2 GEO = "background"</strong> &mdash; spatial sweeps on bounding-box groups read as structural backdrop, not focal motion.</li>
+      <li><strong>4 BEAT = "mid"</strong> &mdash; beat punctuation needs to read above BASE/GEO but shouldn't compete with PROP detail.</li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <div class="card-head">
+      <span class="pill pill-info">Piece 2 · V1</span>
+      <h4>Extend <code>_compute_active_tiers</code></h4>
+    </div>
+    <p><a href="../../../src/generator/effect_placer.py#L1980"><code>src/generator/effect_placer.py:1980</code></a>. Current vs proposed:</p>
+    <table>
+      <thead>
+        <tr><th><code>mood_tier</code></th><th>Current</th><th>Proposed</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>ethereal</code></td>                       <td class="diff-same"><code>{8}</code></td>          <td class="diff-add"><code>{1, 8}</code></td></tr>
+        <tr><td><code>structural</code> + strong phrases</td>    <td class="diff-same"><code>{2, 8}</code></td>       <td class="diff-add"><code>{1, 2, 8}</code></td></tr>
+        <tr><td><code>structural</code> (default)</td>           <td class="diff-same"><code>{6, 8}</code></td>       <td class="diff-add"><code>{1, 6, 8}</code></td></tr>
+        <tr><td><code>aggressive</code></td>                     <td class="diff-same"><code>{4, 8}</code></td>       <td class="diff-add"><code>{1, 4, 6, 8}</code></td></tr>
+      </tbody>
+    </table>
+    <ul class="tight">
+      <li>Tier 1 is added to <em>every</em> branch &mdash; it is the always-on quiet wash the architecture was designed for, and the affinity map will route its variant selection toward background-tagged options (Twinkle, Liquid, Snowflakes, low-contrast Color Wash, etc.).</li>
+      <li>The <code>aggressive</code> branch picks up tier 6 alongside tier 4 because the current <code>{4, 8}</code> produces almost nothing on the bulk of props (BEAT_1..BEAT_4 cover ~80 models split four ways &rarr; many props get dark sections). Adding 6 keeps the prop-family detail.</li>
+      <li>Tier 7 COMP and tier 5 TEX remain unaddressed in this change.</li>
+    </ul>
+  </article>
+
+  <article class="card deferred">
+    <div class="card-head">
+      <span class="pill pill-muted">Piece 3 · DEFERRED</span>
+      <h4>Inter-tier layer + blend policy</h4>
+    </div>
+    <p>The original design proposed a <code>_layer_and_blend_for_tier</code> helper that would force tier 1 BASE onto its own xLights layer band with a <code>Normal</code> blend mode (so its wash sits underneath rather than being additively brightened by itself).</p>
+    <p><strong>Scoped out of V1</strong> (decision 2026-05-06, before any code landed). Reasoning:</p>
+    <ul class="tight">
+      <li>Forcing the helper requires touching ~20 placement-construction call sites in <code>effect_placer.py</code> to override <code>layer.blend_mode</code> per tier &mdash; non-trivial wire-up.</li>
+      <li>The helper's necessity is speculative: we haven't yet seen the default policy (with tier_affinity routing toward background variants) produce the "BASE additively over-brightened" symptom on real renders. Adding it pre-emptively violates "don't over-engineer" &mdash; solve the problem at hand.</li>
+      <li>The iteration loop is the right gate. If a Cher render with the V1 policy shows BASE clobbering or over-brightening, we add the helper as a small follow-up change with concrete evidence.</li>
+    </ul>
+    <p><strong>V1 ships pieces 1 + 2 only</strong> (<code>tier_map</code> + <code>_compute_active_tiers</code>). The blend helper is a follow-up change if and only if the iteration loop produces the symptom that originally motivated it.</p>
+  </article>
+</section>
+
+<section class="block" id="alternative">
+  <h2>Alternative considered</h2>
+  <div class="compare">
+    <article class="card">
+      <div class="card-head">
+        <h4>Chosen: hard-code policy in source</h4>
+        <span class="pill pill-success">picked</span>
+      </div>
+      <p><strong>What:</strong> <code>tier_map</code> and the mood&rarr;tier-set table live in <code>rotation.py</code> and <code>effect_placer.py</code>.</p>
+      <p><strong>Why:</strong> these are software-engineering defaults, not user preferences. The iteration loop corrects them in code with version control.</p>
+    </article>
+    <article class="card alternative">
+      <div class="card-head">
+        <h4>Rejected: lift policy to JSON config</h4>
+        <span class="pill pill-warning">rejected</span>
+      </div>
+      <p><strong>What:</strong> move both tables to <code>~/.xlight/tier_policy.json</code> so users could tune without touching code.</p>
+      <p><strong>Why not:</strong> trades a small ergonomic gain for a worse iteration loop and a new file we'd have to validate, document, and migrate. Revisit only if user-facing tuning becomes a real ask.</p>
+    </article>
+  </div>
+</section>
+
+<section class="block" id="files">
+  <h2>Files touched</h2>
+  <table>
+    <thead><tr><th>Path</th><th>Status</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><code>src/generator/rotation.py</code></td>
+        <td><span class="pill pill-warning">modified</span></td>
+        <td>Extend <code>tier_map</code> dict.</td>
+      </tr>
+      <tr>
+        <td><code>src/generator/effect_placer.py</code></td>
+        <td><span class="pill pill-warning">modified</span></td>
+        <td>Extend <code>_compute_active_tiers</code> and add <code>_layer_and_blend_for_tier</code>.</td>
+      </tr>
+      <tr>
+        <td><code>tests/unit/test_generator/test_effect_placer.py</code></td>
+        <td><span class="pill pill-warning">modified</span></td>
+        <td>Update the four exact-frozenset assertions to the new policy values.</td>
+      </tr>
+      <tr>
+        <td><code>tests/unit/test_generator/test_rotation.py</code></td>
+        <td><span class="pill pill-warning">modified (if exists)</span></td>
+        <td>Update <code>tier_map</code> assertions &mdash; need to check.</td>
+      </tr>
+      <tr>
+        <td><code>openspec/changes/tier-layering-policy/specs/...</code></td>
+        <td><span class="pill pill-muted">TBD</span></td>
+        <td>Policy change; may not need a spec delta.</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="block" id="regression">
+  <h2>Regression surface</h2>
+
+  <article class="card">
+    <div class="card-head">
+      <h4><code>_compute_active_tiers</code> callers</h4>
+      <span class="pill pill-muted">verified via grep across src/ and tests/</span>
+    </div>
+    <table>
+      <thead><tr><th>Caller</th><th>Action</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><a href="../../../src/generator/plan.py#L313"><code>src/generator/plan.py:313</code></a></td>
+          <td><span class="pill pill-success">no change</span></td>
+          <td>Only production caller. Stores result on <code>assignment.active_tiers</code>. Already handles arbitrary frozenset content.</td>
+        </tr>
+        <tr>
+          <td><a href="../../../tests/unit/test_generator/test_effect_placer.py"><code>tests/unit/test_generator/test_effect_placer.py:541, 548, 556, 576</code></a></td>
+          <td><span class="pill pill-warning">must update</span></td>
+          <td>Four exact-equality assertions on the returned frozenset.</td>
+        </tr>
+      </tbody>
+    </table>
+  </article>
+
+  <article class="card">
+    <div class="card-head">
+      <h4><code>tier_map</code> in <code>rotation.py</code></h4>
+      <span class="pill pill-success">no external surface</span>
+    </div>
+    <p>Module-private. No external callers via grep.</p>
+  </article>
+
+  <article class="card">
+    <div class="card-head">
+      <h4><code>_layer_and_blend_for_tier</code></h4>
+      <span class="pill pill-info">new symbol</span>
+    </div>
+    <p>Brand new &mdash; no callers exist yet.</p>
+  </article>
+</section>
+
+<section class="block" id="echoes">
+  <h2>Historical echoes</h2>
+
+  <div class="compare">
+    <article class="card">
+      <div class="card-head">
+        <h4><code>.wolf/buglog.json</code></h4>
+        <span class="pill pill-success">no matches</span>
+      </div>
+      <p class="muted">Searched for <code>BASE | tier 1 | tier_1</code>. No entries.</p>
+    </article>
+    <article class="card">
+      <div class="card-head">
+        <h4><code>.wolf/cerebrum.md</code></h4>
+        <span class="pill pill-success">no matches</span>
+      </div>
+      <p class="muted">Searched. No entries.</p>
+    </article>
+  </div>
+
+  <article class="card">
+    <div class="card-head">
+      <h4>In-code historical record</h4>
+      <span class="pill pill-info">relevant echo</span>
+    </div>
+    <p>The comment block in <code>_compute_active_tiers</code> itself (<code>effect_placer.py:1980-1990</code>):</p>
+    <blockquote class="muted" style="border-left: 3px solid var(--border); padding-left: 12px; margin: 8px 0;">
+      "Previously included Tier 1 (BASE_All) which covered every model and drove
+      <code>tier_utilization</code> to ~100% even in silent moments."
+    </blockquote>
+    <p>The user (Rob, 2026-05-06) re-examined that decision directly and concluded the symptom was <strong>bold-effect-on-BASE</strong>, not structural overwrite. This change addresses the underlying cause: <code>tier_map[1] = "background"</code> biases scoring toward quiet variants, and (in a future follow-up) <code>_layer_and_blend_for_tier(1, &hellip;) = (band 0, "Normal")</code> would give BASE its own bottom layer band.</p>
+    <p>If the iteration loop reproduces the "BASE overwhelms" symptom, the fallback is to ratchet down the seed values (e.g., move tier 1 to a narrower variant pool) &mdash; <em>not</em> to revert tier 1 to inactive. The iteration plan documents what to look for.</p>
+  </article>
+</section>
+
+<section class="block" id="iteration">
+  <h2>Iteration plan</h2>
+  <p>This is the part that grounds the change in real renders, not just JSON tuning. The loop is hybrid &mdash; automated pre-review on every iteration, human visual review only when pre-review passes obvious checks.</p>
+
+  <h3>Render pipeline <span class="pill pill-success" style="vertical-align: middle;">confirmed working 2026-05-06</span></h3>
+  <p>The devcontainer's <code>xlights-render.sh</code> SSHs to the macOS host and invokes the native (non-App-Store) xLights <code>--render</code> flag. End-to-end benchmark for the Cher 3:30 song: <strong>12.5s wall time, 7.5s actual render</strong> &mdash; about 17&times; realtime. xLights' window appears briefly on the Mac during render but does not block the workflow.</p>
+
+  <div class="diagram">
+    <svg viewBox="0 0 720 230" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Render pipeline diagram">
+      <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+          <path d="M0,0 L10,5 L0,10 z" fill="#87867F"/>
+        </marker>
+      </defs>
+      <!-- columns -->
+      <text x="120" y="20" text-anchor="middle" font-size="12" font-weight="600" fill="#141413">[devcontainer]</text>
+      <text x="540" y="20" text-anchor="middle" font-size="12" font-weight="600" fill="#141413">[Mac host]</text>
+
+      <!-- left column boxes -->
+      <rect x="20" y="35" width="200" height="32" rx="6" fill="#FBEAE0" stroke="#D97757" stroke-width="1.5"/>
+      <text x="120" y="55" text-anchor="middle" font-size="12" fill="#B85C3E">python3 ... microscope run ...</text>
+
+      <rect x="20" y="85" width="200" height="32" rx="6" fill="#F0EEE6" stroke="#D1CFC5" stroke-width="1.5"/>
+      <text x="120" y="105" text-anchor="middle" font-size="12" fill="#3D3D3A">Cher-...xsq in /home/node/xlights</text>
+
+      <rect x="20" y="135" width="200" height="32" rx="6" fill="#FBEAE0" stroke="#D97757" stroke-width="1.5"/>
+      <text x="120" y="155" text-anchor="middle" font-size="12" fill="#B85C3E">xlights-render.sh Cher-...xsq</text>
+
+      <rect x="20" y="185" width="200" height="32" rx="6" fill="#EEF2E5" stroke="#788C5D" stroke-width="1.5"/>
+      <text x="120" y="205" text-anchor="middle" font-size="12" fill="#5F7048">pre-review &rarr; treatment-notes-&lt;slug&gt;.md</text>
+
+      <!-- right column boxes -->
+      <rect x="440" y="135" width="200" height="32" rx="6" fill="#E3DACC" stroke="#B85C3E" stroke-width="1.5"/>
+      <text x="540" y="155" text-anchor="middle" font-size="12" fill="#3D3D3A">ssh + xLights --render</text>
+
+      <rect x="440" y="185" width="200" height="32" rx="6" fill="#F0EEE6" stroke="#D1CFC5" stroke-width="1.5"/>
+      <text x="540" y="205" text-anchor="middle" font-size="11" fill="#3D3D3A">Cher-...fseq (mounted, both see)</text>
+
+      <!-- arrows -->
+      <line x1="120" y1="67" x2="120" y2="83" stroke="#87867F" marker-end="url(#arrow)"/>
+      <line x1="120" y1="117" x2="120" y2="133" stroke="#87867F" marker-end="url(#arrow)"/>
+      <line x1="220" y1="151" x2="438" y2="151" stroke="#87867F" marker-end="url(#arrow)"/>
+      <line x1="540" y1="167" x2="540" y2="183" stroke="#87867F" marker-end="url(#arrow)"/>
+      <line x1="438" y1="201" x2="222" y2="201" stroke="#87867F" marker-end="url(#arrow)"/>
+    </svg>
+  </div>
+
+  <p>Required env (all already set in this devcontainer):</p>
+  <ul class="tight">
+    <li><code>XLIGHTS_HOST_USER=rob</code></li>
+    <li><code>XLIGHTS_HOST_SHOW_DIR=/Users/rob/xlights</code></li>
+    <li>SSH key at <code>/home/node/.ssh-host/id_ed25519</code> (mounted from <code>~/.ssh</code>)</li>
+    <li>macOS Remote Login enabled, key in <code>authorized_keys</code></li>
+  </ul>
+
+  <h3>Songs</h3>
+  <p>Two CC0 contrasting fixtures plus the user's reference:</p>
+  <div class="compare" style="grid-template-columns: 1fr 1fr 1fr;">
+    <article class="card">
+      <div class="card-head"><span class="pill pill-info">reference</span><h4>Cher &mdash; DJ Play a Christmas Song</h4></div>
+      <p>Rob's reference; already analyzed and rendered against the user's real layout. Mid-tempo pop / Christmas. <code>mood_tier == "structural"</code>.</p>
+      <p class="muted">Baseline <code>.xsq</code> / <code>.fseq</code> already exist at <code>~/xlights/Cher-DJ_Play_a_Christmas_Song.{xsq,fseq}</code>.</p>
+    </article>
+    <article class="card">
+      <div class="card-head"><span class="pill pill-warning">aggressive</span><h4>TBD aggressive fixture</h4></div>
+      <p>Exercises the <code>{1, 4, 6, 8}</code> branch (most layered combination). Candidate: any panel fixture with high tempo / strong drum activity.</p>
+    </article>
+    <article class="card">
+      <div class="card-head"><span class="pill pill-info">ethereal</span><h4>TBD ethereal fixture</h4></div>
+      <p>Exercises the <code>{1, 8}</code> branch where BASE is the <em>only</em> non-HERO tier.</p>
+    </article>
+  </div>
+
+  <h3>Loop (per song)</h3>
+
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-body">
+      <h4>Baseline</h4>
+      <p>Capture the <em>current code's</em> <code>.xsq</code> + rendered <code>.fseq</code> to <code>~/xlights/&lt;slug&gt;__baseline.{xsq,fseq}</code>. (For Cher this already exists; just rename.)</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-body">
+      <h4>Treatment</h4>
+      <p>Generate the <code>.xsq</code> with the <em>new policy</em> and render it to <code>~/xlights/&lt;slug&gt;__treatment.{xsq,fseq}</code>.</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">3</div>
+    <div class="step-body">
+      <h4>Pre-review (automated, in devcontainer)</h4>
+      <p>Produce <code>treatment-notes-&lt;slug&gt;.md</code> with these structural diffs:</p>
+      <ul class="tight">
+        <li><strong>Active-tier breakdown per section</strong> &mdash; observed <code>active_tiers</code> for each section in baseline vs treatment. Tiers that <em>should</em> be active per the new policy but are absent are immediate fails.</li>
+        <li><strong>Layer-stack-per-prop snapshot</strong> &mdash; for 3&ndash;5 representative props (e.g. <code>Arch - Right - 1</code>, <code>GE Flake A 1</code>, <code>Panel Matrix</code>), list every <code>(tier, effect, blend_mode, layer_index)</code> tuple firing on it during the chorus and during the bridge. Confirms BASE actually layers under PROP rather than just being scheduled but absent.</li>
+        <li><strong>Affinity-mismatch report</strong> &mdash; count placements where the selected variant's <code>tier_affinity</code> doesn't match the <code>tier_map[group.tier]</code> value. A high count on tier 1 means scoring isn't routing toward background variants and we need to adjust the seed values.</li>
+        <li><strong>Palette and brightness deltas</strong> &mdash; per-section <code>palette_luminance_mean</code>, <code>palette_luminance_cv</code>, <code>effect_repeat_rate</code> from the microscope-style metric set. Used to spot "BASE is now louder than HERO" symptoms.</li>
+      </ul>
+      <p>Pre-review output is a markdown document with a one-line verdict at the top: <code>PRE-REVIEW: PASS</code> or <code>PRE-REVIEW: FAIL &mdash; &lt;reason&gt;</code>. If FAIL, the iteration goes back to step 1 with the suggested adjustment without bothering the human reviewer.</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">4</div>
+    <div class="step-body">
+      <h4>Visual review (human, only on PASS)</h4>
+      <p>Open both <code>.xsq</code> in xLights side-by-side. Watch the first 30 seconds, a busy section (chorus / drop), and a quiet section (bridge / intro). Append observations directly to the same <code>treatment-notes-&lt;slug&gt;.md</code>, one entry per observation:</p>
+<pre><code>section: chorus 1 (1:14&ndash;1:38)
+observation: BASE Twinkle is now visible under the PROP arches &mdash;
+             reads as a soft glow, doesn't compete. Good.
+adjustment: none</code></pre>
+<pre><code>section: bridge (2:08&ndash;2:24)
+observation: BASE went to Color Wash (red&rarr;green crossfade) during
+             the "ethereal" branch. Way too bold for a quiet
+             moment &mdash; brighter than the HERO Panel Matrix.
+adjustment: Color Wash should not be in the background pool for
+             ethereal sections. Either ratchet up the affinity
+             weight (currently 0.20 &rarr; maybe 0.30) or filter Color
+             Wash from ethereal-mood candidates entirely.</code></pre>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">5</div>
+    <div class="step-body">
+      <h4>Iterate</h4>
+      <p>Apply adjustments to the policy values, regenerate, re-render, re-pre-review. Most iterations should resolve in the pre-review step without needing a fresh visual review.</p>
+    </div>
+  </div>
+
+  <h3>When this loop ends</h3>
+  <ul class="tight">
+    <li>All three fixtures pass automated pre-review (active tiers populated, layer stacks coherent, affinity mismatches near zero).</li>
+    <li>The most recent visual review pass on each fixture produces zero "this is worse than baseline" observations.</li>
+    <li>Microscope <code>tier_placement_breakdown</code> (now wired to count tier 1, 2, 4 placements after this change) shows the expected tiers receiving placements per the mood policy.</li>
+    <li>The notes files contain at least 5&ndash;10 visual-review entries per song so future changes have a record of what was watched and why each adjustment was made.</li>
+  </ul>
+  <p class="muted">The notes files become the actual deliverable that grounds the change. They live colocated with the test renders (not in <code>docs/</code>), because they are diagnostic logs of a specific iteration session &mdash; not permanent documentation.</p>
+
+  <details>
+    <summary>Pre-review scripts</summary>
+    <p>Two short scripts to write as part of this change (live under <code>scripts/</code> since they're iteration tooling, not production code):</p>
+    <ul class="tight">
+      <li><code>scripts/render_baseline_treatment.sh</code> &mdash; wrapper that takes a song slug, regenerates both baseline and treatment <code>.xsq</code> (using separate git refs or a feature flag), invokes <code>xlights-render.sh</code> on each, and lays out the <code>~/xlights/&lt;slug&gt;__{baseline,treatment}.{xsq,fseq}</code> pair. ~30 lines of bash.</li>
+      <li><code>scripts/pre_review_tier_layering.py</code> &mdash; produces the per-iteration markdown report described above. Reads both <code>.xsq</code> and (optionally) the <code>.fseq</code> for pixel-level brightness sanity checks. Pure read-only &mdash; no mutation of the generator code. ~150 lines.</li>
+    </ul>
+    <p>These scripts are part of the iteration plan, not the production change. They live in <code>scripts/</code> and don't trigger the Design-First gate (they're not in shared modules).</p>
+  </details>
+
+  <div class="callout callout-not">
+    <strong>What this loop is NOT</strong>
+    <ul class="tight" style="margin-top: 8px;">
+      <li>Not a measurement of "is the sequence good." That is a separate question (the strategic conversation that started this change). The loop only validates that the policy fix doesn't <em>make things worse</em> and that tiers 1, 2, 4 produce visually coherent output when active.</li>
+      <li>Not a substitute for unit tests on the policy's exact return values. Both are needed.</li>
+      <li>Not a replacement for the user's eyes on rendered motion. The pre-review catches structural failures (tier 1 still empty, BASE still picking Color Wash 90% of the time, etc.); only the human watching the rendered output can catch motion / transition / music sync problems.</li>
+    </ul>
+  </div>
+</section>
+
+<section class="block" id="scope">
+  <h2>Out of scope</h2>
+  <ul class="tight">
+    <li>Tier 3 TYPE and tier 5 TEX activation. They are written to the layout but unused; addressing them is a separate change.</li>
+    <li>Tier 7 COMP rotation entries not surviving into the <code>.xsq</code>. Separate bug; surfaced during this investigation but not part of this fix.</li>
+    <li>Lifting the <code>tier_map</code> and active-tier-set policies to JSON config. <a href="#alternative">Considered and rejected.</a></li>
+    <li>Variant-library re-tagging. The 75 background-tagged variants are taken at face value; if iteration shows specific variants are miscategorised, that's a follow-up data change.</li>
+  </ul>
+</section>
+
+</main>
+</div>
+</body>
+</html>

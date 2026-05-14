@@ -358,8 +358,13 @@ proxy for risk. Any change — regardless of line count — requires a design:
 ### Required contents of the design artifact
 
 The design may be an OpenSpec change directory (`openspec/changes/<name>/` with
-`proposal.md` + `design.md`) or an inline plan in the conversation. Either form
-must cover:
+`proposal.md` + `design.html`) or an inline plan in the conversation. The
+`design.html` is the rich human-review artifact and links the shared stylesheet
+at `openspec/changes/_design.css` via `<link rel="stylesheet" href="../_design.css">`
+— do not re-inline CSS. Reference example:
+`openspec/changes/tier-layering-policy/design.html`. `proposal.md`, `tasks.md`,
+and any `specs/` deltas remain markdown because they are read by OpenSpec
+tooling and by the `openspec-apply-change` skill. Either form must cover:
 
 - **Goal** — one sentence of what problem this solves.
 - **Approach** — the chosen solution, with at least one **alternative considered**
