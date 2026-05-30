@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Design: energy-continuous brightness gradient</title>
+<link rel="stylesheet" href="../_design.css">
+</head>
+<body>
+<div class="layout">
+
+<nav class="toc">
+  <h2>Sections</h2>
+  <ol>
+    <li><a href="#goal">Goal</a></li>
+    <li><a href="#evidence">Evidence</a></li>
+    <li><a href="#approach">Approach</a></li>
+    <li><a href="#alternative">Alternatives considered</a></li>
+    <li><a href="#files">Files touched</a></li>
+    <li><a href="#regression">Regression surface</a></li>
+    <li><a href="#echoes">Historical echoes</a></li>
+    <li><a href="#verification">Verification plan</a></li>
+    <li><a href="#scope">Out of scope</a></li>
+  </ol>
+</nav>
+
+<main>
+
+<header class="doc-header">
+  <p class="kicker">OpenSpec design · energy-brightness-gradient</p>
+  <h1>Design: energy-continuous brightness gradient</h1>
+  <p class="lede">Rendered brightness does not track section energy
+  (measured r = −0.59). Give brightness the same continuous-energy treatment
+  the other visual dimensions already have, via a bounded palette-value
+  multiplier — without re-introducing the dim-section floor PR #125 fixed.</p>
+</header>
+
+<section id="goal">
+  <h2>Goal</h2>
+  <p>Make rendered brightness rise monotonically with section
+  <code>energy_score</code> so a higher-energy section reads brighter than a
+  lower-energy one, closing the one energy dimension that is still quantized
+  away while the others (speed, color boldness, sparkle, density) already
+  scale continuously.</p>
+</section>
+
+<section id="evidence">
+  <h2>Evidence</h2>
+  <p>Render-grounded FSEQ diagnostics on two songs against Rob's real 81-prop
+  layout. Brightness = mean of lit channels per section.</p>
+  <table>
+    <thead><tr><th>Section</th><th>Energy</th><th>Rendered brightness</th></tr></thead>
+    <tbody>
+      <tr><td>intro</td><td>51</td><td>50</td></tr>
+      <tr><td>verse</td><td><strong>64 (highest)</strong></td><td><strong>28 (near-dimmest)</strong></td></tr>
+      <tr><td>chorus</td><td>47</td><td>41</td></tr>
+      <tr><td>verse</td><td>41</td><td><strong>104 (brightest)</strong></td></tr>
+      <tr><td>bridge</td><td>48</td><td>41</td></tr>
+    </tbody>
+  </table>
+  <p>Across sections, energy↔brightness correlation <strong>r = −0.59</strong>
+  (Nostalgic Piano, real librosa sections + RMS energy). The same flat/scrambled
+  pattern appeared on Maple Leaf Rag.</p>
+  <p class="callout">The inversion is essentially coincidental: energy reaches
+  brightness only through the 3-bucket <code>energy_to_mood</code>; every body
+  section lands in "structural", so brightness is governed downstream by
+  harmonic <em>tension</em> (unrelated to energy), not by the energy arc.</p>
+</section>
+
+<section id="approach">
+  <h2>Approach</h2>
+  <p>This generator has <strong>no <code>Brightness</code> parameter</strong> —
+  brightness is the HSV value (V) of the palette colors. The single existing
+  per-section brightness lever is <code>adjust_palette_brightness(palette,
+  tension)</code> in <code>chord_colors.py</code>, which scales V by a
+  tension-derived multiplier.</p>
+  <p>Add a parallel, energy-derived multiplier composed with it:</p>
+  <pre><code>def energy_brightness_multiplier(energy_score: int) -> float:
+    # energy 0 → 0.80, energy 100 → 1.20 (linear, clamped)
+    return 0.80 + max(0, min(100, energy_score)) / 100.0 * 0.40
+
+# at per-section palette finalization:
+final_V = base_V × tension_mult × energy_mult   # each clamped to ≤ 100</code></pre>
+  <p>Energy continues to drive tier <em>selection</em> via
+  <code>mood_tier</code> (unchanged). This adds an orthogonal brightness
+  gradient <em>within</em> whatever tier set the mood selects.</p>
+  <p><strong>Floor safety:</strong> the multiplier minimum is 0.80 — it never
+  reduces brightness below 80% of the post-#125 value, so it cannot
+  re-introduce the dim-section regression. The gradient only adds headroom at
+  the high-energy end.</p>
+</section>
+
+<section id="alternative">
+  <h2>Alternatives considered</h2>
+  <h3>Re-bucket / widen <code>energy_to_mood</code></h3>
+  <p>Add more mood tiers so energy resolves more finely. <strong>Rejected:</strong>
+  mood_tier drives which <em>tiers fire</em> — changing it perturbs placement
+  structure, group counts, the rotation plan, and every tier-coverage test, a
+  large blast radius to fix a brightness-scaling gap. The palette-V multiplier
+  is orthogonal and leaves placement untouched.</p>
+  <h3>Also scale speed / color / boldness harder with energy</h3>
+  <p>Originally raised in conversation. <strong>Rejected as already done:</strong>
+  <code>compute_duration_target</code> (speed, ×0.7–1.3),
+  <code>restrain_palette</code> (color count, <code>2 + energy//33</code>), and
+  <code>compute_music_sparkles</code> all scale continuously with energy today.
+  Duplicating that would over-correct. This change closes only the brightness
+  gap. <em>Consequence for verification:</em> high-energy sections are already
+  faster/busier/more colorful, so the test must be multi-dimensional to avoid
+  over-correcting brightness.</p>
+</section>
+
+<section id="files">
+  <h2>Files touched</h2>
+  <ul>
+    <li><strong>Modified</strong> — <code>src/generator/effect_placer.py</code>:
+      add <code>energy_brightness_multiplier</code> helper; apply it at the
+      per-section palette-finalization site alongside the existing
+      <code>adjust_palette_brightness</code> call.</li>
+  </ul>
+  <p>No new files. No schema change. No change to <code>models.py</code>,
+  <code>energy_to_mood</code>, or tier selection.</p>
+</section>
+
+<section id="regression">
+  <h2>Regression surface</h2>
+  <p>Caller audit (grep across <code>src/</code> + <code>tests/</code>):</p>
+  <ul>
+    <li><code>_compute_active_tiers</code> — <strong>untouched.</strong> Called
+      once at <code>plan.py:315</code>. Listed only to confirm this change does
+      not affect it.</li>
+    <li><code>energy_to_mood</code> — <strong>untouched.</strong> Callers:
+      <code>energy.py:84</code>, <code>plan.py:419</code>. Mood path unchanged.</li>
+    <li><code>_TIER_BRIGHTNESS</code> — <strong>untouched.</strong> Only a
+      palette-selector flag at <code>effect_placer.py:702</code>, not a
+      multiplier.</li>
+    <li><code>adjust_palette_brightness</code> — call site gains a second
+      multiplier factor; signature unchanged, so its own callers/tests are
+      unaffected.</li>
+    <li>New <code>energy_brightness_multiplier</code> — pure function, new
+      symbol, no existing callers; covered by a new unit test.</li>
+  </ul>
+  <p><strong>Golden/baseline impact:</strong> existing generator golden tests
+  and microscope baselines will shift (palette V changes per section). These
+  are human-blessed checkpoints — they get re-captured only after the render
+  loop confirms the change is an improvement, not auto-refreshed.</p>
+</section>
+
+<section id="echoes">
+  <h2>Historical echoes</h2>
+  <p><code>.wolf/buglog.json</code>: 0 matches for energy/brightness/mood/tier.
+  <code>.wolf/cerebrum.md</code> Do-Not-Repeat: no matching entries.</p>
+  <p><strong>PR #125 (<code>dim-section-real-cause</code>)</strong> — directly
+  adjacent and important. It found that low-energy <em>structural</em> sections
+  rendered pathologically dim because the rotation dedup fallback kept sparse
+  Single-Strand variants; it fixed the <em>floor</em> via dense-fill variant
+  preference + relaxed density brackets. Its own smoking gun (N2 energy 49
+  bright vs section 8 energy 50 dim — same energy, different surviving variants)
+  <em>confirms</em> this design's root cause: within the structural band,
+  brightness today is governed by variant/density accident, not energy. #125
+  explicitly did <strong>not</strong> add an energy gradient and stayed within
+  the structural band. This change is <strong>complementary</strong>: it adds
+  the gradient #125 omitted, and its 0.80 floor is constructed specifically to
+  not undo #125's floor fix.</p>
+</section>
+
+<section id="verification">
+  <h2>Verification plan</h2>
+  <p>Via <code>tools/render_panel</code> — multi-dimensional, because
+  speed/density/color already carry energy:</p>
+  <ul>
+    <li>Energy↔brightness correlation on Nostalgic Piano: <strong>−0.59 →
+      ≥ +0.5</strong>.</li>
+    <li><strong>Floor preserved:</strong> minimum per-section brightness ≥
+      pre-change minimum (guards #125's fix).</li>
+    <li><code>lit_mean</code> and placement counts unchanged (tier selection
+      untouched).</li>
+    <li>Before/after contact sheet of highest- and lowest-energy sections —
+      high-energy section visibly brighter.</li>
+    <li>New unit test for <code>energy_brightness_multiplier</code> (monotonic,
+      bounded 0.80–1.20, clamps out-of-range input).</li>
+  </ul>
+  <p>Revert criteria: correlation fails to go positive, or the brightness floor
+  drops.</p>
+</section>
+
+<section id="scope">
+  <h2>Out of scope</h2>
+  <ul>
+    <li>Changing <code>energy_to_mood</code> buckets or tier selection.</li>
+    <li>Emitting an xLights <code>Brightness</code> / value-curve parameter.</li>
+    <li>Re-tuning #125's density brackets or dense-fill set.</li>
+    <li>Confirming the real vamp analyzer also clusters energy into one mood
+      band — likely true and motivating, but not required for this change,
+      whose defect is structural in the code regardless of input source.</li>
+  </ul>
+</section>
+
+</main>
+</div>
+</body>
+</html>
