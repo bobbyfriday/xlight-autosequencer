@@ -1,5 +1,27 @@
 # Proposal: energy-continuous brightness gradient
 
+> **WITHDRAWN 2026-05-31 — DO NOT IMPLEMENT.** The motivating evidence was an
+> artifact of the diagnostic harness, not a real generator defect. The
+> measured "r = −0.59 inversion" came from feeding **un-normalized** per-section
+> energy scores into the generator. The real pipeline normalizes section energy
+> across the song (`src/story/builder.py:550`, min→0 / max→100). When the same
+> songs are re-measured with normalized scores (what production actually
+> produces), the inversion disappears:
+>
+> | Song | raw scores (flawed test) | normalized (real pipeline) |
+> |---|---|---|
+> | Maple Leaf Rag | — | **r = +0.89** (brightness tracks energy well) |
+> | Nostalgic Piano | −0.59 | **r = −0.17** (uncorrelated; confounded by silence-fragment "sections" and a genuinely compressed dynamic range appropriate to a quiet piano piece) |
+>
+> Conclusion: the generator's energy→brightness mapping is **sound** on songs
+> with a real dynamic arc. There is no systematic inversion to fix. The
+> `design.html` was removed so it can't be acted on. The text below is retained
+> verbatim as a record of what was investigated and why it was dropped.
+>
+> If the quiet-song weakness is ever revisited, do it on the **real
+> vamp/madmom analyzer** (production energy + sections), not the librosa proxy
+> used here, and across several songs — not a single fixture.
+
 ## Problem
 
 Render-grounded diagnostics on two songs (Maple Leaf Rag — synthetic story;
