@@ -2566,6 +2566,26 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-05-30T17:26:48.991505Z"
+    },
+    {
+      "id": "bug-161",
+      "timestamp": "2026-06-02",
+      "error_message": "ImportError: cannot import name 'MutableSequence' from 'collections' \u2014 madmom_beats/madmom_downbeats silently absent on Python 3.11",
+      "file": "src/analyzer/vamp_runner.py, src/analyzer/capabilities.py",
+      "root_cause": "madmom 0.16.1 processors.py does `from collections import MutableSequence`, removed from collections (moved to collections.abc) in Python 3.10. Repo had a numpy-alias shim before madmom import but no collections equivalent, so the import failed and was swallowed as 'madmom unavailable'.",
+      "fix": "Mirror the numpy-alias shim: restore collections.MutableSequence from collections.abc before any madmom import, in vamp_runner.py (module top) and capabilities.py (both the .venv-vamp probe string and the in-process detect_capabilities branch). Verified detect_capabilities()['madmom']=True after.",
+      "tags": [
+        "madmom",
+        "python3.11",
+        "collections",
+        "MutableSequence",
+        "analyzer",
+        "shim",
+        "capabilities"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-02"
     }
   ]
 }
