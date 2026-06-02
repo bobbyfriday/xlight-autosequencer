@@ -28,7 +28,8 @@
       "Bash(PATH=\"$HOME/.local/bin:$PATH\" xlight-analyze generate '/home/node/xlights/mp3/mad russian christmas.mp3' /home/node/xlights/xlights_rgbeffects.xml --no-wizard -o /home/node/xlights --occasion christmas --fresh)",
       "Bash(python3 -c \":*)",
       "Bash(git push:*)",
-      "Bash(gh pr *)"
+      "Bash(gh pr *)",
+      "mcp__aa777ca7-517b-4bea-b331-cd21403447d2__get_file_metadata"
     ],
     "defaultMode": "bypassPermissions",
     "additionalDirectories": [
