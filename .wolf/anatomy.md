@@ -15,8 +15,12 @@
 
 ## .claude/
 
-- `settings.json` (~441 tok)
+- `settings.json` — registers the SessionStart hook (~120 tok)
 - `settings.local.json` (~469 tok)
+
+## .claude/hooks/
+
+- `session-start.sh` — web-session light bootstrap (ffmpeg + pip dev/ui-tests + frontend build); works around blinker/PPA/pytest-shadow traps (~900 tok)
 
 ## .claude/commands/
 
@@ -986,6 +990,7 @@
 ## docs/
 
 - `microscope-tier-effectiveness.md` — Tier and Layout Effectiveness — 2026-05-02 Diagnostic (~1637 tok)
+- `web-iteration.md` — Iterating in Claude Code on the web: bootstrap hook, gotchas, test flows, generator loops (~1100 tok)
 
 ## openspec/changes/acceptance-gate/
 
@@ -1028,6 +1033,7 @@
 ## scripts/
 
 - `boundary_confidence_map.py` — Boundary confidence map — diagnostic tool for section boundary detection. (~8430 tok)
+- `setup-heavy.sh` — on-demand heavy-stack installer: `render` (Xvfb/GL + xLights AppImage) or `analyzer` (delegates to install.sh) (~700 tok)
 
 ## src/
 
