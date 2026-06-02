@@ -44,6 +44,40 @@ def test_capabilities_probe_restores_mutable_sequence() -> None:
     )
 
 
+def test_downbeats_asarray_compat_present() -> None:
+    """madmom_downbeats must restore pre-1.24 np.asarray semantics.
+
+    madmom 0.16.1's downbeats.process does np.asarray(results)[:, 1] on a
+    ragged list; numpy >= 1.24 raises instead of making an object array.
+    """
+    source = (_SRC / "algorithms" / "madmom_beat.py").read_text()
+    assert "_patch_downbeats_asarray" in source, (
+        "The downbeats np.asarray compatibility shim was removed from "
+        "src/analyzer/algorithms/madmom_beat.py — madmom_downbeats will fail "
+        "with a ragged-array ValueError on numpy >= 1.24."
+    )
+    assert "_patch_downbeats_asarray()" in source.split("def _run", 2)[-1] or \
+        source.count("_patch_downbeats_asarray()") >= 1, (
+        "The downbeats shim helper is defined but never called in _run."
+    )
+
+
+def test_asarray_compat_handles_ragged_input() -> None:
+    """The asarray fallback restores object-array behavior on ragged input."""
+    import numpy as np
+
+    def _asarray_compat(a, *args, **kwargs):
+        try:
+            return np.asarray(a, *args, **kwargs)
+        except ValueError:
+            return np.asarray(a, dtype=object)
+
+    ragged = [(np.arange(3), 0.1), (np.arange(5), 0.9)]
+    arr = _asarray_compat(ragged)
+    # The whole point: column 1 (the log-probs) is recoverable for argmax.
+    assert np.argmax(arr[:, 1]) == 1
+
+
 def test_shim_logic_restores_mutable_sequence() -> None:
     """The shim idiom actually makes the legacy import path resolve."""
     # collections.abc always has it; the shim copies it onto the collections
